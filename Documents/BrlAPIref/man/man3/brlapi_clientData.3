@@ -1,0 +1,54 @@
+.TH "brlapi_clientData" 3 "Fri Feb 22 2019" "Version 0.7" "BrlAPI" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+brlapi_clientData
+.SH SYNOPSIS
+.br
+.PP
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "void \fBBRLAPI_STDCALL\fP \fBbrlapi_setClientData\fP (void *data)"
+.br
+.ti -1c
+.RI "void \fBBRLAPI_STDCALL\fP \fBbrlapi__setClientData\fP (\fBbrlapi_handle_t\fP *handle, void *data)"
+.br
+.ti -1c
+.RI "void *\fBBRLAPI_STDCALL\fP \fBbrlapi_getClientData\fP (void)"
+.br
+.ti -1c
+.RI "void *\fBBRLAPI_STDCALL\fP \fBbrlapi__getClientData\fP (\fBbrlapi_handle_t\fP *handle)"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Clients can register a pointer to data that can then be used e\&.g\&. in exception handlers\&. 
+.SH "Function Documentation"
+.PP 
+.SS "void* \fBBRLAPI_STDCALL\fP brlapi__getClientData (\fBbrlapi_handle_t\fP * handle)"
+
+.SS "void \fBBRLAPI_STDCALL\fP brlapi__setClientData (\fBbrlapi_handle_t\fP * handle, void * data)"
+
+.SS "void* \fBBRLAPI_STDCALL\fP brlapi_getClientData (void)"
+Retrieves the pointer to the private client data
+.PP
+\fBReturns:\fP
+.RS 4
+the pointer to the private client data 
+.RE
+.PP
+
+.SS "void \fBBRLAPI_STDCALL\fP brlapi_setClientData (void * data)"
+Register a pointer to client data
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdata\fP The pointer to the private client data 
+.RE
+.PP
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for BrlAPI from the source code\&.

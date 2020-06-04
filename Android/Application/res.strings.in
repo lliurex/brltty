@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- @configure_input@ -->
+
+<resources>
+  <string name="PACKAGE_COPYRIGHT">@PACKAGE_COPYRIGHT@</string>
+  <string name="app_version">@PACKAGE_VERSION@</string>
+  <string name="web_site_url">@PACKAGE_URL@</string>
+  <string name="community_message_address">@PACKAGE_BUGREPORT@</string>
+</resources>

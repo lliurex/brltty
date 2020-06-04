@@ -1,0 +1,54 @@
+brlapi <function> [<arg> ...]
+   getVersionString
+   getVersionNumbers
+   openConnection [<option> ...]
+      -host [<host>][:<port>]
+      -auth {none | <scheme>,...}
+         keyfile:<file>
+         user:<name>
+         group:<name>
+         polkit
+   expandKeyCode <keyCode> <arrayName>
+   describeKeyCode <keyCode> <arrayName>
+   makeDots <dotNumbersList>
+   getHandleSize
+
+brlapi<sessionNumber> function [arg ...]
+   getHost
+   getAuth
+   getFileDescriptor
+   getDriverName
+   getModelIdentifier
+   getDisplaySize
+   enterTtyMode [<option> ...]
+      -tty {default | <number>}
+      -keyCodes
+      -events <driver>
+   enterTtyModeWithPath [<option> ...]
+      -path <list>
+      -keyCodes
+      -events <driver>
+   leaveTtyMode
+   setFocus <ttyNumber>
+   readKey <wait>
+   readKeyWithTimeout {infinite | <seconds>}
+   acceptKeys <rangeType> [<keyCodeList>]
+   ignoreKeys <rangeType> [<keyCodeList>]
+   acceptKeyRanges <keyRangeList>
+   ignoreKeyRanges <keyRangeList>
+   write [<option> ...]
+      -text <string>
+      -and <dots>
+      -or <dots>
+      -region <start> <size>
+      -cursor {leave | off | <offset>}
+      -display {default | <number>}
+   writeDots <dots>
+   enterRawMode <driver>
+   leaveRawMode
+   recvRaw <maximumLength>
+   sendRaw <packet>
+   suspendDriver <driver>
+   resumeDriver
+   closeConnection
+

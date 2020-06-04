@@ -1,0 +1,325 @@
+#!/bin/bash
+###############################################################################
+# BRLTTY - A background process providing access to the console screen (when in
+#          text mode) for a blind person using a refreshable braille display.
+#
+# Copyright (C) 1995-2019 by The BRLTTY Developers.
+#
+# BRLTTY comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+. "`dirname "${0}"`/../prologue.sh"
+. "${programDirectory}/mingw.sh"
+
+set -e
+umask 022
+
+readonly urlArchiveRoot="http://brltty.app/archive/Windows"
+readonly defaultTemporaryDirectory="${TMPDIR:-/tmp}/brltty-${programName}"
+
+havePath() {
+   local path="${1}"
+
+   [ -n "${path}" ] || return 1
+   [ -e "${path}" ] || return 2
+   return 0
+}
+
+verifyDirectory() {
+   local path="${1}"
+
+   [ -e "${path}" ] || semanticError "directory not found: ${path}"
+   [ -d "${path}" ] || semanticError "not a directory: ${path}"
+   [ -w "${path}" ] || semanticError "directory not writable: ${path}"
+   [ -r "${path}" ] || semanticError "directory not readable: ${path}"
+   [ -x "${path}" ] || semanticError "directory not searchable: ${path}"
+}
+
+findCommand() {
+   local name="${1}"
+   local variable="${2}"
+
+   local path="$(command -v "${name}")"
+   [ -n "${path}" ] || return 1
+   [ -z "${variable}" ] || setVariable "${variable}" "${path}"
+}
+
+executeCommand() {
+   logMessage detail "executing command: ${*}"
+
+   exitStatus=0
+   "${@}" || exitStatus="${?}"
+
+   [ "${exitStatus}" -eq 0 ] || logMessage warning "command failed: ${1}: exit status ${exitStatus}"
+   return "${exitStatus}"
+}
+
+downloadFile() {
+   local source="${1}"
+   local target="${2}"
+
+   logMessage step "downloading file: ${source}"
+   [ -z "${target}" ] && target="${source##*/}"
+   executeCommand wget -q -O "${target}" "${urlArchiveRoot}/${source}"
+}
+
+unpackArchive() {
+   local path="${1}"
+
+   case "${path}"
+   in
+      *.zip) set -- unzip -q;;
+      *.tar.gz) set -- tar xfz;;
+      *) semanticError "unsupported archive: ${path}";;
+   esac
+
+   executeCommand "${@}" "${path}"
+}
+
+applyPatch() {
+   local patch="${1}"
+   local directory="${2}"
+   shift 2
+
+   while [ "${#}" -gt 0 ]
+   do
+      local file="${1}"
+      local pattern="${2}"
+      shift 2
+
+      grep -q "${pattern}" "${directory}/${file}" || {
+         local name="${patch##*/}"
+         logMessage task "applying patch: ${name}"
+
+         downloadFile "${patch}"
+         "${dryRun}" || executeCommand patch -N -i "${temporaryDirectory}/${name}" -d "${directory}"
+         return 0
+      }
+   done
+}
+
+installFile() {
+   local file="${1}"
+   local directory="${2}"
+
+   local source="${file##*/}"
+   local target="${directory}/${source}"
+
+   [ -e "${target}" ] || {
+      logMessage task "installing file: ${target}"
+      downloadFile "${file}"
+      [ -d "${directory}" ] || "${dryRun}" || executeCommand mkdir -p "${directory}"
+      "${dryRun}" || executeCommand cp "${source}" "${target}"
+   }
+}
+
+installLink() {
+   local to="${1}"
+   local directory="${2}"
+   local name="${3}"
+
+   [ -n "${name}" ] || name="${to##*/}"
+   local from="${directory}/${name}"
+
+   havePath "${from}" || {
+      logMessage task "installing link: ${from} -> ${to}"
+      [ -e "${to}" ] || semanticError "link target not found: ${to}"
+      "${dryRun}" || executeCommand ln -s "${to}" "${from}"
+   }
+}
+
+installWindowsArchive() {
+   local archive="${1}"
+   local path="${2}"
+
+   havePath "${path}" || {
+      logMessage task "installing Windows archive: ${archive}"
+      downloadFile "${archive}"
+
+      local directory="content-${archive}"
+      executeCommand mkdir "${directory}"
+      executeCommand cd "${directory}"
+
+      unpackArchive "../${archive}"
+      set -- *
+
+      if [ "${#}" -eq 1 -a -d "${1}" ]
+      then
+         "${dryRun}" || executeCommand mv "${1}" "${path}"
+         executeCommand cd ..
+         "${dryRun}" || executeCommand rmdir "${directory}"
+      else
+         executeCommand cd ..
+         "${dryRun}" || executeCommand mv "${directory}" "${path}"
+      fi
+   }
+}
+
+installMingwArchive() {
+   local archive="${1}"
+   local path="${2}"
+
+   havePath "${mingwDirectory}/${path}" || {
+      logMessage task "installing MinGW archive: ${archive}"
+      downloadFile "MinGW/${archive}"
+
+      "${dryRun}" || {
+         executeCommand cd "${mingwDirectory}"
+         unpackArchive "${temporaryDirectory}/${archive}"
+         executeCommand cd "${temporaryDirectory}"
+      }
+   }
+}
+
+installMingwPackage() {
+   local package="${1}"
+   local path="${2}"
+
+   havePath "${path}" || {
+      logMessage task "installing MinGW package: ${package}"
+      "${dryRun}" || executeCommand mingw-get install "${package}"
+   }
+}
+
+installMicrosoftVisualCTools() {
+   local file
+
+   for file in lib.exe link.exe mspdb100.dll msvcr100.dll
+   do
+      installFile "MSVC/${file}" "/usr/local/bin"
+   done
+}
+
+installPackageConfigurationFiles() {
+   local package
+
+   for package in libusb libusb-1.0
+   do
+      installFile "pkgconfig/${package}.pc" "${librariesDirectory}/pkgconfig"
+   done
+}
+
+installBluetoothHeaders() {
+   local name
+
+   for name in ws2bth bthdef bthsdpdef
+   do
+      installFile "Bluetooth/${name}.h" "${headersDirectory}"
+   done
+}
+
+installLibUSB0() {
+   local directory="${windowsDirectory}/LibUSB-Win32"
+   installWindowsArchive libusb-win32-bin-1.2.6.0.zip "${directory}"
+   installLink "${directory}/include/lusb0_usb.h" "${headersDirectory}" usb.h
+   installLink "${directory}/lib/gcc/libusb.a" "${librariesDirectory}"
+   installLink "${directory}/bin/x86/libusb0_x86.dll" "${commandsDirectory}" libusb0.dll
+}
+
+installLibUSB1() {
+   local directory="${windowsDirectory}/LibUSB-1.0"
+   installWindowsArchive libusbx-1.0.18-win.tar.gz "${directory}"
+   installLink "${directory}/include/libusbx-1.0" "${headersDirectory}" libusb-1.0
+   installLink "${directory}/MinGW32/dll/libusb-1.0.dll.a" "${librariesDirectory}"
+   installLink "${directory}/MinGW32/dll/libusb-1.0.dll" "${commandsDirectory}"
+   installWindowsArchive winusb.zip "${windowsDirectory}/WinUSB"
+}
+
+installCython() {
+   local python
+
+   if findCommand python python
+   then
+      local directory="${python%/*}"
+
+      findCommand cython || {
+         logMessage task "installing Cython"
+         "${dryRun}" || executeCommand pip -q install cython
+      }
+
+      installFile Cython/vcruntime140.dll "${directory}/libs"
+      installFile Cython/distutils.cfg "${directory}/lib/distutils"
+      applyPatch "Cython/PythonCygwinCCompiler.patch" "${directory}/lib/distutils" "cygwinccompiler.py" "vcruntime140"
+   else
+      logMessage warning "Python not found"
+   fi
+}
+
+addProgramOption d flag dryRun "dry run - don't actually install anything"
+addProgramOption k flag keepFiles "keep (do not remove) the temporary directory"
+addProgramOption t string.directory temporaryDirectory "the temporary directory to use" "${defaultTemporaryDirectory}"
+parseProgramArguments "${@}"
+
+readonly windowsDirectory="/c"
+verifyDirectory "${windowsDirectory}"
+
+readonly mingwDirectory="/mingw"
+verifyDirectory "${mingwDirectory}"
+
+readonly commandsDirectory="${mingwDirectory}/bin"
+verifyDirectory "${commandsDirectory}"
+
+readonly librariesDirectory="${mingwDirectory}/lib"
+verifyDirectory "${librariesDirectory}"
+
+readonly headersDirectory="${mingwDirectory}/include"
+verifyDirectory "${headersDirectory}"
+
+if [ -z "${temporaryDirectory}" ]
+then
+   temporaryDirectory="${defaultTemporaryDirectory}"
+   rm -f -r "${temporaryDirectory}"
+elif [ -e "${temporaryDirectory}" ]
+then
+   semanticError "directory already exists: ${temporaryDirectory}"
+fi
+
+mkdir -p "${temporaryDirectory}"
+cd "${temporaryDirectory}"
+temporaryDirectory="$(pwd -W)"
+
+installMingwPackage msys-bison /bin/bison
+installMingwPackage msys-dos2unix /bin/dos2unix
+installMingwPackage msys-groff /bin/groff
+installMingwPackage msys-m4 /bin/m4
+installMingwPackage msys-tar /bin/tar
+installMingwPackage msys-unzip /bin/unzip
+installMingwPackage msys-wget /bin/wget
+installMingwPackage msys-zip /bin/zip
+
+installMingwPackage mingw32-libpdcurses /mingw/include/curses.h
+installMingwPackage mingw32-pthreads-w32 /mingw/include/pthread.h
+installMingwPackage mingw32-tcl /mingw/bin/tclsh
+
+installMicrosoftVisualCTools
+installPackageConfigurationFiles
+installBluetoothHeaders
+
+installMingwArchive pkg-config_0.28-1_win32.zip "bin/pkg-config.exe"
+installMingwArchive glib_2.34.3-1_win32.zip "bin/libgobject-2.0-0.dll"
+
+installWindowsArchive AutoHotkey104805.tar.gz "${ahkLocation}"
+installWindowsArchive nsis-3.0b0.tar.gz "${nsisLocation}"
+installWindowsArchive icu4c-53_1-Win32-msvc10.zip "${icuLocation}"
+
+installLibUSB0
+installLibUSB1
+installCython
+
+"${keepFiles}" || {
+   logMessage task "cleaning up"
+   cd "${initialDirectory}"
+   rm -f -r "${temporaryDirectory}"
+}
+
+logMessage task "done"
+exit 0

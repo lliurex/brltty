@@ -1,0 +1,591 @@
+.TH "brlapi_constants.h" 3 "Fri Feb 22 2019" "Version 0.7" "BrlAPI" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+brlapi_constants.h
+.SH SYNOPSIS
+.br
+.PP
+.SS "Macros"
+
+.PP
+.RI "\fB\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_NOOP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 0)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_LNUP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 1)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_LNDN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 2)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_WINUP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 3)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_WINDN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 4)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PRDIFLN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 5)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_NXDIFLN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 6)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ATTRUP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 7)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ATTRDN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 8)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_TOP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 9)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_BOT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 10)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_TOP_LEFT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 11)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_BOT_LEFT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 12)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PRPGRPH\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 13)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_NXPGRPH\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 14)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PRPROMPT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 15)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_NXPROMPT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 16)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PRSEARCH\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 17)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_NXSEARCH\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 18)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CHRLT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 19)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CHRRT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 20)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_HWINLT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 21)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_HWINRT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 22)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_FWINLT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 23)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_FWINRT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 24)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_FWINLTSKIP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 25)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_FWINRTSKIP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 26)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_LNBEG\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 27)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_LNEND\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 28)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_HOME\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 29)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_BACK\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 30)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_RETURN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 31)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_FREEZE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 32)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_DISPMD\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 33)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SIXDOTS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 34)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SLIDEWIN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 35)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SKPIDLNS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 36)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SKPBLNKWINS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 37)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CSRVIS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 38)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CSRHIDE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 39)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CSRTRK\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 40)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CSRSIZE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 41)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CSRBLINK\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 42)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ATTRVIS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 43)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ATTRBLINK\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 44)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CAPBLINK\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 45)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_TUNES\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 46)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_AUTOREPEAT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 47)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_AUTOSPEAK\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 48)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_HELP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 49)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_INFO\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 50)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_LEARN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 51)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PREFMENU\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 52)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PREFSAVE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 53)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PREFLOAD\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 54)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_MENU_FIRST_ITEM\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 55)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_MENU_LAST_ITEM\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 56)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_MENU_PREV_ITEM\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 57)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_MENU_NEXT_ITEM\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 58)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_MENU_PREV_SETTING\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 59)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_MENU_NEXT_SETTING\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 60)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_MUTE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 61)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPKHOME\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 62)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SAY_LINE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 63)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SAY_ABOVE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 64)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SAY_BELOW\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 65)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SAY_SLOWER\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 66)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SAY_FASTER\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 67)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SAY_SOFTER\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 68)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SAY_LOUDER\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 69)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SWITCHVT_PREV\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 70)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SWITCHVT_NEXT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 71)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CSRJMP_VERT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 72)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PASTE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 73)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_RESTARTBRL\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 74)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_RESTARTSPEECH\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 75)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_OFFLINE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 76)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SHIFT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 77)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_UPPER\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 78)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CONTROL\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 79)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_META\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 80)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_TIME\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 81)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_MENU_PREV_LEVEL\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 82)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ASPK_SEL_LINE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 83)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ASPK_SEL_CHAR\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 84)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ASPK_INS_CHARS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 85)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ASPK_DEL_CHARS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 86)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ASPK_REP_CHARS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 87)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ASPK_CMP_WORDS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 88)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_CURR_CHAR\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 89)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_PREV_CHAR\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 90)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_NEXT_CHAR\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 91)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_CURR_WORD\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 92)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_PREV_WORD\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 93)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_NEXT_WORD\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 94)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_CURR_LINE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 95)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_PREV_LINE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 96)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_NEXT_LINE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 97)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_FRST_CHAR\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 98)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_LAST_CHAR\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 99)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_FRST_LINE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 100)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_LAST_LINE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 101)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_DESC_CURR_CHAR\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 102)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPELL_CURR_WORD\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 103)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ROUTE_CURR_LOCN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 104)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_CURR_LOCN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 105)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SHOW_CURR_LOCN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 106)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CLIP_SAVE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 107)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CLIP_RESTORE\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 108)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_BRLUCDOTS\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 109)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_BRLKBD\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 110)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_UNSTICK\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 111)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ALTGR\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 112)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_GUI\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 113)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_BRL_STOP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 114)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_BRL_START\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 115)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPK_STOP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 116)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPK_START\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 117)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SCR_STOP\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 118)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SCR_START\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 119)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SELECTVT_PREV\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 120)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SELECTVT_NEXT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 121)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PRNBWIN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 122)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_NXNBWIN\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 123)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_TOUCH_NAV\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 124)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SPEAK_INDENT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 125)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ASPK_INDENT\fP   (\fBBRLAPI_KEY_CMD\fP(0) + 126)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ROUTE\fP   \fBBRLAPI_KEY_CMD\fP(1)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CLIP_NEW\fP   \fBBRLAPI_KEY_CMD\fP(2)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CUTBEGIN\fP   \fBBRLAPI_KEY_CMD\fP(2)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CLIP_ADD\fP   \fBBRLAPI_KEY_CMD\fP(3)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CUTAPPEND\fP   \fBBRLAPI_KEY_CMD\fP(3)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_COPY_RECT\fP   \fBBRLAPI_KEY_CMD\fP(4)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CUTRECT\fP   \fBBRLAPI_KEY_CMD\fP(4)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_COPY_LINE\fP   \fBBRLAPI_KEY_CMD\fP(5)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CUTLINE\fP   \fBBRLAPI_KEY_CMD\fP(5)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SWITCHVT\fP   \fBBRLAPI_KEY_CMD\fP(6)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PRINDENT\fP   \fBBRLAPI_KEY_CMD\fP(7)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_NXINDENT\fP   \fBBRLAPI_KEY_CMD\fP(8)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_DESCCHAR\fP   \fBBRLAPI_KEY_CMD\fP(9)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SETLEFT\fP   \fBBRLAPI_KEY_CMD\fP(10)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SETMARK\fP   \fBBRLAPI_KEY_CMD\fP(11)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_GOTOMARK\fP   \fBBRLAPI_KEY_CMD\fP(12)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_GOTOLINE\fP   \fBBRLAPI_KEY_CMD\fP(13)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PRDIFCHAR\fP   \fBBRLAPI_KEY_CMD\fP(14)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_NXDIFCHAR\fP   \fBBRLAPI_KEY_CMD\fP(15)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CLIP_COPY\fP   \fBBRLAPI_KEY_CMD\fP(16)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_COPYCHARS\fP   \fBBRLAPI_KEY_CMD\fP(16)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CLIP_APPEND\fP   \fBBRLAPI_KEY_CMD\fP(17)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_APNDCHARS\fP   \fBBRLAPI_KEY_CMD\fP(17)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PASTE_HISTORY\fP   \fBBRLAPI_KEY_CMD\fP(18)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SET_TEXT_TABLE\fP   \fBBRLAPI_KEY_CMD\fP(19)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SET_ATTRIBUTES_TABLE\fP   \fBBRLAPI_KEY_CMD\fP(20)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SET_CONTRACTION_TABLE\fP   \fBBRLAPI_KEY_CMD\fP(21)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SET_KEYBOARD_TABLE\fP   \fBBRLAPI_KEY_CMD\fP(22)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SET_LANGUAGE_PROFILE\fP   \fBBRLAPI_KEY_CMD\fP(23)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_SELECTVT\fP   \fBBRLAPI_KEY_CMD\fP(30)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_ALERT\fP   \fBBRLAPI_KEY_CMD\fP(31)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PASSDOTS\fP   \fBBRLAPI_KEY_CMD\fP(34)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PASSAT\fP   \fBBRLAPI_KEY_CMD\fP(35)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PASSXT\fP   \fBBRLAPI_KEY_CMD\fP(36)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_PASSPS2\fP   \fBBRLAPI_KEY_CMD\fP(37)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_CONTEXT\fP   \fBBRLAPI_KEY_CMD\fP(38)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_CMD_TOUCH_AT\fP   \fBBRLAPI_KEY_CMD\fP(39)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_TOGGLE_ON\fP   \fBBRLAPI_KEY_FLG\fP(0X0100)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_TOGGLE_OFF\fP   \fBBRLAPI_KEY_FLG\fP(0X0200)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_TOGGLE_MASK\fP   (\fBBRLAPI_KEY_FLG_TOGGLE_ON\fP | \fBBRLAPI_KEY_FLG_TOGGLE_OFF\fP)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_MOTION_ROUTE\fP   \fBBRLAPI_KEY_FLG\fP(0X0400)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_MOTION_SCALED\fP   \fBBRLAPI_KEY_FLG\fP(0X0800)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_MOTION_TOLEFT\fP   \fBBRLAPI_KEY_FLG\fP(0X1000)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_SHIFT\fP   \fBBRLAPI_KEY_FLG\fP(0X01)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_UPPER\fP   \fBBRLAPI_KEY_FLG\fP(0X02)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_CONTROL\fP   \fBBRLAPI_KEY_FLG\fP(0X04)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_META\fP   \fBBRLAPI_KEY_FLG\fP(0X08)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_ALTGR\fP   \fBBRLAPI_KEY_FLG\fP(0X10)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_GUI\fP   \fBBRLAPI_KEY_FLG\fP(0X20)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_KBD_RELEASE\fP   \fBBRLAPI_KEY_FLG\fP(0X0100)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_KBD_EMUL0\fP   \fBBRLAPI_KEY_FLG\fP(0X0200)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_KEY_FLG_KBD_EMUL1\fP   \fBBRLAPI_KEY_FLG\fP(0X0400)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOT1\fP   1"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOT2\fP   2"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOT3\fP   4"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOT4\fP   8"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOT5\fP   16"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOT6\fP   32"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOT7\fP   64"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOT8\fP   128"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOTC\fP   256"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOTS\fP(dot1,  dot2,  dot3,  dot4,  dot5,  dot6,  dot7,  dot8)"
+.br
+.ti -1c
+.RI "#define \fBBRLAPI_DOT_CHORD\fP   256"
+.br
+.in -1c
+.in -1c
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for BrlAPI from the source code\&.

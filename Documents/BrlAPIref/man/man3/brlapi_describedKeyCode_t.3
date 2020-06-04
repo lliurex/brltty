@@ -1,0 +1,53 @@
+.TH "brlapi_describedKeyCode_t" 3 "Fri Feb 22 2019" "Version 0.7" "BrlAPI" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+brlapi_describedKeyCode_t
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <brlapi\&.h>\fP
+.SS "Data Fields"
+
+.in +1c
+.ti -1c
+.RI "const char * \fBtype\fP"
+.br
+.ti -1c
+.RI "const char * \fBcommand\fP"
+.br
+.ti -1c
+.RI "unsigned int \fBargument\fP"
+.br
+.ti -1c
+.RI "unsigned int \fBflags\fP"
+.br
+.ti -1c
+.RI "const char * \fBflag\fP [64 \- \fBBRLAPI_KEY_FLAGS_SHIFT\fP]"
+.br
+.ti -1c
+.RI "\fBbrlapi_expandedKeyCode_t\fP \fBvalues\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Structure holding the components of a key code as returned by \fBbrlapi_describeKeyCode()\fP 
+.SH "Field Documentation"
+.PP 
+.SS "unsigned int brlapi_describedKeyCode_t::argument"
+the argument value 
+.SS "const char* brlapi_describedKeyCode_t::command"
+the command name 
+.SS "const char* brlapi_describedKeyCode_t::flag[64 \- \fBBRLAPI_KEY_FLAGS_SHIFT\fP]"
+the flag names 
+.SS "unsigned int brlapi_describedKeyCode_t::flags"
+the flag count 
+.SS "const char* brlapi_describedKeyCode_t::type"
+the type name 
+.SS "\fBbrlapi_expandedKeyCode_t\fP brlapi_describedKeyCode_t::values"
+the actual values of the components 
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for BrlAPI from the source code\&.
