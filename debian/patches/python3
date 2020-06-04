@@ -1,0 +1,35 @@
+---
+ Bindings/Python/bindings.m4         |    2 +-
+ Tables/Contraction/latex-access.ctb |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+--- a/Tables/Contraction/latex-access.ctb
++++ b/Tables/Contraction/latex-access.ctb
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python3
+ ###############################################################################
+ # BRLTTY - A background process providing access to the console screen (when in
+ #          text mode) for a blind person using a refreshable braille display.
+
+commit 2569d31fc90007adeef836ae0766d015e3e5485d
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Thu Nov 28 01:56:28 2019 +0100
+
+    Python bindings: also look for cython3
+    
+    since cython (using python2) is being phased out.
+
+diff --git a/Bindings/Python/bindings.m4 b/Bindings/Python/bindings.m4
+index 136de7f95..50dcaa1a1 100644
+--- a/Bindings/Python/bindings.m4
++++ b/Bindings/Python/bindings.m4
+@@ -119,7 +119,7 @@ else
+    fi
+ fi
+ 
+-AC_PATH_PROGS([CYTHON], [cython])
++AC_PATH_PROGS([CYTHON], [cython cython3])
+ if test -z "${CYTHON}"
+ then
+    AC_MSG_WARN([Cython compiler not found])

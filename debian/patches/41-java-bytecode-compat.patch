@@ -1,0 +1,25 @@
+Description: Debian and Ubuntu contain multiple JRE implementations
+ with a minimum compatibility level of Java 1.6.
+ .
+ This patch ensures that the Java bytecode built by this package is
+ compatible with all versions of Java from 1.6.
+Author: James Page <james.page@ubuntu.com>
+Forwarded: no
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/brltty/+bug/1049757
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=688127
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=893102
+
+--- a/Bindings/Java/bindings.m4
++++ b/Bindings/Java/bindings.m4
+@@ -36,9 +36,10 @@ then
+    JAVA_OK=true
+ 
+    JAVA_ENCODING="UTF-8"
++   JAVA_TARGET="-source 1.6 -target 1.6"
+    case "${JAVAC_NAME}"
+    in
+-      javac) JAVAC_OPTIONS="-encoding ${JAVA_ENCODING}";;
++      javac) JAVAC_OPTIONS="-encoding ${JAVA_ENCODING} ${JAVA_TARGET}";;
+       gcj)   JAVAC_OPTIONS="-C --encoding=${JAVA_ENCODING}";;
+       *)     JAVAC_OPTIONS="";;
+    esac

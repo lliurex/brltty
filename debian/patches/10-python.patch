@@ -1,0 +1,19 @@
+Description: adjust Makefile to build Python bindings correctly
+ Include Python make fules and add build options.
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/Bindings/Python/Makefile.in
++++ b/Bindings/Python/Makefile.in
+@@ -57,10 +57,12 @@ doc: $(PYTHON_API)
+ 
+ INSTALLED_FILES = installed-files
+ 
++-include /usr/share/python3/python.mk
+ install: all
+ 	set -- --quiet install --skip-build --record "$(INSTALLED_FILES)"; \
+ 	[ -z "$(PYTHON_DESTDIR)" ] || set -- "$${@}" --root "$(PYTHON_DESTDIR)"; \
+ 	[ -z "$(PYTHON_PREFIX)" ] || set -- "$${@}" --prefix "$(PYTHON_PREFIX)"; \
++	set -- "$${@}" $(py_setup_install_args); \
+ 	"$(PYTHON)" ./setup.py "$${@}"
+ 
+ uninstall:

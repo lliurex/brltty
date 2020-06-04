@@ -1,0 +1,3 @@
+#! /usr/bin/dh-exec
+build-brltty/Bindings/Java/libbrlapi_java.so usr/lib/${DEB_HOST_MULTIARCH}/jni
+

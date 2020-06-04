@@ -1,0 +1,6 @@
+#!/bin/sh
+if grep -q braille=ask /proc/cmdline; then
+  brltty-setup || true
+elif grep -q brltty /proc/cmdline; then
+  /lib/brltty/brltty.sh -E
+fi

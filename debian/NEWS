@@ -1,0 +1,49 @@
+brltty (5.4-1~1) experimental; urgency=medium
+
+    Authenticating BrlAPI clients now defaults to using policykit too.
+    It means that logged-in users can now run orca and similar programs
+    using brlapi without having to be able to read /etc/brlapi.key,
+    which is thus not world-readable by default any more.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 08 Oct 2016 16:36:31 +0200
+
+brltty (5.4-0ubuntu1) UNRELEASED; urgency=medium
+
+  If you do not use a Braille display connected via USB, you now need to
+  enable BrlTTY by enabling the BrlTTY systemd service: sudo systemctl enable
+  brltty
+
+ -- Luke Yelavich <luke@buffalo>  Wed, 17 Aug 2016 12:36:16 +1000
+
+brltty (3.10~r3654-1) experimental; urgency=low
+
+    Support for Unicode (UTF-8) has been added.
+
+ -- Mario Lang <mlang@debian.org>  Fri, 11 Apr 2008 19:39:06 +0200
+
+brltty (3.7.2-7ubuntu1) feisty; urgency=low
+
+  * In order for brltty to run from the init script, you must now set
+    RUN_BRLTTY=yes in /etc/default/brltty. (This is not required for
+    non-serial USB devices, for which brltty is started automatically by
+    udev.)
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Wed,  7 Feb 2007 17:16:31 +0000
+
+brltty (3.7.2-1) unstable; urgency=low
+
+    Prior to this version, braille driver/device
+    selection was done via a configuration dialog (debconf).
+    Support for this method of configuring /etc/brltty.conf was
+    dropped in this version since the configuration file format
+    changed significantly.
+    The new default configuration supports all
+    USB capable displays out of the box.  If you are using
+    a display which is connected to your computer by USB,
+    you will not need to tweak the configuration.
+    Otherwise, please edit /etc/brltty.conf accordingly after
+    upgrading this package, and manually restart brltty
+    to make the new version active.
+
+ -- Mario Lang <mlang@debian.org>  Wed, 22 Feb 2006 09:39:36 +0100
+

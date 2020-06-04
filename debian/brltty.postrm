@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+if test "$1" = "purge"
+then
+	rm -f /etc/brlapi.key
+fi
+
+#update-rc.d brltty remove > /dev/null
+
+#DEBHELPER#

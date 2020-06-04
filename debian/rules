@@ -1,0 +1,275 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+PACKAGE=brltty
+VERSION=$(shell dpkg-parsechangelog | grep ^Version: | cut -d ' ' -f 2)
+BRLAPI_VERSION=0.7
+CL_DATE=$(shell dpkg-parsechangelog | grep Date: | sed s/Date:\ //)
+DEB_HOST_ARCH?=$(shell dpkg-architecture -qDEB_HOST_ARCH)
+DEB_HOST_MULTIARCH?=$(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+# java is not supported on a few archs
+ifneq (,$(filter $(DEB_HOST_ARCH),hppa hurd-i386 kfreebsd-i386 kfreebsd-amd64 m68k))
+export DH_OPTIONS=-Nlibbrlapi-jni -Nlibbrlapi-java
+DISABLE_JAVA_SUPPORT=1
+endif
+
+PYVERS := $(shell py3versions --supported --version)
+
+HARDENING = CPPFLAGS="$$(DEB_BUILD_MAINT_OPTIONS=hardening=+all dpkg-buildflags --get CPPFLAGS)" CFLAGS="$$(DEB_BUILD_MAINT_OPTIONS=hardening=+all dpkg-buildflags --get CFLAGS)" CXXFLAGS="$$(DEB_BUILD_MAINT_OPTIONS=hardening=+all dpkg-buildflags --get CXXFLAGS)" LDFLAGS="$$(DEB_BUILD_MAINT_OPTIONS=hardening=+all dpkg-buildflags --get LDFLAGS)"
+
+CONFIGURE_OPTIONS = --mandir=/usr/share/man \
+		    --without-viavoice --without-theta --without-swift \
+		    JAVA_JNI_DIR=/usr/lib/$(DEB_HOST_MULTIARCH)/jni
+
+DEB_CONFIGURE_OPTIONS = --with-curses=ncursesw --disable-stripping
+
+DEB_CFLAGS= -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux
+UDEB_CFLAGS=-Os -fomit-frame-pointer $(DEB_CFLAGS)
+UDEB_DISABLE=speech-support pcm-support midi-support fm-support \
+	contracted-braille api gpm iconv icu x polkit
+UDEB_CONFIGURE_OPTIONS=--with-braille-driver=-vr,all \
+	--with-braille-device=usb: --with-screen-driver=-a2,-sc,all \
+	--without-init-path --without-curses --without-rgx-package \
+	--with-bluetooth-package=none \
+	--with-service-package==none \
+	$(patsubst %,--disable-%,$(UDEB_DISABLE))
+UDEB_FILENAME=$(PACKAGE)-udeb_$(VERSION)_$(DEB_HOST_ARCH).udeb
+PRIORITY=$(shell grep '^Package: brltty-udeb' debian/control -A 10 | grep ^Priority: | cut -d ' ' -f 2)
+
+ifeq ($(DEB_HOST_ARCH_OS),kfreebsd)
+CONFIGURE_OPTIONS+=--without-usb-package
+endif
+
+export JAVA_HOME=/usr/lib/jvm/default-java
+
+PATH := $(JAVA_HOME)/bin:$(PATH)
+
+binary: binary-indep binary-arch
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-*stamp
+	rm -rf build-brltty* build-py*
+	rm -f Bindings/Python/bindings.o
+	rm -f acdir/config.sub
+	rm -f acdir/config.guess
+	rm -f configure
+	rm -f debian/initramfs/hooks/brltty
+	rm -f Documents/BrlAPIref/html/jquery.js
+
+	dh_clean
+
+acdir/config.sub: /usr/share/misc/config.sub 
+	cp -f $< $@
+acdir/config.guess: /usr/share/misc/config.guess
+	cp -f $< $@
+
+configure:
+	./autogen
+
+config: build-brltty/config.status
+build-brltty/config.status: configure acdir/config.sub acdir/config.guess
+	mkdir build-brltty
+	cd build-brltty && \
+		$(HARDENING) \
+		../configure --disable-python-bindings \
+		$(CONFIGURE_OPTIONS) \
+		$(DEB_CONFIGURE_OPTIONS)
+
+config-python: $(PYVERS:%=build-py%/config.status)
+build-py%/config.status:
+	mkdir -p build-py$*
+	cd build-py$* && \
+	PYTHON=/usr/bin/python$* \
+		$(HARDENING) \
+		../configure \
+		$(CONFIGURE_OPTIONS) \
+		$(DEB_CONFIGURE_OPTIONS)
+
+config-udeb: build-brltty-udeb/config.status
+build-brltty-udeb/config.status: configure acdir/config.sub acdir/config.guess
+	mkdir build-brltty-udeb
+	cd build-brltty-udeb && \
+	CFLAGS="$(UDEB_CFLAGS)" ../configure \
+		$(CONFIGURE_OPTIONS) \
+		$(UDEB_CONFIGURE_OPTIONS)
+
+build-arch: build-brltty build-udeb
+build-indep: build-arch build-python
+build: build-indep build-arch
+
+build-brltty: build-stamp
+build-stamp: config
+	dh_testdir
+
+	$(MAKE) -C build-brltty
+	$(MAKE) -C build-brltty/Documents
+
+	# doxygen inserts the current time into all the man-pages it creates without
+	# a possibility to turn that off (AFAICT). So replacing the date with something
+	# more reasonable: the timestamp of the last Debian changelog entry.
+	# Closes: http://bugs.debian.org/708585
+	sed --in-place -e \
+		"s/\(.TH.* 3 \"\).*\(\" \"Version .*\)/\1$$(LC_ALL=C date --date='$(CL_DATE)' +'%a %b %d %Y')\2/" \
+		build-brltty/Documents/BrlAPIref/man/man3/*
+
+	# Likewise, make sure that the html does not contain the version number of
+	# LinuxDoc-Tools to at least have a lot higher chance of the files being the
+	# same.
+	find build-brltty -name '*.html' -exec sed --in-place -e \
+		's/\(<META NAME="GENERATOR" CONTENT="LinuxDoc-Tools\)[^>]*>/\1">/' \
+		{} +
+
+	touch $@
+
+build-python: config-python $(PYVERS:%=build-py%-stamp)
+build-py%-stamp: config-python
+	dh_testdir
+
+	$(MAKE) -C build-py$*/Bindings/Python
+
+	touch $@
+
+build-udeb: build-udeb-stamp
+build-udeb-stamp: config-udeb
+	dh_testdir
+
+	$(MAKE) -C build-brltty-udeb
+
+	touch $@
+
+# Build architecture-independent files here.
+binary-indep: brltty
+
+# Build architecture-dependent files here.
+binary-arch: brltty brltty-udeb
+
+brltty: build-brltty build-python
+	dh_testdir
+	dh_testroot
+	dh_prep
+	dh_installdirs
+
+	$(MAKE) -C build-brltty install install-appstream INSTALL_ROOT=`pwd`/debian/tmp
+	set -e ; for pyver in $(PYVERS); do \
+		$(MAKE) -C build-py$$pyver/Bindings/Python install INSTALL_ROOT=`pwd`/debian/tmp ; \
+	done
+
+	mkdir -p `pwd`/debian/tmp/lib/$(DEB_HOST_MULTIARCH)
+	mkdir -p `pwd`/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)
+	mv `pwd`/debian/tmp/lib/libbrlapi* `pwd`/debian/tmp/lib/$(DEB_HOST_MULTIARCH)
+	rm -f `pwd`/debian/tmp/lib/$(DEB_HOST_MULTIARCH)/libbrlapi.so
+	test -f `pwd`/debian/tmp/lib/$(DEB_HOST_MULTIARCH)/libbrlapi.so.$(BRLAPI_VERSION)
+	mv `pwd`/debian/tmp/lib/$(DEB_HOST_MULTIARCH)/libbrlapi.a `pwd`/debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)
+	$(MAKE) -C build-brltty/Messages install INSTALL_ROOT=`pwd`/debian/tmp
+	sed -e 's/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/' < debian/initramfs/hooks/brltty.in > debian/initramfs/hooks/brltty
+	# Does not work anyway
+	rm -fr build-brltty/Bindings/Java/doc/jquery
+	dh_install	
+	chmod +x debian/$@/usr/share/initramfs-tools/hooks/brltty
+	chmod +x debian/$@/etc/brltty/Contraction/latex-access.ctb
+	dh_installdocs
+	dh_installexamples -p$@
+	for file in Drivers/Braille/*/README*; \
+		do cp $$file `pwd`/debian/$(PACKAGE)/usr/share/doc/brltty/`basename $$(dirname $$file)`.`basename $$file`; \
+		done
+	cp debian/brltty.udev.rules debian/$@/lib/udev/rules.d/85-brltty.rules
+	dh_installsystemd -p$@ --no-enable
+	dh_installsystemd -p$@ --name brltty-udev
+	# -r because we don't want to lose the console on an upgrade
+	# dh_installinit -p$@ --no-start
+	# and likewise for systemd
+	dh_installsystemd -p$@ --restart-after-upgrade
+	dh_installchangelogs Documents/ChangeLog
+	dh_installman
+	dh_lintian
+	dh_python3 -ppython3-brlapi
+	mv debian/brltty/lib/brltty/libbrlttysfl.so \
+		debian/brltty-flite/lib/brltty
+	mv debian/brltty/lib/brltty/libbrlttyssd.so \
+		debian/brltty-speechd/lib/brltty
+	mv debian/brltty/lib/brltty/libbrlttyses.so \
+		debian/brltty-espeak/lib/brltty
+	mv debian/brltty/lib/brltty/libbrlttysen.so \
+		debian/brltty-espeak/lib/brltty
+	mv debian/brltty/lib/brltty/libbrlttybxw.so \
+		debian/brltty-x11/lib/brltty
+	mkdir -p debian/brltty-x11/etc/brltty/Input/xw
+	mv debian/brltty/etc/brltty/Input/xw/all.txt \
+		debian/brltty-x11/etc/brltty/Input/xw
+	mv debian/brltty/usr/share/doc/brltty/XWindow.README \
+		debian/brltty-x11/usr/share/doc/brltty-x11/
+	mv debian/brltty/lib/brltty/libbrlttyxa2.so \
+		debian/brltty-x11/lib/brltty
+ifneq ($(DISABLE_JAVA_SUPPORT),1)
+	mv debian/tmp/usr/share/java/brlapi.jar \
+		debian/libbrlapi-java/usr/share/java
+	chmod 0644 debian/libbrlapi-java/usr/share/java/brlapi.jar
+endif
+	cp build-brltty/Documents/brltty.conf debian/brltty/etc/brltty.conf
+	dh_link -p$@ -plibbrlapi$(BRLAPI_VERSION) -plibbrlapi-dev
+	dh_link -plibbrlapi-dev /lib/$(DEB_HOST_MULTIARCH)/libbrlapi.so.$(BRLAPI_VERSION) /usr/lib/$(DEB_HOST_MULTIARCH)/libbrlapi.so
+	dh_strip_nondeterminism -a -i -Nbrltty-udeb
+	dh_strip -p$@ -p$@-espeak -p$@-flite -p$@-speechd -p$@-x11 -pxbrlapi --ddeb-migration='$@-dbg (<< 5.3.1-2~)'
+	dh_strip -plibbrlapi$(BRLAPI_VERSION) -ppython3-brlapi -plibbrlapi-jni --ddeb-migration='libbrlapi-dbg (<< 5.3.1-2~)'
+	dh_compress
+	dh_fixperms -X /var/lib/BrlAPI
+	dh_makeshlibs -n -p$@
+	dh_makeshlibs -a -Nbrltty-udeb
+	dh_installdeb -a -i -Nbrltty-udeb
+	dh_shlibdeps -a -Nbrltty-udeb
+	dh_gencontrol -a -i -Nbrltty-udeb
+	dh_md5sums -a -i -Nbrltty-udeb
+	dh_builddeb -a -i -Nbrltty-udeb
+
+brltty-udeb: build-udeb
+	dh_testdir
+	dh_testroot
+	dh_installdirs -pbrltty-udeb
+
+	$(MAKE) -C build-brltty-udeb install INSTALL_ROOT=`pwd`/debian/brltty-udeb
+
+	# temporary fix
+	rm -Rf debian/brltty-udeb/share
+	rm -Rf debian/brltty-udeb/usr/include
+
+	cp debian/brltty-udeb.prebaseconfig debian/brltty-udeb/usr/lib/finish-install.d/07brltty
+	chmod 0755 debian/brltty-udeb/usr/lib/finish-install.d/07brltty
+	cp debian/brltty-udeb.start debian/brltty-udeb/lib/debian-installer.d/S19brltty
+	rm -f debian/brltty-udeb/bin/brltty-*
+	rm -Rf debian/brltty-udeb/usr/share
+	# Strip comments and whitespaces from translation tables
+	cd debian/brltty-udeb/etc/brltty && \
+		for file in */*.tt? */*.at? */*.ktb */*/*.ktb ; do \
+			sed -e 's/ *#.*//' -e 's/[	 ]\+/ /g' $$file | sed -n '/./p' > $$file.tmp && \
+			mv $$file.tmp $$file; \
+		done
+	# It is sad, but help files are not really essential, but they are
+	# fairly large.
+	rm debian/brltty-udeb/etc/brltty/Input/*/*.txt
+	#rm -Rf debian/brltty-udeb/lib
+	cp debian/brltty-udeb.init debian/$@/lib/debian-installer-startup.d/S37brltty
+	chmod +x debian/$@/lib/debian-installer-startup.d/S37brltty
+	cp debian/brltty-udeb.udev.rules debian/$@/lib/udev/rules.d/brltty.rules
+	cp debian/brltty-udeb.udev.sh debian/$@/lib/udev/brltty.sh
+	chmod +x debian/$@/lib/udev/brltty.sh
+	install -m755 debian/brltty-setup debian/$@/sbin/brltty-setup
+	cp debian/brltty-udeb.sh debian/$@/lib/brltty/brltty.sh
+	chmod +x debian/$@/lib/brltty/brltty.sh
+	mkdir -p debian/$@/usr/share/brltty-udeb
+	cp debian/mate-preseed.cfg debian/$@/usr/share/brltty-udeb/mate-preseed.cfg
+	dh_strip_nondeterminism -p$@
+	dh_strip -p$@
+	dh_fixperms -p$@
+	dh_installdeb -p$@
+	dh_shlibdeps -p$@
+	dh_gencontrol -p$@
+	# Check that we didn't accidentally link against something outside of
+	# d-i world
+	grep Depends: debian/brltty-udeb/DEBIAN/control | perl -ne 'map {unless (/-udeb/ or /^ ?preseed-common$$/) {print $$_; exit 1}} split /,/'
+	dh_builddeb -p$@
+
+.PHONY: brltty brltty-udeb build build-indep build-arch build-brltty build-udeb clean binary-indep binary-arch binary

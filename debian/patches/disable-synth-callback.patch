@@ -1,0 +1,13 @@
+diff --git a/Drivers/Speech/eSpeak/speech.c b/Drivers/Speech/eSpeak/speech.c
+index 6c303c759..9b58bc58b 100644
+--- a/Drivers/Speech/eSpeak/speech.c
++++ b/Drivers/Speech/eSpeak/speech.c
+@@ -167,7 +189,7 @@ static int spk_construct(volatile SpeechSynthesizer *spk, char **parameters)
+ 		if (val > espeakRATE_MINIMUM) maxrate = val;
+ 	}
+ 
+-	espeak_SetSynthCallback(SynthCallback);
++	//espeak_SetSynthCallback(SynthCallback);
+ 
+ 	return 1;
+ }

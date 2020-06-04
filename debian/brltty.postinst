@@ -1,0 +1,17 @@
+#! /bin/sh
+
+set -e
+
+if [ ! -e /etc/brlapi.key ]; then
+    mcookie >/etc/brlapi.key
+    chmod 0640 /etc/brlapi.key
+fi
+
+if type update-initramfs >/dev/null 2>&1; then
+    update-initramfs -u
+fi
+
+#update-rc.d brltty start 10 23 . > /dev/null
+
+#DEBHELPER#
+
