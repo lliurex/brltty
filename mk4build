@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -17,8 +17,16 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-. "`dirname "${0}"`/prologue.sh"
 set -e
+
+. "`dirname "${0}"`/brltty-prologue.sh"
+defaultSourceRoot="${programDirectory}"
+addProgramOption s string.directory sourceRoot "the top-level directory of the source tree" "${defaultSourceRoot}"
+parseProgramArguments "${@}"
+
+[ -n "${sourceRoot}" ] || sourceRoot="${defaultSourceRoot}"
+[ -d "${sourceRoot}" ] || semanticError "source root not found: ${sourceRoot}"
+sourceRoot=`cd "${sourceRoot}" && pwd` || exit "${?}"
 
 inputName="config"
 outputName="forbuild"
@@ -32,26 +40,6 @@ statusExtension="status"
 makeInput="${inputName}.${makeExtension}"
 makeOutput="${initialDirectory}/${outputName}.${makeExtension}"
 
-sourceRoot=""
-
-while getopts ":s:" option
-do
-   case "${option}"
-   in
-      s) sourceRoot="${OPTARG}";;
-      :) syntaxError "missing value: -${OPTARG}";;
-     \?) syntaxError "unknown option: -${OPTARG}";;
-      *) syntaxError "unimplemented option: -${option}";;
-   esac
-done
-shift `expr "${OPTIND}" - 1`
-
-[ "${#}" -eq 0 ] || syntaxError "too many parameters."
-
-[ -n "${sourceRoot}" ] || sourceRoot=`dirname "${0}"`
-[ -d "${sourceRoot}" ] || semanticError "source root not found: ${sourceRoot}"
-sourceRoot=`cd "${sourceRoot}" && pwd` || exit "${?}"
-
 getMakeProperty() {
    grep "^ *${1} *=" "${makeInput}" | sed -e 's/^[^=]*= *//' -e 's/ *$//'
 }
@@ -63,15 +51,14 @@ objectExtension='$(O_FOR_BUILD)'
 
 if [ "${hostSystem}" != "${buildSystem}" ]
 then
+   needTemporaryDirectory
    objectExtension="build.${objectExtension}"
 
-   needTemporaryDirectory
-
-   for variable in CC CFLAGS CXX CXXFLAGS LDFLAGS LDLIBS
+   for variable in CC CFLAGS CXX CXXFLAGS LDFLAGS LDLIBS PKG_CONFIG
    do
-      unset "${variable}"
-      variableForBuild="${variable}_FOR_BUILD"
-      eval test '"${'"${variableForBuild}"'+set}"' != "set" || eval "${variable}"'="${'"${variableForBuild}"'}"'
+      getVariable "${variable}_FOR_BUILD" value
+      setVariable "${variable}" "${value}"
+      export "${variable}"
    done
 
    "${sourceRoot}/configure" \

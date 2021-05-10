@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -25,7 +25,7 @@ title Seika Note Takers
 bind LeftJoystickPress HELP
 bind RightJoystickPress LEARN
 
-bind LeftButton+Rightbutton HOME
+bind LeftButton+RightButton HOME
 bind LeftButton FWINLT
 bind RightButton FWINRT
 
@@ -93,11 +93,8 @@ map Dot5 DOT5
 map Dot6 DOT6
 map Dot7 DOT7
 map Dot8 DOT8
-map Backspace CONTROL
+map Backspace META
 map Space SPACE
-
-bind Backspace KEY_BACKSPACE
-bind Backspace+Space KEY_ENTER
 
 bind Space+LeftJoystickUp KEY_PAGE_UP
 bind Space+LeftJoystickDown KEY_PAGE_DOWN

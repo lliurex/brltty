@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -159,9 +159,14 @@ announceCurrentScreen (void) {
 
 static void
 setCurrentScreen (BaseScreen *screen) {
-  currentScreen = screen;
-  scheduleUpdate("new screen selected");
-  announceCurrentScreen();
+  if (screen != currentScreen) {
+    currentScreen->onBackground();
+    currentScreen = screen;
+    currentScreen->onForeground();
+
+    scheduleUpdate("new screen selected");
+    announceCurrentScreen();
+  }
 }
 
 static void
@@ -176,16 +181,16 @@ selectCurrentScreen (void) {
   const SpecialScreenEntry *end = sse + specialScreenCount;
 
   while (sse < end) {
-    if (sse->isActive) break;
+    if (sse->isActive) {
+      setSpecialScreen(sse);
+      return;
+    }
+
     sse += 1;
   }
 
-  if (sse == end) {
-    logMainScreenAction("selecting");
-    setCurrentScreen(&mainScreen.base);
-  } else {
-    setSpecialScreen(sse);
-  }
+  logMainScreenAction("selecting");
+  setCurrentScreen(&mainScreen.base);
 }
 
 int

@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -704,7 +704,7 @@ if {[llength $positionalArguments] == 0} {
    lappend positionalArguments "c:[file join $sourceDirectory Programs usb_devices.c]"
    lappend positionalArguments "hotplug:[file join $sourceDirectory Autostart Hotplug brltty.usermap]"
    lappend positionalArguments "metainfo:[file join $sourceDirectory Autostart AppStream org.a11y.brltty.metainfo.xml]"
-   lappend positionalArguments "udev:[file join $sourceDirectory Autostart Udev rules]"
+   lappend positionalArguments "udev:[file join $sourceDirectory Autostart Udev device.rules.in]"
    lappend positionalArguments "windows:[file join $sourceDirectory Autostart Windows brltty-libusb.inf]"
    lappend positionalArguments "windows:[file join $sourceDirectory Autostart Windows brltty-libusb-1.0.inf]"
 }

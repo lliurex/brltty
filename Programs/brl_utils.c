@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,6 +22,7 @@
 
 #include "log.h"
 #include "report.h"
+#include "api_control.h"
 #include "brl_utils.h"
 #include "brl_dots.h"
 #include "async_wait.h"
@@ -37,18 +38,30 @@ drainBrailleOutput (BrailleDisplay *brl, int minimumDelay) {
 }
 
 void
+announceBrailleOffline (void) {
+  logMessage(LOG_DEBUG, "braille is offline");
+  api.updateParameter(BRLAPI_PARAM_DEVICE_ONLINE, 0);
+  report(REPORT_BRAILLE_DEVICE_OFFLINE, NULL);
+}
+
+void
+announceBrailleOnline (void) {
+  logMessage(LOG_DEBUG, "braille is online");
+  api.updateParameter(BRLAPI_PARAM_DEVICE_ONLINE, 0);
+  report(REPORT_BRAILLE_DEVICE_ONLINE, NULL);
+}
+
+void
 setBrailleOffline (BrailleDisplay *brl) {
   if (!brl->isOffline) {
     brl->isOffline = 1;
-    logMessage(LOG_DEBUG, "braille offline");
+    announceBrailleOffline();
 
     {
       KeyTable *keyTable = brl->keyTable;
 
       if (keyTable) releaseAllKeys(keyTable);
     }
-
-    report(REPORT_BRAILLE_DEVICE_OFFLINE, NULL);
   }
 }
 
@@ -56,10 +69,9 @@ void
 setBrailleOnline (BrailleDisplay *brl) {
   if (brl->isOffline) {
     brl->isOffline = 0;
-    brl->writeDelay = 0;
+    announceBrailleOnline();
 
-    logMessage(LOG_DEBUG, "braille online");
-    report(REPORT_BRAILLE_DEVICE_ONLINE, NULL);
+    brl->writeDelay = 0;
   }
 }
 

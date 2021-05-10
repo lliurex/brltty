@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -39,6 +39,8 @@ extern GioEndpoint *gioConnectResource (
 extern int gioDisconnectResource (GioEndpoint *endpoint);
 
 extern const void *gioGetApplicationData (GioEndpoint *endpoint);
+extern const char *gioMakeResourceIdentifier (GioEndpoint *endpoint, char *buffer, size_t size);
+extern char *gioGetResourceIdentifier (GioEndpoint *endpoint);
 extern char *gioGetResourceName (GioEndpoint *endpoint);
 
 extern ssize_t gioWriteData (GioEndpoint *endpoint, const void *data, size_t size);

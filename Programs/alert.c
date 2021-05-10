@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -148,15 +148,15 @@ static const AlertEntry alertTable[] = {
   },
 
   [ALERT_MODIFIER_NEXT] = {
-    .tune = "n72@60 n76@60 n79@90"
+    .tune = "n70@60 n74@60 n77@90"
   },
 
   [ALERT_MODIFIER_ON] = {
-    .tune = "n72@60 n76@60 n79@60 n84@90"
+    .tune = "n70@60 n74@60 n77@60 n82@90"
   },
 
   [ALERT_MODIFIER_OFF] = {
-    .tune = "n84@60 n79@60 n76@60 n72@90"
+    .tune = "n82@60 n77@60 n74@60 n70@90"
   },
 
   [ALERT_CONSOLE_BELL] = {
@@ -171,6 +171,18 @@ static const AlertEntry alertTable[] = {
 
   [ALERT_SCROLL_UP] = {
     .tune = "b6@10 d7"
+  },
+
+  [ALERT_CONTEXT_DEFAULT] = {
+    .tune = "n76@60 n73@60 n69@60 n66@90"
+  },
+
+  [ALERT_CONTEXT_PERSISTENT] = {
+    .tune = "n66@60 n69@60 n73@60 n76@90"
+  },
+
+  [ALERT_CONTEXT_TEMPORARY] = {
+    .tune = "n66@60 n69@60 n73@90"
   },
 };
 

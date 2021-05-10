@@ -9,12 +9,23 @@
   <string name="application_version_label">Версия</string>
   <string name="application_copyright_label">Авторские права</string>
 
-  <string name="input_service_name">Служба ввода BRLTTY</string>
-  <string name="input_service_type">Клавиатуры на брайлевских устройствах</string>
-  <string name="input_service_not_enabled">служба ввода не включена</string>
-  <string name="input_service_not_selected">служба ввода не выбрана</string>
-  <string name="input_service_not_started">служба ввода не запущена</string>
-  <string name="input_service_not_connected">служба ввода не подключена</string>
+  <string name="inputService_name">Служба ввода BRLTTY</string>
+  <string name="inputService_type">Клавиатуры на брайлевских устройствах</string>
+  <string name="inputService_not_enabled">служба ввода не включена</string>
+  <string name="inputService_not_selected">служба ввода не выбрана</string>
+  <string name="inputService_not_started">служба ввода не запущена</string>
+  <string name="inputService_not_connected">служба ввода не подключена</string>
+
+  <string name="updateApplication_problem_failed">приложение не обновлено</string>
+
+  <string name="packageInstaller_problem_failed">пакет не установлен</string>
+  <string name="packageInstaller_problem_same">та же версия</string>
+  <string name="packageInstaller_problem_downgrade">понижение версии не допускается</string>
+
+  <string name="fileDownloader_title">Загрузчик файлов BRLTTY</string>
+  <string name="fileDownloader_problem_failed">файл не загружен</string>
+  <string name="fileDownloader_state_connecting">подключение</string>
+  <string name="fileDownloader_state_downloading">скачивание</string>
 
   <string name="checkbox_state_unchecked">Нет</string>
   <string name="checkbox_state_checked">Да</string>
@@ -38,7 +49,10 @@
   <string name="GLOBAL_BUTTON_BROWSE_COMMUNITY_MESSAGES">Просмотр сообщений сообщества</string>
   <string name="GLOBAL_BUTTON_POST_COMMUNITY_MESSAGE">Отправка сообщений сообщества</string>
   <string name="GLOBAL_BUTTON_MANAGE_COMMUNITY_MEMBERSHIP">Управление членством в сообществе</string>
+
   <string name="GLOBAL_BUTTON_UPDATE_APPLICATION">Обновление приложения</string>
+
+  <string name="CHOOSER_TITLE_ACCESSIBILITY_ACTIONS">Действия специальных возможностей</string>
 
   <string name="SETTINGS_SCREEN_MAIN">Настройки BRLTTY</string>
   <string name="SETTINGS_SCREEN_GENERAL">Общие настройки</string>
@@ -223,16 +237,16 @@
 
   <string name="CONTRACTION_TABLE_LABEL_af">Африкаанс (сокращённый)</string>
   <string name="CONTRACTION_TABLE_LABEL_am">Амхарский (несокращённый)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_basis">Немецкий (несокращённый)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift">Немецкий (сокращённый - стандарт 1998)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_1998">Немецкий (сокращённый - стандарт 1998)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_2015">Немецкий (сокращённый - стандарт 2015)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_vollschrift">Немецкий (базовые сокращения)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g0">Немецкий (несокращённый)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g1">Немецкий (базовые сокращения)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g2">Немецкий (сокращённый - стандарт 1998)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_1998">Немецкий (сокращённый - стандарт 1998)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_2015">Немецкий (сокращённый - стандарт 2015)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_ueb_g2">Английский (унифицированный английский Брайль, ступень 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_us_g2">Английский (США, ступень 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_es">Испанский (ступень 2)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_abrege">Французский (сокращённый)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_integral">Французский (несокращённый)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g1">Французский (несокращённый)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g2">Французский (сокращённый)</string>
   <string name="CONTRACTION_TABLE_LABEL_ha">Хауса (сокращённый)</string>
   <string name="CONTRACTION_TABLE_LABEL_id">Индонезийский (сокращённый)</string>
   <string name="CONTRACTION_TABLE_LABEL_ipa">Международный фонетический алфавит</string>
@@ -250,7 +264,6 @@
   <string name="CONTRACTION_TABLE_LABEL_sw">Суахили (сокращённый)</string>
   <string name="CONTRACTION_TABLE_LABEL_th">Тайский (сокращённый)</string>
   <string name="CONTRACTION_TABLE_LABEL_zh_tw">Китайский (Тайвань, несокращённый)</string>
-  <string name="CONTRACTION_TABLE_LABEL_zh_tw_ucb">Китайский (уникальный тайваньский шрифт Брайля)</string>
   <string name="CONTRACTION_TABLE_LABEL_zu">Зулу (сокращённый)</string>
 
   <string name="KEYBOARD_TABLE_LABEL_braille">привязки для брайлевских клавиатур</string>

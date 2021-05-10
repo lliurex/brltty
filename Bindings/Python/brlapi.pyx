@@ -1,7 +1,7 @@
 """
 This module implements a set of bindings for BrlAPI, a braille bridge for applications.
 
-The reference C API documentation is available online http://brltty.app/doc/BrlAPIref-HTML, as well as in manual pages.
+The reference C API documentation is available online http://brltty.app/doc/BrlAPIref, as well as in manual pages.
 
 This documentation is only a python helper, you should also read C manual pages.
 
@@ -11,6 +11,28 @@ import errno
 import Xlib.keysymdef.miscellany
 try:
   b = brlapi.Connection()
+  print("Server version " + str(b.getParameter(brlapi.PARAM_SERVER_VERSION, 0, brlapi.PARAMF_GLOBAL)))
+  print("Display size " + str(b.getParameter(brlapi.PARAM_DISPLAY_SIZE, 0, brlapi.PARAMF_GLOBAL)))
+  print("Driver " + b.getParameter(brlapi.PARAM_DRIVER_NAME, 0, brlapi.PARAMF_GLOBAL))
+  print("Model " + b.getParameter(brlapi.PARAM_DEVICE_MODEL, 0, brlapi.PARAMF_GLOBAL))
+
+  for cmd in b.getParameter(brlapi.PARAM_BOUND_COMMAND_KEYCODES, 0, brlapi.PARAMF_GLOBAL):
+    print("Command %x short name: %s" % (cmd, b.getParameter(brlapi.PARAM_COMMAND_KEYCODE_NAME, cmd, brlapi.PARAMF_GLOBAL)))
+
+  for key in b.getParameter(brlapi.PARAM_DEFINED_DRIVER_KEYCODES, 0, brlapi.PARAMF_GLOBAL):
+    print("Key %x short name: %s" % (key, b.getParameter(brlapi.PARAM_DRIVER_KEYCODE_NAME, key, brlapi.PARAMF_GLOBAL)))
+
+  # Make our output more prioritized
+  b.setParameter(brlapi.PARAM_CLIENT_PRIORITY, 0, False, 70)
+
+  def update_callback(param, subparam, flags, value):
+    s = ""
+    for i in value:
+      s += unichr(0x2800 + ord(i))
+    print("Got output update %s" % s)
+
+  p = b.watchParameter(brlapi.PARAM_RENDERED_CELLS, 0, False, update_callback)
+
   b.enterTtyMode()
   b.ignoreKeys(brlapi.rangeType_all,[0])
 
@@ -30,6 +52,7 @@ try:
   k = brlapi.expandKeyCode(key)
   b.writeText("Key %ld (%x %x %x %x) !" % (key, k["type"], k["command"], k["argument"], k["flags"]))
   b.writeText(None,1)
+  b.acceptAllKeys()
   b.readKey()
 
   underline = chr(brlapi.DOT7 + brlapi.DOT8)
@@ -37,24 +60,39 @@ try:
   b.write(
       regionBegin = 1,
       regionSize = 40,
-      text = "Press any key to exit ¤                 ",
-      orMask = "".center(21,underline) + "".center(19,chr(0)))
-
-  b.acceptKeys(brlapi.rangeType_all,[0])
+      text = "Press any key to continue               ",
+      orMask = 25*underline + 15*chr(0))
   b.readKey()
 
+  b.acceptAllKeys()
+  b.writeText("Press any key")
+  k = b.readKey()
+  k = brlapi.expandKeyCode(key)
+  b.writeText("Key %ld (%x %x %x %x) !" % (key, k["type"], k["command"], k["argument"], k["flags"]))
+  b.readKey()
+
+  b.ignoreAllKeys()
+  b.acceptKeyRanges([(brlapi.KEY_TYPE_CMD|brlapi.KEY_CMD_PASSDOTS, brlapi.KEY_TYPE_CMD|brlapi.KEY_CMD_PASSDOTS|brlapi.KEY_CMD_ARG_MASK)])
+  b.writeText("Press a dot key")
+  key = b.readKey()
+  k = brlapi.expandKeyCode(key)
+  b.writeText("Key %ld (%x %x %x %x) !" % (key, k["type"], k["command"], k["argument"], k["flags"]))
+  b.acceptAllKeys()
+  b.readKey()
+
+  b.unwatchParameter(p)
   b.leaveTtyMode()
   b.closeConnection()
 
 except brlapi.ConnectionError as e:
   if e.brlerrno == brlapi.ERROR_CONNREFUSED:
-    print "Connection to %s refused. BRLTTY is too busy..." % e.host
+    print("Connection to %s refused. BRLTTY is too busy..." % e.host)
   elif e.brlerrno == brlapi.ERROR_AUTHENTICATION:
-    print "Authentication with %s failed. Please check the permissions of %s" % (e.host,e.auth)
+    print("Authentication with %s failed. Please check the permissions of %s" % (e.host,e.auth))
   elif e.brlerrno == brlapi.ERROR_LIBCERR and (e.libcerrno == errno.ECONNREFUSED or e.libcerrno == errno.ENOENT):
-    print "Connection to %s failed. Is BRLTTY really running?" % (e.host)
+    print("Connection to %s failed. Is BRLTTY really running?" % (e.host))
   else:
-    print "Connection to BRLTTY at %s failed: " % (e.host)
+    print("Connection to BRLTTY at %s failed: " % (e.host))
   print(e)
   print(e.brlerrno)
   print(e.libcerrno)
@@ -63,7 +101,7 @@ except brlapi.ConnectionError as e:
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2005-2019 by
+# Copyright (C) 2005-2021 by
 #   Alexis Robert <alexissoft@free.fr>
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #
@@ -80,7 +118,9 @@ except brlapi.ConnectionError as e:
 ###############################################################################
 
 cimport c_brlapi
+from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t, uintptr_t
 import errno
+
 include "constants.auto.pyx"
 
 def getLibraryVersion():
@@ -127,6 +167,55 @@ def describeKeyCode(code):
 			"argument": dkc.argument,
 			"flags": flags
 		}
+
+cdef object _parameterToPython(c_brlapi.brlapi_param_t c_param, const void *c_value, size_t size):
+	cdef const c_brlapi.brlapi_param_properties_t *props
+
+	with nogil:
+		props = c_brlapi.brlapi_getParameterProperties(c_param)
+
+	if props == NULL:
+		raise OperationError()
+
+	if props.type == PARAM_TYPE_STRING:
+		string = <char *>c_value
+		s = string[:size]
+		ret = s.decode("UTF-8")
+	elif props.type == PARAM_TYPE_BOOLEAN:
+		values8 = <uint8_t *>c_value
+		ret = values8[0] != 0
+	elif props.type == PARAM_TYPE_UINT8:
+		if props.isArray:
+			values8 = <uint8_t *>c_value
+			ret = values8[:size]
+		else:
+			values8 = <uint8_t *>c_value
+			ret = values8[0]
+	elif props.type == PARAM_TYPE_UINT16:
+		if props.isArray:
+			values16 = <uint16_t *>c_value
+			ret = [values16[i] for i in range(size//2)]
+		else:
+			values16 = <uint16_t *>c_value
+			ret = values16[0]
+	elif props.type == PARAM_TYPE_UINT32:
+		if props.isArray:
+			values32 = <uint32_t *>c_value
+			ret = [values32[i] for i in range(size//4)]
+		else:
+			values32 = <uint32_t *>c_value
+			ret = values32[0]
+	elif props.type == PARAM_TYPE_UINT64:
+		if props.isArray:
+			values64 = <uint64_t *>c_value
+			ret = [values64[i] for i in range(size//8)]
+		else:
+			values64 = <uint64_t *>c_value
+			ret = values64[0]
+	else:
+		raise ValueError("Unsupported parameter type")
+
+	return ret
 
 class OperationError(Exception):
 	"""Error while performing some operation"""
@@ -563,7 +652,7 @@ cdef class Connection:
 		if (type(dots) == unicode):
 			dots = dots.encode('latin1')
 		if (len(dots) < dispSize):
-			dots = dots + b"".center(dispSize - len(dots), '\0')
+			dots = dots + b"".center(dispSize - len(dots), b'\0')
 		c_dots = dots
 		c_udots = <unsigned char *>c_dots
 		with nogil:
@@ -582,7 +671,7 @@ cdef class Connection:
 		* text : points to the string to be displayed"""
 		w = WriteStruct()
 		w.cursor = cursor
-		if (text):
+		if text is not None:
 			(x, y) = self.displaySize
 			dispSize = x * y
 			if (len(text) < dispSize):
@@ -609,14 +698,17 @@ cdef class Connection:
 		cdef int retval
 		cdef int c_wait
 		c_wait = wait
-		with nogil:
-			retval = c_brlapi.brlapi__readKey(self.h, c_wait, <c_brlapi.brlapi_keyCode_t*>&code)
-		if retval == -1:
-			raise OperationError()
-		elif retval <= 0 and wait == False:
-			return None
-		else:
-			return code
+
+		while True:
+			with nogil:
+				retval = c_brlapi.brlapi__readKey(self.h, c_wait, <c_brlapi.brlapi_keyCode_t*>&code)
+			if retval == -1 and not (c_brlapi.brlapi_error.brlerrno == ERROR_LIBCERR and c_brlapi.brlapi_error.libcerrno == errno.EINTR):
+				raise OperationError()
+			elif retval <= 0:
+				if not wait:
+					return None
+			else:
+				return code
 
 	def readKeyWithTimeout(self, timeout_ms = -1):
 		"""Read a key from the braille keyboard.
@@ -627,14 +719,17 @@ cdef class Connection:
 		cdef int retval
 		cdef int c_timeout_ms
 		c_timeout_ms = timeout_ms
-		with nogil:
-			retval = c_brlapi.brlapi__readKeyWithTimeout(self.h, c_timeout_ms, <c_brlapi.brlapi_keyCode_t*>&code)
-		if retval == -1:
-			raise OperationError()
-		elif retval <= 0 and timeout_ms >= 0:
-			return None
-		else:
-			return code
+
+		while True:
+			with nogil:
+				retval = c_brlapi.brlapi__readKeyWithTimeout(self.h, c_timeout_ms, <c_brlapi.brlapi_keyCode_t*>&code)
+			if retval == -1 and not (c_brlapi.brlapi_error.brlerrno == ERROR_LIBCERR and c_brlapi.brlapi_error.libcerrno == errno.EINTR):
+				raise OperationError()
+			elif retval <= 0:
+				if timeout_ms >= 0:
+					return None
+			else:
+				return code
 
 	def expandKeyCode(self, code):
 		"""Expand a keycode into its individual components.
@@ -792,3 +887,195 @@ cdef class Connection:
 		else:
 			return retval
 
+	def getParameter(self, param, subparam = 0, flags = 0):
+		"""Get the value of a parameter.
+		See brlapi_getParameter(3).
+
+		This gets the current content of a parameter"""
+		cdef c_brlapi.brlapi_param_t c_param
+		cdef c_brlapi.brlapi_param_subparam_t c_subparam
+		cdef c_brlapi.brlapi_param_flags_t c_flags
+		cdef void *c_value
+		cdef size_t size
+		cdef ssize_t retval
+		cdef uint64_t *values64
+		cdef uint32_t *values32
+		cdef uint16_t *values16
+		cdef uint8_t *values8
+		cdef char *string
+
+		c_param = param
+		c_subparam = subparam
+		c_flags = flags
+
+		with nogil:
+			c_value = c_brlapi.brlapi__getParameterAlloc(self.h, c_param, c_subparam, c_flags, &size)
+		if c_value == NULL:
+			raise OperationError()
+
+		try:
+			ret = _parameterToPython(c_param, c_value, size)
+		except Exception as e:
+			c_brlapi.free(c_value)
+			raise(e)
+
+		c_brlapi.free(c_value)
+		return ret
+
+
+	def setParameter(self, param, subparam, flags, value):
+		"""Set the value of a parameter.
+		See brlapi_setParameter(3).
+
+		This sets the content of a parameter"""
+		cdef c_brlapi.brlapi_param_t c_param
+		cdef c_brlapi.brlapi_param_subparam_t c_subparam
+		cdef c_brlapi.brlapi_param_flags_t c_flags
+		cdef void *c_value
+		cdef uint64_t *values64
+		cdef uint32_t *values32
+		cdef uint16_t *values16
+		cdef uint8_t *values8
+		cdef char *string
+		cdef const c_brlapi.brlapi_param_properties_t *props
+
+		c_param = param
+		c_subparam = subparam
+		c_flags = flags
+
+		with nogil:
+			props = c_brlapi.brlapi_getParameterProperties(c_param)
+
+		if props == NULL:
+			raise OperationError()
+
+		if props.type == PARAM_TYPE_STRING:
+			if type(value) != unicode and type(value) != str:
+				raise ValueError("String value expected")
+
+		if props.type == PARAM_TYPE_BOOLEAN:
+			if props.isArray:
+				if type(value[0]) != bool:
+					raise ValueError("Boolean values expected")
+			else:
+				if type(value) != bool:
+					raise ValueError("Boolean value expected")
+
+		if props.type == PARAM_TYPE_UINT8 or \
+		   props.type == PARAM_TYPE_UINT16 or \
+		   props.type == PARAM_TYPE_UINT32:
+			if props.isArray:
+				if type(value[0]) != int:
+					raise ValueError("Integer values expected")
+			else:
+				if type(value) != int:
+					raise ValueError("Integer value expected")
+
+		if props.type == PARAM_TYPE_STRING:
+			if type(value) == unicode:
+				value = value.encode('UTF-8')
+			size = len(value)
+			c_value = <void*>c_brlapi.malloc(size)
+			values8 = <uint8_t *>c_value
+			string = value
+			c_brlapi.memcpy(<void*>values8,<void*>string,size)
+		elif props.type == PARAM_TYPE_BOOLEAN or props.type == PARAM_TYPE_UINT8:
+			if props.isArray:
+				size = 1 * len(value)
+				c_value = <void*>c_brlapi.malloc(size)
+				values8 = <uint8_t *>c_value
+				for i in len(value):
+					values8[i] = value[i]
+			else:
+				size = 1
+				c_value = <void*>c_brlapi.malloc(size)
+				values8 = <uint8_t *>c_value
+				values8[0] = value
+		elif props.type == PARAM_TYPE_UINT16:
+			if props.isArray:
+				size = 2 * len(value)
+				c_value = <void*>c_brlapi.malloc(size)
+				values16 = <uint16_t *>c_value
+				for i in len(value):
+					values16[i] = value[i]
+			else:
+				size = 2
+				c_value = <void*>c_brlapi.malloc(size)
+				values16 = <uint16_t *>c_value
+				values16[0] = value
+		elif props.type == PARAM_TYPE_UINT32:
+			if props.isArray:
+				size = 4 * len(value)
+				c_value = <void*>c_brlapi.malloc(size)
+				values32 = <uint32_t *>c_value
+				for i in len(value):
+					values32[i] = value[i]
+			else:
+				size = 4
+				c_value = <void*>c_brlapi.malloc(size)
+				values32 = <uint32_t *>c_value
+				values32[0] = value
+		elif props.type == PARAM_TYPE_UINT64:
+			if props.isArray:
+				size = 4 * len(value)
+				c_value = <void*>c_brlapi.malloc(size)
+				values64 = <uint64_t *>c_value
+				for i in len(value):
+					values64[i] = value[i]
+			else:
+				size = 8
+				c_value = <void*>c_brlapi.malloc(size)
+				values64 = <uint64_t *>c_value
+				values64[0] = value
+		else:
+			raise ValueError("Unsupported parameter type")
+
+		with nogil:
+			retval = c_brlapi.brlapi__setParameter(self.h, c_param, c_subparam, c_flags, c_value, size)
+		if retval == -1:
+			c_brlapi.free(c_value)
+			raise OperationError()
+		c_brlapi.free(c_value)
+
+	def watchParameter(self, param, subparam, flags, func):
+		"""Set a parameter change callback.
+		See brlapi_watchParameter(3).
+
+		This registers a parameter change callback: whenever the given
+		parameter changes, the given function is called.
+
+		This returns an entry object, to be passed to unwatchParameter."""
+		cdef c_brlapi.brlapi_param_t c_param
+		cdef c_brlapi.brlapi_param_subparam_t c_subparam
+		cdef c_brlapi.brlapi_param_flags_t c_flags
+		cdef c_brlapi.brlapi_python_paramCallbackDescriptor_t *descr
+
+		c_param = param
+		c_subparam = subparam
+		c_flags = flags
+
+		def cfunc(param):
+			cdef c_brlapi.brlapi_python_callbackData_t *callbackData
+			callbackData = <c_brlapi.brlapi_python_callbackData_t*> <uintptr_t> param
+
+			parameter = callbackData.parameter
+			subparam = callbackData.subparam
+			flags = callbackData.flags
+			data = _parameterToPython(callbackData.parameter, callbackData.data, callbackData.len)
+
+			func(parameter, subparam, flags, data)
+
+		descr = c_brlapi.brlapi_python_watchParameter(self.h, c_param, c_subparam, c_flags, cfunc)
+		return <uintptr_t>descr
+
+	def unwatchParameter(self, entry):
+		"""Clear a parameter change callback.
+		See brlapi_unwatchParameter(3).
+
+		This unregisters a parameter change callback: the callback
+		function previously registered with brlapi_watchParameter
+		will not be called any more."""
+		cdef uintptr_t descr
+
+		descr = entry
+		c_brlapi.brlapi_python_unwatchParameter(self.h, <c_brlapi.brlapi_python_paramCallbackDescriptor_t *>descr)

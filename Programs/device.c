@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -51,7 +51,7 @@ getConsole (void) {
 }
 
 int
-writeConsole (const unsigned char *bytes, size_t count) {
+writeToConsole (const unsigned char *bytes, size_t count) {
   FILE *console = getConsole();
   if (!console) return 0;
 
@@ -72,9 +72,9 @@ writeConsole (const unsigned char *bytes, size_t count) {
 }
 
 int
-ringBell (void) {
+ringConsoleBell (void) {
   static unsigned char bellSequence[] = {0X07};
-  return writeConsole(bellSequence, sizeof(bellSequence));
+  return writeToConsole(bellSequence, sizeof(bellSequence));
 }
 
 const char *
@@ -130,14 +130,13 @@ getDevicePath (const char *device) {
 }
 
 const char *
-resolveDeviceName (const char *const *names, const char *description) {
+resolveDeviceName (const char *const *names, int strict, const char *description) {
   const char *first = *names;
   const char *device = NULL;
   const char *name;
 
   while ((name = *names++)) {
     char *path = getDevicePath(name);
-
     if (!path) break;
     logMessage(LOG_DEBUG, "checking %s device: %s", description, path);
 
@@ -149,17 +148,23 @@ resolveDeviceName (const char *const *names, const char *description) {
 
     logMessage(LOG_DEBUG, "%s device access error: %s: %s",
                description, path, strerror(errno));
-    if (errno != ENOENT)
-      if (!device)
+
+    if (errno != ENOENT) {
+      if (!device) {
         device = name;
+      }
+    }
+
     free(path);
   }
 
   if (!device) {
-    if (first) {
-      device = first;
-    } else {
+    if (!first) {
       logMessage(LOG_ERR, "%s device names not defined", description);
+    } else if (strict) {
+      logMessage(LOG_ERR, "%s device not found", description);
+    } else {
+      device = first;
     }
   }
 

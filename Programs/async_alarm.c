@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -218,14 +218,14 @@ asyncResetAlarmIn (AsyncHandle handle, int milliseconds) {
 }
 
 int
-asyncResetAlarmEvery (AsyncHandle handle, int milliseconds) {
+asyncResetAlarmInterval (AsyncHandle handle, int milliseconds) {
   Element *element = getAlarmElement(handle);
 
   if (element) {
     AlarmEntry *alarm = getElementItem(element);
 
     alarm->interval = milliseconds;
-    alarm->reschedule = 1;
+    alarm->reschedule = milliseconds > 0;
     return 1;
   }
 

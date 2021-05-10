@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -35,6 +35,11 @@ disconnectSerialResource (GioHandle *handle) {
   serialCloseDevice(handle->device);
   free(handle);
   return 1;
+}
+
+static const char *
+makeSerialResourceIdentifier (GioHandle *handle, char *buffer, size_t size) {
+  return serialMakeDeviceIdentifier(handle->device, buffer, size);
 }
 
 static ssize_t
@@ -76,6 +81,8 @@ getSerialResourceObject (GioHandle *handle) {
 
 static const GioMethods gioSerialMethods = {
   .disconnectResource = disconnectSerialResource,
+
+  .makeResourceIdentifier = makeSerialResourceIdentifier,
 
   .writeData = writeSerialData,
   .awaitInput = awaitSerialInput,

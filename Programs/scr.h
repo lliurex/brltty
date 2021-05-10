@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -40,6 +40,8 @@ extern int routeScreenCursor (int column, int row, int screen);
 extern int highlightScreenRegion (int left, int right, int top, int bottom);
 extern int unhighlightScreenRegion (void);
 extern int getScreenPointer (int *column, int *row);
+extern int clearScreenTextSelection (void);
+extern int setScreenTextSelection (int startColumn, int startRow, int endColumn, int endRow);
 extern int currentVirtualTerminal (void);
 extern int selectScreenVirtualTerminal (int vt);
 extern int switchScreenVirtualTerminal (int vt);

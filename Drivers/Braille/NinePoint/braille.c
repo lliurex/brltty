@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -163,7 +163,7 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
 }
 
 static int
-writeIdentityRequest (BrailleDisplay *brl) {
+writeIdentifyRequest (BrailleDisplay *brl) {
   return 1;
 }
   
@@ -185,7 +185,7 @@ brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
       unsigned char response[MAXIMUM_RESPONSE_SIZE];
 
       if (probeBrailleDisplay(brl, PROBE_RETRY_LIMIT, NULL, PROBE_INPUT_TIMEOUT,
-                              writeIdentityRequest,
+                              writeIdentifyRequest,
                               readPacket, &response, sizeof(response),
                               isIdentityResponse)) {
         setBrailleKeyTable(brl, &KEY_TABLE_DEFINITION(all));

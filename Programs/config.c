@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,6 +31,8 @@
 #include "log.h"
 #include "report.h"
 #include "strfmt.h"
+#include "pgmprivs.h"
+#include "lock.h"
 #include "activity.h"
 #include "update.h"
 #include "cmd.h"
@@ -62,6 +64,7 @@
 #include "dynld.h"
 #include "async_alarm.h"
 #include "program.h"
+#include "messages.h"
 #include "revision.h"
 #include "service.h"
 #include "options.h"
@@ -71,7 +74,7 @@
 #include "core.h"
 #include "api_control.h"
 #include "prefs.h"
-#include "charset.h"
+#include "utf8.h"
 
 #include "io_generic.h"
 #include "io_usb.h"
@@ -87,6 +90,26 @@ int isWindowsService = 0;
 
 static const char optionOperand_none[] = "no";
 static const char optionOperand_autodetect[] = "auto";
+
+static const char *const *const fallbackBrailleDrivers =
+  NULL_TERMINATED_STRING_ARRAY(
+    optionOperand_none
+  );
+
+static const char *const *const autodetectableBrailleDrivers_serial =
+  NULL_TERMINATED_STRING_ARRAY(
+    "md", "pm", "ts", "ht", "bn", "al", "bm", "pg", "sk"
+  );
+
+static const char *const *const autodetectableBrailleDrivers_USB =
+  NULL_TERMINATED_STRING_ARRAY(
+    "al", "bm", "bn", "cn", "eu", "fs", "hd", "hm", "ht", "hw", "ic", "mt", "pg", "pm", "sk", "vo"
+  );
+
+static const char *const *const autodetectableBrailleDrivers_Bluetooth =
+  NULL_TERMINATED_STRING_ARRAY(
+    "np", "ht", "al", "bm"
+  );
 
 #define SERVICE_NAME "BrlAPI"
 #define SERVICE_DESCRIPTION "Braille API (BrlAPI)"
@@ -148,6 +171,7 @@ static const char *const optionStrings_RemoveService[] = {
 
 static char *opt_startMessage;
 static char *opt_stopMessage;
+static char *opt_localeDirectory;
 
 static int opt_version;
 static int opt_verify;
@@ -158,7 +182,7 @@ static char *opt_logLevel;
 static char *opt_logFile;
 static int opt_bootParameters = 1;
 static int opt_environmentVariables;
-static char *opt_messageHoldTimeout;
+static char *opt_messageTime;
 
 static int opt_cancelExecution;
 static const char *const optionStrings_CancelExecution[] = {
@@ -166,29 +190,36 @@ static const char *const optionStrings_CancelExecution[] = {
   NULL
 };
 
+static char *opt_promptPatterns;
+
+static char *opt_privilegeParameters;
+static int opt_stayPrivileged;
+
 static char *opt_pidFile;
 static char *opt_configurationFile;
-static char *opt_preferencesFile;
-static char *opt_preferenceOverrides;
-static char *opt_promptPatterns;
 
 static char *opt_updatableDirectory;
 static char *opt_writableDirectory;
-static char *opt_driversDirectory;
+char *opt_driversDirectory;
 
-static char *opt_brailleDevice;
-int opt_releaseDevice;
+char *opt_brailleDevice;
 static char **brailleDevices = NULL;
 static const char *brailleDevice = NULL;
-static int brailleConstructed;
+int opt_releaseDevice;
 
 static char *opt_brailleDriver;
 static char **brailleDrivers = NULL;
 static const BrailleDriver *brailleDriver = NULL;
 static void *brailleObject = NULL;
+static int brailleDriverConstructed;
+
 static char *opt_brailleParameters;
 static char *brailleParameters = NULL;
 static char **brailleDriverParameters = NULL;
+
+static char *opt_preferencesFile;
+static char *opt_overridePreferences;
+
 static char *oldPreferencesFile = NULL;
 static int oldPreferencesEnabled = 1;
 
@@ -198,7 +229,6 @@ char *opt_attributesTable;
 
 #ifdef ENABLE_CONTRACTED_BRAILLE
 char *opt_contractionTable;
-ContractionTable *contractionTable = NULL;
 #endif /* ENABLE_CONTRACTED_BRAILLE */
 
 char *opt_keyboardTable;
@@ -267,72 +297,95 @@ static const char *const optionStrings_SpeechDriver[] = {
 #endif /* ENABLE_SPEECH_SUPPORT */
 
 BEGIN_OPTION_TABLE(programOptions)
-  { .letter = 'Y',
-    .word = "start-message",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "start-message",
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("text"),
     .setting.string = &opt_startMessage,
     .description = strtext("The text to be shown when the braille driver starts and to be spoken when the speech driver starts.")
   },
 
-  { .letter = 'Z',
-    .word = "stop-message",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "stop-message",
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("text"),
     .setting.string = &opt_stopMessage,
     .description = strtext("The text to be shown when the braille driver stops.")
   },
 
-  { .letter = 'E',
-    .word = "environment-variables",
+  { .word = "environment-variables",
+    .letter = 'E',
     .flags = OPT_Hidden,
     .setting.flag = &opt_environmentVariables,
     .description = strtext("Recognize environment variables.")
   },
 
-  { .letter = 'n',
-    .word = "no-daemon",
+  { .word = "locale-directory",
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
+    .argument = strtext("directory"),
+    .setting.string = &opt_localeDirectory,
+    .internal.setting = LOCALE_DIRECTORY,
+    .internal.adjust = fixInstallPath,
+    .description = strtext("Path to directory which contains message translations.")
+  },
+
+  { .word = "no-daemon",
+    .letter = 'n',
     .flags = OPT_Hidden,
     .setting.flag = &opt_noDaemon,
     .description = strtext("Remain a foreground process.")
   },
 
-  { .letter = 'I',
-    .word = "install-service",
+  { .word = "install-service",
+    .letter = 'I',
     .flags = OPT_Hidden,
     .setting.flag = &opt_installService,
     .description = strtext("Install the %s service, and then exit."),
     .strings.array = optionStrings_InstallService
   },
 
-  { .letter = 'R',
-    .word = "remove-service",
+  { .word = "remove-service",
+    .letter = 'R',
     .flags = OPT_Hidden,
     .setting.flag = &opt_removeService,
     .description = strtext("Remove the %s service, and then exit."),
     .strings.array = optionStrings_RemoveService
   },
 
-  { .letter = 'C',
-    .word = "cancel-execution",
+  { .word = "privilege-parameters",
+    .letter = 'z',
+    .flags = OPT_Hidden | OPT_Extend | OPT_Config | OPT_EnvVar,
+    .argument = strtext("name=value,..."),
+    .setting.string = &opt_privilegeParameters,
+    .internal.setting = PRIVILEGE_PARAMETERS,
+    .description = strtext("Parameters for the privilege establishment stage.")
+  },
+
+  { .word = "stay-privileged",
+    .letter = 'Z',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
+    .setting.flag = &opt_stayPrivileged,
+    .description = strtext("Don't switch to an unprivileged user or relinquish any privileges (group memberships, capabilities, etc).")
+  },
+
+  { .word = "cancel-execution",
+    .letter = 'C',
     .flags = OPT_Hidden,
     .setting.flag = &opt_cancelExecution,
     .description = strtext("Stop an existing instance of %s, and then exit."),
     .strings.array = optionStrings_CancelExecution
   },
 
-  { .letter = 'P',
-    .word = "pid-file",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "pid-file",
+    .letter = 'P',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("file"),
     .setting.string = &opt_pidFile,
     .internal.adjust = fixInstallPath,
     .description = strtext("Path to process identifier file.")
   },
 
-  { .letter = 'f',
-    .word = "configuration-file",
-    .flags = OPT_Environ,
+  { .word = "configuration-file",
+    .letter = 'f',
+    .flags = OPT_EnvVar,
     .argument = strtext("file"),
     .setting.string = &opt_configurationFile,
     .internal.setting = CONFIGURATION_DIRECTORY "/" CONFIGURATION_FILE,
@@ -340,34 +393,33 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("Path to default settings file.")
   },
 
-  { .letter = 'F',
-    .word = "preferences-file",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "preferences-file",
+    .letter = 'F',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("file"),
     .setting.string = &opt_preferencesFile,
     .internal.setting = PREFERENCES_FILE,
     .description = strtext("Name of or path to default preferences file.")
   },
 
-  { .letter = 'o',
-    .word = "override-preference",
-    .flags = OPT_Extend | OPT_Config | OPT_Environ,
+  { .word = "override-preferences",
+    .letter = 'o',
+    .flags = OPT_Extend | OPT_Config | OPT_EnvVar,
     .argument = strtext("name=value,..."),
-    .setting.string = &opt_preferenceOverrides,
+    .setting.string = &opt_overridePreferences,
     .description = strtext("Explicit preference settings.")
   },
 
-  { .letter = 'z',
-    .word = "prompt-patterns",
-    .flags = OPT_Extend | OPT_Config | OPT_Environ,
+  { .word = "prompt-patterns",
+    .flags = OPT_Extend | OPT_Config | OPT_EnvVar,
     .argument = strtext("regexp,..."),
     .setting.string = &opt_promptPatterns,
     .description = strtext("Patterns that match command prompts.")
   },
 
-  { .letter = 'U',
-    .word = "updatable-directory",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "updatable-directory",
+    .letter = 'U',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("directory"),
     .setting.string = &opt_updatableDirectory,
     .internal.setting = UPDATABLE_DIRECTORY,
@@ -375,9 +427,9 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("Path to directory which contains files that can be updated.")
   },
 
-  { .letter = 'W',
-    .word = "writable-directory",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "writable-directory",
+    .letter = 'W',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("directory"),
     .setting.string = &opt_writableDirectory,
     .internal.setting = WRITABLE_DIRECTORY,
@@ -385,9 +437,9 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("Path to directory which can be written to.")
   },
 
-  { .letter = 'D',
-    .word = "drivers-directory",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "drivers-directory",
+    .letter = 'D',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("directory"),
     .setting.string = &opt_driversDirectory,
     .internal.setting = DRIVERS_DIRECTORY,
@@ -396,16 +448,16 @@ BEGIN_OPTION_TABLE(programOptions)
   },
 
 #ifdef ENABLE_API
-  { .letter = 'N',
-    .word = "no-api",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "no-api",
+    .letter = 'N',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .setting.flag = &opt_noApi,
     .description = strtext("Disable the application programming interface.")
   },
 
-  { .letter = 'A',
-    .word = "api-parameters",
-    .flags = OPT_Extend | OPT_Config | OPT_Environ,
+  { .word = "api-parameters",
+    .letter = 'A',
+    .flags = OPT_Extend | OPT_Config | OPT_EnvVar,
     .argument = strtext("name=value,..."),
     .setting.string = &opt_apiParameters,
     .internal.setting = API_PARAMETERS,
@@ -413,10 +465,10 @@ BEGIN_OPTION_TABLE(programOptions)
   },
 #endif /* ENABLE_API */
 
-  { .letter = 'b',
-    .word = "braille-driver",
+  { .word = "braille-driver",
+    .letter = 'b',
     .bootParameter = 1,
-    .flags = OPT_Config | OPT_Environ,
+    .flags = OPT_Config | OPT_EnvVar,
     .argument = strtext("driver,..."),
     .setting.string = &opt_brailleDriver,
     .internal.setting = optionOperand_autodetect,
@@ -424,29 +476,29 @@ BEGIN_OPTION_TABLE(programOptions)
     .strings.array = optionStrings_BrailleDriver
   },
 
-  { .letter = 'B',
-    .word = "braille-parameters",
+  { .word = "braille-parameters",
+    .letter = 'B',
     .bootParameter = 4,
-    .flags = OPT_Extend | OPT_Config | OPT_Environ,
+    .flags = OPT_Extend | OPT_Config | OPT_EnvVar,
     .argument = strtext("name=value,..."),
     .setting.string = &opt_brailleParameters,
     .internal.setting = BRAILLE_PARAMETERS,
     .description = strtext("Parameters for the braille driver.")
   },
 
-  { .letter = 'd',
-    .word = "braille-device",
+  { .word = "braille-device",
+    .letter = 'd',
     .bootParameter = 2,
-    .flags = OPT_Config | OPT_Environ,
+    .flags = OPT_Config | OPT_EnvVar,
     .argument = strtext("identifier,..."),
     .setting.string = &opt_brailleDevice,
     .internal.setting = BRAILLE_DEVICE,
     .description = strtext("Device for accessing braille display.")
   },
 
-  { .letter = 'r',
-    .word = "release-device",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "release-device",
+    .letter = 'r',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .setting.flag = &opt_releaseDevice,
 #ifdef WINDOWS
     .internal.setting = FLAG_TRUE_WORD,
@@ -456,9 +508,9 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("Release braille device when screen or window is unreadable.")
   },
 
-  { .letter = 'T',
-    .word = "tables-directory",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "tables-directory",
+    .letter = 'T',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("directory"),
     .setting.string = &opt_tablesDirectory,
     .internal.setting = TABLES_DIRECTORY,
@@ -466,10 +518,10 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("Path to directory containing tables.")
   },
 
-  { .letter = 't',
-    .word = "text-table",
+  { .word = "text-table",
+    .letter = 't',
     .bootParameter = 3,
-    .flags = OPT_Config | OPT_Environ,
+    .flags = OPT_Config | OPT_EnvVar,
     .argument = strtext("file"),
     .setting.string = &opt_textTable,
     .internal.setting = optionOperand_autodetect,
@@ -477,44 +529,44 @@ BEGIN_OPTION_TABLE(programOptions)
     .strings.array = optionStrings_TextTable
   },
 
-  { .letter = 'a',
-    .word = "attributes-table",
-    .flags = OPT_Config | OPT_Environ,
+  { .word = "attributes-table",
+    .letter = 'a',
+    .flags = OPT_Config | OPT_EnvVar,
     .argument = strtext("file"),
     .setting.string = &opt_attributesTable,
     .description = strtext("Name of or path to attributes table.")
   },
 
 #ifdef ENABLE_CONTRACTED_BRAILLE
-  { .letter = 'c',
-    .word = "contraction-table",
-    .flags = OPT_Config | OPT_Environ,
+  { .word = "contraction-table",
+    .letter = 'c',
+    .flags = OPT_Config | OPT_EnvVar,
     .argument = strtext("file"),
     .setting.string = &opt_contractionTable,
     .description = strtext("Name of or path to contraction table.")
   },
 #endif /* ENABLE_CONTRACTED_BRAILLE */
 
-  { .letter = 'k',
-    .word = "keyboard-table",
-    .flags = OPT_Config | OPT_Environ,
+  { .word = "keyboard-table",
+    .letter = 'k',
+    .flags = OPT_Config | OPT_EnvVar,
     .argument = strtext("file"),
     .setting.string = &opt_keyboardTable,
     .description = strtext("Name of or path to keyboard table.")
   },
 
-  { .letter = 'K',
-    .word = "keyboard-properties",
-    .flags = OPT_Hidden | OPT_Extend | OPT_Config | OPT_Environ,
+  { .word = "keyboard-properties",
+    .letter = 'K',
+    .flags = OPT_Hidden | OPT_Extend | OPT_Config | OPT_EnvVar,
     .argument = strtext("name=value,..."),
     .setting.string = &opt_keyboardProperties,
     .description = strtext("Properties of eligible keyboards.")
   },
 
 #ifdef ENABLE_SPEECH_SUPPORT
-  { .letter = 's',
-    .word = "speech-driver",
-    .flags = OPT_Config | OPT_Environ,
+  { .word = "speech-driver",
+    .letter = 's',
+    .flags = OPT_Config | OPT_EnvVar,
     .argument = strtext("driver,..."),
     .setting.string = &opt_speechDriver,
     .internal.setting = optionOperand_autodetect,
@@ -522,34 +574,34 @@ BEGIN_OPTION_TABLE(programOptions)
     .strings.array = optionStrings_SpeechDriver
   },
 
-  { .letter = 'S',
-    .word = "speech-parameters",
-    .flags = OPT_Extend | OPT_Config | OPT_Environ,
+  { .word = "speech-parameters",
+    .letter = 'S',
+    .flags = OPT_Extend | OPT_Config | OPT_EnvVar,
     .argument = strtext("name=value,..."),
     .setting.string = &opt_speechParameters,
     .internal.setting = SPEECH_PARAMETERS,
     .description = strtext("Parameters for the speech driver.")
   },
 
-  { .letter = 'i',
-    .word = "speech-input",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "speech-input",
+    .letter = 'i',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("file"),
     .setting.string = &opt_speechInput,
     .description = strtext("Name of or path to speech input object.")
   },
 
-  { .letter = 'Q',
-    .word = "quiet-if-no-braille",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "quiet-if-no-braille",
+    .letter = 'Q',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .setting.flag = &opt_quietIfNoBraille,
     .description = strtext("Do not autospeak when braille is not being used.")
   },
 #endif /* ENABLE_SPEECH_SUPPORT */
 
-  { .letter = 'x',
-    .word = "screen-driver",
-    .flags = OPT_Config | OPT_Environ,
+  { .word = "screen-driver",
+    .letter = 'x',
+    .flags = OPT_Config | OPT_EnvVar,
     .argument = strtext("driver,..."),
     .setting.string = &opt_screenDriver,
     .internal.setting = DEFAULT_SCREEN_DRIVER,
@@ -557,9 +609,9 @@ BEGIN_OPTION_TABLE(programOptions)
     .strings.array = optionStrings_ScreenDriver
   },
 
-  { .letter = 'X',
-    .word = "screen-parameters",
-    .flags = OPT_Extend | OPT_Config | OPT_Environ,
+  { .word = "screen-parameters",
+    .letter = 'X',
+    .flags = OPT_Extend | OPT_Config | OPT_EnvVar,
     .argument = strtext("name=value,..."),
     .setting.string = &opt_screenParameters,
     .internal.setting = SCREEN_PARAMETERS,
@@ -567,9 +619,9 @@ BEGIN_OPTION_TABLE(programOptions)
   },
 
 #ifdef HAVE_PCM_SUPPORT
-  { .letter = 'p',
-    .word = "pcm-device",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "pcm-device",
+    .letter = 'p',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("device"),
     .setting.string = &opt_pcmDevice,
     .description = strtext("PCM (soundcard digital audio) device specifier.")
@@ -577,61 +629,61 @@ BEGIN_OPTION_TABLE(programOptions)
 #endif /* HAVE_PCM_SUPPORT */
 
 #ifdef HAVE_MIDI_SUPPORT
-  { .letter = 'm',
-    .word = "midi-device",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "midi-device",
+    .letter = 'm',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("device"),
     .setting.string = &opt_midiDevice,
     .description = strtext("MIDI (Musical Instrument Digital Interface) device specifier.")
   },
 #endif /* HAVE_MIDI_SUPPORT */
 
-  { .letter = 'M',
-    .word = "message-timeout",
-    .flags = OPT_Hidden,
+  { .word = "message-time",
+    .letter = 'M',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("csecs"),
-    .setting.string = &opt_messageHoldTimeout,
+    .setting.string = &opt_messageTime,
     .description = strtext("Message hold timeout (in 10ms units).")
   },
 
-  { .letter = 'e',
-    .word = "standard-error",
+  { .word = "standard-error",
+    .letter = 'e',
     .flags = OPT_Hidden,
     .setting.flag = &opt_standardError,
     .description = strtext("Log to standard error rather than to the system log.")
   },
 
-  { .letter = 'q',
-    .word = "quiet",
+  { .word = "quiet",
+    .letter = 'q',
     .setting.flag = &opt_quiet,
     .description = strtext("Suppress start-up messages.")
   },
 
-  { .letter = 'l',
-    .word = "log-level",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ | OPT_Format,
+  { .word = "log-level",
+    .letter = 'l',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar | OPT_Format,
     .argument = strtext("lvl|cat,..."),
     .setting.string = &opt_logLevel,
     .description = strtext("Logging level (%s or one of {%s}) and/or log categories to enable (any combination of {%s}, each optionally prefixed by %s to disable)"),
     .strings.format = formatLogLevelString
   },
 
-  { .letter = 'L',
-    .word = "log-file",
-    .flags = OPT_Hidden | OPT_Config | OPT_Environ,
+  { .word = "log-file",
+    .letter = 'L',
+    .flags = OPT_Hidden | OPT_Config | OPT_EnvVar,
     .argument = strtext("file"),
     .setting.string = &opt_logFile,
     .description = strtext("Path to log file.")
   },
 
-  { .letter = 'v',
-    .word = "verify",
+  { .word = "verify",
+    .letter = 'v',
     .setting.flag = &opt_verify,
     .description = strtext("Write the start-up logs, and then exit.")
   },
 
-  { .letter = 'V',
-    .word = "version",
+  { .word = "version",
+    .letter = 'V',
     .setting.flag = &opt_version,
     .description = strtext("Log the versions of the core, API, and built-in drivers, and then exit.")
   },
@@ -728,6 +780,19 @@ setLogLevels (void) {
   }
 }
 
+static void
+establishPrivileges (void) {
+  const char *platform = getPrivilegeParametersPlatform();
+  const char *const *names = getPrivilegeParameterNames();
+  char **parameters = getParameters(names, platform, opt_privilegeParameters);
+
+  if (parameters) {
+    logParameters(names, parameters, gettext("Privilege Parameter"));
+    establishProgramPrivileges(parameters, opt_stayPrivileged);
+    deallocateStrings(parameters);
+  }
+}
+
 ProgramExitStatus
 brlttyPrepare (int argc, char *argv[]) {
   {
@@ -754,6 +819,7 @@ brlttyPrepare (int argc, char *argv[]) {
     logMessage(LOG_ERR, "%s: %s", gettext("excess argument"), argv[0]);
   }
 
+  setMessagesDirectory(opt_localeDirectory);
   setUpdatableDirectory(opt_updatableDirectory);
   setWritableDirectory(opt_writableDirectory);
 
@@ -768,13 +834,22 @@ brlttyPrepare (int argc, char *argv[]) {
 
   logProgramBanner();
   logProperty(opt_logLevel, "logLevel", gettext("Log Level"));
+  logProperty(getMessagesLocale(), "messagesLocale", gettext("Messages Locale"));
+  logProperty(getMessagesDomain(), "messagesDomain", gettext("Messages Domain"));
+  logProperty(getMessagesDirectory(), "messagesDirectory", gettext("Messages Directory"));
 
+  establishPrivileges();
   return PROG_EXIT_SUCCESS;
 }
 
 int
 changeTextTable (const char *name) {
-  return replaceTextTable(opt_tablesDirectory, name);
+  if (!name) name = "";
+  if (!replaceTextTable(opt_tablesDirectory, name)) return 0;
+
+  changeStringSetting(&opt_textTable, name);
+  api.updateParameter(BRLAPI_PARAM_COMPUTER_BRAILLE_TABLE, 0);
+  return 1;
 }
 
 static void
@@ -784,7 +859,11 @@ exitTextTable (void *data) {
 
 int
 changeAttributesTable (const char *name) {
-  return replaceAttributesTable(opt_tablesDirectory, name);
+  if (!name) name = "";
+  if (!replaceAttributesTable(opt_tablesDirectory, name)) return 0;
+
+  changeStringSetting(&opt_attributesTable, name);
+  return 1;
 }
 
 static void
@@ -793,37 +872,19 @@ exitAttributesTable (void *data) {
 }
 
 #ifdef ENABLE_CONTRACTED_BRAILLE
-static void
-exitContractionTable (void *data) {
-  if (contractionTable) {
-    destroyContractionTable(contractionTable);
-    contractionTable = NULL;
-  }
-}
-
 int
 changeContractionTable (const char *name) {
-  ContractionTable *table = NULL;
+  if (!name) name = "";
+  if (!replaceContractionTable(opt_tablesDirectory, name)) return 0;
 
-  if (*name) {
-    char *path;
-
-    if ((path = makeContractionTablePath(opt_tablesDirectory, name))) {
-      logMessage(LOG_DEBUG, "compiling contraction table: %s", path);
-
-      if (!(table = compileContractionTable(path))) {
-        logMessage(LOG_ERR, "%s: %s", gettext("cannot compile contraction table"), path);
-      }
-
-      free(path);
-    }
-
-    if (!table) return 0;
-  }
-
-  if (contractionTable) destroyContractionTable(contractionTable);
-  contractionTable = table;
+  changeStringSetting(&opt_contractionTable, name);
+  api.updateParameter(BRLAPI_PARAM_LITERARY_BRAILLE_TABLE, 0);
   return 1;
+}
+
+static void
+exitContractionTable (void *data) {
+  changeContractionTable(NULL);
 }
 #endif /* ENABLE_CONTRACTED_BRAILLE */
 
@@ -966,14 +1027,14 @@ handleWcharHelpLine (const wchar_t *line, void *data UNUSED) {
 }
 
 static int
-handleUtf8HelpLine (char *line, void *data) {
-  const char *utf8 = line;
-  size_t count = strlen(utf8) + 1;
-  wchar_t buffer[count];
-  wchar_t *characters = buffer;
+handleUtf8HelpLine (const LineHandlerParameters *parameters) {
+  const char *utf8 = parameters->line.text;
+  size_t size = parameters->line.length + 1;
+  wchar_t characters[size];
+  wchar_t *character = characters;
 
-  convertUtf8ToWchars(&utf8, &characters, count);
-  return handleWcharHelpLine(buffer, data);
+  convertUtf8ToWchars(&utf8, &character, size);
+  return handleWcharHelpLine(characters, parameters->data);
 }
 
 static int
@@ -1072,6 +1133,7 @@ changeKeyboardTable (const char *name) {
     makeKeyboardHelpPage();
   }
 
+  changeStringSetting(&opt_keyboardTable, name);
   return 1;
 }
 
@@ -1139,9 +1201,9 @@ applyBraillePreferences (void) {
   setBrailleFirmness(&brl, prefs.brailleFirmness);
   setTouchSensitivity(&brl, prefs.touchSensitivity);
 
-  setBrailleAutorepeat(&brl, prefs.autorepeatEnabled,
-                       PREFERENCES_TIME(prefs.longPressTime),
-                       PREFERENCES_TIME(prefs.autorepeatInterval));
+  setAutorepeatProperties(&brl, prefs.autorepeatEnabled,
+                          PREFS2MSECS(prefs.longPressTime),
+                          PREFS2MSECS(prefs.autorepeatInterval));
 
   if (brl.keyTable) {
     setKeyAutoreleaseTime(brl.keyTable, prefs.autoreleaseTime);
@@ -1171,7 +1233,7 @@ applyAllPreferences (void) {
 }
 
 void
-setPreferences (const Preferences *newPreferences) {
+setPreferences (const PreferenceSettings *newPreferences) {
   prefs = *newPreferences;
   applyAllPreferences();
 }
@@ -1215,8 +1277,8 @@ ensureStatusFields (void) {
     static const unsigned char *const fieldsTable[] = {
       fields1, fields2, fields3, fields4, fields5, fields6, fields7
     };
-    static const unsigned char fieldsCount = ARRAY_COUNT(fieldsTable);
 
+    static const unsigned char fieldsCount = ARRAY_COUNT(fieldsTable);
     if (count > fieldsCount) count = fieldsCount;
     fields = fieldsTable[count - 1];
   }
@@ -1227,7 +1289,7 @@ ensureStatusFields (void) {
 static void
 setPreferenceOverrides (void) {
   int count;
-  char **settings = splitString(opt_preferenceOverrides, PARAMETER_SEPARATOR_CHARACTER, &count);
+  char **settings = splitString(opt_overridePreferences, PARAMETER_SEPARATOR_CHARACTER, &count);
 
   if (settings) {
     char **setting = settings;
@@ -1240,6 +1302,13 @@ setPreferenceOverrides (void) {
 
     deallocateStrings(settings);
   }
+}
+
+static void
+finishPreferencesLoad (int ok) {
+  if (!ok) resetPreferences();
+  setPreferenceOverrides();
+  applyAllPreferences();
 }
 
 int
@@ -1263,9 +1332,7 @@ loadPreferences (void) {
     if (loadPreferencesFile(oldPreferencesFile)) ok = 1;
   }
 
-  if (!ok) resetPreferences();
-  setPreferenceOverrides();
-  applyAllPreferences();
+  finishPreferencesLoad(ok);
   return ok;
 }
 
@@ -1290,8 +1357,8 @@ savePreferences (void) {
 #ifdef ENABLE_API
 static void
 exitApiServer (void *data) {
-  if (api.isLinked()) api.unlink();
-  if (api.isStarted()) api.stop();
+  if (api.isServerLinked()) api.unlinkServer();
+  if (api.isServerRunning()) api.stopServer();
 
   if (apiParameters) {
     deallocateStrings(apiParameters);
@@ -1303,20 +1370,19 @@ exitApiServer (void *data) {
 static void
 startApiServer (void) {
 #ifdef ENABLE_API
-  if (!(opt_noApi || api.isStarted())) {
-    const char *const *parameters = api.getParameters();
+  if (!(opt_noApi || api.isServerRunning())) {
+    const char *const *parameters = api.getServerParameters();
 
     apiParameters = getParameters(parameters,
                                   NULL,
                                   opt_apiParameters);
 
     if (apiParameters) {
-      api.identify(0);
-      logParameters(parameters, apiParameters,
-                    gettext("API Parameter"));
+      api.logServerIdentity(0);
+      logParameters(parameters, apiParameters, gettext("API Parameter"));
 
       if (!opt_verify) {
-        if (api.start(apiParameters)) {
+        if (api.startServer(apiParameters)) {
           onProgramExit("api-server", exitApiServer, NULL);
         }
       }
@@ -1354,8 +1420,7 @@ activateDriver (const DriverActivationData *data, int verify) {
   }
 
   if (!*driver) {
-    static const char *const fallbackDrivers[] = {optionOperand_none, NULL};
-    driver = fallbackDrivers;
+    driver = fallbackBrailleDrivers;
     autodetect = 0;
   }
 
@@ -1392,7 +1457,60 @@ static void
 initializeBrailleDisplay (void) {
   constructBrailleDisplay(&brl);
   brl.bufferResized = &brailleWindowReconfigured;
-  brl.api = &api;
+}
+
+static LockDescriptor *
+getBrailleDriverLock (void) {
+  static LockDescriptor *lock = NULL;
+  return getLockDescriptor(&lock, "braille-driver");
+}
+
+void
+lockBrailleDriver (void) {
+  obtainExclusiveLock(getBrailleDriverLock());
+}
+
+void
+unlockBrailleDriver (void) {
+  releaseLock(getBrailleDriverLock());
+}
+
+int
+isBrailleDriverConstructed (void) {
+  return brailleDriverConstructed;
+}
+
+static void
+setBrailleDriverConstructed (int yes) {
+  lockBrailleDriver();
+  brailleDriverConstructed = yes;
+  unlockBrailleDriver();
+
+  if (brailleDriverConstructed) {
+    announceBrailleOnline();
+  } else {
+    announceBrailleOffline();
+  }
+
+  static const brlapi_param_t parameters[] = {
+    BRLAPI_PARAM_DRIVER_CODE,
+    BRLAPI_PARAM_DRIVER_NAME,
+    BRLAPI_PARAM_DRIVER_VERSION,
+    BRLAPI_PARAM_DEVICE_MODEL,
+    BRLAPI_PARAM_DEVICE_CELL_SIZE,
+    BRLAPI_PARAM_DISPLAY_SIZE,
+    BRLAPI_PARAM_DEVICE_IDENTIFIER,
+    BRLAPI_PARAM_DEVICE_SPEED,
+    BRLAPI_PARAM_DEVICE_KEY_CODES,
+    BRLAPI_PARAM_BOUND_COMMAND_CODES,
+  };
+
+  const brlapi_param_t *parameter = parameters;
+  const brlapi_param_t *end = parameter + ARRAY_COUNT(parameters);
+
+  while (parameter < end) {
+    api.updateParameter(*parameter++, 0);
+  }
 }
 
 int
@@ -1424,10 +1542,8 @@ constructBrailleDriver (void) {
         }
       }
 
-      report(REPORT_BRAILLE_DEVICE_ONLINE, NULL);
+      setBrailleDriverConstructed(1);
       startBrailleInput();
-
-      brailleConstructed = 1;
       return 1;
     }
 
@@ -1445,13 +1561,17 @@ void
 destructBrailleDriver (void) {
   stopBrailleInput();
   drainBrailleOutput(&brl, 0);
-  report(REPORT_BRAILLE_DEVICE_OFFLINE, NULL);
 
-  brailleConstructed = 0;
+  setBrailleDriverConstructed(0);
   braille->destruct(&brl);
 
   disableBrailleHelpPage();
   destructBrailleDisplay(&brl);
+}
+
+int
+isBrailleOnline (void) {
+  return isBrailleDriverConstructed() && !brl.isOffline;
 }
 
 static int
@@ -1495,7 +1615,7 @@ initializeBrailleDriver (const char *code, int verify) {
         if (oldPreferencesFile) {
           logMessage(LOG_INFO, "%s: %s", gettext("Old Preferences File"), oldPreferencesFile);
 
-          api.link();
+          api.linkServer();
 
           return 1;
         } else {
@@ -1538,33 +1658,18 @@ activateBrailleDriver (int verify) {
 
         switch (properties->type.identifier) {
           case GIO_TYPE_SERIAL: {
-            static const char *const serialDrivers[] = {
-              "md", "pm", "ts", "ht", "bn", "al", "bm", "pg", "sk",
-              NULL
-            };
-
-            autodetectableDrivers = serialDrivers;
+            autodetectableDrivers = autodetectableBrailleDrivers_serial;
             break;
           }
 
           case GIO_TYPE_USB: {
-            static const char *const usbDrivers[] = {
-              "al", "bm", "bn", "eu", "fs", "hd", "hm", "ht", "hw", "ic", "mt", "pg", "pm", "sk", "vo",
-              NULL
-            };
-
-            autodetectableDrivers = usbDrivers;
+            autodetectableDrivers = autodetectableBrailleDrivers_USB;
             break;
           }
 
           case GIO_TYPE_BLUETOOTH: {
             if (!(autodetectableDrivers = bthGetDriverCodes(dev, BLUETOOTH_DEVICE_NAME_OBTAIN_TIMEOUT))) {
-              static const char *bluetoothDrivers[] = {
-                "np", "ht", "al", "bm",
-                NULL
-              };
-
-              autodetectableDrivers = bluetoothDrivers;
+              autodetectableDrivers = autodetectableBrailleDrivers_Bluetooth;
             }
 
             break;
@@ -1605,8 +1710,8 @@ activateBrailleDriver (int verify) {
 static void
 deactivateBrailleDriver (void) {
   if (brailleDriver) {
-    api.unlink();
-    if (brailleConstructed) destructBrailleDriver();
+    api.unlinkServer();
+    if (brailleDriverConstructed) destructBrailleDriver();
     braille = &noBraille;
     brailleDevice = NULL;
     brailleDriver = NULL;
@@ -1632,9 +1737,7 @@ startBrailleDriver (void) {
 
   if (activateBrailleDriver(0)) {
     if (oldPreferencesEnabled) {
-      if (!loadPreferencesFile(oldPreferencesFile)) resetPreferences();
-      setPreferenceOverrides();
-      applyAllPreferences();
+      finishPreferencesLoad(loadPreferencesFile(oldPreferencesFile));
     } else {
       applyBraillePreferences();
     }
@@ -1655,7 +1758,9 @@ startBrailleDriver (void) {
         char banner[0X100];
         const char *text = opt_startMessage;
 
-        if (!*text) {
+        if (*text) {
+          text = gettext(text);
+        } else {
           makeProgramBanner(banner, sizeof(banner), 0);
           text = banner;
         }
@@ -1713,9 +1818,15 @@ writeBrailleMessage (const char *text) {
 
 static void
 exitBrailleDriver (void *data) {
-  if (brailleConstructed) {
+  if (brailleDriverConstructed) {
     const char *text = opt_stopMessage;
-    if (!*text) text = gettext("BRLTTY stopped");
+
+    if (*text) {
+      text = gettext(text);
+    } else {
+      text = gettext("BRLTTY stopped");
+    }
+
     writeBrailleMessage(text);
   }
 
@@ -1806,50 +1917,18 @@ exitBrailleData (void *data) {
 
 int
 changeBrailleDriver (const char *driver) {
-  char **newDrivers = splitString(driver, ',', NULL);
-
-  if (newDrivers) {
-    char **oldDrivers = brailleDrivers;
-
-    brailleDrivers = newDrivers;
-    if (oldDrivers) deallocateStrings(oldDrivers);
-    return 1;
-  }
-
-  return 0;
+  return changeListSetting(&brailleDrivers, &opt_brailleDriver, driver);
 }
 
 int
 changeBrailleParameters (const char *parameters) {
-  char *newParameters;
-
   if (!parameters) parameters = "";
-
-  if ((newParameters = strdup(parameters))) {
-    char *oldParameters = brailleParameters;
-
-    brailleParameters = newParameters;
-    if (oldParameters) free(oldParameters);
-    return 1;
-  } else {
-    logMallocError();
-  }
-
-  return 0;
+  return changeStringSetting(&brailleParameters, parameters);
 }
+
 int
 changeBrailleDevice (const char *device) {
-  char **newDevices = splitString(device, ',', NULL);
-
-  if (newDevices) {
-    char **oldDevices = brailleDevices;
-
-    brailleDevices = newDevices;
-    if (oldDevices) deallocateStrings(oldDevices);
-    return 1;
-  }
-
-  return 0;
+  return changeListSetting(&brailleDevices, &opt_brailleDevice, device);
 }
 
 #ifdef ENABLE_SPEECH_SUPPORT
@@ -2026,7 +2105,9 @@ startSpeechDriver (void) {
     char banner[0X100];
     const char *text = opt_startMessage;
 
-    if (!*text) {
+    if (*text) {
+      text = gettext(text);
+    } else {
       makeProgramBanner(banner, sizeof(banner), 0);
       text = banner;
     }
@@ -2152,36 +2233,13 @@ exitSpeechInput (void *data) {
 
 int
 changeSpeechDriver (const char *driver) {
-  char **newDrivers = splitString(driver, ',', NULL);
-
-  if (newDrivers) {
-    char **oldDrivers = speechDrivers;
-
-    speechDrivers = newDrivers;
-    if (oldDrivers) deallocateStrings(oldDrivers);
-    return 1;
-  }
-
-  return 0;
+  return changeListSetting(&speechDrivers, &opt_speechDriver, driver);
 }
 
 int
 changeSpeechParameters (const char *parameters) {
-  char *newParameters;
-
   if (!parameters) parameters = "";
-
-  if ((newParameters = strdup(parameters))) {
-    char *oldParameters = speechParameters;
-
-    speechParameters = newParameters;
-    if (oldParameters) free(oldParameters);
-    return 1;
-  } else {
-    logMallocError();
-  }
-
-  return 0;
+  return changeStringSetting(&speechParameters, parameters);
 }
 #endif /* ENABLE_SPEECH_SUPPORT */
 
@@ -2369,36 +2427,26 @@ exitScreenData (void *data) {
 
 int
 changeScreenDriver (const char *driver) {
-  char **newDrivers = splitString(driver, ',', NULL);
-
-  if (newDrivers) {
-    char **oldDrivers = screenDrivers;
-
-    screenDrivers = newDrivers;
-    if (oldDrivers) deallocateStrings(oldDrivers);
-    return 1;
-  }
-
-  return 0;
+  return changeListSetting(&screenDrivers, &opt_screenDriver, driver);
 }
 
 int
 changeScreenParameters (const char *parameters) {
-  char *newParameters;
-
   if (!parameters) parameters = "";
+  return changeStringSetting(&screenParameters, parameters);
+}
 
-  if ((newParameters = strdup(parameters))) {
-    char *oldParameters = screenParameters;
+int
+changeMessageLocale (const char *locale) {
+  int changed = !!setlocale(LC_ALL, locale);
 
-    screenParameters = newParameters;
-    if (oldParameters) free(oldParameters);
-    return 1;
+  if (changed) {
+    api.updateParameter(BRLAPI_PARAM_MESSAGE_LOCALE, 0);
   } else {
-    logMallocError();
+    logMessage(LOG_WARNING, "message locale change failed: %s", locale);
   }
 
-  return 0;
+  return changed;
 }
 
 static void
@@ -2626,8 +2674,8 @@ brlttyStart (void) {
     if (stop) return PROG_EXIT_FORCE;
   }
 
-  if (!validateInterval(&messageHoldTimeout, opt_messageHoldTimeout)) {
-    logMessage(LOG_ERR, "%s: %s", gettext("invalid message hold timeout"), opt_messageHoldTimeout);
+  if (!validateInterval(&messageHoldTimeout, opt_messageTime)) {
+    logMessage(LOG_ERR, "%s: %s", gettext("invalid message hold timeout"), opt_messageTime);
   }
 
   if (opt_version) {
@@ -2635,7 +2683,7 @@ brlttyStart (void) {
     identifyScreenDrivers(1);
 
 #ifdef ENABLE_API
-    api.identify(1);
+    api.logServerIdentity(1);
 #endif /* ENABLE_API */
 
     identifyBrailleDrivers(1);
@@ -2746,18 +2794,14 @@ brlttyStart (void) {
   /* handle text table option */
   if (*opt_textTable) {
     if (strcmp(opt_textTable, optionOperand_autodetect) == 0) {
+      changeStringSetting(&opt_textTable, "");
       char *name = selectTextTable(opt_tablesDirectory);
 
-      changeStringSetting(&opt_textTable, "");
-
       if (name) {
-        if (replaceTextTable(opt_tablesDirectory, name)) {
-          changeStringSetting(&opt_textTable, name);
-        }
-
+        changeTextTable(name);
         free(name);
       }
-    } else if (!replaceTextTable(opt_tablesDirectory, opt_textTable)) {
+    } else if (!changeTextTable(opt_textTable)) {
       changeStringSetting(&opt_textTable, "");
     }
   }
@@ -2771,7 +2815,7 @@ brlttyStart (void) {
 
   /* handle attributes table option */
   if (*opt_attributesTable) {
-    if (!replaceAttributesTable(opt_tablesDirectory, opt_attributesTable)) {
+    if (!changeAttributesTable(opt_attributesTable)) {
       changeStringSetting(&opt_attributesTable, "");
     }
   }
@@ -2813,7 +2857,7 @@ brlttyStart (void) {
   changeBrailleDriver(opt_brailleDriver);
   changeBrailleParameters(opt_brailleParameters);
   changeBrailleDevice(opt_brailleDevice);
-  brailleConstructed = 0;
+  brailleDriverConstructed = 0;
   onProgramExit("braille-data", exitBrailleData, NULL);
 
   if (opt_verify) {
@@ -2855,8 +2899,7 @@ static char *configuredLocale = "";
 
 static int
 changeLocale (const char *locale) {
-  if (setlocale(LC_ALL, locale)) return 1;
-  logSystemError("setlocale");
+  if (changeMessageLocale(locale)) return 1;
   setlocale(LC_ALL, configuredLocale);
   return 0;
 }

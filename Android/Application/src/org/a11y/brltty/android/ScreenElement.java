@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -141,6 +141,14 @@ public class ScreenElement {
     return false;
   }
 
+  public boolean onAccessibilityActions () {
+    return false;
+  }
+
+  public boolean onDescribeElement () {
+    return false;
+  }
+
   public boolean performAction (int column, int row) {
     switch (column) {
       case  0: return onBringCursor();
@@ -149,6 +157,8 @@ public class ScreenElement {
       case  3: return onScrollBackward();
       case  4: return onScrollForward();
       case  5: return onContextClick();
+      case  6: return onAccessibilityActions();
+      case 15: return onDescribeElement();
       default: return false;
     }
   }
@@ -180,6 +190,7 @@ public class ScreenElement {
   }
 
   private String[] brailleText = null;
+  private int[] lineOffsets = null;
 
   protected String[] makeBrailleText (String text) {
     if (text == null) return null;
@@ -209,6 +220,33 @@ public class ScreenElement {
     }
 
     return brailleText;
+  }
+
+  private final int[] makeLineOffsets (String[] lines) {
+    int[] offsets = new int[lines.length];
+
+    int index = 0;
+    int offset = 0;
+
+    for (String line : lines) {
+      offsets[index] = offset;
+      offset += lines[index].length();
+      index += 1;
+    }
+
+    return offsets;
+  }
+
+  public final int getTextOffset (int column, int row) {
+    String[] lines = getBrailleText();
+
+    synchronized (this) {
+      if (lineOffsets == null) {
+        lineOffsets = makeLineOffsets(lines);
+      }
+    }
+
+    return lineOffsets[row] + Math.min(column, (lines[row].length() - 1));
   }
 
   public final Point getBrailleCoordinates (int offset) {

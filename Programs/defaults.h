@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -45,7 +45,7 @@ extern "C" {
 #define DEFAULT_SHOW_ADVANCED_SUBMENUS 0
 #define DEFAULT_SHOW_ALL_ITEMS 0
 
-#define DEFAULT_TEXT_STYLE tsComputerBraille8
+#define DEFAULT_BRAILLE_VARIANT bvComputer8
 #define DEFAULT_EXPAND_CURRENT_WORD 1
 #define DEFAULT_CAPITALIZATION_MODE CTB_CAP_SIGN
 #define DEFAULT_BRAILLE_FIRMNESS BRL_FIRMNESS_MEDIUM
@@ -72,28 +72,26 @@ extern "C" {
 #define DEFAULT_SLIDING_BRAILLE_WINDOW 0
 #define DEFAULT_EAGER_SLIDING_BRAILLE_WINDOW 0
 #define DEFAULT_BRAILLE_WINDOW_OVERLAP 0
-#define DEFAULT_CURSOR_TRACKING_DELAY ctd250ms
 
+#define DEFAULT_SCROLL_AWARE_CURSOR_NAVIGATION 0
+#define DEFAULT_CURSOR_TRACKING_DELAY ctd250ms
 #define DEFAULT_TRACK_SCREEN_SCROLL 0		/* 1 for on, 0 for off */
 #define DEFAULT_TRACK_SCREEN_POINTER 0		/* 1 for on, 0 for off */
 #define DEFAULT_HIGHLIGHT_BRAILLE_WINDOW_LOCATION 0		/* 1 for on, 0 for off */
+#define DEFAULT_START_SELECTION_WITH_ROUTING_KEY 0		/* 1 for on, 0 for off */
 
 #define DEFAULT_BRAILLE_KEYBOARD_ENABLED 1
-#define DEFAULT_BRAILLE_INPUT_MODE BRL_INPUT_TEXT
+#define DEFAULT_BRAILLE_TYPING_MODE BRL_TYPING_TEXT
 #define DEFAULT_BRAILLE_QUICK_SPACE 0
 
 #define DEFAULT_AUTORELEASE_TIME at20s
-#define DEFAULT_FIRST_RELEASE 1
+#define DEFAULT_ON_FIRST_RELEASE 1
 #define DEFAULT_LONG_PRESS_TIME 50	/* hundredths of a second */
-
 #define DEFAULT_AUTOREPEAT_ENABLED 1		/* 1 for on, 0 for off */
 #define DEFAULT_AUTOREPEAT_INTERVAL 10	/* hundredths of a second */
 #define DEFAULT_AUTOREPEAT_PANNING 0	/* 1 for on, 0 for off */
-
 #define DEFAULT_TOUCH_NAVIGATION 0
 #define DEFAULT_TOUCH_SENSITIVITY BRL_SENSITIVITY_MEDIUM
-
-#define DEFAULT_BRAILLE_DISPLAY_ORIENTATION BRL_ORIENTATION_NORMAL
 
 #define DEFAULT_CONSOLE_BELL_ALERT 0 /* 1 for on, 0 for off */
 #define DEFAULT_KEYBOARD_LED_ALERTS 0 /* 1 for on, 0 for off */

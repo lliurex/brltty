@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,7 +31,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.graphics.Rect;
 
 public class ScreenElementList extends ArrayList<ScreenElement> {
-  private static final String LOG_TAG = ScreenElementList.class.getName();
+  private final static String LOG_TAG = ScreenElementList.class.getName();
 
   public ScreenElementList () {
     super();
@@ -153,17 +153,42 @@ public class ScreenElementList extends ArrayList<ScreenElement> {
             }
 
             Rect location1 = getLocation(node1);
-            Rect location2 = getLocation(node2);
+            int top1 = location1.top;
+            int bottom1 = location1.bottom;
+            int left1 = location1.left;
+            int right1 = location1.right;
 
-            return (location1.top < location2.top)? -1:
-                   (location1.top > location2.top)? 1:
-                   (location1.left < location2.left)? -1:
-                   (location1.left > location2.left)? 1:
-                   (location1.right > location2.right)? -1:
-                   (location1.right < location2.right)? 1:
-                   (location1.bottom > location2.bottom)? -1:
-                   (location1.bottom < location2.bottom)? 1:
-                   0;
+            Rect location2 = getLocation(node2);
+            int top2 = location2.top;
+            int bottom2 = location2.bottom;
+            int left2 = location2.left;
+            int right2 = location2.right;
+
+            {
+              int middle1 = (top1 + bottom1) / 2;
+              int middle2 = (top2 + bottom2) / 2;
+              boolean sameRow = ((middle1 >= top2) && (middle1 < bottom2)) ||
+                                ((middle2 >= top1) && (middle2 < bottom1));
+
+              if (sameRow) {
+                if ((left1 < left2) && (right1 < right2)) return -1;
+                if ((left1 > left2) && (right1 > right2)) return 1;
+              }
+            }
+
+            if (top1 < top2) return -1;
+            if (top1 > top2) return 1;
+
+            if (left1 < left2) return -1;
+            if (left1 > left2) return 1;
+
+            if (right1 > right2) return -1;
+            if (right1 < right2) return 1;
+
+            if (bottom1 > bottom2) return -1;
+            if (bottom1 < bottom2) return 1;
+
+            return 0;
           }
         };
 

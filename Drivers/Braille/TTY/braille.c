@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,9 +24,9 @@
 #include <locale.h>
 
 #include <limits.h>
-#ifndef MB_MAX_LEN
-#define MB_MAX_LEN 16
-#endif /* MB_MAX_LEN */
+#ifndef MB_LEN_MAX
+#define MB_LEN_MAX 16
+#endif /* MB_LEN_MAX */
 
 #ifdef HAVE_ICONV_H
 #include <iconv.h>
@@ -78,7 +78,6 @@ typedef enum {
 } DriverParameter;
 #define BRLPARMS "baud", BRLPARM_TERM "lines", "columns", BRLPARM_CHARSET "locale"
 
-#define BRL_HAVE_KEY_CODES
 #include "brl_driver.h"
 #include "braille.h"
 #include "io_serial.h"
@@ -105,7 +104,7 @@ getch_noCurses (void) {
 static int
 brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
   unsigned int ttyBaud = 9600;
-  char *ttyType = "vt100";
+  const char *ttyType = "vt100";
   int windowLines = 1;
   int windowColumns = 40;
 
@@ -255,9 +254,9 @@ writeText (const wchar_t *buffer, int columns) {
 #ifdef HAVE_ICONV_H
     char *pc = (char*) &c;
     size_t sc = sizeof(wchar_t);
-    char d[MB_MAX_LEN+1];
+    char d[MB_LEN_MAX+1];
     char *pd = d;
-    size_t sd = MB_MAX_LEN;
+    size_t sd = MB_LEN_MAX;
 
     if (iconv(conversionDescriptor, &pc, &sc, &pd, &sd) != (size_t)-1) {
       *pd = 0;
@@ -347,8 +346,8 @@ brl_writeWindow (BrailleDisplay *brl, const wchar_t *text) {
   return 1;
 }
 
-int
-brl_keyToCommand (BrailleDisplay *brl, KeyTableCommandContext context, int key) {
+static int
+keyToCommand (BrailleDisplay *brl, KeyTableCommandContext context, int key) {
   switch (key) {
     case EOF: return EOF;
 
@@ -400,7 +399,7 @@ brl_keyToCommand (BrailleDisplay *brl, KeyTableCommandContext context, int key) 
 }
 
 static int
-brl_readKey (BrailleDisplay *brl) {
+readKey (BrailleDisplay *brl) {
   int key = getch();
 
 #ifdef GOT_CURSES
@@ -416,7 +415,7 @@ brl_readKey (BrailleDisplay *brl) {
 
 static int
 brl_readCommand (BrailleDisplay *brl, KeyTableCommandContext context) {
-  int command = brl_keyToCommand(brl, context, brl_readKey(brl));
+  int command = keyToCommand(brl, context, readKey(brl));
 
   if (command != EOF) {
     logMessage(LOG_CATEGORY(BRAILLE_DRIVER), "command: 0X%04X", command);

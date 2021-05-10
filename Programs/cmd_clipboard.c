@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,145 +23,28 @@
 #include <ctype.h>
 
 #include "log.h"
+#include "alert.h"
 #include "cmd_queue.h"
-#include "cmd_clipboard.h"
 #include "cmd_utils.h"
+#include "cmd_clipboard.h"
+#include "clipboard.h"
 #include "brl_cmds.h"
 #include "scr.h"
 #include "routing.h"
-#include "alert.h"
-#include "queue.h"
 #include "file.h"
 #include "datafile.h"
-#include "charset.h"
+#include "utf8.h"
 #include "core.h"
 
 typedef struct {
-  struct {
-    wchar_t *characters;
-    size_t size;
-    size_t length;
-  } buffer;
+  ClipboardObject *clipboard;
 
   struct {
     int column;
     int row;
     int offset;
   } begin;
-
-  struct {
-    Queue *queue;
-  } history;
 } ClipboardCommandData;
-
-typedef struct {
-  wchar_t *characters;
-  size_t length;
-} HistoryEntry;
-
-static wchar_t *
-cpbAllocateCharacters (size_t count) {
-  {
-    wchar_t *characters;
-    if ((characters = malloc(count * sizeof(*characters)))) return characters;
-  }
-
-  logMallocError();
-  return NULL;
-}
-
-static const HistoryEntry *
-cpbGetHistory (ClipboardCommandData *ccd, unsigned int index) {
-  Element *element = getStackElement(ccd->history.queue, index);
-
-  if (!element) return NULL;
-  return getElementItem(element);
-}
-
-static void
-cpbAddHistory (ClipboardCommandData *ccd, const wchar_t *characters, size_t length) {
-  if (length > 0) {
-    Queue *queue = ccd->history.queue;
-    Element *element = getStackHead(queue);
-
-    if (element) {
-      const HistoryEntry *entry = getElementItem(element);
-
-      if (length == entry->length) {
-        if (wmemcmp(characters, entry->characters, length) == 0) {
-          return;
-        }
-      }
-    }
-
-    {
-      HistoryEntry *entry;
-
-      if ((entry = malloc(sizeof(*entry)))) {
-        if ((entry->characters = cpbAllocateCharacters(length))) {
-          wmemcpy(entry->characters, characters, length);
-          entry->length = length;
-
-          if (enqueueItem(queue, entry)) {
-            return;
-          }
-
-          free(entry->characters);
-        } else {
-          logMallocError();
-        }
-
-        free(entry);
-      } else {
-        logMallocError();
-      }
-    }
-  }
-}
-
-static const wchar_t *
-cpbGetContent (ClipboardCommandData *ccd, size_t *length) {
-  *length = ccd->buffer.length;
-  return ccd->buffer.characters;
-}
-
-static void
-cpbTruncateContent (ClipboardCommandData *ccd, size_t length) {
-  if (length < ccd->buffer.length) ccd->buffer.length = length;
-}
-
-static void
-cpbClearContent (ClipboardCommandData *ccd) {
-  size_t length;
-  const wchar_t *characters = cpbGetContent(ccd, &length);
-
-  cpbAddHistory(ccd, characters, length);
-  cpbTruncateContent(ccd, 0);
-}
-
-static int
-cpbAddContent (ClipboardCommandData *ccd, const wchar_t *characters, size_t length) {
-  size_t newLength = ccd->buffer.length + length;
-
-  if (newLength > ccd->buffer.size) {
-    size_t newSize = newLength | 0XFF;
-    wchar_t *newCharacters = cpbAllocateCharacters(newSize);
-
-    if (!newCharacters) {
-      logMallocError();
-      return 0;
-    }
-
-    wmemcpy(newCharacters, ccd->buffer.characters, ccd->buffer.length);
-    if (ccd->buffer.characters) free(ccd->buffer.characters);
-    ccd->buffer.characters = newCharacters;
-    ccd->buffer.size = newSize;
-  }
-
-  wmemcpy(&ccd->buffer.characters[ccd->buffer.length], characters, length);
-  ccd->buffer.length += length;
-  return 1;
-}
 
 static wchar_t *
 cpbReadScreen (ClipboardCommandData *ccd, size_t *length, int fromColumn, int fromRow, int toColumn, int toRow) {
@@ -195,7 +78,7 @@ cpbReadScreen (ClipboardCommandData *ccd, size_t *length, int fromColumn, int fr
       {
         size_t newLength = toAddress - toBuffer;
 
-        if ((newBuffer = cpbAllocateCharacters(newLength))) {
+        if ((newBuffer = allocateCharacters(newLength))) {
           wmemcpy(newBuffer, toBuffer, (*length = newLength));
         }
       }
@@ -207,8 +90,13 @@ cpbReadScreen (ClipboardCommandData *ccd, size_t *length, int fromColumn, int fr
 
 static int
 cpbEndOperation (ClipboardCommandData *ccd, const wchar_t *characters, size_t length) {
-  cpbTruncateContent(ccd, ccd->begin.offset);
-  if (!cpbAddContent(ccd, characters, length)) return 0;
+  lockMainClipboard();
+    int truncated = truncateClipboardContent(ccd->clipboard, ccd->begin.offset);
+    int appended = appendClipboardContent(ccd->clipboard, characters, length);
+  unlockMainClipboard();
+
+  if (truncated || appended) onMainClipboardUpdated();
+  if (!appended) return 0;
   alert(ALERT_CLIPBOARD_END);
   return 1;
 }
@@ -217,7 +105,11 @@ static void
 cpbBeginOperation (ClipboardCommandData *ccd, int column, int row) {
   ccd->begin.column = column;
   ccd->begin.row = row;
-  ccd->begin.offset = ccd->buffer.length;
+
+  lockMainClipboard();
+    ccd->begin.offset = getClipboardContentLength(ccd->clipboard);
+  unlockMainClipboard();
+
   alert(ALERT_CLIPBOARD_BEGIN);
 }
 
@@ -349,33 +241,42 @@ cpbLinearCopy (ClipboardCommandData *ccd, int column, int row) {
 }
 
 static int
-cpbPaste (ClipboardCommandData *ccd, unsigned int index) {
-  const wchar_t *characters;
-  size_t length;
-
-  if (index) {
-    const HistoryEntry *entry = cpbGetHistory(ccd, index-1);
-
-    if (!entry) return 0;
-    characters = entry->characters;
-    length = entry->length;
-  } else {
-    characters = cpbGetContent(ccd, &length);
-  }
+pasteCharacters (const wchar_t *characters, size_t count) {
+  if (!characters) return 0;
+  if (!count) return 0;
 
   if (!isMainScreen()) return 0;
   if (isRouting()) return 0;
-  if (!length) return 0;
 
   {
     unsigned int i;
 
-    for (i=0; i<length; i+=1)
-      if (!insertScreenKey(characters[i]))
-        return 0;
+    for (i=0; i<count; i+=1) {
+      if (!insertScreenKey(characters[i])) return 0;
+    }
   }
 
   return 1;
+}
+
+static int
+cpbPaste (ClipboardCommandData *ccd, unsigned int index) {
+  int pasted;
+
+  lockMainClipboard();
+    const wchar_t *characters;
+    size_t length;
+
+    if (index) {
+      characters = getClipboardHistory(ccd->clipboard, index-1, &length);
+    } else {
+      characters = getClipboardContent(ccd->clipboard, &length);
+    }
+
+    pasted = pasteCharacters(characters, length);
+  unlockMainClipboard();
+
+  return pasted;
 }
 
 static FILE *
@@ -398,23 +299,26 @@ cpbOpenFile (const char *mode) {
 static int
 cpbSave (ClipboardCommandData *ccd) {
   int ok = 0;
-  size_t length;
-  const wchar_t *characters = cpbGetContent(ccd, &length);
 
-  if (length > 0) {
-    FILE *stream = cpbOpenFile("w");
+  lockMainClipboard();
+    size_t length;
+    const wchar_t *characters = getClipboardContent(ccd->clipboard, &length);
 
-    if (stream) {
-      if (writeUtf8Characters(stream, characters, length)) {
-        ok = 1;
-      }
+    if (length > 0) {
+      FILE *stream = cpbOpenFile("w");
 
-      if (fclose(stream) == EOF) {
-        logSystemError("fclose");
-        ok = 0;
+      if (stream) {
+        if (writeUtf8Characters(stream, characters, length)) {
+          ok = 1;
+        }
+
+        if (fclose(stream) == EOF) {
+          logSystemError("fclose");
+          ok = 0;
+        }
       }
     }
-  }
+  unlockMainClipboard();
 
   return ok;
 }
@@ -425,56 +329,76 @@ cpbRestore (ClipboardCommandData *ccd) {
   FILE *stream = cpbOpenFile("r");
 
   if (stream) {
-    size_t size = 0X1000;
-    char buffer[size];
-    size_t length = 0;
+    int wasUpdated = 0;
 
-    cpbClearContent(ccd);
-    ok = 1;
+    lockMainClipboard();
+    {
+      int isClear = 0;
 
-    do {
-      size_t count = fread(&buffer[length], 1, (size - length), stream);
-      int done = (length += count) < size;
-
-      if (ferror(stream)) {
-        logSystemError("fread");
-        ok = 0;
-      } else {
-        const char *next = buffer;
-        size_t left = length;
-
-        while (left > 0) {
-          const char *start = next;
-          wint_t wi = convertUtf8ToWchar(&next, &left);
-
-          if (wi == WEOF) {
-            length = next - start;
-
-            if (left > 0) {
-              logBytes(LOG_ERR, "invalid UTF-8 character", start, length);
-              ok = 0;
-              break;
-            }
-
-            memmove(buffer, start, length);
-          } else {
-            wchar_t wc = wi;
-
-            if (!cpbAddContent(ccd, &wc, 1)) {
-              ok = 0;
-              break;
-            }
-          }
-        }
+      if (isClipboardEmpty(ccd->clipboard)) {
+        isClear = 1;
+      } else if (clearClipboardContent(ccd->clipboard)) {
+        isClear = 1;
+        wasUpdated = 1;
       }
 
-      if (done) break;
-    } while (ok);
+      if (isClear) {
+        ok = 1;
+
+        size_t size = 0X1000;
+        char buffer[size];
+        size_t length = 0;
+
+        do {
+          size_t count = fread(&buffer[length], 1, (size - length), stream);
+          int done = (length += count) < size;
+
+          if (ferror(stream)) {
+            logSystemError("fread");
+            ok = 0;
+          } else {
+            const char *next = buffer;
+            size_t left = length;
+
+            while (left > 0) {
+              const char *start = next;
+              wint_t wi = convertUtf8ToWchar(&next, &left);
+
+              if (wi == WEOF) {
+                length = next - start;
+
+                if (left > 0) {
+                  logBytes(LOG_ERR, "invalid UTF-8 character", start, length);
+                  ok = 0;
+                  break;
+                }
+
+                memmove(buffer, start, length);
+              } else {
+                wchar_t wc = wi;
+
+                if (appendClipboardContent(ccd->clipboard, &wc, 1)) {
+                  wasUpdated = 1;
+                } else {
+                  ok = 0;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (done) break;
+        } while (ok);
+      }
+    }
+    unlockMainClipboard();
 
     if (fclose(stream) == EOF) {
       logSystemError("fclose");
       ok = 0;
     }
+
+    if (wasUpdated) onMainClipboardUpdated();
   }
 
   return ok;
@@ -534,59 +458,64 @@ handleClipboardCommands (int command, void *data) {
       goto doSearch;
 
     doSearch:
-      if ((cpbBuffer = cpbGetContent(ccd, &cpbLength))) {
-        int found = 0;
-        size_t count = cpbLength;
+      lockMainClipboard();
+        if ((cpbBuffer = getClipboardContent(ccd->clipboard, &cpbLength))) {
+          int found = 0;
+          size_t count = cpbLength;
 
-        if (count <= scr.cols) {
-          int line = ses->winy;
-          wchar_t buffer[scr.cols];
-          wchar_t characters[count];
-
-          {
-            unsigned int i;
-            for (i=0; i<count; i+=1) characters[i] = towlower(cpbBuffer[i]);
-          }
-
-          while ((line >= 0) && (line <= (int)(scr.rows - brl.textRows))) {
-            const wchar_t *address = buffer;
-            size_t length = scr.cols;
-            readScreenText(0, line, length, 1, buffer);
+          if (count <= scr.cols) {
+            int line = ses->winy;
+            wchar_t buffer[scr.cols];
+            wchar_t characters[count];
 
             {
-              size_t i;
-              for (i=0; i<length; i++) buffer[i] = towlower(buffer[i]);
+              unsigned int i;
+              for (i=0; i<count; i+=1) characters[i] = towlower(cpbBuffer[i]);
             }
 
-            if (line == ses->winy) {
-              if (increment < 0) {
-                int end = ses->winx + count - 1;
-                if (end < length) length = end;
-              } else {
-                int start = ses->winx + textCount;
-                if (start > length) start = length;
-                address += start;
-                length -= start;
+            while ((line >= 0) && (line <= (int)(scr.rows - brl.textRows))) {
+              const wchar_t *address = buffer;
+              size_t length = scr.cols;
+              readScreenText(0, line, length, 1, buffer);
+
+              {
+                for (size_t i=0; i<length; i+=1) buffer[i] = towlower(buffer[i]);
               }
-            }
-            if (findCharacters(&address, &length, characters, count)) {
-              if (increment < 0)
-                while (findCharacters(&address, &length, characters, count))
-                  ++address, --length;
 
-              ses->winy = line;
-              ses->winx = (address - buffer) / textCount * textCount;
-              found = 1;
-              break;
+              if (line == ses->winy) {
+                if (increment < 0) {
+                  int end = ses->winx + count - 1;
+                  if (end < length) length = end;
+                } else {
+                  int start = ses->winx + textCount;
+                  if (start > length) start = length;
+                  address += start;
+                  length -= start;
+                }
+              }
+
+              if (findCharacters(&address, &length, characters, count)) {
+                if (increment < 0) {
+                  while (findCharacters(&address, &length, characters, count)) {
+                    ++address, --length;
+                  }
+                }
+
+                ses->winy = line;
+                ses->winx = (address - buffer) / textCount * textCount;
+                found = 1;
+                break;
+              }
+
+              line += increment;
             }
-            line += increment;
           }
-        }
 
-        if (!found) alert(ALERT_BOUNCE);
-      } else {
-        alert(ALERT_COMMAND_REJECTED);
-      }
+          if (!found) alert(ALERT_BOUNCE);
+        } else {
+          alert(ALERT_COMMAND_REJECTED);
+        }
+      unlockMainClipboard();
 
       break;
     }
@@ -609,8 +538,8 @@ handleClipboardCommands (int command, void *data) {
           goto doClipBegin;
 
         doClipBegin:
-          if (getCharacterCoordinates(arg, &column, &row, 0, 0)) {
-            if (clear) cpbClearContent(ccd);
+          if (getCharacterCoordinates(arg, &row, &column, NULL, 0)) {
+            if (clear) clearClipboardContent(ccd->clipboard);
             cpbBeginOperation(ccd, column, row);
           } else {
             alert(ALERT_COMMAND_REJECTED);
@@ -622,7 +551,7 @@ handleClipboardCommands (int command, void *data) {
         case BRL_CMD_BLK(COPY_RECT): {
           int column, row;
 
-          if (getCharacterCoordinates(arg, &column, &row, 1, 1))
+          if (getCharacterCoordinates(arg, &row, NULL, &column, 1))
             if (cpbRectangularCopy(ccd, column, row))
               break;
 
@@ -633,7 +562,7 @@ handleClipboardCommands (int command, void *data) {
         case BRL_CMD_BLK(COPY_LINE): {
           int column, row;
 
-          if (getCharacterCoordinates(arg, &column, &row, 1, 1))
+          if (getCharacterCoordinates(arg, &row, NULL, &column, 1))
             if (cpbLinearCopy(ccd, column, row))
               break;
 
@@ -656,11 +585,11 @@ handleClipboardCommands (int command, void *data) {
           if (ext > arg) {
             int column1, row1;
 
-            if (getCharacterCoordinates(arg, &column1, &row1, 0, 0)) {
+            if (getCharacterCoordinates(arg, &row1, &column1, NULL, 0)) {
               int column2, row2;
 
-              if (getCharacterCoordinates(ext, &column2, &row2, 1, 1)) {
-                if (clear) cpbClearContent(ccd);
+              if (getCharacterCoordinates(ext, &row2, NULL, &column2, 1)) {
+                if (clear) clearClipboardContent(ccd->clipboard);
                 cpbBeginOperation(ccd, column1, row1);
                 if (cpbLinearCopy(ccd, column2, row2)) break;
               }
@@ -687,18 +616,8 @@ handleClipboardCommands (int command, void *data) {
 }
 
 static void
-cpbDeallocateHistoryEntry (void *item, void *data) {
-  HistoryEntry *entry = item;
-
-  if (entry->characters) free(entry->characters);
-  free(entry);
-}
-
-static void
 destroyClipboardCommandData (void *data) {
   ClipboardCommandData *ccd = data;
-
-  deallocateQueue(ccd->history.queue);
   free(ccd);
 }
 
@@ -708,22 +627,15 @@ addClipboardCommands (void) {
 
   if ((ccd = malloc(sizeof(*ccd)))) {
     memset(ccd, 0, sizeof(*ccd));
-
-    ccd->buffer.characters = NULL;
-    ccd->buffer.size = 0;
-    ccd->buffer.length = 0;
+    ccd->clipboard = getMainClipboard();
 
     ccd->begin.column = 0;
     ccd->begin.row = 0;
     ccd->begin.offset = -1;
 
-    if ((ccd->history.queue = newQueue(cpbDeallocateHistoryEntry, NULL))) {
-      if (pushCommandHandler("clipboard", KTB_CTX_DEFAULT,
-                             handleClipboardCommands, destroyClipboardCommandData, ccd)) {
-        return 1;
-      }
-
-      deallocateQueue(ccd->history.queue);
+    if (pushCommandHandler("clipboard", KTB_CTX_DEFAULT,
+                           handleClipboardCommands, destroyClipboardCommandData, ccd)) {
+      return 1;
     }
 
     free(ccd);

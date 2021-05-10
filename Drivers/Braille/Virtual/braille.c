@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -35,6 +35,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #endif /* __MINGW32__ */
+#include "get_select.h"
 
 #if !defined(AF_LOCAL) && defined(AF_UNIX)
 #define AF_LOCAL AF_UNIX
@@ -469,8 +470,7 @@ setInetAddress (const char *string, struct sockaddr_in *address) {
 
     if (portNumber) {
       *portNumber++ = 0;
-    } else {
-      portNumber = "";
+      if (!*portNumber) portNumber = NULL;
     }
 
     memset(address, 0, sizeof(*address));
@@ -488,7 +488,7 @@ setInetAddress (const char *string, struct sockaddr_in *address) {
       address->sin_addr.s_addr = INADDR_ANY;
     }
 
-    if (*portNumber) {
+    if (portNumber) {
       int port;
 
       if (isInteger(&port, portNumber)) {
@@ -1149,7 +1149,8 @@ brl_writeStatus (BrailleDisplay *brl, const unsigned char *status) {
             [gscScreenNumber] = "SCRNUM",
             [gscFrozenScreen] = "FREEZE",
             [gscDisplayMode] = "DISPMD",
-            [gscTextStyle] = "SIXDOTS",
+            [gscSixDotBraille] = "SIXDOTS",
+            [gscContractedBraille] = "CONTRACTED",
             [gscSlidingBrailleWindow] = "SLIDEWIN",
             [gscSkipIdenticalLines] = "SKPIDLNS",
             [gscSkipBlankBrailleWindows] = "SKPBLNKWINS",
@@ -1164,7 +1165,7 @@ brl_writeStatus (BrailleDisplay *brl, const unsigned char *status) {
             [gscAlertTunes] = "TUNES",
             [gscAutorepeat] = "AUTOREPEAT",
             [gscAutospeak] = "AUTOSPEAK",
-            [gscBrailleInputMode] = "BRLUCDOTS"
+            [gscBrailleTypingMode] = "BRLUCDOTS"
           };
           const int nameCount = ARRAY_COUNT(names);
 

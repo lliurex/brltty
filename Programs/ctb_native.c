@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,9 +25,10 @@
 
 #include "log.h"
 #include "ctb_translate.h"
+#include "ttb.h"
 #include "brl_dots.h"
 #include "unicode.h"
-#include "charset.h"
+#include "utf8.h"
 
 #ifdef HAVE_ICU
 #include <unicode/uchar.h>
@@ -842,21 +843,21 @@ putCharacter (BrailleContractionData *bcd, wchar_t character) {
     return putCell(bcd, (character & UNICODE_CELL_MASK));
   }
 
+  if (textTable) {
+    unsigned char dots = convertCharacterToDots(textTable, character);
+    return putCell(bcd, dots);
+  }
+
   {
-#ifdef HAVE_WCHAR_H
-    const wchar_t replacementCharacter = UNICODE_REPLACEMENT_CHARACTER;
-    if (getCharacterWidth(character) == 0) return 1;
-#else /* HAVE_WCHAR_H */
-    const wchar_t replacementCharacter = SUB;
-#endif /* HAVE_WCHAR_H */
+    const wchar_t replacementCharacter = getReplacementCharacter();
 
     if (replacementCharacter != character) {
       const ContractionTableRule *rule = getAlwaysRule(bcd, replacementCharacter);
-      if (rule) return putReplace(bcd, rule, character);
+      if (rule) return putReplace(bcd, rule, replacementCharacter);
     }
   }
 
-  return putCell(bcd, BRL_DOT_1 | BRL_DOT_2 | BRL_DOT_3 | BRL_DOT_4 | BRL_DOT_5 | BRL_DOT_6 | BRL_DOT_7 | BRL_DOT_8);
+  return putCell(bcd, (BRL_DOT_1 | BRL_DOT_2 | BRL_DOT_3 | BRL_DOT_4 | BRL_DOT_5 | BRL_DOT_6 | BRL_DOT_7 | BRL_DOT_8));
 }
 
 static int
@@ -1107,7 +1108,6 @@ finishCharacterEntry_native (BrailleContractionData *bcd, CharacterEntry *entry)
 
   {
     const ContractionTableCharacter *ctc = getContractionTableCharacter(bcd, character);
-
     if (ctc) entry->attributes |= ctc->attributes;
   }
 
@@ -1117,9 +1117,11 @@ finishCharacterEntry_native (BrailleContractionData *bcd, CharacterEntry *entry)
       .character = entry
     };
 
-    if (!handleBestCharacter(character, setAlwaysRule, &sar)) {
-      entry->always = NULL;
-    }
+    int ok = (character == getReplacementCharacter())?
+             setAlwaysRule(character, &sar):
+             handleBestCharacter(character, setAlwaysRule, &sar);
+
+    if (!ok) entry->always = NULL;
   }
 }
 

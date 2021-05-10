@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -45,6 +45,14 @@ typedef enum {
     } \
   } while (0);
 
+static brlapi_param_clientPriority_t currentPriority;
+static const brlapi_param_clientPriority_t qualityPriorities[] = {
+  [SCQ_GOOD] = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT + 10,
+  [SCQ_FAIR] = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT - 10,
+  [SCQ_POOR] = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT - 20,
+  [SCQ_NONE] = 0,
+};
+
 static int displaySize;
 static unsigned char *prevData;
 static wchar_t *prevText;
@@ -57,6 +65,8 @@ static int restart;
 /* Opens a connection with BrlAPI's server */
 static int brl_construct(BrailleDisplay *brl, char **parameters, const char *device)
 {
+  currentPriority = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT;
+
   brlapi_connectionSettings_t settings;
   settings.host = parameters[PARM_HOST];
   settings.auth = parameters[PARM_AUTH];
@@ -113,11 +123,32 @@ static void brl_destruct(BrailleDisplay *brl)
   brlapi_closeConnection();
 }
 
+static int
+setClientPriority (BrailleDisplay *brl) {
+  unsigned char worst = ARRAY_COUNT(qualityPriorities) - 1;
+  unsigned char quality = MIN(brl->quality, worst);
+  brlapi_param_clientPriority_t priority = qualityPriorities[quality];
+
+  if (priority != currentPriority) {
+    int result = brlapi_setParameter(
+      BRLAPI_PARAM_CLIENT_PRIORITY, 0,
+      BRLAPI_PARAMF_LOCAL, &priority, sizeof(priority)
+    );
+
+    if (result < 0) return 0;
+    currentPriority = priority;
+  }
+
+  return 1;
+}
+
 /* function : brl_writeWindow */
 /* Displays a text on the braille window, only if it's different from */
 /* the one already displayed */
 static int brl_writeWindow(BrailleDisplay *brl, const wchar_t *text)
 {
+  setClientPriority(brl);
+
   brlapi_writeArguments_t arguments = BRLAPI_WRITEARGUMENTS_INITIALIZER;
   int vt = currentVirtualTerminal();
 

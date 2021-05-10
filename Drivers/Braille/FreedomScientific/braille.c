@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -37,23 +37,13 @@
 #include "brldefs-fs.h"
 
 BEGIN_KEY_NAME_TABLE(common)
-  KEY_NAME_ENTRY(FS_KEY_LeftAdvance, "LeftAdvance"),
-  KEY_NAME_ENTRY(FS_KEY_RightAdvance, "RightAdvance"),
-  KEY_NAME_ENTRY(FS_KEY_LeftGdf, "LeftSelector"),
-  KEY_NAME_ENTRY(FS_KEY_RightGdf, "RightSelector"),
+  KEY_NAME_ENTRY(FS_KEY_PanLeft, "PanLeft"),
+  KEY_NAME_ENTRY(FS_KEY_PanRight, "PanRight"),
+  KEY_NAME_ENTRY(FS_KEY_LeftSelector, "LeftSelector"),
+  KEY_NAME_ENTRY(FS_KEY_RightSelector, "RightSelector"),
 
   KEY_GROUP_ENTRY(FS_GRP_RoutingKeys, "RoutingKey"),
   KEY_GROUP_ENTRY(FS_GRP_NavrowKeys, "NavrowKey"),
-END_KEY_NAME_TABLE
-
-BEGIN_KEY_NAME_TABLE(wheel)
-  KEY_NAME_ENTRY(FS_KEY_LeftWheel, "LeftWheelPress"),
-  KEY_NAME_ENTRY(FS_KEY_RightWheel, "RightWheelPress"),
-
-  KEY_NAME_ENTRY(FS_KEY_WHEEL+0, "LeftWheelUp"),
-  KEY_NAME_ENTRY(FS_KEY_WHEEL+1, "LeftWheelDown"),
-  KEY_NAME_ENTRY(FS_KEY_WHEEL+2, "RightWheelDown"),
-  KEY_NAME_ENTRY(FS_KEY_WHEEL+3, "RightWheelUp"),
 END_KEY_NAME_TABLE
 
 BEGIN_KEY_NAME_TABLE(nav)
@@ -66,7 +56,7 @@ BEGIN_KEY_NAME_TABLE(nav)
   KEY_NAME_ENTRY(FS_KEY_WHEEL+3, "RightNavUp"),
 END_KEY_NAME_TABLE
 
-BEGIN_KEY_NAME_TABLE(focus)
+BEGIN_KEY_NAME_TABLE(keyboard)
   KEY_NAME_ENTRY(FS_KEY_Dot1, "Dot1"),
   KEY_NAME_ENTRY(FS_KEY_Dot2, "Dot2"),
   KEY_NAME_ENTRY(FS_KEY_Dot3, "Dot3"),
@@ -81,13 +71,6 @@ BEGIN_KEY_NAME_TABLE(focus)
   KEY_NAME_ENTRY(FS_KEY_RightShift, "RightShift"),
 END_KEY_NAME_TABLE
 
-BEGIN_KEY_NAME_TABLE(bumpers)
-  KEY_NAME_ENTRY(FS_KEY_LeftBumperUp, "LeftBumperUp"),
-  KEY_NAME_ENTRY(FS_KEY_LeftBumperDown, "LeftBumperDown"),
-  KEY_NAME_ENTRY(FS_KEY_RightBumperUp, "RightBumperUp"),
-  KEY_NAME_ENTRY(FS_KEY_RightBumperDown, "RightBumperDown"),
-END_KEY_NAME_TABLE
-
 BEGIN_KEY_NAME_TABLE(rockers)
   KEY_NAME_ENTRY(FS_KEY_LeftRockerUp, "LeftRockerUp"),
   KEY_NAME_ENTRY(FS_KEY_LeftRockerDown, "LeftRockerDown"),
@@ -95,7 +78,52 @@ BEGIN_KEY_NAME_TABLE(rockers)
   KEY_NAME_ENTRY(FS_KEY_RightRockerDown, "RightRockerDown"),
 END_KEY_NAME_TABLE
 
-BEGIN_KEY_NAME_TABLE(pacmate)
+BEGIN_KEY_NAME_TABLE(bumpers)
+  KEY_NAME_ENTRY(FS_KEY_LeftBumperUp, "LeftBumperUp"),
+  KEY_NAME_ENTRY(FS_KEY_LeftBumperDown, "LeftBumperDown"),
+  KEY_NAME_ENTRY(FS_KEY_RightBumperUp, "RightBumperUp"),
+  KEY_NAME_ENTRY(FS_KEY_RightBumperDown, "RightBumperDown"),
+END_KEY_NAME_TABLE
+
+BEGIN_KEY_NAME_TABLES(focus1)
+  KEY_NAME_TABLE(common),
+  KEY_NAME_TABLE(nav),
+  KEY_NAME_TABLE(keyboard),
+END_KEY_NAME_TABLES
+
+BEGIN_KEY_NAME_TABLES(focus14)
+  KEY_NAME_TABLE(common),
+  KEY_NAME_TABLE(nav),
+  KEY_NAME_TABLE(keyboard),
+  KEY_NAME_TABLE(rockers),
+END_KEY_NAME_TABLES
+
+BEGIN_KEY_NAME_TABLES(focus40)
+  KEY_NAME_TABLE(common),
+  KEY_NAME_TABLE(nav),
+  KEY_NAME_TABLE(keyboard),
+  KEY_NAME_TABLE(rockers),
+END_KEY_NAME_TABLES
+
+BEGIN_KEY_NAME_TABLES(focus80)
+  KEY_NAME_TABLE(common),
+  KEY_NAME_TABLE(nav),
+  KEY_NAME_TABLE(keyboard),
+  KEY_NAME_TABLE(rockers),
+  KEY_NAME_TABLE(bumpers),
+END_KEY_NAME_TABLES
+
+BEGIN_KEY_NAME_TABLE(wheel)
+  KEY_NAME_ENTRY(FS_KEY_LeftWheel, "LeftWheelPress"),
+  KEY_NAME_ENTRY(FS_KEY_RightWheel, "RightWheelPress"),
+
+  KEY_NAME_ENTRY(FS_KEY_WHEEL+0, "LeftWheelUp"),
+  KEY_NAME_ENTRY(FS_KEY_WHEEL+1, "LeftWheelDown"),
+  KEY_NAME_ENTRY(FS_KEY_WHEEL+2, "RightWheelDown"),
+  KEY_NAME_ENTRY(FS_KEY_WHEEL+3, "RightWheelUp"),
+END_KEY_NAME_TABLE
+
+BEGIN_KEY_NAME_TABLE(hot)
   KEY_NAME_ENTRY(FS_KEY_HOT+0, "Hot1"),
   KEY_NAME_ENTRY(FS_KEY_HOT+1, "Hot2"),
   KEY_NAME_ENTRY(FS_KEY_HOT+2, "Hot3"),
@@ -106,117 +134,25 @@ BEGIN_KEY_NAME_TABLE(pacmate)
   KEY_NAME_ENTRY(FS_KEY_HOT+7, "Hot8"),
 END_KEY_NAME_TABLE
 
-BEGIN_KEY_NAME_TABLES(focus_basic)
-  KEY_NAME_TABLE(common),
-  KEY_NAME_TABLE(nav),
-  KEY_NAME_TABLE(focus),
-END_KEY_NAME_TABLES
-
-BEGIN_KEY_NAME_TABLES(focus_large)
-  KEY_NAME_TABLE(common),
-  KEY_NAME_TABLE(nav),
-  KEY_NAME_TABLE(focus),
-  KEY_NAME_TABLE(bumpers),
-  KEY_NAME_TABLE(rockers),
-END_KEY_NAME_TABLES
-
-BEGIN_KEY_NAME_TABLES(focus_small)
-  KEY_NAME_TABLE(common),
-  KEY_NAME_TABLE(nav),
-  KEY_NAME_TABLE(focus),
-  KEY_NAME_TABLE(rockers),
-END_KEY_NAME_TABLES
-
 BEGIN_KEY_NAME_TABLES(pacmate)
   KEY_NAME_TABLE(common),
   KEY_NAME_TABLE(wheel),
-  KEY_NAME_TABLE(pacmate),
+  KEY_NAME_TABLE(hot),
 END_KEY_NAME_TABLES
 
-DEFINE_KEY_TABLE(focus_basic)
-DEFINE_KEY_TABLE(focus_large)
-DEFINE_KEY_TABLE(focus_small)
+DEFINE_KEY_TABLE(focus1)
+DEFINE_KEY_TABLE(focus14)
+DEFINE_KEY_TABLE(focus40)
+DEFINE_KEY_TABLE(focus80)
 DEFINE_KEY_TABLE(pacmate)
 
 BEGIN_KEY_TABLE_LIST
-  &KEY_TABLE_DEFINITION(focus_basic),
-  &KEY_TABLE_DEFINITION(focus_large),
-  &KEY_TABLE_DEFINITION(focus_small),
+  &KEY_TABLE_DEFINITION(focus1),
+  &KEY_TABLE_DEFINITION(focus14),
+  &KEY_TABLE_DEFINITION(focus40),
+  &KEY_TABLE_DEFINITION(focus80),
   &KEY_TABLE_DEFINITION(pacmate),
 END_KEY_TABLE_LIST
-
-typedef enum {
-  PKT_QUERY  = 0X00, /* host->unit: request device information */
-  PKT_ACK    = 0X01, /* unit->host: acknowledge packet receipt */
-  PKT_NAK    = 0X02, /* unit->host: negative acknowledge, report error */
-  PKT_KEY    = 0X03, /* unit->host: key event */
-  PKT_BUTTON = 0X04, /* unit->host: routing button event */
-  PKT_WHEEL  = 0X05, /* unit->host: whiz wheel event */
-  PKT_HVADJ  = 0X08, /* host->unit: set braille display voltage */
-  PKT_BEEP   = 0X09, /* host->unit: sound short beep */
-  PKT_CONFIG = 0X0F, /* host->unit: configure device options */
-  PKT_INFO   = 0X80, /* unit->host: response to query packet */
-  PKT_WRITE  = 0X81, /* host->unit: write to braille display */
-  PKT_EXTKEY = 0X82  /* unit->host: extended keys event */
-} PacketType;
-
-typedef enum {
-  PKT_ERR_TIMEOUT   = 0X30, /* no data received from host for a while */
-  PKT_ERR_CHECKSUM  = 0X31, /* incorrect checksum */
-  PKT_ERR_TYPE      = 0X32, /* unsupported packet type */
-  PKT_ERR_PARAMETER = 0X33, /* invalid parameter */
-  PKT_ERR_SIZE      = 0X34, /* write size too large */
-  PKT_ERR_POSITION  = 0X35, /* write position too large */
-  PKT_ERR_OVERRUN   = 0X36, /* message queue overflow */
-  PKT_ERR_POWER     = 0X37, /* insufficient USB power */
-  PKT_ERR_SPI       = 0X38  /* timeout on SPI bus */
-} PacketError;
-
-typedef enum {
-  PKT_EXT_HVADJ    = 0X08, /* error in varibraille packet */
-  PKT_EXT_BEEP     = 0X09, /* error in beep packet */
-  PKT_EXT_CLEAR    = 0X31, /* error in ClearMsgBuf function */
-  PKT_EXT_LOOP     = 0X32, /* timing loop in ParseCommands function */
-  PKT_EXT_TYPE     = 0X33, /* unknown packet type in ParseCommands function */
-  PKT_EXT_CMDWRITE = 0X34, /* error in CmdWrite function */
-  PKT_EXT_UPDATE   = 0X7E, /* error in update packet */
-  PKT_EXT_DIAG     = 0X7F, /* error in diag packet */
-  PKT_EXT_QUERY    = 0X80, /* error in query packet */
-  PKT_EXT_WRITE    = 0X81  /* error in write packet */
-} PacketExtended;
-
-typedef enum {
-  OPT_EXTKEY = 0X01  /* send extended key events */
-} UnitOption;
-
-typedef struct {
-  unsigned char type;
-  unsigned char arg1;
-  unsigned char arg2;
-  unsigned char arg3;
-} PacketHeader;
-
-#define PACKET_PAYLOAD_INFO_MANUFACTURER_SIZE 24
-#define PACKET_PAYLOAD_INFO_MODEL_SIZE 16
-#define PACKET_PAYLOAD_INFO_FIRMWARE_SIZE 8
-
-typedef struct {
-  PacketHeader header;
-
-  union {
-    unsigned char bytes[0X100];
-
-    struct {
-      char manufacturer[PACKET_PAYLOAD_INFO_MANUFACTURER_SIZE];
-      char model[PACKET_PAYLOAD_INFO_MODEL_SIZE];
-      char firmware[PACKET_PAYLOAD_INFO_FIRMWARE_SIZE];
-    } info;
-
-    struct {
-      unsigned char bytes[4];
-    } extkey;
-  } payload;
-} Packet;
 
 typedef struct {
   const KeyTableDefinition *keyTableDefinition;
@@ -230,7 +166,7 @@ typedef enum {
 
 static const ModelTypeEntry modelTypeTable[] = {
   [MOD_TYPE_Focus] = {
-    .keyTableDefinition = &KEY_TABLE_DEFINITION(focus_basic),
+    .keyTableDefinition = &KEY_TABLE_DEFINITION(focus1),
     .hotkeysRow = -1
   },
 
@@ -311,7 +247,7 @@ struct BrailleDataStruct {
   const KeyTableDefinition *keyTableDefinition;
 
   ModelEntry genericModelEntry;
-  char genericModelIdentifier[PACKET_PAYLOAD_INFO_MODEL_SIZE];
+  char genericModelIdentifier[FS_INFO_MODEL_SIZE];
 
   unsigned char outputBuffer[UINT8_MAX + 1];
   int writeFirst;
@@ -339,7 +275,7 @@ writePacket (
   unsigned char arg3,
   const unsigned char *data
 ) {
-  Packet packet;
+  FS_Packet packet;
   int size = sizeof(packet.header);
   unsigned char checksum = 0;
 
@@ -363,7 +299,7 @@ writePacket (
 }
 
 static void
-logNegativeAcknowledgement (const Packet *packet) {
+logNegativeAcknowledgement (const FS_Packet *packet) {
   const char *problem;
   const char *component;
 
@@ -371,31 +307,31 @@ logNegativeAcknowledgement (const Packet *packet) {
     default:
       problem = "unknown problem";
       break;
-    case PKT_ERR_TIMEOUT:
+    case FS_ERR_TIMEOUT:
       problem = "timeout during packet transmission";
       break;
-    case PKT_ERR_CHECKSUM:
+    case FS_ERR_CHECKSUM:
       problem = "incorrect checksum";
       break;
-    case PKT_ERR_TYPE:
+    case FS_ERR_TYPE:
       problem = "unknown packet type";
       break;
-    case PKT_ERR_PARAMETER:
+    case FS_ERR_PARAMETER:
       problem = "invalid parameter value";
       break;
-    case PKT_ERR_SIZE:
+    case FS_ERR_SIZE:
       problem = "write size too large";
       break;
-    case PKT_ERR_POSITION:
+    case FS_ERR_POSITION:
       problem = "write start too large";
       break;
-    case PKT_ERR_OVERRUN:
+    case FS_ERR_OVERRUN:
       problem = "message FIFO overflow";
       break;
-    case PKT_ERR_POWER:
+    case FS_ERR_POWER:
       problem = "insufficient USB power";
       break;
-    case PKT_ERR_SPI:
+    case FS_ERR_SPI:
       problem = "SPI bus timeout";
       break;
   }
@@ -404,34 +340,34 @@ logNegativeAcknowledgement (const Packet *packet) {
     default:
       component = "unknown component";
       break;
-    case PKT_EXT_HVADJ:
+    case FS_EXT_HVADJ:
       component = "VariBraille packet";
       break;
-    case PKT_EXT_BEEP:
+    case FS_EXT_BEEP:
       component = "beep packet";
       break;
-    case PKT_EXT_CLEAR:
+    case FS_EXT_CLEAR:
       component = "ClearMsgBuf function";
       break;
-    case PKT_EXT_LOOP:
+    case FS_EXT_LOOP:
       component = "timing loop of ParseCommands function";
       break;
-    case PKT_EXT_TYPE:
+    case FS_EXT_TYPE:
       component = "ParseCommands function";
       break;
-    case PKT_EXT_CMDWRITE:
+    case FS_EXT_CMDWRITE:
       component = "CmdWrite function";
       break;
-    case PKT_EXT_UPDATE:
+    case FS_EXT_UPDATE:
       component = "update packet";
       break;
-    case PKT_EXT_DIAG:
+    case FS_EXT_DIAG:
       component = "diag packet";
       break;
-    case PKT_EXT_QUERY:
+    case FS_EXT_QUERY:
       component = "query packet";
       break;
-    case PKT_EXT_WRITE:
+    case FS_EXT_WRITE:
       component = "write packet";
       break;
   }
@@ -507,7 +443,7 @@ writeRequest (BrailleDisplay *brl) {
   if (brl->data->acknowledgementHandler) return 1;
 
   if (brl->data->configFlags) {
-    if (!writePacket(brl, PKT_CONFIG, brl->data->configFlags, 0, 0, NULL)) {
+    if (!writePacket(brl, FS_PKT_CONFIG, brl->data->configFlags, 0, 0, NULL)) {
       return 0;
     }
 
@@ -516,7 +452,7 @@ writeRequest (BrailleDisplay *brl) {
   }
 
   if (brl->data->firmnessSetting >= 0) {
-    if (!writePacket(brl, PKT_HVADJ, brl->data->firmnessSetting, 0, 0, NULL)) {
+    if (!writePacket(brl, FS_PKT_HVADJ, brl->data->firmnessSetting, 0, 0, NULL)) {
       return 0;
     }
 
@@ -531,7 +467,7 @@ writeRequest (BrailleDisplay *brl) {
 
     if (truncate) count = brl->data->outputPayloadLimit;
     translateOutputCells(buffer, &brl->data->outputBuffer[brl->data->writeFirst], count);
-    if (!writePacket(brl, PKT_WRITE, count, brl->data->writeFirst, 0, buffer)) {
+    if (!writePacket(brl, FS_PKT_WRITE, count, brl->data->writeFirst, 0, buffer)) {
       return 0;
     }
 
@@ -587,7 +523,7 @@ typedef struct {
 static BraillePacketVerifierResult
 verifyPacket (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   ReadPacketData *rpd = data;
@@ -596,14 +532,14 @@ verifyPacket (
   switch (size) {
     case 1:
       switch (byte) {
-        case PKT_ACK:
-        case PKT_NAK:
-        case PKT_KEY:
-        case PKT_EXTKEY:
-        case PKT_BUTTON:
-        case PKT_WHEEL:
-        case PKT_INFO:
-          *length = sizeof(PacketHeader);
+        case FS_PKT_ACK:
+        case FS_PKT_NAK:
+        case FS_PKT_KEY:
+        case FS_PKT_EXTKEY:
+        case FS_PKT_BUTTON:
+        case FS_PKT_WHEEL:
+        case FS_PKT_INFO:
+          *length = sizeof(FS_PacketHeader);
           break;
 
         default:
@@ -622,20 +558,20 @@ verifyPacket (
   }
 
   rpd->checksum -= byte;
-  if ((size == *length) && (size > sizeof(PacketHeader)) && rpd->checksum) return BRL_PVR_INVALID;
+  if ((size == *length) && (size > sizeof(FS_PacketHeader)) && rpd->checksum) return BRL_PVR_INVALID;
 
   return BRL_PVR_INCLUDE;
 }
 
 static size_t
-readPacket (BrailleDisplay *brl, Packet *packet) {
+readPacket (BrailleDisplay *brl, FS_Packet *packet) {
   ReadPacketData rpd;
 
   return readBraillePacket(brl, NULL, packet, sizeof(*packet), verifyPacket, &rpd);
 }
 
 static size_t
-getPacket (BrailleDisplay *brl, Packet *packet) {
+getPacket (BrailleDisplay *brl, FS_Packet *packet) {
   while (1) {
     size_t count = readPacket(brl, packet);
 
@@ -644,7 +580,7 @@ getPacket (BrailleDisplay *brl, Packet *packet) {
         {
           int ok;
 
-        case PKT_NAK:
+        case FS_PKT_NAK:
           cancelMissingAcknowledgementAlarm(brl);
           logNegativeAcknowledgement(packet);
 
@@ -654,7 +590,7 @@ getPacket (BrailleDisplay *brl, Packet *packet) {
           }
 
           switch (packet->header.arg1) {
-            case PKT_ERR_TIMEOUT: {
+            case FS_ERR_TIMEOUT: {
               int originalLimit = brl->data->outputPayloadLimit;
 
               if (brl->data->outputPayloadLimit > brl->data->model->cellCount)
@@ -675,7 +611,7 @@ getPacket (BrailleDisplay *brl, Packet *packet) {
           ok = 0;
           goto doAcknowledgement;
 
-        case PKT_ACK:
+        case FS_PKT_ACK:
           cancelMissingAcknowledgementAlarm(brl);
 
           if (!brl->data->acknowledgementHandler) {
@@ -702,7 +638,7 @@ getPacket (BrailleDisplay *brl, Packet *packet) {
 }
 
 static int
-setFirmness (BrailleDisplay *brl, BrailleFirmness setting) {
+setBrailleFirmness (BrailleDisplay *brl, BrailleFirmness setting) {
   brl->data->firmnessSetting = setting * 0XFF / BRL_FIRMNESS_MAXIMUM;
   return writeRequest(brl);
 }
@@ -837,12 +773,15 @@ setModel (BrailleDisplay *brl, const char *modelName, const char *firmware) {
       unsigned char firmwareVersion = firmware[0] - '0';
 
       if (firmwareVersion >= 3) {
-	brl->data->configFlags |= 0X02;
+        /* send the extended keys packet (FS_PKT_EXTKEY) */
+	brl->data->configFlags |= FS_CFG_EXTKEY;
 
-	if (brl->data->model->cellCount < 80) {
-	  brl->data->keyTableDefinition = &KEY_TABLE_DEFINITION(focus_small);
+	if (brl->data->model->cellCount < 20) {
+	  brl->data->keyTableDefinition = &KEY_TABLE_DEFINITION(focus14);
+	} else if (brl->data->model->cellCount < 80) {
+	  brl->data->keyTableDefinition = &KEY_TABLE_DEFINITION(focus40);
 	} else {
-	  brl->data->keyTableDefinition = &KEY_TABLE_DEFINITION(focus_large);
+	  brl->data->keyTableDefinition = &KEY_TABLE_DEFINITION(focus80);
 	}
       }
     }
@@ -861,10 +800,10 @@ setModel (BrailleDisplay *brl, const char *modelName, const char *firmware) {
 }
 
 static int
-writeIdentityRequest (BrailleDisplay *brl) {
+writeIdentifyRequest (BrailleDisplay *brl) {
   brl->data->queryAcknowledged = 0;
   brl->data->model = NULL;
-  return writePacket(brl, PKT_QUERY, 0, 0, 0, NULL);
+  return writePacket(brl, FS_PKT_QUERY, 0, 0, 0, NULL);
 }
 
 static size_t
@@ -874,18 +813,18 @@ readResponse (BrailleDisplay *brl, void *packet, size_t size) {
 
 static BrailleResponseResult
 isIdentityResponse (BrailleDisplay *brl, const void *packet, size_t size) {
-  const Packet *response = packet;
+  const FS_Packet *response = packet;
 
   switch (response->header.type) {
-    case PKT_INFO:
+    case FS_PKT_INFO:
       if (!setModel(brl, response->payload.info.model, response->payload.info.firmware)) return BRL_RSP_FAIL;
       break;
 
-    case PKT_ACK:
+    case FS_PKT_ACK:
       brl->data->queryAcknowledged = 1;
       break;
 
-    case PKT_NAK:
+    case FS_PKT_NAK:
       logNegativeAcknowledgement(response);
       brl->data->queryAcknowledged = 0;
       brl->data->model = NULL;
@@ -905,10 +844,10 @@ brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
     brl->data->outputPayloadLimit = 0XFF;
 
     if (connectResource(brl, device)) {
-      Packet response;
+      FS_Packet response;
 
       if (probeBrailleDisplay(brl, 2, NULL, 100,
-                              writeIdentityRequest,
+                              writeIdentifyRequest,
                               readResponse, &response, sizeof(response),
                               isIdentityResponse)) {
         logMessage(LOG_DEBUG, "Manufacturer: %s", response.payload.info.manufacturer);
@@ -919,7 +858,7 @@ brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
         brl->textRows = 1;
 
         setBrailleKeyTable(brl, brl->data->keyTableDefinition);
-        brl->setFirmness = setFirmness;
+        brl->setBrailleFirmness = setBrailleFirmness;
 
         return writeRequest(brl);
       }
@@ -986,12 +925,12 @@ updateKeys (BrailleDisplay *brl, uint64_t newKeys, KeyNumber keyBase, unsigned c
 
 static int
 brl_readCommand (BrailleDisplay *brl, KeyTableCommandContext context) {
-  Packet packet;
+  FS_Packet packet;
   size_t count;
 
   while ((count = getPacket(brl, &packet))) {
     switch (packet.header.type) {
-      case PKT_KEY: {
+      case FS_PKT_KEY: {
         uint64_t newKeys = packet.header.arg1 |
                            (packet.header.arg2 << 8) |
                            (packet.header.arg3 << 16);
@@ -1000,33 +939,33 @@ brl_readCommand (BrailleDisplay *brl, KeyTableCommandContext context) {
         continue;
       }
 
-      case PKT_EXTKEY: {
+      case FS_PKT_EXTKEY: {
         uint64_t newKeys = packet.payload.extkey.bytes[0];
 
         updateKeys(brl, newKeys, 24, 8);
         continue;
       }
 
-      case PKT_BUTTON: {
+      case FS_PKT_BUTTON: {
         KeyNumber number = packet.header.arg1;
         unsigned char press = (packet.header.arg2 & 0X01) != 0;
         KeyGroup group = packet.header.arg3;
 
         if (group == modelTypeTable[brl->data->model->type].hotkeysRow) {
           static const KeyNumber keys[] = {
-            FS_KEY_LeftGdf,
+            FS_KEY_LeftSelector,
             FS_KEY_HOT+0, FS_KEY_HOT+1, FS_KEY_HOT+2, FS_KEY_HOT+3,
             FS_KEY_HOT+4, FS_KEY_HOT+5, FS_KEY_HOT+6, FS_KEY_HOT+7,
-            FS_KEY_RightGdf
+            FS_KEY_RightSelector
           };
 
           static const unsigned char keyCount = ARRAY_COUNT(keys);
           const unsigned char base = (brl->data->model->cellCount - keyCount) / 2;
 
           if (number < base) {
-            number = FS_KEY_LeftAdvance;
+            number = FS_KEY_PanLeft;
           } else if ((number -= base) >= keyCount) {
-            number = FS_KEY_RightAdvance;
+            number = FS_KEY_PanRight;
           } else {
             number = keys[number];
           }
@@ -1040,7 +979,7 @@ brl_readCommand (BrailleDisplay *brl, KeyTableCommandContext context) {
         continue;
       }
 
-      case PKT_WHEEL: {
+      case FS_PKT_WHEEL: {
         const KeyGroup group = FS_GRP_NavigationKeys;
         const KeyNumber number = FS_KEY_WHEEL + ((packet.header.arg1 >> 3) & 0X7);
         unsigned int count = packet.header.arg1 & 0X7;
@@ -1065,7 +1004,7 @@ brl_readCommand (BrailleDisplay *brl, KeyTableCommandContext context) {
 
 static ssize_t
 brl_readPacket (BrailleDisplay *brl, void *buffer, size_t length) {
-  Packet packet;
+  FS_Packet packet;
   size_t count = readPacket(brl, &packet);
 
   if (count == 0) return (errno == EAGAIN)? 0: -1;

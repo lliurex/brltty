@@ -7,5 +7,6 @@ webrloem.$O: $(SRC_DIR)/webrloem.c
 webrloem.$O: $(BLD_TOP)Programs/brlapi.h
 webrloem.$O: $(BLD_TOP)Programs/brlapi_constants.h
 webrloem.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+webrloem.$O: $(SRC_TOP)Programs/brlapi_param.h
 webrloem.$O: $(SRC_DIR)/webrloem.h
 

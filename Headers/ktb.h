@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -30,6 +30,7 @@ extern void destroyKeyTable (KeyTable *table);
 
 typedef int KeyNameEntryHandler (const KeyNameEntry *kne, void *data);
 extern int forEachKeyName (KEY_NAME_TABLES_REFERENCE keys, KeyNameEntryHandler *handleKeyNameEntry, void *data);
+extern const KeyNameEntry *findKeyNameEntry (KeyTable *table, const KeyValue *value);
 
 typedef int KeyTableWriteLineMethod (const wchar_t *line, void *data);
 typedef int KeyTableWriteHeaderMethod (const wchar_t *text, unsigned int level, void *data);
@@ -66,6 +67,7 @@ extern void setKeyboardEnabledFlag (KeyTable *table, const unsigned char *flag);
 extern void setKeyAutoreleaseTime (KeyTable *table, unsigned char setting);
 
 extern void getKeyGroupCommands (KeyTable *table, KeyGroup group, int *commands, unsigned int size);
+extern int *getBoundCommands (KeyTable *table, unsigned int *count);
 
 #ifdef __cplusplus
 }

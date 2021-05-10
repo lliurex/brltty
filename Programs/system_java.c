@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -409,6 +409,47 @@ getJavaLocaleName (void) {
   return name;
 }
 
+#if defined(__ANDROID__)
+#include <locale.h>
+#include "messages.h"
+
+static void
+initializeAndroidEnvironment (JNIEnv *env) {
+  {
+    static jclass class = NULL;
+
+    if (findJavaClass(env, &class, JAVA_OBJ_BRLTTY("BrailleApplication"))) {
+      static jmethodID method = 0;
+
+      if (findJavaStaticMethod(env, &method, class, "getCurrentLocale",
+                               JAVA_SIG_METHOD(JAVA_SIG_STRING, 
+                                              ))) {
+        jstring jLocale = (*env)->CallStaticObjectMethod(env, class, method);
+
+        if (!clearJavaException(env, 1)) {
+          if (jLocale) {
+            jboolean isCopy;
+            const char *cLocale = (*env)->GetStringUTFChars(env, jLocale, &isCopy);
+
+            if (cLocale) {
+              if (setMessagesLocale(cLocale)) {
+              }
+
+              (*env)->ReleaseStringUTFChars(env, jLocale, cLocale);
+            }
+
+            (*env)->DeleteLocalRef(env, jLocale);
+          }
+        }
+      }
+    }
+  }
+}
+#endif /* platform-speciofic initialization */
+
 void
 initializeSystemObject (void) {
+#if defined(__ANDROID__)
+  initializeAndroidEnvironment(getJavaNativeInterface());
+#endif /* platform-speciofic initialization */
 }

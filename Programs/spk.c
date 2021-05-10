@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -30,7 +30,7 @@
 #include "file.h"
 #include "parse.h"
 #include "prefs.h"
-#include "charset.h"
+#include "utf8.h"
 #include "spk.h"
 #include "spk_thread.h"
 
@@ -104,7 +104,7 @@ sayWideCharacters (
 ) {
   int ok = 0;
   size_t length;
-  void *text = makeUtf8FromWchars(characters, count, &length);
+  void *text = getUtf8FromWchars(characters, count, &length);
 
   if (text) {
     if (sayUtf8Characters(spk, text, attributes, length, count, options)) ok = 1;
@@ -121,7 +121,7 @@ sayString (
   volatile SpeechSynthesizer *spk,
   const char *string, SayOptions options
 ) {
-  return sayUtf8Characters(spk, string, NULL, strlen(string), getTextLength(string), options);
+  return sayUtf8Characters(spk, string, NULL, strlen(string), countUtf8Characters(string), options);
 }
 
 static int

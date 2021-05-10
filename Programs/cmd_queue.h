@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,6 +19,7 @@
 #ifndef BRLTTY_INCLUDED_CMD_QUEUE
 #define BRLTTY_INCLUDED_CMD_QUEUE
 
+#include "cmd_types.h"
 #include "ktb_types.h"
 
 #ifdef __cplusplus
@@ -32,7 +33,7 @@ extern void suspendCommandQueue (void);
 extern void resumeCommandQueue (void);
 
 typedef void *CommandPreprocessor (void);
-typedef void CommandPostprocessor (void *state, int command, int handled);
+typedef void CommandPostprocessor (void *state, int command, const CommandEntry *cmd, int handled);
 
 extern int pushCommandEnvironment (
   const char *name,

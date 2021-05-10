@@ -7,7 +7,6 @@ braille.$O: $(SRC_TOP)Headers/async.h
 braille.$O: $(SRC_TOP)Headers/async_io.h
 braille.$O: $(SRC_TOP)Headers/io_serial.h
 braille.$O: $(SRC_TOP)Headers/serial_types.h
-braille.$O: $(SRC_TOP)Headers/api_types.h
 braille.$O: $(SRC_TOP)Headers/brl_base.h
 braille.$O: $(SRC_TOP)Headers/brl_cmds.h
 braille.$O: $(SRC_TOP)Headers/brl_dots.h

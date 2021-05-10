@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -36,20 +36,20 @@
 #include "ttb.h"
 #include "ktb.h"
 #include "message.h"
-#include "charset.h"
+#include "utf8.h"
 #include "async_wait.h"
 #include "learn.h"
 
 BrailleDisplay brl;
 
 static char *opt_brailleDevice;
-static char *opt_driversDirectory;
+char *opt_driversDirectory;
 static char *opt_tablesDirectory;
 static char *opt_writableDirectory;
 
 BEGIN_OPTION_TABLE(programOptions)
-  { .letter = 'D',
-    .word = "drivers-directory",
+  { .word = "drivers-directory",
+    .letter = 'D',
     .flags = OPT_Hidden,
     .argument = "directory",
     .setting.string = &opt_driversDirectory,
@@ -58,8 +58,8 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = "Path to directory for loading drivers."
   },
 
-  { .letter = 'T',
-    .word = "tables-directory",
+  { .word = "tables-directory",
+    .letter = 'T',
     .flags = OPT_Hidden,
     .argument = strtext("directory"),
     .setting.string = &opt_tablesDirectory,
@@ -68,8 +68,8 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("Path to directory containing tables.")
   },
 
-  { .letter = 'W',
-    .word = "writable-directory",
+  { .word = "writable-directory",
+    .letter = 'W',
     .flags = OPT_Hidden,
     .argument = strtext("directory"),
     .setting.string = &opt_writableDirectory,
@@ -78,8 +78,8 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("Path to directory which can be written to.")
   },
 
-  { .letter = 'd',
-    .word = "device",
+  { .word = "device",
+    .letter = 'd',
     .argument = "device",
     .setting.string = &opt_brailleDevice,
     .internal.setting = BRAILLE_DEVICE,
@@ -242,12 +242,12 @@ message (const char *mode, const char *text, MessageOptions options) {
   size_t size = brl.textColumns * brl.textRows;
   wchar_t buffer[size];
 
-  size_t length = getTextLength(text);
+  size_t length = countUtf8Characters(text);
   wchar_t characters[length + 1];
   const wchar_t *character = characters;
 
   clearStatusCells(&brl);
-  convertTextToWchars(characters, text, ARRAY_COUNT(characters));
+  makeWcharsFromUtf8(text, characters, ARRAY_COUNT(characters));
 
   pushCommandEnvironment("message", NULL, NULL);
   pushCommandHandler("message", KTB_CTX_WAITING,
@@ -300,3 +300,7 @@ getScreenCommandContext (void) {
 void
 alert (AlertIdentifier identifier) {
 }
+
+#include "api_control.h"
+
+const ApiMethods api;

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -18,13 +18,32 @@
 
 package org.a11y.brltty.android;
 
-import android.view.accessibility.AccessibilityNodeInfo;
+import android.util.Log;
 import android.os.Bundle;
+import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.Map;
 import java.util.HashMap;
 
 public enum ChromeRole {
+  cell("col",
+    new LabelMaker() {
+      @Override
+      public String makeLabel (ChromeRole role, AccessibilityNodeInfo node) {
+        return makeCoordinatesLabel(role, node);
+      }
+    }
+  ),
+
+  columnHeader("hdr",
+    new LabelMaker() {
+      @Override
+      public String makeLabel (ChromeRole role, AccessibilityNodeInfo node) {
+        return makeCoordinatesLabel(role, node);
+      }
+    }
+  ),
+
   heading("hdg",
     "heading 1", "hd1",
     "heading 2", "hd2",
@@ -34,15 +53,75 @@ public enum ChromeRole {
     "heading 6", "hd6"
   ),
 
-  link("lnk"),
+  link("lnk",
+    new LabelMaker() {
+      @Override
+      public String makeLabel (ChromeRole role, AccessibilityNodeInfo node) {
+        StringBuilder label = new StringBuilder(role.genericLabel);
+        String url = ScreenUtilities.getStringExtra(node, EXTRA_TARGET_URL);
+
+        if ((url != null) && !url.isEmpty()) {
+          label.append(' ').append(url);
+        }
+
+        return label.toString();
+      }
+    }
+  ),
+
+  table("tbl",
+    new LabelMaker() {
+      @Override
+      public String makeLabel (ChromeRole role, AccessibilityNodeInfo node) {
+        return makeDimensionsLabel(role, node);
+      }
+    }
+  ),
+
+  textField("txt",
+    new LabelMaker() {
+      @Override
+      public String makeLabel (ChromeRole role, AccessibilityNodeInfo node) {
+        if ((node.getActions() & AccessibilityNodeInfo.ACTION_EXPAND) == 0) return "";
+        if (node.isPassword()) return "pwd";
+        return null;
+      }
+    }
+  ),
+
+  anchor(),
+  button("btn"),
+  caption("cap"),
+  checkBox(),
+  form("frm"),
+  lineBreak(),
+  paragraph(),
+  popUpButton("pop"),
+  radioButton(),
+  rootWebArea(),
+  row("row"),
   splitter("--------"),
+  staticText(),
   ; // end of enumeration
 
+  private final static String LOG_TAG = ChromeRole.class.getName();
+
+  public final static String EXTRA_CHROME_ROLE = "AccessibilityNodeInfo.chromeRole";
+  public final static String EXTRA_ROLE_DESCRIPTION = "AccessibilityNodeInfo.roleDescription";
+  public final static String EXTRA_HINT = "AccessibilityNodeInfo.hint";
+  public final static String EXTRA_TARGET_URL = "AccessibilityNodeInfo.targetUrl";
+
+  private interface LabelMaker {
+    public String makeLabel (ChromeRole role, AccessibilityNodeInfo node);
+  }
+
   private final String genericLabel;
+  private final LabelMaker labelMaker;
   private final Map<String, String> descriptionLabels;
 
-  ChromeRole (String generic, String... descriptions) {
+  ChromeRole (String generic, LabelMaker maker, String... descriptions) {
     genericLabel = generic;
+    labelMaker = maker;
 
     {
       int count = descriptions.length;
@@ -62,38 +141,85 @@ public enum ChromeRole {
     }
   }
 
-  public static String getLabel (Bundle extras) {
-    if (extras == null) return null;
+  ChromeRole (String generic, String... descriptions) {
+    this(generic, null, descriptions);
+  }
 
-    final String name = extras.getString("AccessibilityNodeInfo.chromeRole");
+  ChromeRole () {
+    this(null);
+  }
+
+  public static String makeCoordinatesLabel (ChromeRole role, AccessibilityNodeInfo node) {
+    if (APITests.haveKitkat) {
+      AccessibilityNodeInfo.CollectionItemInfo item = node.getCollectionItemInfo();
+
+      if (item != null) {
+        StringBuilder label = new StringBuilder(role.genericLabel);
+        label.append(' ')
+             .append(item.getColumnIndex() + 1)
+             .append('@')
+             .append(item.getRowIndex() + 1)
+             ;
+        return label.toString();
+      }
+    }
+
+    return null;
+  }
+
+  public static String makeDimensionsLabel (ChromeRole role, AccessibilityNodeInfo node) {
+    if (APITests.haveKitkat) {
+      AccessibilityNodeInfo.CollectionInfo collection = node.getCollectionInfo();
+
+      if (collection != null) {
+        StringBuilder label = new StringBuilder(role.genericLabel);
+        label.append(' ')
+             .append(collection.getColumnCount())
+             .append('x')
+             .append(collection.getRowCount())
+             ;
+
+        return label.toString();
+      }
+    }
+
+    return null;
+  }
+
+  public static ChromeRole getChromeRole (AccessibilityNodeInfo node) {
+    String name = ScreenUtilities.getStringExtra(node, EXTRA_CHROME_ROLE);
     if (name == null) return null;
+    if (name.isEmpty()) return null;
 
-    final ChromeRole role;
     try {
-      role = ChromeRole.valueOf(name);
+      return ChromeRole.valueOf(name);
     } catch (IllegalArgumentException exception) {
-      return null;
+      Log.w(LOG_TAG, ("unrecognized Chrome role: " + name));
+    }
+
+    return null;
+  }
+
+  public static String getLabel (AccessibilityNodeInfo node) {
+    if (node == null) return null;
+
+    ChromeRole role = getChromeRole(node);
+    if (role == null) return null;
+
+    if (role.labelMaker != null) {
+      String label = role.labelMaker.makeLabel(role, node);
+      if (label != null) return label;
     }
 
     if (role.descriptionLabels != null) {
-      final String description = extras.getString("AccessibilityNodeInfo.roleDescription");
+      final String description = ScreenUtilities.getStringExtra(node, EXTRA_ROLE_DESCRIPTION);
 
       if (description != null) {
-        final String label = role.descriptionLabels.get(description);
+        String label = role.descriptionLabels.get(description);
         if (label != null) return label;
       }
     }
 
     return role.genericLabel;
-  }
-
-  public static String getLabel (AccessibilityNodeInfo node) {
-    if (node != null) {
-      if (ApplicationUtilities.haveKitkat) {
-        return getLabel(node.getExtras());
-      }
-    }
-
-    return null;
   }
 }

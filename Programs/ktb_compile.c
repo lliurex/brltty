@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -775,6 +775,7 @@ parseCommandOperand (DataFile *file, BoundCommand *cmd, const wchar_t *character
 
         if (findKeyContext(&context, modifier.characters, modifier.length, ktd)) {
           KeyContext *ctx = getKeyContext(ktd, context);
+          if (!ctx) return 0;
 
           if (ctx->isSpecial) {
             reportDataError(file, "invalid target context: %"PRIws, ctx->name);
@@ -786,7 +787,7 @@ parseCommandOperand (DataFile *file, BoundCommand *cmd, const wchar_t *character
           offsetDone = 1;
           continue;
         }
-      } else if (((*command)->isOffset || (*command)->isColumn)) {
+      } else if (((*command)->isOffset || (*command)->isColumn) || (*command)->isRow) {
         int maximum = BRL_MSK_ARG - ((*command)->code & BRL_MSK_ARG);
         int offset;
 
@@ -1512,10 +1513,21 @@ addIncompleteSubbindings (KeyContext *ctx, const KeyValue *keys, unsigned char c
 
 static int
 addIncompleteBindings (KeyContext *ctx) {
-  for (unsigned int index=0; index<ctx->keyBindings.count; index+=1) {
-    const KeyCombination *combination = &ctx->keyBindings.table[index].keyCombination;
+  size_t count = ctx->keyBindings.count;
+  if (!count) return 1;
+
+  size_t size = count * sizeof(*ctx->keyBindings.table);
+  KeyBinding bindings[size];
+  memcpy(bindings, ctx->keyBindings.table, size);
+
+  const KeyBinding *binding = bindings;
+  const KeyBinding *end = binding + count;
+
+  while (binding < end) {
+    const KeyCombination *combination = &binding->keyCombination;
     if (!addIncompleteBinding(ctx, combination->modifierKeys, combination->modifierCount)) return 0;
     if (!addIncompleteSubbindings(ctx, combination->modifierKeys, combination->modifierCount)) return 0;
+    binding += 1;
   }
 
   return 1;

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -27,7 +27,7 @@
 #include "defaults.h"
 #include "async_wait.h"
 #include "async_task.h"
-#include "charset.h"
+#include "utf8.h"
 #include "brl_utils.h"
 #include "brl_cmds.h"
 #include "spk.h"
@@ -141,10 +141,10 @@ ASYNC_TASK_CALLBACK(presentMessage) {
       .parameters = mgp
     };
 
-    const size_t characterCount = getTextLength(mgp->text);
+    const size_t characterCount = countUtf8Characters(mgp->text);
     MessageSegment messageSegments[characterCount];
     wchar_t characters[characterCount + 1];
-    convertTextToWchars(characters, mgp->text, ARRAY_COUNT(characters));
+    makeWcharsFromUtf8(mgp->text, characters, ARRAY_COUNT(characters));
 
     const size_t brailleSize = textCount * brl.textRows;
     wchar_t brailleBuffer[brailleSize];
@@ -173,8 +173,8 @@ ASYNC_TASK_CALLBACK(presentMessage) {
       mgd.segments.last = segment - 1;
     }
 
-    int wasLinked = api.isLinked();
-    if (wasLinked) api.unlink();
+    int wasLinked = api.isServerLinked();
+    if (wasLinked) api.unlinkServer();
 
     suspendUpdates();
     pushCommandEnvironment("message", NULL, NULL);
@@ -223,7 +223,7 @@ ASYNC_TASK_CALLBACK(presentMessage) {
   DONE:
     popCommandEnvironment();
     resumeUpdates(1);
-    if (wasLinked) api.link();
+    if (wasLinked) api.linkServer();
   }
 
   if (mgp->deallocate) free(mgp);

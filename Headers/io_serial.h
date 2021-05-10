@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -30,12 +30,17 @@ extern "C" {
 
 typedef struct SerialDeviceStruct SerialDevice;
 
+#define SERIAL_DEVICE_QUALIFIER "serial"
 extern int isSerialDeviceIdentifier (const char **identifier);
+
 extern int serialValidateBaud (unsigned int *baud, const char *description, const char *word, const unsigned int *choices);
 
 extern SerialDevice *serialOpenDevice (const char *identifier);
 extern void serialCloseDevice (SerialDevice *serial);
 extern int serialRestartDevice (SerialDevice *serial, unsigned int baud);
+
+extern const char *serialMakeDeviceIdentifier (SerialDevice *serial, char *buffer, size_t size);
+extern const char *serialGetDevicePath (SerialDevice *serial);
 extern FILE *serialGetStream (SerialDevice *serial);
 
 extern int serialDiscardInput (SerialDevice *serial);

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -28,7 +28,7 @@ import android.view.KeyEvent;
 import android.graphics.Rect;
 
 public abstract class BrailleRenderer {
-  private static final String LOG_TAG = BrailleRenderer.class.getName();
+  private final static String LOG_TAG = BrailleRenderer.class.getName();
 
   private static volatile BrailleRenderer brailleRenderer = new ListBrailleRenderer();
 
@@ -60,37 +60,37 @@ public abstract class BrailleRenderer {
   }
 
   private void addVirtualElements (ScreenElementList elements) {
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       elements.addAtTop(
         R.string.GLOBAL_BUTTON_NOTIFICATIONS,
         AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS
       );
     }
 
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       elements.addAtTop(
         R.string.GLOBAL_BUTTON_QUICK_SETTINGS,
         AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS
       );
     }
 
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       elements.addAtBottom(
         R.string.GLOBAL_BUTTON_BACK,
         AccessibilityService.GLOBAL_ACTION_BACK
       );
     }
 
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       elements.addAtBottom(
         R.string.GLOBAL_BUTTON_HOME,
         AccessibilityService.GLOBAL_ACTION_HOME
       );
     }
 
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       elements.addAtBottom(
-        ApplicationUtilities.haveLollipop?
+        APITests.haveLollipop?
           R.string.GLOBAL_BUTTON_OVERVIEW:
           R.string.GLOBAL_BUTTON_RECENT_APPS,
         AccessibilityService.GLOBAL_ACTION_RECENTS

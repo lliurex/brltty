@@ -1,9 +1,8 @@
-dnl Process this file with autoconf 2.53 to produce a configure script.
 ###############################################################################
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -18,18 +17,26 @@ dnl Process this file with autoconf 2.53 to produce a configure script.
 ###############################################################################
 
 AC_PREREQ([2.64])
-AC_INIT([BRLTTY], [6.0], [BRLTTY@brltty.app], [brltty], [http://brltty.app/])
+AC_INIT([BRLTTY], [6.3], [BRLTTY@brltty.app], [brltty], [http://brltty.app/])
 AC_CONFIG_SRCDIR([Programs/brltty.c])
 
-copyright="© 1995-2019 by The BRLTTY Developers"
+AC_CONFIG_MACRO_DIR([m4])
+m4_include([Bindings/Java/bindings.m4])
+m4_include([Bindings/Lisp/bindings.m4])
+m4_include([Bindings/OCaml/bindings.m4])
+m4_include([Bindings/Python/bindings.m4])
+m4_include([Bindings/Tcl/bindings.m4])
+
+copyright="© 1995-2021 by The BRLTTY Developers"
 AC_SUBST([PACKAGE_COPYRIGHT], ["${copyright}"])
 AC_DEFINE_UNQUOTED([PACKAGE_COPYRIGHT], ["${copyright}"],
                    [Define this to be a string containing the copyright notice.])
 
 AC_SUBST([api_major], [0])
-AC_SUBST([api_minor], [7])
-AC_SUBST([api_revision], [0])
+AC_SUBST([api_minor], [8])
+AC_SUBST([api_revision], [2])
 
+AC_SUBST([api_name], [BrlAPI])
 AC_SUBST([api_version], [${api_major}.${api_minor}])
 AC_SUBST([api_release], [${api_version}.${api_revision}])
 
@@ -47,7 +54,7 @@ brltty_build_directories=". Programs Documents Messages"
 brltty_source_directory="`dirname "${0}"`"
 brltty_manual_directories=""
 
-for brltty_directory in Autostart Initramfs Android
+for brltty_directory in Autostart Authorization Initramfs Android
 do
    for brltty_subdirectory in `cd "${brltty_source_directory}/${brltty_directory}" && echo *`
    do
@@ -138,6 +145,27 @@ BRLTTY_ARG_REQUIRED(
    [drivers_directory], ["${libdir}/${PACKAGE_TARNAME}"]
 )
 
+BRLTTY_ARG_REQUIRED(
+   [scripts-directory], [DIRECTORY],
+   [path to directory containing helper scripts],
+   [scripts_directory], ["${libexecdir}/${PACKAGE_TARNAME}"]
+)
+
+BRLTTY_ARG_WITH(
+   [updatable-directory], [DIRECTORY],
+   [path to directory which contains files that can be updated],
+   [updatable_directory], ["yes"]
+)
+if test "${updatable_directory}" = "no"
+then
+   updatable_directory=""
+elif test "${updatable_directory}" = "yes"
+then
+   updatable_directory="${localstatedir}/lib/${PACKAGE_TARNAME}"
+fi
+AC_SUBST([updatable_directory])
+BRLTTY_SUMMARY_ITEM([updatable-directory], [updatable_directory])
+
 BRLTTY_ARG_WITH(
    [writable-directory], [DIRECTORY],
    [path to directory which can be written to],
@@ -148,7 +176,7 @@ then
    writable_directory=""
 elif test "${writable_directory}" = "yes"
 then
-   writable_directory="${localstatedir}/run/${PACKAGE_TARNAME}"
+   writable_directory="/run/${PACKAGE_TARNAME}"
 fi
 AC_SUBST([writable_directory])
 BRLTTY_SUMMARY_ITEM([writable-directory], [writable_directory])
@@ -212,6 +240,9 @@ then
                       [Define this if BRLTTY is to be run as init.])
 fi
 BRLTTY_SUMMARY_ITEM([init-path], [init_path])
+AC_SUBST([init_path])
+
+BRLTTY_ARG_PARAMETERS([privilege], [privilege establishment stage], [PLATFORM:], [])
 
 brltty_default_stderr_path=/tmp/brltty.log
 BRLTTY_ARG_WITH(
@@ -232,6 +263,7 @@ then
                       [Define this if standard error is to be redirected to a file.])
 fi
 BRLTTY_SUMMARY_ITEM([stderr-path], [stderr_path])
+AC_SUBST([stderr_path])
 
 AC_PROG_MAKE_SET
 
@@ -253,7 +285,7 @@ then
 fi
 AC_PROG_CXX
 
-brltty_gcc_cflags="-std=gnu99 -Wall -Werror=format-security"
+brltty_gcc_cflags="-std=gnu99 -Wall -Werror=format-security -Wno-address-of-packed-member -Wno-stringop-truncation"
 brltty_gcc_cppflags=""
 
 case "${host_os}"
@@ -303,7 +335,10 @@ in
       brltty_prog_cc_sysflags="-D_XOPEN_SOURCE=500 -D_POSIX_C_SOURCE -D_OSF_SOURCE"
       ;;
    cygwin*)
-      brltty_prog_cc_sysflags="-D_XOPEN_SOURCE_EXTENDED"
+      brltty_prog_cc_sysflags="-D_XOPEN_SOURCE_EXTENDED -D_GNU_SOURCE"
+      ;;
+   mingw*)
+      brltty_prog_cc_sysflags="-D_XOPEN_SOURCE_EXTENDED -D_GNU_SOURCE"
       ;;
    *)
       brltty_prog_cc_sysflags=""
@@ -359,7 +394,16 @@ AC_PATH_TOOL([RANLIB], [ranlib])
 AC_PROG_AWK
 AC_PROG_LN_S
 
-AC_PATH_TOOL([PKG_CONFIG], [pkg-config], [false])
+m4_ifdef([PKG_PROG_PKG_CONFIG], [dnl
+   PKG_PROG_PKG_CONFIG
+], [dnl
+   AC_PATH_PROG([PKG_CONFIG], [pkg-config])
+])
+
+if test -z "${PKG_CONFIG}"
+then
+   PKG_CONFIG=false
+fi
 
 AC_PATH_PROG([MSGMERGE], [msgmerge], [false])
 AC_PATH_PROG([MSGFMT], [msgfmt], [false])
@@ -374,6 +418,7 @@ in
    elf*     ) LDFLAGS_DYNAMIC="";;
    freebsd* ) LDFLAGS_DYNAMIC="-export-dynamic";;
    gnu*     ) LDFLAGS_DYNAMIC="-export-dynamic";;
+   haiku*   ) LDFLAGS_DYNAMIC="-export-dynamic";;
    hpux*    ) LDFLAGS_DYNAMIC="-E +s";;
    kfreebsd*) LDFLAGS_DYNAMIC="-export-dynamic";;
    linux*   ) LDFLAGS_DYNAMIC="-export-dynamic";;
@@ -441,7 +486,7 @@ AC_SUBST([can_make_BrlAPIref])
 AC_CACHE_CHECK([for shared object creation command], [brltty_cv_prog_make_object_shared], [dnl
    case "${host_os}"
    in
-      linux*|gnu*|openbsd*|freebsd*|kfreebsd*|netbsd*|*qnx*|cygwin*|mingw*|elf*)
+      linux*|gnu*|openbsd*|freebsd*|kfreebsd*|netbsd*|*qnx*|cygwin*|mingw*|msdos*|elf*|haiku*)
          brltty_mkshr_ld_make="-shared"
          ;;
       solaris*)
@@ -490,7 +535,7 @@ AC_SUBST([MKREL])
 AC_CACHE_CHECK([for dynamic library creation command], [brltty_cv_prog_mklib], [dnl
 case "${host_os}"
 in
-   linux*|gnu*|openbsd*|freebsd*|kfreebsd*|netbsd*|*qnx*|elf*)
+   linux*|gnu*|openbsd*|freebsd*|kfreebsd*|netbsd*|*qnx*|elf*|haiku*)
       brltty_mklib_ld_make="-shared"
       brltty_mklib_ld_options="-soname"
       ;;
@@ -582,7 +627,7 @@ in
       BRLTTY_HAVE_WINDOWS_LIBRARY([gdi32])
       ;;
    *)
-      AC_SEARCH_LIBS([socket], [socket])
+      AC_SEARCH_LIBS([socket], [socket network])
       AC_SEARCH_LIBS([inet_ntoa], [nsl])
       ;;
 esac
@@ -654,7 +699,7 @@ BRLTTY_ARG_DISABLE(
    [],
 [dnl
    BRLTTY_HAVE_PACKAGE([polkit], [polkit-gobject-1], [dnl
-      AC_DEFINE(USE_POLKIT, 1, [if the Polkit authorization manager should be used])
+      AC_DEFINE(HAVE_POLKIT, 1, [if the Polkit authorization manager should be used])
    ])
 ])
 
@@ -686,7 +731,7 @@ BRLTTY_ARG_DISABLE(
          cygwin*|mingw*)
             AC_DEFINE([BRLAPI_WIN32], [1],
                       [Define this if the Win32 programming interface is available.])
-	    default_api_socket_path='\\\\\\\\.\\\\pipe\\\\BrlAPI'
+            default_api_socket_path='\\\\.\\pipe\\BrlAPI'
             api_dynamic_library="api-dynamic-library-windows"
             install_api_libraries="install-api-libraries-windows"
             uninstall_api_libraries="uninstall-api-libraries-windows"
@@ -696,7 +741,7 @@ BRLTTY_ARG_DISABLE(
       BRLTTY_ARG_WITH(
           [api-socket-path], [PATH],
           [where local sockets for teh api are stored],
-          [api_socket_path], [${default_api_socket_path}]
+          [api_socket_path], ["${default_api_socket_path}"]
       )
 
       BRLTTY_BINDINGS([Java])
@@ -732,7 +777,7 @@ AC_SUBST([api_authkeyfile], [brlapi.key])
 AC_SUBST([api_socket_path])
 BRLTTY_SUMMARY_ITEM([api-socket-path], [api_socket_path])
 BRLTTY_DEFINE_EXPANDED([BRLAPI_AUTHKEYFILE], ["${api_authkeyfile}"],
-                       [Define this to be a string containing the name of the file containing the authorization key.])
+                       [Define this to be a string containing the name of BrlAPI's authorization key file.])
 
 brltty_curses_libs_save="${LIBS}"
 BRLTTY_PACKAGE_CHOOSE([curses],
@@ -752,6 +797,7 @@ AC_SUBST([curses_libs])
 
 xkb_libs=""
 xtk_libs=""
+xsel_object=""
 all_xbrlapi=""
 install_xbrlapi=""
 BRLTTY_ARG_DISABLE(
@@ -762,6 +808,7 @@ BRLTTY_ARG_DISABLE(
    BRLTTY_HAVE_PACKAGE([x11], [x11], [dnl
       all_xbrlapi="all-xbrlapi"
       install_xbrlapi="install-xbrlapi"
+      xsel_object='xsel.$O'
 
       AC_CHECK_HEADERS([X11/keysym.h])
 
@@ -773,6 +820,10 @@ BRLTTY_ARG_DISABLE(
              
             AC_CHECK_HEADERS([X11/extensions/XTest.h])
             AC_CHECK_HEADERS([X11/extensions/XKB.h])
+         ])
+
+         BRLTTY_HAVE_PACKAGE([xfixes], [xfixes], [dnl
+            AC_CHECK_HEADERS([X11/extensions/Xfixes.h])
          ])
       ])
 
@@ -801,6 +852,7 @@ BRLTTY_ARG_DISABLE(
 ])
 AC_SUBST([xkb_libs])
 AC_SUBST([xtk_libs])
+AC_SUBST([xsel_object])
 AC_SUBST([all_xbrlapi])
 AC_SUBST([install_xbrlapi])
 
@@ -818,6 +870,7 @@ BRLTTY_CHECK_FUNCTION([clock_gettime], [time.h], [rt])
 BRLTTY_CHECK_FUNCTION([clock_settime], [time.h], [rt])
 
 BRLTTY_CHECK_FUNCTION([pthread_getname_np], [pthread.h], [pthread])
+BRLTTY_CHECK_FUNCTION([pthread_atfork], [pthread.h], [pthread])
 
 AC_CHECK_DECLS([localtime_r], [], [], [dnl
 #include <time.h>
@@ -825,6 +878,10 @@ AC_CHECK_DECLS([localtime_r], [], [], [dnl
 
 AC_CHECK_HEADERS([sys/poll.h sys/select.h sys/wait.h])
 AC_CHECK_FUNCS([select])
+AC_CHECK_FUNCS([poll])
+
+AC_CHECK_HEADERS([sys/capability.h sys/prctl.h sched.h])
+AC_CHECK_HEADERS([linux/seccomp.h linux/filter.h linux/audit.h])
 
 AC_CHECK_HEADERS([signal.h sys/signalfd.h])
 AC_CHECK_FUNCS([sigaction])
@@ -1068,6 +1125,13 @@ esac])
 libsearch_variable="${brltty_cv_env_libsearch}"
 AC_SUBST([libsearch_variable])
 
+BRLTTY_PKGCONFIG_VARIABLE([POLKIT_POLICY_DIR], [polkit-gobject-1], [policydir], [/usr/share/polkit-1/actions])
+BRLTTY_PKGCONFIG_VARIABLE([POLKIT_RULE_DIR], [polkit-gobject-1], [ruledir], [/usr/share/polkit-1/rules.d])
+BRLTTY_PKGCONFIG_VARIABLE([SYSTEMD_SYSUSERS_DIR], [systemd], [sysusersdir], [/usr/lib/sysusers.d])
+BRLTTY_PKGCONFIG_VARIABLE([SYSTEMD_TMPFILES_DIR], [systemd], [tmpfilesdir], [/usr/lib/tmpfiles.d])
+BRLTTY_PKGCONFIG_VARIABLE([SYSTEMD_UNIT_DIR], [systemd], [systemdsystemunitdir], [/usr/lib/systemd/system])
+BRLTTY_PKGCONFIG_VARIABLE([UDEV_DIR], [udev], [udevdir], [/usr/lib/udev])
+
 BRLTTY_ARG_PACKAGE([system], [base system], [], [dnl
    *android*)
       system_package="java"
@@ -1145,6 +1209,7 @@ BRLTTY_ARG_DISABLE(
          louisTablesDirectory=`${PKG_CONFIG} --variable=tablesdir ${louis_package}`
          if test -n "${louisTablesDirectory}"
          then
+            AC_SUBST([louis_tables_directory], ["${louisTablesDirectory}"])
             AC_DEFINE_UNQUOTED([LOUIS_TABLES_DIRECTORY], ["${louisTablesDirectory}"],
                                [Define this to be a string containing the path to the LibLouis tables directory.])
             contracted_braille_objects="${contracted_braille_objects} ctb_louis.\$O"
@@ -1191,6 +1256,13 @@ BRLTTY_ARG_PACKAGE([pgmpath], [program path], [], [dnl
       ;;
 ])
 
+BRLTTY_ARG_PACKAGE([pgmprivs], [program privileges], [], [dnl
+   linux*)
+      pgmprivs_package="linux"
+      AC_HAVE_LIBRARY([cap])
+      ;;
+])
+
 BRLTTY_ARG_PACKAGE([service], [system service], [libsystemd], [dnl
    mingw*)
       service_package="windows"
@@ -1207,6 +1279,17 @@ in
       SYSTEMD_SERVICE_ARGUMENTS="-n"
       ;;
 esac
+
+BRLTTY_HAVE_PACKAGE([systemd], [libsystemd], [
+    brltty_libs_save="${LIBS}"
+    LIBS="${LIBS} ${systemd_libs}"
+    AC_CHECK_FUNC([sd_session_get_vt], [
+      AC_DEFINE([HAVE_SD_SESSION_GET_VT], [1],
+                [Define this if the function sd_session_get_vt is available in libsystemd.])
+      api_libraries="${api_libraries} ${systemd_libs}"
+    ])
+    LIBS="${brltty_libs_save}"
+])
 
 BRLTTY_ARG_PACKAGE([params], [boot parameters], [], [dnl
    linux*)
@@ -1539,8 +1622,10 @@ BRLTTY_BRAILLE_DRIVER([bm], [Baum])
 BRLTTY_BRAILLE_DRIVER([bn], [BrailleNote])
 BRLTTY_BRAILLE_DRIVER([cb], [CombiBraille])
 BRLTTY_BRAILLE_DRIVER([ce], [Cebra])
+BRLTTY_BRAILLE_DRIVER([cn], [Canute])
 BRLTTY_BRAILLE_DRIVER([ec], [EcoBraille])
 BRLTTY_BRAILLE_DRIVER([eu], [EuroBraille])
+BRLTTY_BRAILLE_DRIVER([fa], [FrankAudiodata])
 BRLTTY_BRAILLE_DRIVER([fs], [FreedomScientific])
 BRLTTY_BRAILLE_DRIVER([hd], [Hedo])
 BRLTTY_BRAILLE_DRIVER([hm], [HIMS])
@@ -1607,6 +1692,9 @@ in
       ;;
    solaris*)
       brltty_cv_device_serial_first="ttya"
+      ;;
+   haiku*)
+      brltty_cv_device_serial_first="ports/pc_serial0"
       ;;
    hpux*)
       brltty_cv_device_serial_first="tty0p0"
@@ -1908,7 +1996,7 @@ BRLTTY_HAVE_PACKAGE([dbus], ["dbus-1 >= 1.0"], [dnl
          BRLTTY_HAVE_PACKAGE([glib2], [glib-2.0])
       ])
 
-      BRLTTY_SCREEN_DRIVER([a2], [AtSpi2], [$(DBUS_LIBS) $(ATSPI2_LIBS) $(GLIB2_LIBS)])
+      BRLTTY_SCREEN_DRIVER([a2], [AtSpi2], [$(DBUS_LIBS) $(ATSPI2_LIBS) $(GLIB2_LIBS) $(X11_LIBS) $(XFIXES_LIBS)])
    ])
 ])
 
@@ -1951,26 +2039,38 @@ test "${prefix}" = "NONE" && prefix=""
 original_exec_prefix="${exec_prefix}"
 test "${exec_prefix}" = "NONE" && exec_prefix="${prefix}"
 BRLTTY_VAR_EXPAND([brltty_reference_directory], [${execute_root}${program_directory}])
-BRLTTY_DEFINE_DIRECTORY([LOCALE_DIRECTORY], ["${execute_root}${localedir}"],
+BRLTTY_DEFINE_DIRECTORY([LOCALE_DIRECTORY], [${execute_root}${localedir}],
                         [Define this to be a string containing the path to the locale directory.])
+if test -n "${updatable_directory}"
+then
+   BRLTTY_DEFINE_DIRECTORY([UPDATABLE_DIRECTORY], [${updatable_directory}],
+                           [Define this to be a string containing the path to a directory which contains files that can be updated.])
+fi
+
 if test -n "${writable_directory}"
 then
    BRLTTY_DEFINE_DIRECTORY([WRITABLE_DIRECTORY], [${writable_directory}],
                            [Define this to be a string containing the path to a writable directory.])
 fi
+
 BRLTTY_DEFINE_DIRECTORY([TABLES_DIRECTORY], [${execute_root}${tables_directory}],
                         [Define this to be a string containing the path to the data files directory.])
+
 BRLTTY_DEFINE_DIRECTORY([DRIVERS_DIRECTORY], [${execute_root}${drivers_directory}],
                         [Define this to be a string containing the path to the drivers directory.])
+
+BRLTTY_DEFINE_DIRECTORY([SCRIPTS_DIRECTORY], [${execute_root}${scripts_directory}],
+                        [Define this to be a string containing the path to the scripts directory.])
+
 BRLTTY_DEFINE_DIRECTORY([CONFIGURATION_DIRECTORY], [${sysconfdir}],
                         [Define this to be a string containing the path to the configuration directory.])
-BRLTTY_DEFINE_DIRECTORY([UPDATABLE_DIRECTORY], [${localstatedir}/lib/${PACKAGE_TARNAME}],
-                        [Define this to be a string containing the path to a directory which contains files that can be updated.])
-BRLTTY_DEFINE_EXPANDED([BRLAPI_ETCDIR], ["${CONFIGURATION_DIRECTORY}"],
-                       [Define this to be a string containing the path to the directory where the authorization key and driver-dependent key names are found.])
-BRLTTY_DEFINE_EXPANDED([BRLAPI_SOCKETPATH], ["${api_socket_path}"],
-		       [Define this to be a string containing the path to the local sockets.])
-BRLTTY_SUBST_EXPANDED([api_socket_directory], ["${api_socket_path}"])
+
+BRLTTY_DEFINE_DIRECTORY([BRLAPI_ETCDIR], [${CONFIGURATION_DIRECTORY}],
+                        [Define this to be a string containing the path to BrlAPI's data files directory.])
+
+BRLTTY_DEFINE_DIRECTORY([BRLAPI_SOCKETPATH], [${api_socket_path}],
+                        [Define this to be a string containing the path to BrlAPI's local sockets directory.])
+
 prefix="${original_prefix}"
 exec_prefix="${original_exec_prefix}"
 
@@ -1988,14 +2088,19 @@ s%\([^ ][^ ]*\)%\1/Makefile:prologue.mk:\1/Makefile.in%g
 AC_OUTPUT([
    config.mk
    brltty.spec
-   config.sh
+   brltty-config.sh
+   brltty.pc
    Documents/brltty.conf
    Documents/brltty.1
+   Documents/xbrlapi.1
    Documents/BrlAPIref.doxy
    Bindings/Lisp/brlapi.asd
    Bindings/Lisp/brlapi_config.lisp
    Bindings/Python/setup.py
    Autostart/Systemd/brltty@.service
+   Autostart/Systemd/tmpfiles
+   Autostart/Udev/device.rules
+   Autostart/X11/90xbrlapi
    Android/Application/res/values/configured.xml:Android/Application/res.strings.in
    ${brltty_make_files}
 ])

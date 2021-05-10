@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,6 +19,9 @@
 package org.a11y.brltty.android;
 import org.a11y.brltty.core.*;
 
+import org.a11y.brltty.android.settings.DeviceManager;
+import org.a11y.brltty.android.settings.DeviceDescriptor;
+
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Map;
@@ -32,13 +35,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 import android.util.Log;
+import android.os.Environment;
 
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.SharedPreferences;
 
 public class CoreThread extends Thread {
-  private static final String LOG_TAG = CoreThread.class.getName();
+  private final static String LOG_TAG = CoreThread.class.getName();
 
   private final Context coreContext;
 
@@ -128,6 +132,7 @@ public class CoreThread extends Thread {
   private final void extractAssets () {
     Log.d(LOG_TAG, "extracting assets");
     AssetManager assets = coreContext.getAssets();
+    extractAssets(assets, DataType.LOCALE, false);
     extractAssets(assets, DataType.TABLES, false);
     extractAssets(assets, DataType.DRIVERS, true);
     Log.d(LOG_TAG, "assets extracted");
@@ -197,6 +202,7 @@ public class CoreThread extends Thread {
     builder.setForegroundExecution(true);
     builder.setReleaseDevice(true);
 
+    builder.setLocaleDirectory(DataType.LOCALE.getDirectory().getPath());
     builder.setTablesDirectory(DataType.TABLES.getDirectory().getPath());
     builder.setDriversDirectory(DataType.DRIVERS.getDirectory().getPath());
     builder.setWritableDirectory(DataType.WRITABLE.getDirectory().getPath());
@@ -259,25 +265,20 @@ public class CoreThread extends Thread {
     ApplicationSettings.LOG_UNHANDLED_EVENTS = getBooleanSetting(R.string.PREF_KEY_LOG_UNHANDLED_EVENTS);
   }
 
-  private static void setOverrideDirectories () {
-    StringBuilder sb = new StringBuilder();
+  private final void setOverrideDirectories () {
+    StringBuilder paths = new StringBuilder();
 
-    String[] names = new String[] {
-      "EXTERNAL_STORAGE",
-      "SECONDARY_STORAGE"
+    File[] directories = new File[] {
+      Environment.getExternalStorageDirectory()
     };
 
-    for (String name : names) {
-      String value = System.getenv(name);
-
-      if (value == null) continue;
-      if (value.isEmpty()) continue;
-
-      if (sb.length() > 0) sb.append(':');
-      sb.append(value);
+    for (File directory : directories) {
+      String path = directory.getAbsolutePath();
+      if (paths.length() > 0) paths.append(':');
+      paths.append(path);
     }
 
-    CoreWrapper.setEnvironmentVariable("XDG_CONFIG_DIRS", sb.toString());
+    CoreWrapper.setEnvironmentVariable("XDG_CONFIG_DIRS", paths.toString());
   }
 
   @Override

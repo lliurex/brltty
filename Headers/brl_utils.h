@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -26,6 +26,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 extern void drainBrailleOutput (BrailleDisplay *brl, int minimumDelay);
+
+extern void announceBrailleOffline (void);
+extern void announceBrailleOnline (void);
+
 extern void setBrailleOffline (BrailleDisplay *brl);
 extern void setBrailleOnline (BrailleDisplay *brl);
 

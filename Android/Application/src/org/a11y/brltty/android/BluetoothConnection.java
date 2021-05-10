@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -35,13 +35,13 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
 public class BluetoothConnection {
-  private static final String LOG_TAG = BluetoothConnection.class.getName();
+  private final static String LOG_TAG = BluetoothConnection.class.getName();
 
-  protected static final UUID SERIAL_PROFILE_UUID = UUID.fromString(
+  protected final static UUID SERIAL_PROFILE_UUID = UUID.fromString(
     "00001101-0000-1000-8000-00805F9B34FB"
   );
 
-  protected static final BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+  protected final static BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
   protected final long remoteAddressValue;
   protected final byte[] remoteAddressBytes = new byte[6];
   protected final String remoteAddressString;
@@ -99,7 +99,7 @@ public class BluetoothConnection {
   public final BluetoothDevice getDevice () {
     if (!isUp()) return null;
 
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       return bluetoothAdapter.getRemoteDevice(remoteAddressBytes);
     } else {
       return bluetoothAdapter.getRemoteDevice(remoteAddressString);

@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -23,7 +23,7 @@ install-metainfo-directory:
 	$(INSTALL_DIRECTORY) $(METAINFO_DIRECTORY)
 
 install: install-metainfo-directory
-	$(INSTALL_DATA) $(SRC_TOP)Autostart/AppStream/$(METAINFO_FILE) $(METAINFO_DIRECTORY)
+	$(INSTALL_DATA) $(SRC_DIR)/$(METAINFO_FILE) $(METAINFO_DIRECTORY)
 
 uninstall:
 	-rm -f $(METAINFO_DIRECTORY)/$(METAINFO_FILE)

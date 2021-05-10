@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -57,10 +57,6 @@ INSTALL_PROGRAM_DIRECTORY = $(INSTALL_ROOT)$(PROGRAM_DIRECTORY)
 install-program-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_PROGRAM_DIRECTORY)
 
-INSTALL_WRITABLE_DIRECTORY = $(INSTALL_ROOT)$(WRITABLE_DIRECTORY)
-install-writable-directory:
-	test -z "${WRITABLE_DIRECTORY}" || $(INSTALL_DIRECTORY) $(INSTALL_WRITABLE_DIRECTORY)
-
 INSTALL_DRIVERS_DIRECTORY = $(INSTALL_ROOT)$(DRIVERS_DIRECTORY)
 install-drivers-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_DRIVERS_DIRECTORY)
@@ -111,6 +107,10 @@ INSTALL_INCLUDE_DIRECTORY = $(INSTALL_ROOT)$(INCLUDE_DIRECTORY)
 install-include-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_INCLUDE_DIRECTORY)
 
+INSTALL_PKGCONFIG_DIRECTORY = $(INSTALL_ROOT)$(libdir)/pkgconfig
+install-pkgconfig-directory:
+	$(INSTALL_DIRECTORY) $(INSTALL_PKGCONFIG_DIRECTORY)
+
 INSTALL_APILIB_DIRECTORY = $(INSTALL_ROOT)$(libdir)
 install-apilib-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_APILIB_DIRECTORY)
@@ -119,13 +119,9 @@ INSTALL_APIHDR_DIRECTORY = $(INSTALL_ROOT)$(includedir)
 install-apihdr-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_APIHDR_DIRECTORY)
 
-INSTALL_APISOC_DIRECTORY = $(INSTALL_ROOT)$(API_SOCKET_DIRECTORY)
+INSTALL_APISOC_DIRECTORY = $(INSTALL_ROOT)$(API_SOCKET_PATH)
 install-apisoc-directory:
 	-$(INSTALL_DIRECTORY) -m 1777 $(INSTALL_APISOC_DIRECTORY)
-
-INSTALL_APIPOL_DIRECTORY = $(INSTALL_ROOT)$(datadir)/polkit-1/actions
-install-apipol-directory:
-	-$(INSTALL_DIRECTORY) $(INSTALL_APIPOL_DIRECTORY)
 
 INSTALL_X11_AUTOSTART_DIRECTORY = $(INSTALL_ROOT)$(sysconfdir)/X11/Xsession.d
 install-x11-autostart-directory:

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -30,7 +30,7 @@
 #include "queue.h"
 #include "datafile.h"
 #include "variables.h"
-#include "charset.h"
+#include "utf8.h"
 #include "unicode.h"
 #include "brl_dots.h"
 
@@ -78,7 +78,7 @@ brlDotBitToIndex (unsigned char bit, int *index) {
 }
 
 void
-reportDataError (DataFile *file, char *format, ...) {
+reportDataError (DataFile *file, const char *format, ...) {
   char message[0X200];
 
   {
@@ -1155,7 +1155,7 @@ openIncludedDataFile (DataFile *includer, const char *path, const char *mode, in
         char *directory = getPathDirectory(path);
 
         if (directory) {
-          int exists = ensureDirectory(directory);
+          int exists = ensureDirectory(directory, 0);
           free(directory);
 
           if (exists) {
@@ -1168,7 +1168,7 @@ openIncludedDataFile (DataFile *includer, const char *path, const char *mode, in
       if ((errno == EACCES) || (errno == EROFS)) {
         if ((overrideDirectory = getPrimaryOverrideDirectory())) {
           if ((overridePath = makePath(overrideDirectory, name))) {
-            if (ensureDirectory(overrideDirectory)) {
+            if (ensureDirectory(overrideDirectory, 0)) {
               file = openFile(overridePath, mode, optional);
               goto done;
             }
@@ -1196,7 +1196,7 @@ includeDataFile (DataFile *file, const wchar_t *name, int length) {
   size_t prefixLength = 0;
 
   size_t suffixLength;
-  char *suffixAddress = makeUtf8FromWchars(name, length, &suffixLength);
+  char *suffixAddress = getUtf8FromWchars(name, length, &suffixLength);
 
   if (suffixAddress) {
     if (!isAbsolutePath(suffixAddress)) {
@@ -1237,23 +1237,31 @@ DATA_OPERANDS_PROCESSOR(processIncludeOperands) {
 }
 
 static int
-processDataLine (char *line, void *dataAddress) {
-  DataFile *file = dataAddress;
-  size_t size = strlen(line) + 1;
-  const char *byte = line;
+processDataLine (const LineHandlerParameters *parameters) {
+  DataFile *file = parameters->data;
+  file->line += 1;
+
+  const char *byte = parameters->line.text;
+  size_t size = parameters->line.length + 1;
   wchar_t characters[size];
   wchar_t *character = characters;
 
-  file->line += 1;
   convertUtf8ToWchars(&byte, &character, size);
+  character = characters;
 
   if (*byte) {
-    unsigned int offset = byte - line;
+    unsigned int offset = byte - parameters->line.text;
     reportDataError(file, "illegal UTF-8 character at offset %u", offset);
     return 1;
   }
 
-  return processDataCharacters(file, characters);
+  if (file->line == 1) {
+    if (*character == UNICODE_BYTE_ORDER_MARK) {
+      character += 1;
+    }
+  }
+
+  return processDataCharacters(file, character);
 }
 
 int

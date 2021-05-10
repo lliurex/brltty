@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -35,29 +35,34 @@
 #include "parameters.h"
 #include "embed.h"
 #include "log.h"
+#include "alert.h"
 #include "strfmt.h"
-#include "brl_cmds.h"
+
 #include "cmd_queue.h"
+#include "cmd_clipboard.h"
 #include "cmd_custom.h"
-#include "cmd_navigation.h"
 #include "cmd_input.h"
 #include "cmd_keycodes.h"
-#include "cmd_touch.h"
-#include "cmd_toggle.h"
-#include "cmd_preferences.h"
-#include "cmd_clipboard.h"
-#include "cmd_speech.h"
 #include "cmd_learn.h"
 #include "cmd_miscellaneous.h"
-#include "timing.h"
+#include "cmd_navigation.h"
+#include "cmd_override.h"
+#include "cmd_preferences.h"
+#include "cmd_speech.h"
+#include "cmd_toggle.h"
+#include "cmd_touch.h"
+
 #include "async_wait.h"
+#include "async_alarm.h"
 #include "async_event.h"
 #include "async_signal.h"
-#include "async_alarm.h"
-#include "alert.h"
+#include "async_task.h"
+
+#include "brl_cmds.h"
+#include "timing.h"
 #include "ctb.h"
 #include "routing.h"
-#include "charset.h"
+#include "utf8.h"
 #include "scr.h"
 #include "update.h"
 #include "ses.h"
@@ -96,21 +101,76 @@ int contractedOffsets[0X100];
 int contractedTrack = 0;
 #endif /* ENABLE_CONTRACTED_BRAILLE */
 
-static void
-checkRoutingStatus (RoutingStatus ok, int wait) {
-  RoutingStatus status = getRoutingStatus(wait);
+int
+isContractedBraille (void) {
+  return (prefs.brailleVariant == bvContracted6)
+      || (prefs.brailleVariant == bvContracted8)
+      ;
+}
 
-  if (status != ROUTING_NONE) {
-    alert((status > ok)? ALERT_ROUTING_FAILED: ALERT_ROUTING_SUCCEEDED);
+int
+isSixDotBraille (void) {
+  return (prefs.brailleVariant == bvComputer6)
+      || (prefs.brailleVariant == bvContracted6)
+      ;
+}
+
+static void
+setBrailleVariant (int contracted, int sixDot) {
+  prefs.brailleVariant = contracted?
+                         (sixDot? bvContracted6: bvContracted8):
+                         (sixDot? bvComputer6: bvComputer8);
+}
+
+void
+setContractedBraille (int contracted) {
+  setBrailleVariant(contracted, isSixDotBraille());
+  api.updateParameter(BRLAPI_PARAM_LITERARY_BRAILLE, 0);
+}
+
+void
+setSixDotBraille (int sixDot) {
+  setBrailleVariant(isContractedBraille(), sixDot);
+  api.updateParameter(BRLAPI_PARAM_COMPUTER_BRAILLE_CELL_SIZE, 0);
+}
+
+void
+onBrailleVariantUpdated (void) {
+  api.updateParameter(BRLAPI_PARAM_COMPUTER_BRAILLE_CELL_SIZE, 0);
+  api.updateParameter(BRLAPI_PARAM_LITERARY_BRAILLE, 0);
+}
+
+int
+startScreenCursorRouting (int column, int row) {
+  if (!routeScreenCursor(column, row, scr.number)) return 0;
+  if (isRouting()) alert(ALERT_ROUTING_STARTED);
+  return 1;
+}
+
+int
+bringScreenCursor (int column, int row) {
+  if (!startScreenCursorRouting(column, row)) return 0;
+  RoutingStatus status = getRoutingStatus(1);
+
+  if (status != ROUTING_STATUS_NONE) {
+    alert(
+      (status > ROUTING_STATUS_COLUMN)? ALERT_ROUTING_FAILED:
+      ALERT_ROUTING_SUCCEEDED
+    );
 
     ses->spkx = scr.posx;
     ses->spky = scr.posy;
   }
+
+  return 1;
 }
 
 typedef struct {
   int motionColumn;
   int motionRow;
+
+  int speechColumn;
+  int speechRow;
 } PrecommandState;
 
 static void *
@@ -118,8 +178,13 @@ preprocessCommand (void) {
   PrecommandState *pre;
 
   if ((pre = malloc(sizeof(*pre)))) {
+    memset(pre, 0, sizeof(*pre));
+
     pre->motionColumn = ses->winx;
     pre->motionRow = ses->winy;
+
+    pre->speechColumn = ses->spkx;
+    pre->speechRow = ses->spky;
 
     suspendUpdates();
     return pre;
@@ -131,7 +196,7 @@ preprocessCommand (void) {
 }
 
 static void
-postprocessCommand (void *state, int command, int handled) {
+postprocessCommand (void *state, int command, const CommandEntry *cmd, int handled) {
   PrecommandState *pre = state;
 
   if (pre) {
@@ -148,39 +213,26 @@ postprocessCommand (void *state, int command, int handled) {
 #ifdef ENABLE_CONTRACTED_BRAILLE
       isContracted = 0;
 #endif /* ENABLE_CONTRACTED_BRAILLE */
-
-#ifdef ENABLE_SPEECH_SUPPORT
-      if (ses->trackScreenCursor && spk.track.isActive && (scr.number == spk.track.screenNumber)) {
-        ses->trackScreenCursor = 0;
-        alert(ALERT_CURSOR_UNLINKED);
-      }
-#endif /* ENABLE_SPEECH_SUPPORT */
     }
 
-    if (!(command & BRL_MSK_BLK)) {
-      if (command & BRL_FLG_MOTION_ROUTE) {
-        int left = ses->winx;
-        int right = MIN(left+textCount, scr.cols) - 1;
+    if (cmd) {
+      if (cmd->isMotion) {
+        if (command & BRL_FLG_MOTION_ROUTE) {
+          if ((ses->spkx != pre->speechColumn) || (ses->spky != pre->speechRow)) {
+            /* The speech cursor has moved. */
+            bringScreenCursor(ses->spkx, ses->spky);
+          } else if (command & BRL_MSK_BLK) {
+            bringScreenCursor((command & BRL_MSK_ARG), ses->winy);
+          } else {
+            int left = ses->winx;
+            int right = MIN(left+textCount, scr.cols) - 1;
 
-        int top = ses->winy;
-        int bottom = MIN(top+brl.textRows, scr.rows) - 1;
+            int top = ses->winy;
+            int bottom = MIN(top+brl.textRows, scr.rows) - 1;
 
-        if ((scr.posx < left) || (scr.posx > right) ||
-            (scr.posy < top) || (scr.posy > bottom)) {
-          if (routeScreenCursor(MIN(MAX(scr.posx, left), right),
-                          MIN(MAX(scr.posy, top), bottom),
-                          scr.number)) {
-            alert(ALERT_ROUTING_STARTED);
-            checkRoutingStatus(ROUTING_WRONG_COLUMN, 1);
-
-            {
-              ScreenDescription description;
-              describeScreen(&description);
-
-              if (description.number == scr.number) {
-                slideBrailleWindowVertically(description.posy);
-                placeBrailleWindowHorizontally(description.posx);
-              }
+            if ((scr.posx < left) || (scr.posx > right) ||
+                (scr.posy < top) || (scr.posy > bottom)) {
+              bringScreenCursor(left, top);
             }
           }
         }
@@ -233,6 +285,8 @@ addCommands (void) {
   addKeycodeCommands();
   addInputCommands();
   addNavigationCommands();
+
+  addOverrideCommands();
   addScreenCommands();
   addCustomCommands();
 
@@ -240,6 +294,29 @@ addCommands (void) {
                      handleApiCommands, NULL, NULL);
 
   return 1;
+}
+
+static AsyncHandle delayedCursorTrackingAlarm;
+
+ASYNC_ALARM_CALLBACK(handleDelayedCursorTrackingAlarm) {
+  asyncDiscardHandle(delayedCursorTrackingAlarm);
+  delayedCursorTrackingAlarm = NULL;
+
+  ses->trkx = ses->dctx;
+  ses->trky = ses->dcty;
+
+  ses->dctx = -1;
+  ses->dcty = -1;
+
+  scheduleUpdate("delayed cursor tracking");
+}
+
+void
+cancelDelayedCursorTrackingAlarm (void) {
+  if (delayedCursorTrackingAlarm) {
+    asyncCancelRequest(delayedCursorTrackingAlarm);
+    delayedCursorTrackingAlarm = NULL;
+  }
 }
 
 static void
@@ -269,7 +346,7 @@ updateSessionAttributes (void) {
   setSessionEntry();
 
   {
-    int maximum = MAX(scr.rows-(int)brl.textRows, 0);
+    int maximum = MAX(scr.rows-1, 0);
     int *table[] = {&ses->winy, &ses->moty, NULL};
     int **value = table;
 
@@ -360,9 +437,9 @@ writeBrailleCharacters (const char *mode, const wchar_t *characters, size_t leng
                  characters, length);
 
   {
-    size_t modeLength = mode? getUtf8Length(mode): 0;
+    size_t modeLength = mode? countUtf8Characters(mode): 0;
     wchar_t modeCharacters[modeLength + 1];
-    convertTextToWchars(modeCharacters, mode, ARRAY_COUNT(modeCharacters));
+    makeWcharsFromUtf8(mode, modeCharacters, ARRAY_COUNT(modeCharacters));
     fillTextRegion(textBuffer, brl.buffer,
                    statusStart, statusCount, brl.textColumns, brl.textRows,
                    modeCharacters, modeLength);
@@ -370,14 +447,14 @@ writeBrailleCharacters (const char *mode, const wchar_t *characters, size_t leng
 
   fillStatusSeparator(textBuffer, brl.buffer);
 
-  return writeBrailleWindow(&brl, textBuffer);
+  return writeBrailleWindow(&brl, textBuffer, 0);
 }
 
 int
 writeBrailleText (const char *mode, const char *text) {
-  size_t count = getTextLength(text) + 1;
+  size_t count = countUtf8Characters(text) + 1;
   wchar_t characters[count];
-  size_t length = convertTextToWchars(characters, text, count);
+  size_t length = makeWcharsFromUtf8(text, characters, count);
   return writeBrailleCharacters(mode, characters, length);
 }
 
@@ -777,29 +854,6 @@ isWithinBrailleWindow (int x, int y) {
       ;
 }
 
-static AsyncHandle delayedCursorTrackingAlarm;
-
-ASYNC_ALARM_CALLBACK(handleDelayedCursorTrackingAlarm) {
-  asyncDiscardHandle(delayedCursorTrackingAlarm);
-  delayedCursorTrackingAlarm = NULL;
-
-  ses->trkx = ses->dctx;
-  ses->trky = ses->dcty;
-
-  ses->dctx = -1;
-  ses->dcty = -1;
-
-  scheduleUpdate("delayed cursor tracking");
-}
-
-void
-cancelDelayedCursorTrackingAlarm (void) {
-  if (delayedCursorTrackingAlarm) {
-    asyncCancelRequest(delayedCursorTrackingAlarm);
-    delayedCursorTrackingAlarm = NULL;
-  }
-}
-
 int
 trackScreenCursor (int place) {
   if (!SCR_CURSOR_OK()) return 0;
@@ -847,6 +901,7 @@ trackScreenCursor (int place) {
       ScreenCharacter characters[length];
       int onspace = 1;
       readScreenRow(ses->winy, length, characters);
+
       while (length) {
         if ((iswspace(characters[--length].text) != 0) != onspace) {
           if (onspace) {
@@ -857,8 +912,10 @@ trackScreenCursor (int place) {
           }
         }
       }
+
       ses->winx = length;
     }
+
     contractedTrack = 1;
     return 1;
   }
@@ -986,7 +1043,7 @@ speakCharacters (const ScreenCharacter *characters, size_t count, int spell, int
 
       case swsSaySpace: {
         wchar_t buffer[0X100];
-        size_t length = convertTextToWchars(buffer, gettext("space"), ARRAY_COUNT(buffer));
+        size_t length = makeWcharsFromUtf8(gettext("space"), buffer, ARRAY_COUNT(buffer));
 
         sayWideCharacters(&spk, buffer, NULL, length, sayOptions);
         break;
@@ -1016,7 +1073,7 @@ speakCharacters (const ScreenCharacter *characters, size_t count, int spell, int
 
     if (prefix) {
       wchar_t buffer[0X100];
-      size_t length = convertTextToWchars(buffer, prefix, ARRAY_COUNT(buffer));
+      size_t length = makeWcharsFromUtf8(prefix, buffer, ARRAY_COUNT(buffer));
 
       buffer[length++] = WC_C(' ');
       buffer[length++] = character;
@@ -1077,7 +1134,7 @@ speakIndent (const ScreenCharacter *characters, int count, int evenIfNoIndent) {
 #ifdef ENABLE_CONTRACTED_BRAILLE
 int
 isContracting (void) {
-  return (prefs.textStyle == tsContractedBraille) && contractionTable;
+  return isContractedBraille() && contractionTable;
 }
 
 int
@@ -1115,9 +1172,10 @@ getContractedLength (unsigned int outputLimit) {
 
 int
 showScreenCursor (void) {
-  return scr.cursor &&
-         prefs.showScreenCursor &&
-         !(ses->hideScreenCursor || brl.hideCursor);
+  return scr.hasCursor
+      && prefs.showScreenCursor
+      && !(ses->hideScreenCursor || brl.hideCursor)
+      ;
 }
 
 int
@@ -1235,7 +1293,11 @@ static void
 handleRoutingDone (const void *data) {
   const RoutingStatus *status = data;
 
-  alert((*status > ROUTING_DONE)? ALERT_ROUTING_FAILED: ALERT_ROUTING_SUCCEEDED);
+  alert(
+    (*status > ROUTING_STATUS_SUCCEESS)? ALERT_ROUTING_FAILED:
+    ALERT_ROUTING_SUCCEEDED
+  );
+
   ses->spkx = scr.posx;
   ses->spky = scr.posy;
 }
@@ -1247,6 +1309,7 @@ handleBrailleDriverFailed (const void *data) {
 
 static volatile unsigned int programTerminationRequestCount;
 static volatile time_t programTerminationRequestTime;
+static volatile int programTerminationRequestSignal;
 
 typedef struct {
   UnmonitoredConditionHandler *handler;
@@ -1257,12 +1320,18 @@ ASYNC_CONDITION_TESTER(checkUnmonitoredConditions) {
   UnmonitoredConditionDescriptor *ucd = data;
 
   if (interruptPending) {
+    logMessage(LOG_CATEGORY(ASYNC_EVENTS), "interrupt pending");
     ucd->data = &waitResult;
     interruptPending = 0;
     return 1;
   }
 
   if (programTerminationRequestCount) {
+    logMessage(LOG_CATEGORY(ASYNC_EVENTS),
+      "program termination requested: Count=%u Signal=%d",
+      programTerminationRequestCount, programTerminationRequestSignal
+    );
+
     static const WaitResult result = WAIT_STOP;
     ucd->data = &result;
     return 1;
@@ -1271,7 +1340,8 @@ ASYNC_CONDITION_TESTER(checkUnmonitoredConditions) {
   {
     static RoutingStatus status;
 
-    if ((status = getRoutingStatus(0)) != ROUTING_NONE) {
+    if ((status = getRoutingStatus(0)) != ROUTING_STATUS_NONE) {
+      logMessage(LOG_CATEGORY(ASYNC_EVENTS), "routing status: %u", status);
       ucd->handler = handleRoutingDone;
       ucd->data = &status;
       return 1;
@@ -1279,6 +1349,7 @@ ASYNC_CONDITION_TESTER(checkUnmonitoredConditions) {
   }
 
   if (brl.hasFailed) {
+    logMessage(LOG_CATEGORY(ASYNC_EVENTS), "braille driver failed");
     ucd->handler = handleBrailleDriverFailed;
     return 1;
   }
@@ -1315,7 +1386,7 @@ showDotPattern (unsigned char dots, unsigned char duration) {
   }
 
   memset(brl.buffer, dots, brl.textColumns*brl.textRows);
-  if (!writeBrailleWindow(&brl, NULL)) return 0;
+  if (!writeBrailleWindow(&brl, NULL, 0)) return 0;
 
   drainBrailleOutput(&brl, duration);
   return 1;
@@ -1333,6 +1404,116 @@ exitSessions (void *data) {
   deallocateSessionEntries();
 }
 
+static AsyncEvent *addCoreTaskEvent = NULL;
+
+static int
+startCoreTasks (void) {
+  if (!addCoreTaskEvent) {
+    if (!(addCoreTaskEvent = asyncNewAddTaskEvent())) {
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
+static void
+stopCoreTasks (void) {
+  if (addCoreTaskEvent) {
+    asyncDiscardEvent(addCoreTaskEvent);
+    addCoreTaskEvent = NULL;
+  }
+}
+
+static void
+logCoreTaskAction (CoreTaskCallback *callback, const char *action) {
+  logSymbol(LOG_DEBUG, callback, "%s core task", action);
+}
+
+typedef struct {
+  struct {
+    CoreTaskCallback *callback;
+    void *data;
+  } run;
+
+  struct {
+    AsyncEvent *event;
+    unsigned finished:1;
+  } wait;
+} CoreTaskData;
+
+ASYNC_TASK_CALLBACK(handleCoreTask) {
+  CoreTaskData *ctd = data;
+
+  {
+    CoreTaskCallback *callback = ctd->run.callback;
+    logCoreTaskAction(callback, "starting");
+    callback(ctd->run.data);
+    logCoreTaskAction(callback, "finished");
+  }
+
+  {
+    AsyncEvent *event = ctd->wait.event;
+    if (event) asyncSignalEvent(event, ctd);
+  }
+}
+
+ASYNC_CONDITION_TESTER(testCoreTaskFinished) {
+  CoreTaskData *ctd = data;
+  return ctd->wait.finished;
+}
+
+ASYNC_EVENT_CALLBACK(setCoreTaskFinished) {
+  CoreTaskData *ctd = parameters->signalData;
+  ctd->wait.finished = 1;
+}
+
+int
+runCoreTask (CoreTaskCallback *callback, void *data, int wait) {
+  int wasScheduled = 0;
+
+  if (addCoreTaskEvent) {
+    CoreTaskData *ctd;
+
+    if ((ctd = malloc(sizeof(*ctd)))) {
+      memset(ctd, 0, sizeof(*ctd));
+
+      ctd->run.callback = callback;
+      ctd->run.data = data;
+
+      ctd->wait.event = NULL;
+      ctd->wait.finished = 0;
+
+      if (!wait || (ctd->wait.event = asyncNewEvent(setCoreTaskFinished, NULL))) {
+        logCoreTaskAction(callback, "scheduling");
+
+        if (asyncAddTask(addCoreTaskEvent, handleCoreTask, ctd)) {
+          wasScheduled = 1;
+
+          if (wait) {
+            logCoreTaskAction(callback, "awaiting");
+            asyncWaitFor(testCoreTaskFinished, ctd);
+            logCoreTaskAction(callback, "completed");
+          }
+        }
+
+        {
+          AsyncEvent *event = ctd->wait.event;
+          if (event) asyncDiscardEvent(event);
+        }
+      }
+
+      free(ctd);
+    } else {
+      logMallocError();
+    }
+  } else {
+    logMessage(LOG_ERR, "core tasks not started");
+  }
+
+  return wasScheduled;
+}
+
 #ifdef ASYNC_CAN_HANDLE_SIGNALS
 ASYNC_SIGNAL_HANDLER(handleProgramTerminationRequest) {
   time_t now = time(NULL);
@@ -1341,11 +1522,12 @@ ASYNC_SIGNAL_HANDLER(handleProgramTerminationRequest) {
     programTerminationRequestCount = 0;
   }
 
-  if ((programTerminationRequestCount += 1) > PROGRAM_TERMINATION_REQUEST_COUNT_THRESHOLD) {
+  if (++programTerminationRequestCount > PROGRAM_TERMINATION_REQUEST_COUNT_THRESHOLD) {
     exit(1);
   }
 
   programTerminationRequestTime = now;
+  programTerminationRequestSignal = signalNumber;
 }
 
 #ifdef SIGCHLD
@@ -1358,19 +1540,18 @@ ProgramExitStatus
 brlttyConstruct (int argc, char *argv[]) {
   {
     TimeValue now;
-
     getMonotonicTime(&now);
     srand(now.seconds ^ now.nanoseconds);
   }
 
   {
     ProgramExitStatus exitStatus = brlttyPrepare(argc, argv);
-
     if (exitStatus != PROG_EXIT_SUCCESS) return exitStatus;
   }
 
   programTerminationRequestCount = 0;
   programTerminationRequestTime = time(NULL);
+  programTerminationRequestSignal = 0;
 
 #ifdef ASYNC_CAN_BLOCK_SIGNALS
   asyncBlockObtainableSignals();
@@ -1378,8 +1559,8 @@ brlttyConstruct (int argc, char *argv[]) {
 
 #ifdef ASYNC_CAN_HANDLE_SIGNALS
 #ifdef SIGPIPE
-  /* We ignore SIGPIPE before calling brlttyStart() so that a driver which uses
-   * a broken pipe won't abort program execution.
+  /* We ignore SIGPIPE before calling brlttyStart() so that a driver
+   * which uses a broken pipe won't abort program execution.
    */
   asyncIgnoreSignal(SIGPIPE, NULL);
 #endif /* SIGPIPE */
@@ -1403,13 +1584,13 @@ brlttyConstruct (int argc, char *argv[]) {
 
   delayedCursorTrackingAlarm = NULL;
 
+  startCoreTasks();
   beginCommandQueue();
   beginUpdates();
   suspendUpdates();
 
   {
     ProgramExitStatus exitStatus = brlttyStart();
-
     if (exitStatus != PROG_EXIT_SUCCESS) return exitStatus;
   }
 
@@ -1427,6 +1608,7 @@ brlttyConstruct (int argc, char *argv[]) {
 int
 brlttyDestruct (void) {
   suspendUpdates();
+  stopCoreTasks();
   endProgram();
   endCommandQueue();
   return 1;

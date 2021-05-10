@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -17,6 +17,8 @@
  */
 
 package org.a11y.brltty.android;
+import org.a11y.brltty.android.activities.ActionsActivity;
+import org.a11y.brltty.core.Braille;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -25,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 import android.os.Bundle;
+import android.graphics.Rect;
 
 import android.accessibilityservice.AccessibilityService;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -47,13 +50,70 @@ public abstract class InputHandlers {
   }
 
   private static AccessibilityNodeInfo getCursorNode () {
-    RenderedScreen screen = ScreenDriver.getScreen();
+    RenderedScreen screen = ScreenDriver.getCurrentRenderedScreen();
     if (screen == null) return null;
     return screen.getCursorNode();
   }
 
+  private static CharSequence getWindowTitle (AccessibilityWindowInfo window) {
+    if (APITests.haveNougat) {
+      CharSequence title = window.getTitle();
+      if ((title != null) && (title.length() > 0)) return title;
+    }
+
+    if (APITests.havePie) {
+      AccessibilityNodeInfo node = window.getRoot();
+
+      if (node != null) {
+        try {
+          while (true) {
+            {
+              CharSequence title = node.getPaneTitle();
+              if ((title != null) && (title.length() > 0)) return title;
+            }
+
+            if (node.getChildCount() != 1) break;
+            AccessibilityNodeInfo child = node.getChild(0);
+            if (child == null) break;
+
+            node.recycle();
+            node = child;
+            child = null;
+          }
+        } finally {
+          node.recycle();
+          node = null;
+        }
+      }
+    }
+
+    return "unnamed";
+  }
+
+  private static void showWindowTitle (AccessibilityWindowInfo window) {
+    CharSequence title = getWindowTitle(window);
+    BrailleMessage.WINDOW.show(title.toString());
+  }
+
+  private static void showWindowTitle (ScreenWindow window) {
+    AccessibilityWindowInfo info = window.getWindowInfo();
+
+    if (info != null) {
+      try {
+        showWindowTitle(info);
+      } finally {
+        info.recycle();
+        info = null;
+      }
+    }
+  }
+
+  private static void showWindowTitle () {
+    showWindowTitle(ScreenDriver.getCurrentScreenWindow());
+  }
+
   private static List<AccessibilityWindowInfo> getVisibleWindows () {
-    if (ApplicationUtilities.haveLollipop) {
+    if (APITests.haveLollipop) {
       return BrailleService.getBrailleService().getWindows();
     } else {
       return Collections.EMPTY_LIST;
@@ -77,26 +137,23 @@ public abstract class InputHandlers {
   }
 
   private static boolean switchToWindow (AccessibilityWindowInfo window) {
-    AccessibilityNodeInfo rootNode = window.getRoot();
+    AccessibilityNodeInfo root = window.getRoot();
 
-    if (rootNode != null) {
+    if (root != null) {
       try {
-        AccessibilityNodeInfo focusableNode = ScreenUtilities.findFocusableNode(rootNode);
+        RenderedScreen screen = new RenderedScreen(root);
+        showWindowTitle(window);
 
-        if (focusableNode != null) {
-          try {
-            if (focusableNode.performAction(AccessibilityNodeInfo.ACTION_FOCUS)) {
-              focusableNode.performAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS);
-              return true;
-            }
-          } finally {
-            focusableNode.recycle();
-            focusableNode = null;
-          }
-        }
+        ScreenDriver.lockScreenWindow(
+          ScreenWindow.getScreenWindow(window)
+                      .setRenderedScreen(screen)
+        );
+
+        ScreenDriver.setCurrentNode(root);
+        return true;
       } finally {
-        rootNode.recycle();
-        rootNode = null;
+        root.recycle();
+        root = null;
       }
     }
 
@@ -110,6 +167,7 @@ public abstract class InputHandlers {
     if (cursorNode != null) {
       try {
         int referenceIdentifier = cursorNode.getWindowId();
+
         for (AccessibilityWindowInfo window : getVisibleWindows(comparator)) {
           try {
             if (!found) {
@@ -134,7 +192,7 @@ public abstract class InputHandlers {
   }
 
   private static boolean moveFocus (RenderedScreen.SearchDirection direction) {
-    RenderedScreen screen = ScreenDriver.getScreen();
+    RenderedScreen screen = ScreenDriver.getCurrentRenderedScreen();
 
     if (screen != null) {
       if (screen.moveFocus(direction)) {
@@ -186,7 +244,7 @@ public abstract class InputHandlers {
   }
 
   public static boolean setSelection (AccessibilityNodeInfo node, int start, int end) {
-    if (ApplicationUtilities.haveJellyBeanMR2) {
+    if (APITests.haveJellyBeanMR2) {
       Bundle arguments = new Bundle();
       arguments.putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_START_INT, start);
       arguments.putInt(AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT, end);
@@ -245,14 +303,18 @@ public abstract class InputHandlers {
     }
 
     public final boolean editText () {
-      if (false && ApplicationUtilities.haveLollipop) {
+      {
         AccessibilityNodeInfo node = getCursorNode();
 
         if (node != null) {
           try {
-            if (node.isEditable()) {
-              if (!node.isPassword()) {
-                return editText(node);
+            if (ScreenUtilities.isEditable(node)) {
+              if (ApplicationParameters.ENABLE_SET_TEXT) {
+                if (APITests.haveLollipop) {
+                  if (!node.isPassword()) {
+                    return editText(node);
+                  }
+                }
               }
             }
           } finally {
@@ -284,6 +346,41 @@ public abstract class InputHandlers {
         return start + 1;
       }
     }.editText();
+  }
+
+  private static char structuralMotionDirectionDot = StructuralMotion.DOT_NEXT;
+
+  public static boolean performStructuralMotion (byte dots) {
+    char character = (char)dots;
+    character &= Braille.DOTS_ALL;
+
+    boolean next = (character & StructuralMotion.DOT_NEXT) != 0;
+    boolean previous = (character & StructuralMotion.DOT_PREVIOUS) != 0;
+
+    if (next && previous) return false;
+    boolean noDirection = !(next || previous);
+
+    if ((character & ~StructuralMotion.DOTS_DIRECTION) == 0) {
+      if (noDirection) return false;
+      structuralMotionDirectionDot = next? StructuralMotion.DOT_NEXT: StructuralMotion.DOT_PREVIOUS;
+      return true;
+    }
+
+    if (noDirection) character |= structuralMotionDirectionDot;
+    character |= Braille.ROW;
+
+    StructuralMotion motion = StructuralMotion.get(character);
+    if (motion == null) return false;
+
+    AccessibilityNodeInfo node = getCursorNode();
+    if (node == null) return false;
+
+    try {
+      return motion.apply(node);
+    } finally {
+      node.recycle();
+      node = null;
+    }
   }
 
   private static boolean injectKey (int code) {
@@ -327,11 +424,11 @@ public abstract class InputHandlers {
     }
   }
 
-  public static boolean inputKey_enter () {
+  public static boolean keyHandler_enter () {
     return new KeyHandler(KeyEvent.KEYCODE_ENTER) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBean) {
+        if (APITests.haveJellyBean) {
           return ScreenUtilities.performClick(node);
         }
 
@@ -340,7 +437,7 @@ public abstract class InputHandlers {
 
       @Override
       protected boolean performEditAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveLollipop) {
+        if (APITests.haveLollipop) {
           if (node.isMultiLine()) {
             return inputCharacter('\n');
           }
@@ -351,7 +448,7 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_tab () {
+  public static boolean keyHandler_tab () {
     return new KeyHandler(KeyEvent.KEYCODE_TAB) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
@@ -360,11 +457,11 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_backspace () {
+  public static boolean keyHandler_backspace () {
     return new TextEditor() {
       @Override
       protected boolean editText (InputConnection connection) {
-        return connection.deleteSurroundingText(1, 0);
+        return InputService.injectKey(connection, KeyEvent.KEYCODE_DEL, false);
       }
 
       @Override
@@ -380,15 +477,15 @@ public abstract class InputHandlers {
     }.editText();
   }
 
-  public static boolean inputKey_escape () {
-    if (ApplicationUtilities.haveJellyBean) {
+  public static boolean keyHandler_escape () {
+    if (APITests.haveJellyBean) {
       return performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
     }
 
     return injectKey(KeyEvent.KEYCODE_ESCAPE);
   }
 
-  public static boolean inputKey_cursorLeft () {
+  public static boolean keyHandler_cursorLeft () {
     return new KeyHandler(KeyEvent.KEYCODE_DPAD_LEFT) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
@@ -397,7 +494,7 @@ public abstract class InputHandlers {
 
       @Override
       protected boolean performEditAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBeanMR2) {
+        if (APITests.haveJellyBeanMR2) {
           int offset = node.getTextSelectionStart();
           if (offset == NO_SELECTION) return false;
           if (offset == node.getTextSelectionEnd()) offset -= 1;
@@ -410,7 +507,7 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_cursorRight () {
+  public static boolean keyHandler_cursorRight () {
     return new KeyHandler(KeyEvent.KEYCODE_DPAD_RIGHT) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
@@ -419,7 +516,7 @@ public abstract class InputHandlers {
 
       @Override
       protected boolean performEditAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBeanMR2) {
+        if (APITests.haveJellyBeanMR2) {
           int offset = node.getTextSelectionEnd();
           if (offset == NO_SELECTION) return false;
           if (offset == node.getTextSelectionStart()) offset += 1;
@@ -432,7 +529,7 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_cursorUp () {
+  public static boolean keyHandler_cursorUp () {
     return new KeyHandler(KeyEvent.KEYCODE_DPAD_UP) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
@@ -441,7 +538,7 @@ public abstract class InputHandlers {
 
       @Override
       protected boolean performEditAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBeanMR2) {
+        if (APITests.haveJellyBeanMR2) {
           int offset = getTextStartOffset(node);
 
           CharSequence text = node.getText();
@@ -460,7 +557,7 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_cursorDown () {
+  public static boolean keyHandler_cursorDown () {
     return new KeyHandler(KeyEvent.KEYCODE_DPAD_DOWN) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
@@ -469,7 +566,7 @@ public abstract class InputHandlers {
 
       @Override
       protected boolean performEditAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBeanMR2) {
+        if (APITests.haveJellyBeanMR2) {
           int offset = getTextEndOffset(node);
 
           CharSequence text = node.getText();
@@ -492,11 +589,11 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_pageUp () {
+  public static boolean keyHandler_pageUp () {
     return new KeyHandler(KeyEvent.KEYCODE_PAGE_UP) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBean) {
+        if (APITests.haveJellyBean) {
           return ScreenUtilities.performScrollBackward(node);
         }
 
@@ -505,7 +602,7 @@ public abstract class InputHandlers {
 
       @Override
       protected boolean performEditAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBeanMR2) {
+        if (APITests.haveJellyBeanMR2) {
           int from = getTextStartOffset(node);
 
           final int to = 0;
@@ -519,11 +616,11 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_pageDown () {
+  public static boolean keyHandler_pageDown () {
     return new KeyHandler(KeyEvent.KEYCODE_PAGE_DOWN) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBean) {
+        if (APITests.haveJellyBean) {
           return ScreenUtilities.performScrollForward(node);
         }
 
@@ -532,7 +629,7 @@ public abstract class InputHandlers {
 
       @Override
       protected boolean performEditAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBeanMR2) {
+        if (APITests.haveJellyBeanMR2) {
           int from = getTextEndOffset(node);
 
           final int to = node.getText().length();
@@ -546,7 +643,7 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_home () {
+  public static boolean keyHandler_home () {
     return new KeyHandler(KeyEvent.KEYCODE_MOVE_HOME) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
@@ -555,7 +652,7 @@ public abstract class InputHandlers {
 
       @Override
       protected boolean performEditAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBeanMR2) {
+        if (APITests.haveJellyBeanMR2) {
           int from = getTextStartOffset(node);
           if (from == 0) return false;
 
@@ -571,7 +668,7 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_end () {
+  public static boolean keyHandler_end () {
     return new KeyHandler(KeyEvent.KEYCODE_MOVE_END) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
@@ -580,7 +677,7 @@ public abstract class InputHandlers {
 
       @Override
       protected boolean performEditAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBeanMR2) {
+        if (APITests.haveJellyBeanMR2) {
           int from = getTextEndOffset(node);
 
           CharSequence text = node.getText();
@@ -597,11 +694,11 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_insert () {
+  public static boolean keyHandler_insert () {
     return new KeyHandler(KeyEvent.KEYCODE_INSERT) {
       @Override
       protected boolean performNavigationAction (AccessibilityNodeInfo node) {
-        if (ApplicationUtilities.haveJellyBean) {
+        if (APITests.haveJellyBean) {
           return ScreenUtilities.performLongClick(node);
         }
 
@@ -610,11 +707,11 @@ public abstract class InputHandlers {
     }.handleKey();
   }
 
-  public static boolean inputKey_delete () {
+  public static boolean keyHandler_delete () {
     return new TextEditor() {
       @Override
       protected boolean editText (InputConnection connection) {
-        return connection.deleteSurroundingText(0, 1);
+        return InputService.injectKey(connection, KeyEvent.KEYCODE_FORWARD_DEL, false);
       }
 
       @Override
@@ -630,184 +727,265 @@ public abstract class InputHandlers {
     }.editText();
   }
 
-  private interface FunctionKeyAction {
-    public boolean performAction ();
+  public static boolean globalAction_brailleActions () {
+    ActionsActivity.launch();
+    return true;
   }
 
-  private final static FunctionKeyAction functionKeyAction_backButton =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        if (ApplicationUtilities.haveJellyBean) {
-          return performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+  public static boolean globalAction_showStatusIndicators () {
+    String indicators = StatusIndicators.get();
+    if (indicators == null) return false;
+    if (indicators.isEmpty()) return false;
+
+    BrailleMessage.PLAIN.show(indicators);
+    return true;
+  }
+
+  public static boolean globalAction_showWindowTitle () {
+    showWindowTitle();
+    return true;
+  }
+
+  public static boolean globalAction_toActiveWindow () {
+    ScreenDriver.unlockScreenWindow();
+    AccessibilityNodeInfo root = ScreenUtilities.getRootNode();
+
+    try {
+      ScreenDriver.setCurrentNode(root);
+    } finally {
+      root.recycle();
+      root = null;
+    }
+
+    return true;
+  }
+
+  public static boolean globalAction_toPreviousWindow () {
+    Comparator<Integer> comparator =
+      new Comparator<Integer>() {
+        @Override
+        public int compare (Integer id1, Integer id2) {
+          return -Integer.compare(id1, id2);
         }
+      };
 
-        return false;
-      }
-    };
+    return switchToWindow(comparator);
+  }
 
-  private final static FunctionKeyAction functionKeyAction_homeScreen =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        if (ApplicationUtilities.haveJellyBean) {
-          return performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
+  public static boolean globalAction_toNextWindow () {
+    Comparator<Integer> comparator =
+      new Comparator<Integer>() {
+        @Override
+        public int compare (Integer id1, Integer id2) {
+          return Integer.compare(id1, id2);
         }
+      };
 
-        return false;
+    return switchToWindow(comparator);
+  }
+
+  public static boolean globalAction_toFirstItem () {
+    return moveFocus(RenderedScreen.SearchDirection.FIRST);
+  }
+
+  public static boolean globalAction_toPreviousItem () {
+    return moveFocus(RenderedScreen.SearchDirection.BACKWARD);
+  }
+
+  public static boolean globalAction_toNextItem () {
+    return moveFocus(RenderedScreen.SearchDirection.FORWARD);
+  }
+
+  public static boolean globalAction_toLastItem () {
+    return moveFocus(RenderedScreen.SearchDirection.LAST);
+  }
+
+  public static boolean globalAction_homeScreen () {
+    if (APITests.haveJellyBean) {
+      return performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
+    }
+
+    return false;
+  }
+
+  public static boolean globalAction_notificationsShade () {
+    if (APITests.haveJellyBean) {
+      return performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
+    }
+
+    return false;
+  }
+
+  public static boolean globalAction_quickSettings () {
+    if (APITests.haveJellyBeanMR1) {
+      return performGlobalAction(AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS);
+    }
+
+    return false;
+  }
+
+  public static boolean globalAction_recentApplications () {
+    if (APITests.haveJellyBean) {
+      return performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
+    }
+
+    return false;
+  }
+
+  public static boolean globalAction_deviceOptions () {
+    if (APITests.haveLollipop) {
+      return performGlobalAction(AccessibilityService.GLOBAL_ACTION_POWER_DIALOG);
+    }
+
+    return false;
+  }
+
+  public static boolean globalAction_backButton () {
+    if (APITests.haveJellyBean) {
+      return performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
+    }
+
+    return false;
+  }
+
+  public static boolean globalAction_menuButton () {
+    return new KeyHandler(KeyEvent.KEYCODE_MENU) {
+    }.handleKey();
+  }
+
+  public static boolean globalAction_logScreen () {
+    ScreenLogger.log();
+    return true;
+  }
+
+  public static boolean keyHandler_function (int key) {
+    switch (key + 1) {
+      case  1: return globalAction_homeScreen();
+      case  2: return globalAction_backButton();
+      case  3: return globalAction_notificationsShade();
+      case  4: return globalAction_recentApplications();
+      case  5: return globalAction_brailleActions();
+      case  6: return globalAction_toFirstItem();
+      case  7: return globalAction_toPreviousItem();
+      case  8: return globalAction_toNextItem();
+      case  9: return globalAction_toLastItem();
+      case 10: return globalAction_menuButton();
+      case 11: return globalAction_toActiveWindow();
+      case 12: return globalAction_toPreviousWindow();
+      case 13: return globalAction_toNextWindow();
+      case 14: return globalAction_showWindowTitle();
+      case 15: return globalAction_showStatusIndicators();
+      case 16: return globalAction_quickSettings();
+      case 17: return globalAction_deviceOptions();
+      case 19: return globalAction_logScreen();
+      default: return false;
+    }
+  }
+
+  public static boolean textHandler_setSelection (int startColumn, int startRow, int endColumn, int endRow) {
+    RenderedScreen screen = ScreenDriver.getCurrentRenderedScreen();
+    if (screen == null) return false;
+
+    ScreenElement element = screen.findScreenElement(startColumn, startRow);
+    if (element == null) return false;
+
+    {
+      ScreenElement end = screen.findScreenElement(endColumn, endRow);
+      if (end != element) return false;
+    }
+
+    AccessibilityNodeInfo node = element.getAccessibilityNode();
+    if (node == null) return false;
+
+    try {
+      Rect location = element.getBrailleLocation();
+      int left = location.left;
+      int top = location.top;
+
+      int start = element.getTextOffset((startColumn - left), (startRow - top));
+      int end = element.getTextOffset((endColumn - left), (endRow - top)) + 1;
+
+      return setSelection(node, start, end);
+    } finally {
+      node.recycle();
+      node = null;
+    }
+  }
+
+  public abstract static class NodeHandler {
+    public abstract boolean handleNode (AccessibilityNodeInfo node);
+
+    public final boolean handleNode () {
+      AccessibilityNodeInfo node = getCursorNode();
+      if (node == null) return false;
+
+      try {
+        return handleNode(node);
+      } finally {
+        node.recycle();
+        node = null;
       }
-    };
+    }
 
-  private final static FunctionKeyAction functionKeyAction_logScreen =
-    new FunctionKeyAction() {
+    public NodeHandler () {
+    }
+  }
+
+  public static boolean textHandler_selectAll () {
+    return new NodeHandler() {
       @Override
-      public boolean performAction () {
-        ScreenLogger.log();
-        return true;
+      public boolean handleNode (AccessibilityNodeInfo node) {
+        return setSelection(node, 0, node.getText().length());
       }
-    };
+    }.handleNode();
+  }
 
-  private final static FunctionKeyAction functionKeyAction_moveBackward =
-    new FunctionKeyAction() {
+  private static boolean performNodeAction (final int action) {
+    return new NodeHandler() {
       @Override
-      public boolean performAction () {
-        return moveFocus(RenderedScreen.SearchDirection.BACKWARD);
+      public boolean handleNode (AccessibilityNodeInfo node) {
+        return node.performAction(action);
       }
-    };
+    }.handleNode();
+  }
 
-  private final static FunctionKeyAction functionKeyAction_moveForward =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        return moveFocus(RenderedScreen.SearchDirection.FORWARD);
-      }
-    };
-
-  private final static FunctionKeyAction functionKeyAction_notificationsShade =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        if (ApplicationUtilities.haveJellyBean) {
-          return performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
+  public static boolean textHandler_clearSelection () {
+    if (APITests.haveJellyBeanMR2) {
+      return new NodeHandler() {
+        @Override
+        public boolean handleNode (AccessibilityNodeInfo node) {
+          int start = node.getTextSelectionStart();
+          int end = node.getTextSelectionEnd();
+          if (end <= start) return false;
+          return placeCursor(node, end);
         }
+      }.handleNode();
+    }
 
-        return false;
-      }
-    };
+    return false;
+  }
 
-  private final static FunctionKeyAction functionKeyAction_optionsMenu =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        return new KeyHandler(KeyEvent.KEYCODE_MENU) {
-        }.handleKey();
-      }
-    };
+  public static boolean textHandler_copySelection () {
+    if (APITests.haveJellyBeanMR2) {
+      return performNodeAction(AccessibilityNodeInfo.ACTION_COPY);
+    }
 
-  private final static FunctionKeyAction functionKeyAction_powerDialog =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        if (ApplicationUtilities.haveLollipop) {
-          return performGlobalAction(AccessibilityService.GLOBAL_ACTION_POWER_DIALOG);
-        }
+    return false;
+  }
 
-        return false;
-      }
-    };
+  public static boolean textHandler_cutSelection () {
+    if (APITests.haveJellyBeanMR2) {
+      return performNodeAction(AccessibilityNodeInfo.ACTION_CUT);
+    }
 
-  private final static FunctionKeyAction functionKeyAction_quickSettings =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        if (ApplicationUtilities.haveJellyBeanMR1) {
-          return performGlobalAction(AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS);
-        }
+    return false;
+  }
 
-        return false;
-      }
-    };
+  public static boolean textHandler_pasteClipboard () {
+    if (APITests.haveJellyBeanMR2) {
+      return performNodeAction(AccessibilityNodeInfo.ACTION_PASTE);
+    }
 
-  private final static FunctionKeyAction functionKeyAction_recentApplications =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        if (ApplicationUtilities.haveJellyBean) {
-          return performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
-        }
-
-        return false;
-      }
-    };
-
-  private final static FunctionKeyAction functionKeyAction_serviceSettings =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        ActionsActivity.launch();
-        return true;
-      }
-    };
-
-  private final static FunctionKeyAction functionKeyAction_previousWindow =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        Comparator<Integer> comparator =
-          new Comparator<Integer>() {
-            @Override
-            public int compare (Integer id1, Integer id2) {
-              return -Integer.compare(id1, id2);
-            }
-          };
-
-        return switchToWindow(comparator);
-      }
-    };
-
-  private final static FunctionKeyAction functionKeyAction_nextWindow =
-    new FunctionKeyAction() {
-      @Override
-      public boolean performAction () {
-        Comparator<Integer> comparator =
-          new Comparator<Integer>() {
-            @Override
-            public int compare (Integer id1, Integer id2) {
-              return Integer.compare(id1, id2);
-            }
-          };
-
-        return switchToWindow(comparator);
-      }
-    };
-
-  private final static FunctionKeyAction[] functionKeyActions =
-    new FunctionKeyAction[] {
-      /* F1  */ functionKeyAction_homeScreen,
-      /* F2  */ functionKeyAction_backButton,
-      /* F3  */ functionKeyAction_notificationsShade,
-      /* F4  */ functionKeyAction_recentApplications,
-      /* F5  */ functionKeyAction_serviceSettings,
-      /* F6  */ functionKeyAction_quickSettings,
-      /* F7  */ functionKeyAction_moveBackward,
-      /* F8  */ functionKeyAction_moveForward,
-      /* F9  */ functionKeyAction_powerDialog,
-      /* F10 */ functionKeyAction_optionsMenu,
-      /* F11 */ null,
-      /* F12 */ null,
-      /* F13 */ null,
-      /* F14 */ functionKeyAction_previousWindow,
-      /* F15 */ functionKeyAction_nextWindow,
-      /* F16 */ functionKeyAction_logScreen
-    };
-
-  public static boolean inputKey_function (int key) {
-    if (key < 0) return false;
-    if (key >= functionKeyActions.length) return false;
-
-    FunctionKeyAction action = functionKeyActions[key];
-    if (action == null) return false;
-
-    return action.performAction();
+    return false;
   }
 }

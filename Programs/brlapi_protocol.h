@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2002-2019 by
+ * Copyright (C) 2002-2021 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -53,7 +53,7 @@ extern "C" {
 
 /** Maximum packet size for packets exchanged on sockets and with braille
  * terminal */
-#define BRLAPI_MAXPACKETSIZE 512
+#define BRLAPI_MAXPACKETSIZE 4096
 
 #define BRLAPI_PACKET_VERSION         'v'   /**< Version                     */
 #define BRLAPI_PACKET_AUTH            'a'   /**< Authorization               */
@@ -75,6 +75,9 @@ extern "C" {
 #define BRLAPI_PACKET_EXCEPTION       'E'   /**< Exception                   */
 #define BRLAPI_PACKET_SUSPENDDRIVER   'S'   /**< Suspend driver              */
 #define BRLAPI_PACKET_RESUMEDRIVER    'R'   /**< Resume driver               */
+#define BRLAPI_PACKET_PARAM_VALUE     (('P'<<8) + 'V') /**< Parameter value  */
+#define BRLAPI_PACKET_PARAM_REQUEST   (('P'<<8) + 'R') /**< Parameter request*/
+#define BRLAPI_PACKET_PARAM_UPDATE    (('P'<<8) + 'U') /**< Parameter update */
 
 /** Magic number to give when sending a BRLPACKET_ENTERRAWMODE or BRLPACKET_SUSPEND packet */
 #define BRLAPI_DEVICE_MAGIC (0xdeadbeefL)
@@ -136,6 +139,33 @@ typedef struct {
   unsigned char data; /** Fields in the same order as flag weight */
 } brlapi_writeArgumentsPacket_t;
 
+/** Flags for parameter values */
+#define BRLAPI_PVF_GLOBAL            0X01    /** Value is the global value */
+
+#define BRLAPI_MAXPARAMSIZE (BRLAPI_MAXPACKETSIZE - (sizeof(uint32_t) + sizeof(brlapi_param_t) + 2*sizeof(uint32_t)))
+
+/** Structure of Parameter value or update */
+typedef struct {
+  uint32_t flags; /** Flags to tell how value was gotten */
+  brlapi_param_t param; /** Which parameter being transmitted */
+  uint32_t subparam_hi; /** Which sub-parameter being transmitted, hi 32bits */
+  uint32_t subparam_lo; /** Which sub-parameter being transmitted, lo 32bits */
+  unsigned char data[BRLAPI_MAXPARAMSIZE]; /** Content of the parameter */
+} brlapi_paramValuePacket_t;
+
+/** Flags for parameter requests */
+#define BRLAPI_PARAMF_GET            0X100    /** Get current parameter value    */
+#define BRLAPI_PARAMF_SUBSCRIBE      0X200    /** Subscribe to parameter updates */
+#define BRLAPI_PARAMF_UNSUBSCRIBE    0X400    /** Unsubscribe from parameter updates */
+
+/** Structure of Parameter request */
+typedef struct {
+  uint32_t flags; /** Flags to tell whether/how to get values */
+  brlapi_param_t param; /** Which parameter to be transmitted */
+  uint32_t subparam_hi; /** Which sub-parameter being transmitted, hi 32bits */
+  uint32_t subparam_lo; /** Which sub-parameter being transmitted, lo 32bits */
+} brlapi_paramRequestPacket_t;
+
 /** Type for packets.  Should be used instead of a mere char[], since it has
  * correct alignment requirements. */
 typedef union {
@@ -146,6 +176,8 @@ typedef union {
 	brlapi_errorPacket_t error;
 	brlapi_getDriverSpecificModePacket_t getDriverSpecificMode;
 	brlapi_writeArgumentsPacket_t writeArguments;
+	brlapi_paramValuePacket_t paramValue;
+	brlapi_paramRequestPacket_t paramRequest;
 	uint32_t uint32;
 } brlapi_packet_t;
 
@@ -267,7 +299,7 @@ extern HANDLE brlapi_fd_mutex;
 extern pthread_mutex_t brlapi_fd_mutex;
 #endif /* __MINGW32__ */
 
-/* @} */
+/** @} */
 
 #ifdef __cplusplus
 }

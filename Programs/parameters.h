@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -53,6 +53,10 @@ extern "C" {
 #define PID_FILE_CREATE_RETRY_INTERVAL 5000
 
 #define UPDATE_SCHEDULE_DELAY 15
+
+#define ROUTING_PROCESS_NICENESS 10
+#define ROUTING_POLL_INTERVAL 1
+#define ROUTING_MAXIMUM_TIMEOUT 2000
 
 #define TUNE_DEVICE_CLOSE_DELAY 2000
 #define TUNE_TOGGLE_REPEAT_DELAY 100

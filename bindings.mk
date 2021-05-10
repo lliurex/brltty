@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -25,12 +25,13 @@ API_HDR = $(API_DIR)/$(API_NAME).h
 API_AWK = $(SRC_TOP)$(PGM_DIR)/$(API_NAME).awk
 
 API_KEYCODES = $(SRC_TOP)$(PGM_DIR)/$(API_NAME)_keycodes.h
+API_PARAM = $(SRC_TOP)$(PGM_DIR)/$(API_NAME)_param.h
 API_CONSTANTS = $(API_DIR)/$(API_NAME)_constants.h
-API_HDRS = $(API_HDR) $(API_KEYCODES) $(API_CONSTANTS)
+API_HDRS = $(API_HDR) $(API_KEYCODES) $(API_PARAM) $(API_CONSTANTS)
 
 CONSTANTS_OPTIONS = -f $(API_AWK) -f $(SRC_DIR)/constants.awk
 CONSTANTS_SCRIPTS = $(CONSTANTS_OPTIONS:-f=)
-CONSTANTS_SOURCES = $(API_HDR) $(API_KEYCODES)
+CONSTANTS_SOURCES = $(API_HDR) $(API_KEYCODES) $(API_PARAM)
 CONSTANTS_DEPENDENCIES = $(CONSTANTS_SCRIPTS) $(CONSTANTS_SOURCES) $(COMMANDS_DEPENDENCIES)
 CONSTANTS_ARGUMENTS = $(CONSTANTS_OPTIONS) $(COMMANDS_OPTIONS) $(CONSTANTS_SOURCES) $(COMMANDS_SOURCES)
 

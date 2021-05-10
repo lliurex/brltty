@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,6 +23,7 @@
 #include "log.h"
 #include "embed.h"
 #include "parameters.h"
+#include "api_control.h"
 #include "brl_input.h"
 #include "brl_utils.h"
 #include "brl_cmds.h"
@@ -69,13 +70,13 @@ GIO_INPUT_HANDLER(handleBrailleInput) {
   suspendCommandQueue();
 
   if (!brl.isSuspended) {
-    if (brl.api) brl.api->claimDriver();
+    api.claimDriver();
     if (processInput()) processed = 1;
-    if (brl.api) brl.api->releaseDriver();
+    api.releaseDriver();
   }
 
 #ifdef ENABLE_API
-  else if (brl.api && brl.api->isStarted()) {
+  else if (api.isServerRunning()) {
     switch (readBrailleCommand(&brl, KTB_CTX_DEFAULT)) {
       case BRL_CMD_RESTARTBRL:
         brl.hasFailed = 1;

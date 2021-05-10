@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2002-2019 by
+ * Copyright (C) 2002-2021 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -19,6 +19,10 @@
 
 /* api_client.c handles connection with BrlApi */
 
+#ifdef __ANDROID__
+#define __ANDROID_API__ 21
+#endif /* __ANDROID__ */
+
 #define WIN_ERRNO_STORAGE_CLASS static
 #include "prologue.h"
 
@@ -29,6 +33,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <locale.h>
+#include <assert.h>
+#include <limits.h>
 
 #ifndef __MINGW32__
 #ifdef HAVE_LANGINFO_H
@@ -66,13 +72,13 @@
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #endif /* HAVE_SYS_SELECT_H */
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#endif /* HAVE_SYS_POLL_H */
 #endif /* __MINGW32__ */
 
 #include <sys/time.h>
-
-#ifdef HAVE_ALLOCA_H
-#include <alloca.h>
-#endif /* HAVE_ALLOCA_H */
+#include "gettime.h"
 
 #ifdef linux
 #include <sys/sysmacros.h>
@@ -89,6 +95,10 @@
 #ifndef MAXIMUM_VIRTUAL_CONSOLE
 #define MAXIMUM_VIRTUAL_CONSOLE 1
 #endif /* MAXIMUM_VIRTUAL_CONSOLE */
+
+#ifdef HAVE_SD_SESSION_GET_VT
+#include <systemd/sd-login.h>
+#endif /* HAVE_SD_SESSION_GET_VT */
 
 #define BRLAPI_NO_DEPRECATED
 #include "brlapi.h"
@@ -174,6 +184,28 @@ sem_wait (sem_t *sem) {
 }
 
 static int
+sem_timedwait (sem_t *sem, const struct timespec *abs) {
+  struct timeval now;
+  getRealTime(&now);
+
+  mach_timespec_t rel = {
+    .tv_sec = abs->tv_sec - now.tv_sec,
+    .tv_nsec = abs->tv_nsec - (now.tv_usec * 1000)
+  };
+
+  if (rel.tv_nsec < 0) rel.tv_sec -= 1, rel.tv_nsec += 1000000000;
+  if (rel.tv_sec < 0) rel.tv_sec = 0, rel.tv_nsec = 0;
+
+  return semaphore_timedwait(*sem, rel);
+}
+
+static int
+sem_trywait (sem_t *sem) {
+  mach_timespec_t rel = { .tv_sec=0, .tv_nsec=0 };
+  return semaphore_timedwait(*sem, rel);
+}
+
+static int
 sem_destroy (sem_t *sem) {
   return semaphore_destroy(mach_task_self(), *sem);
 }
@@ -198,7 +230,17 @@ sem_destroy (sem_t *sem) {
 */
 #define BRL_KEYBUF_SIZE 256
 
+struct brlapi_parameterCallback_t {
+  brlapi_param_t parameter;
+  brlapi_param_subparam_t subparam;
+  brlapi_param_flags_t flags;
+  brlapi_paramCallback_t func;
+  void *priv;
+  struct brlapi_parameterCallback_t *prev, *next;
+};
+
 struct brlapi_handle_t { /* Connection-specific information */
+  uint32_t serverVersion;
   unsigned int brlx;
   unsigned int brly;
   brlapi_fileDescriptor fileDescriptor; /* Descriptor of the socket connected to BrlApi */
@@ -243,6 +285,17 @@ struct brlapi_handle_t { /* Connection-specific information */
     brlapi__exceptionHandler_t withHandle;
   } exceptionHandler;
   pthread_mutex_t exceptionHandler_mutex;
+
+  struct brlapi_parameterCallback_t *parameterCallbacks;
+  /* This protects the callback list, but also callback calling conventions in
+   * general:
+   * callbacks are called in the update order, and not after unregistration */
+  pthread_mutex_t callbacks_mutex;
+  /* The callback might want to unregister itself, while we are processing the
+   * list of callbacks. This records where we are in the list, to skip the
+   * deleted item. */
+  struct brlapi_parameterCallback_t *nextCallback;
+
   void *clientData; /* Private client data */
 };
 
@@ -268,7 +321,7 @@ static void brlapi_initializeHandle(brlapi_handle_t *handle)
 {
   handle->brlx = 0;
   handle->brly = 0;
-  handle->fileDescriptor = INVALID_FILE_DESCRIPTOR;
+  handle->fileDescriptor = BRLAPI_INVALID_FILE_DESCRIPTOR;
   handle->addrfamily = 0;
   pthread_mutex_init(&handle->fileDescriptor_mutex, NULL);
   pthread_mutex_init(&handle->req_mutex, NULL);
@@ -296,6 +349,14 @@ static void brlapi_initializeHandle(brlapi_handle_t *handle)
   else
     handle->exceptionHandler.withHandle = brlapi__defaultExceptionHandler;
   pthread_mutex_init(&handle->exceptionHandler_mutex, NULL);
+  handle->parameterCallbacks = NULL;
+  {
+    pthread_mutexattr_t mattr;
+    pthread_mutexattr_init(&mattr);
+    pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&handle->callbacks_mutex, &mattr);
+  }
+  handle->nextCallback = NULL;
   handle->clientData = NULL;
 }
 
@@ -316,14 +377,14 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
 
   uint32_t size;
   brlapi_packetType_t type;
-  int ret;
+  int ret = 0;
 
   struct timeval now;
   int delay = 0;
 
   do {
     if (deadline) {
-      gettimeofday(&now, NULL);
+      getRealTime(&now);
       delay = (deadline->tv_sec  - now.tv_sec ) * 1000 +
 	      (deadline->tv_usec - now.tv_usec) / 1000;
       if (delay < 0) {
@@ -342,6 +403,20 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
 
     if (dw == WAIT_OBJECT_0)
 #else /* __MINGW32__ */
+#ifdef HAVE_POLL
+    struct pollfd pollfd;
+
+    pollfd.fd = handle->fileDescriptor;
+    pollfd.events = POLLIN;
+    pollfd.revents = 0;
+
+    if (poll(&pollfd, 1, deadline ? delay : -1) < 0) {
+      LibcError("waiting for packet");
+      return -2;
+    }
+
+    if (pollfd.revents & POLLIN)
+#else /* HAVE_POLL */
     fd_set sockset;
     struct timeval timeout, *ptimeout = NULL;
     if (deadline) {
@@ -358,6 +433,7 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
     }
 
     if (FD_ISSET(handle->fileDescriptor, &sockset))
+#endif /* !HAVE_POLL */
 #endif /* __MINGW32__ */
     {
       /* Some data is here, read it */
@@ -403,14 +479,38 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
     if (handle->keybuf_nb>=BRL_KEYBUF_SIZE) {
       syslog(LOG_WARNING,"lost key: 0X%8lx%8lx\n",(unsigned long)ntohl(uint32Packet[0]),(unsigned long)ntohl(uint32Packet[1]));
     } else {
-      handle->keybuf[(handle->keybuf_next+handle->keybuf_nb++)%BRL_KEYBUF_SIZE]=ntohl(*uint32Packet);
+      handle->keybuf[(handle->keybuf_next+handle->keybuf_nb++)%BRL_KEYBUF_SIZE]
+          = brlapi_packetToKeyCode(uint32Packet);
     }
     pthread_mutex_unlock(&handle->read_mutex);
     return -3;
   }
+  if (type==BRLAPI_PACKET_PARAM_UPDATE) {
+    /* Parameter update, find handler */
+    brlapi_paramValuePacket_t *value = (void*) handle->packet.content;
+    brlapi_param_flags_t flags = ntohl(value->flags);
+    brlapi_param_t param = ntohl(value->param);
+    brlapi_param_subparam_t subparam = ((brlapi_param_subparam_t)ntohl(value->subparam_hi) << 32) | ntohl(value->subparam_lo);
+    size_t rlen = size - sizeof(flags) - sizeof(param) - sizeof(subparam);
+    _brlapi_ntohParameter(param, value, rlen);
+    pthread_mutex_lock(&handle->callbacks_mutex);
+    for(handle->nextCallback = handle->parameterCallbacks;
+	handle->nextCallback; ) {
+      struct brlapi_parameterCallback_t *callback = handle->nextCallback;
+      handle->nextCallback = handle->nextCallback->next;
+      if (callback->parameter == param &&
+	  callback->subparam == subparam &&
+	  (callback->flags & BRLAPI_PARAMF_GLOBAL) == (flags & BRLAPI_PARAMF_GLOBAL)) {
+	callback->func(param, subparam, callback->flags, callback->priv, value->data, rlen);
+	/* Note: the callback might have removed this entry */
+      }
+    }
+    handle->nextCallback = NULL;
+    pthread_mutex_unlock(&handle->callbacks_mutex);
+  }
   pthread_mutex_unlock(&handle->read_mutex);
 
-  /* else this is an error */
+  /* otherwise this is an error */
 
   if (type==BRLAPI_PACKET_ERROR) {
     brlapi_errno = ntohl(errorPacket->code);
@@ -428,7 +528,7 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
 
     pthread_mutex_lock(&handle->fileDescriptor_mutex);
     closeFileDescriptor(handle->fileDescriptor);
-    handle->fileDescriptor = INVALID_FILE_DESCRIPTOR;
+    handle->fileDescriptor = BRLAPI_INVALID_FILE_DESCRIPTOR;
     pthread_mutex_unlock(&handle->fileDescriptor_mutex);
 
     if (handle==&defaultHandle)
@@ -443,11 +543,18 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
   return -3;
 }
 
+#define TRY_WAIT_FOR_EXPECTED_PACKET 0
+#define WAIT_FOR_EXPECTED_PACKET 1
+
+#define POLL 0
+#define WAIT_FOREVER (-1)
+
 /* brlapi_waitForPacket */
 /* same as brlapi_doWaitForPacket, but sleeps instead of reading if another
- * and timeout_ms expressed as relative ms delay instead of absolute deadline.
- * timeout_ms set to -1 means no deadline.
- * thread is already reading. Never returns -2. If loop is 1, never returns -3.
+ * thread is already reading, and timeout_ms expressed as relative ms delay
+ * instead of absolute deadline.
+ * timeout_ms set to WAIT_FOREVER means no deadline.
+ * Never returns -2. If loop is WAIT_FOR_EXPECTED_PACKET, never returns -3.
  */
 static ssize_t brlapi__waitForPacket(brlapi_handle_t *handle, brlapi_packetType_t expectedPacketType, void *packet, size_t size, int loop, int timeout_ms) {
   int doread = 0;
@@ -455,7 +562,7 @@ static ssize_t brlapi__waitForPacket(brlapi_handle_t *handle, brlapi_packetType_
   sem_t sem;
   struct timeval deadline, *pdeadline = NULL;
   if (timeout_ms >= 0) {
-    gettimeofday(&deadline, NULL);
+    getRealTime(&deadline);
     deadline.tv_sec += timeout_ms / 1000;
     deadline.tv_usec += (timeout_ms % 1000) * 1000;
     if (deadline.tv_usec >= 1000000) {
@@ -537,7 +644,7 @@ again:
   }
   if (res==-2) {
     res = -1;
-    brlapi_errno=BRLAPI_ERROR_EOF;
+    brlapi_errno = BRLAPI_ERROR_EOF;
   }
   return res;
 }
@@ -546,7 +653,7 @@ again:
 /* Wait for an acknowledgement, must be called with brlapi_req_mutex locked */
 static int brlapi__waitForAck(brlapi_handle_t *handle)
 {
-  return brlapi__waitForPacket(handle, BRLAPI_PACKET_ACK, NULL, 0, 1, -1);
+  return brlapi__waitForPacket(handle, BRLAPI_PACKET_ACK, NULL, 0, WAIT_FOR_EXPECTED_PACKET, WAIT_FOREVER);
 }
 
 /* brlapi_writePacketWaitForAck */
@@ -564,9 +671,31 @@ static int brlapi__writePacketWaitForAck(brlapi_handle_t *handle, brlapi_packetT
   return res;
 }
 
+/* brlapi__pause */
+/* Wait for an event to be received */
+int BRLAPI_STDCALL brlapi__pause(brlapi_handle_t *handle, int timeout_ms) {
+  ssize_t res = brlapi__waitForPacket(handle, 0, NULL, 0, TRY_WAIT_FOR_EXPECTED_PACKET, timeout_ms);
+  if (res == -3) {
+    brlapi_libcerrno = EINTR;
+    brlapi_errno = BRLAPI_ERROR_LIBCERR;
+    brlapi_errfun = "waitForPacket";
+    res = -1;
+  }
+  if (res == -4) {
+    /* Timeout */
+    res = 0;
+  }
+  return res;
+}
+
+/* brlapi_pause */
+int BRLAPI_STDCALL brlapi_pause(int timeout_ms) {
+  return brlapi__pause(&defaultHandle, timeout_ms);
+}
+
 /* Function: tryHost */
 /* Tries to connect to the given host. */
-static int tryHost(brlapi_handle_t *handle, char *hostAndPort) {
+static int tryHost(brlapi_handle_t *handle, const char *hostAndPort) {
   char *host = NULL;
   char *port;
   SocketDescriptor sockfd = -1;
@@ -627,6 +756,16 @@ static int tryHost(brlapi_handle_t *handle, char *hostAndPort) {
         goto outlibc;
       }
 
+#if !defined(HAVE_POLL)
+      if (sockfd >= FD_SETSIZE) {
+	/* Will not be able to call select() on this */
+	closeFileDescriptor(sockfd);
+	brlapi_errfun="socket";
+	setErrno(EMFILE);
+	goto outlibc;
+      }
+#endif /* !HAVE_POLL */
+
       sa.sun_family = AF_LOCAL;
       memcpy(sa.sun_path,BRLAPI_SOCKETPATH "/",lpath+1);
       memcpy(sa.sun_path+lpath+1,port,lport+1);
@@ -667,6 +806,17 @@ static int tryHost(brlapi_handle_t *handle, char *hostAndPort) {
     for(cur = res; cur; cur = cur->ai_next) {
       sockfd = socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
       if (sockfd<0) continue;
+
+#if !defined(__MINGW32__) && !defined(HAVE_POLL)
+      if (sockfd >= FD_SETSIZE) {
+	/* Will not be able to call select() on this */
+	closeFileDescriptor(sockfd);
+	brlapi_errfun="socket";
+	setErrno(EMFILE);
+	goto outlibc;
+      }
+#endif /* !__MINGW32__ && !HAVE_POLL */
+
       if (connect(sockfd, cur->ai_addr, cur->ai_addrlen)<0) {
         closeSocketDescriptor(sockfd);
         continue;
@@ -738,6 +888,17 @@ static int tryHost(brlapi_handle_t *handle, char *hostAndPort) {
       setSocketErrno();
       goto outlibc;
     }
+
+#if !defined(__MINGW32__) && !defined(HAVE_POLL)
+    if (sockfd >= FD_SETSIZE) {
+      /* Will not be able to call select() on this */
+      closeFileDescriptor(sockfd);
+      brlapi_errfun="socket";
+      setErrno(EMFILE);
+      goto outlibc;
+    }
+#endif /* !__MINGW32__ && !HAVE_POLL */
+
     if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr))<0) {
       brlapi_errfun = "connect";
       setSocketErrno();
@@ -806,32 +967,59 @@ brlapi_fileDescriptor BRLAPI_STDCALL brlapi__openConnection(brlapi_handle_t *han
   brlapi_initializeHandle(handle);
 
   if (tryHost(handle, settings.host)<0) {
-    brlapi_error_t error = brlapi_error;
-    if (strrchr(settings.host, ':') != settings.host ||
-	(tryHost(handle, settings.host="127.0.0.1:0")<0
-#ifdef AF_INET6
-      && tryHost(handle, settings.host="::1:0")<0
-#endif /* AF_INET6 */
-      )) {
-      brlapi_error = error;
+    const char *port = strrchr(settings.host, ':');
+    if (port != settings.host) goto out;
+    if (!isPortNumber(port+1, NULL)) goto out;
+
+    brlapi_error_t originalError = brlapi_error;
+    size_t portLength = strlen(port);
+
+    static const char *const localhostAddressTable[] = {
+      LOCALHOST_ADDRESS_IPV4,
+
+      #ifdef AF_INET6
+      LOCALHOST_ADDRESS_IPV6,
+      #endif /* AF_INET6 */
+    };
+
+    const char *const *lha = localhostAddressTable;
+    const char *const *end = lha + ARRAY_COUNT(localhostAddressTable);
+
+    while (lha < end) {
+      size_t hostLength = strlen(*lha);
+      char host[hostLength + portLength + 1];
+      snprintf(host, sizeof(host), "%s%s", *lha, port);
+
+      if (tryHost(handle, host) != -1) {
+        if (usedSettings) usedSettings->host = strdup(host);
+        break;
+      }
+
+      lha += 1;
+    }
+
+    if (lha == end) {
+      brlapi_error = originalError;
       goto out;
     }
-    if (usedSettings) usedSettings->host = settings.host;
   }
 
-  if ((len = brlapi__waitForPacket(handle, BRLAPI_PACKET_VERSION, &serverPacket, sizeof(serverPacket), 1, -1)) < 0)
+  if ((len = brlapi__waitForPacket(handle, BRLAPI_PACKET_VERSION, &serverPacket, sizeof(serverPacket), WAIT_FOR_EXPECTED_PACKET, WAIT_FOREVER)) < 0)
     goto outfd;
 
-  if (version->protocolVersion != htonl(BRLAPI_PROTOCOL_VERSION)) {
+  handle->serverVersion = ntohl(version->protocolVersion);
+  if (handle->serverVersion < 8) {
+    /* We only provide compatibility with version 8 and later. */
     brlapi_errno = BRLAPI_ERROR_PROTOCOL_VERSION;
     goto outfd;
   }
 
+  version->protocolVersion = htonl(BRLAPI_PROTOCOL_VERSION);
   if (brlapi_writePacket(handle->fileDescriptor, BRLAPI_PACKET_VERSION, version, sizeof(*version)) < 0)
     goto outfd;
 
-  if ((len = brlapi__waitForPacket(handle, BRLAPI_PACKET_AUTH, &serverPacket, sizeof(serverPacket), 1, -1)) < 0)
-    return INVALID_FILE_DESCRIPTOR;
+  if ((len = brlapi__waitForPacket(handle, BRLAPI_PACKET_AUTH, &serverPacket, sizeof(serverPacket), WAIT_FOR_EXPECTED_PACKET, WAIT_FOREVER)) < 0)
+    return BRLAPI_INVALID_FILE_DESCRIPTOR;
 
   for (type = &authServer->type[0]; type < &authServer->type[len / sizeof(authServer->type[0])]; type++) {
     auth->type = *type;
@@ -868,9 +1056,9 @@ brlapi_fileDescriptor BRLAPI_STDCALL brlapi__openConnection(brlapi_handle_t *han
   brlapi_errno = BRLAPI_ERROR_AUTHENTICATION;
 outfd:
   closeFileDescriptor(handle->fileDescriptor);
-  handle->fileDescriptor = INVALID_FILE_DESCRIPTOR;
+  handle->fileDescriptor = BRLAPI_INVALID_FILE_DESCRIPTOR;
 out:
-  return INVALID_FILE_DESCRIPTOR;
+  return BRLAPI_INVALID_FILE_DESCRIPTOR;
 
 done:
   pthread_mutex_lock(&handle->state_mutex);
@@ -884,6 +1072,16 @@ brlapi_fileDescriptor BRLAPI_STDCALL brlapi_openConnection(const brlapi_connecti
   return brlapi__openConnection(&defaultHandle, clientSettings, usedSettings);
 }
 
+brlapi_fileDescriptor BRLAPI_STDCALL brlapi__getFileDescriptor(brlapi_handle_t *handle)
+{
+  return handle->fileDescriptor;
+}
+
+brlapi_fileDescriptor BRLAPI_STDCALL brlapi_getFileDescriptor(void)
+{
+  return brlapi__getFileDescriptor(&defaultHandle);
+}
+
 /* brlapi_closeConnection */
 /* Cleanly close the socket */
 void BRLAPI_STDCALL brlapi__closeConnection(brlapi_handle_t *handle)
@@ -893,7 +1091,7 @@ void BRLAPI_STDCALL brlapi__closeConnection(brlapi_handle_t *handle)
   pthread_mutex_unlock(&handle->state_mutex);
   pthread_mutex_lock(&handle->fileDescriptor_mutex);
   closeFileDescriptor(handle->fileDescriptor);
-  handle->fileDescriptor = INVALID_FILE_DESCRIPTOR;
+  handle->fileDescriptor = BRLAPI_INVALID_FILE_DESCRIPTOR;
   pthread_mutex_unlock(&handle->fileDescriptor_mutex);
 
 #ifdef LC_GLOBAL_LOCALE
@@ -1031,7 +1229,7 @@ ssize_t BRLAPI_STDCALL brlapi__recvRaw(brlapi_handle_t *handle, void *buf, size_
     brlapi_errno = BRLAPI_ERROR_ILLEGAL_INSTRUCTION;
     return -1;
   }
-  res = brlapi__waitForPacket(handle, BRLAPI_PACKET_PACKET, buf, size, 0, -1);
+  res = brlapi__waitForPacket(handle, BRLAPI_PACKET_PACKET, buf, size, TRY_WAIT_FOR_EXPECTED_PACKET, WAIT_FOREVER);
   if (res == -3) {
     brlapi_libcerrno = EINTR;
     brlapi_errno = BRLAPI_ERROR_LIBCERR;
@@ -1080,7 +1278,7 @@ static ssize_t brlapi__request(brlapi_handle_t *handle, brlapi_packetType_t requ
     pthread_mutex_unlock(&handle->req_mutex);
     return -1;
   }
-  res = brlapi__waitForPacket(handle, request, packet, size, 1, -1);
+  res = brlapi__waitForPacket(handle, request, packet, size, WAIT_FOR_EXPECTED_PACKET, WAIT_FOREVER);
   pthread_mutex_unlock(&handle->req_mutex);
   return res;
 }
@@ -1133,6 +1331,233 @@ int BRLAPI_STDCALL brlapi_getDisplaySize(unsigned int *x, unsigned int *y)
 {
   return brlapi__getDisplaySize(&defaultHandle, x, y);
 }
+
+/* Function: brlapi_getParameter */
+
+/* Internal version, returns the reply value packet and the length of the value */
+static ssize_t _brlapi__getParameter(brlapi_handle_t *handle, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, brlapi_paramValuePacket_t *reply)
+{
+  brlapi_paramRequestPacket_t request;
+  int res;
+  ssize_t rlen;
+
+  request.flags = htonl(flags);
+  request.param = htonl(parameter);
+  request.subparam_hi = htonl(subparam >> 32);
+  request.subparam_lo = htonl(subparam & 0xfffffffful);
+
+  pthread_mutex_lock(&handle->req_mutex);
+  res = brlapi_writePacket(handle->fileDescriptor, BRLAPI_PACKET_PARAM_REQUEST, &request, sizeof(request));
+  if (res < 0) {
+    pthread_mutex_unlock(&handle->req_mutex);
+    return -1;
+  }
+  if (flags & BRLAPI_PARAMF_GET)
+    rlen = brlapi__waitForPacket(handle, BRLAPI_PACKET_PARAM_VALUE, reply, sizeof(*reply), 1, -1);
+  else
+    rlen = brlapi__waitForAck(handle);
+  pthread_mutex_unlock(&handle->req_mutex);
+
+  if (rlen < 0) {
+    return -1;
+  }
+
+  if (flags & BRLAPI_PARAMF_GET) {
+    rlen -= sizeof(brlapi_param_flags_t) + sizeof(brlapi_param_t) + sizeof(brlapi_param_subparam_t);
+    if (rlen < 0) {
+      brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
+      return -1;
+    }
+  }
+
+  return rlen;
+}
+
+ssize_t BRLAPI_STDCALL brlapi__getParameter(brlapi_handle_t *handle, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, void* data, size_t len)
+{
+  brlapi_paramValuePacket_t reply;
+  ssize_t rlen;
+
+  if (flags & ~BRLAPI_PARAMF_GLOBAL) {
+    brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
+    return -1;
+  }
+
+  rlen = _brlapi__getParameter(handle, parameter, subparam, flags | BRLAPI_PARAMF_GET, &reply);
+  if (rlen < 0)
+    return -1;
+
+  if (rlen < len) {
+    len = rlen;
+  }
+  _brlapi_ntohParameter(parameter, &reply, rlen);
+  memcpy(data, &reply.data, len);
+
+  return rlen;
+}
+
+ssize_t BRLAPI_STDCALL brlapi_getParameter(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, void* data, size_t len)
+{
+  return brlapi__getParameter(&defaultHandle, parameter, subparam, flags, data, len);
+}
+
+void* BRLAPI_STDCALL brlapi__getParameterAlloc(brlapi_handle_t *handle, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, size_t *len)
+{
+  brlapi_paramValuePacket_t reply;
+  ssize_t rlen;
+  void *data;
+
+  if (flags & ~BRLAPI_PARAMF_GLOBAL) {
+    brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
+    return NULL;
+  }
+
+  rlen = _brlapi__getParameter(handle, parameter, subparam, flags | BRLAPI_PARAMF_GET, &reply);
+  if (rlen < 0)
+    return NULL;
+
+  data = malloc(rlen + 1);
+  if (!data)
+    return NULL;
+
+  _brlapi_ntohParameter(parameter, &reply, rlen);
+  memcpy(data, &reply.data, rlen);
+  ((char*)data)[rlen] = 0;
+  if (len)
+    *len = rlen;
+  return data;
+}
+
+void* BRLAPI_STDCALL brlapi_getParameterAlloc(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, size_t *len)
+{
+  return brlapi__getParameterAlloc(&defaultHandle, parameter, subparam, flags, len);
+}
+
+/* Function: brlapi_setParameter */
+int BRLAPI_STDCALL brlapi__setParameter(brlapi_handle_t *handle, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, const void* data, size_t len)
+{
+  brlapi_paramValuePacket_t packet;
+  int res;
+
+  if (flags & ~BRLAPI_PARAMF_GLOBAL) {
+    brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
+    return -1;
+  }
+
+  if (len > sizeof(packet.data)) {
+    brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
+    return -1;
+  }
+
+  packet.flags = htonl(flags);
+  packet.param = htonl(parameter);
+  packet.subparam_hi = htonl(subparam >> 32);
+  packet.subparam_lo = htonl(subparam & 0xfffffffful);
+  memcpy(packet.data, data, len);
+  _brlapi_htonParameter(parameter, &packet, len);
+
+  res = brlapi__writePacketWaitForAck(handle, BRLAPI_PACKET_PARAM_VALUE, &packet, sizeof(packet.flags) + sizeof(parameter) + sizeof(subparam) + len);
+  return res;
+}
+
+int BRLAPI_STDCALL brlapi_setParameter(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, const void* data, size_t len)
+{
+  return brlapi__setParameter(&defaultHandle, parameter, subparam, flags, data, len);
+}
+
+/* Function: brlapi_watchParameter */
+brlapi_paramCallbackDescriptor_t BRLAPI_STDCALL brlapi__watchParameter(brlapi_handle_t *handle, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, brlapi_paramCallback_t func, void *priv, void* data, size_t len)
+{
+  brlapi_paramValuePacket_t reply;
+  ssize_t rlen;
+  struct brlapi_parameterCallback_t *callback;
+
+  if (flags & ~(BRLAPI_PARAMF_GLOBAL|BRLAPI_PARAMF_SELF)) {
+    brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
+    return NULL;
+  }
+
+  pthread_mutex_lock(&handle->callbacks_mutex);
+  rlen = _brlapi__getParameter(handle, parameter, subparam, flags | BRLAPI_PARAMF_GET | BRLAPI_PARAMF_SUBSCRIBE, &reply);
+  if (rlen < 0) {
+    pthread_mutex_unlock(&handle->callbacks_mutex);
+    return NULL;
+  }
+
+  callback = malloc(sizeof(*callback));
+  if (callback == NULL) {
+    brlapi_errno = BRLAPI_ERROR_NOMEM;
+    return NULL;
+  }
+  callback->parameter = parameter;
+  callback->subparam = subparam;
+  callback->flags = flags;
+  callback->func = func;
+  callback->priv = priv;
+
+  callback->next = handle->parameterCallbacks;
+  if (callback->next)
+    callback->next->prev = callback;
+  callback->prev = NULL;
+  handle->parameterCallbacks = callback;
+
+  _brlapi_ntohParameter(parameter, &reply, rlen);
+  if (data) {
+    if (rlen < len) {
+      len = rlen;
+    }
+    memcpy(data, &reply.data, len);
+  } else {
+    func(parameter, subparam, flags, priv, &reply.data, rlen);
+  }
+  pthread_mutex_unlock(&handle->callbacks_mutex);
+
+  return callback;
+}
+
+brlapi_paramCallbackDescriptor_t BRLAPI_STDCALL brlapi_watchParameter(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, brlapi_paramCallback_t func, void *priv, void* data, size_t len)
+{
+  return brlapi__watchParameter(&defaultHandle, parameter, subparam, flags, func, priv, data, len);
+}
+
+/* Function: brlapi_unwatchParameter */
+int BRLAPI_STDCALL brlapi__unwatchParameter(brlapi_handle_t *handle, brlapi_paramCallbackDescriptor_t descriptor)
+{
+  brlapi_paramValuePacket_t reply;
+  ssize_t rlen;
+  struct brlapi_parameterCallback_t *callback = descriptor;
+
+  pthread_mutex_lock(&handle->callbacks_mutex);
+  rlen = _brlapi__getParameter(handle, callback->parameter, callback->subparam, callback->flags | BRLAPI_PARAMF_UNSUBSCRIBE, &reply);
+  if (rlen < 0) {
+    pthread_mutex_unlock(&handle->callbacks_mutex);
+    return -1;
+  }
+
+  if (handle->nextCallback == callback) {
+    /* We might be removing an entry which brlapi__doWaitForPacket was planning
+     * to have a look at next, make it skip it. */
+    handle->nextCallback = handle->nextCallback->next;
+  }
+
+  if (callback->next) {
+    callback->next->prev = callback->prev;
+  }
+  if (callback->prev) {
+    callback->prev->next = callback->next;
+  } else {
+    handle->parameterCallbacks = callback->next;
+  }
+  pthread_mutex_unlock(&handle->callbacks_mutex);
+  free(callback);
+  return 0;
+}
+
+int BRLAPI_STDCALL brlapi_unwatchParameter(brlapi_paramCallbackDescriptor_t descriptor)
+{
+  return brlapi__unwatchParameter(&defaultHandle, descriptor);
+}
+
 
 /* Function : getControllingTty */
 /* Returns the number of the caller's controlling terminal */
@@ -1209,12 +1634,13 @@ int BRLAPI_STDCALL brlapi_enterTtyMode(int tty, const char *how)
 int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, int *ttys, int nttys, const char *driverName)
 {
   int res;
-  brlapi_packet_t packet;
+  void *packet;
   unsigned char *p;
-  uint32_t *nbTtys = (uint32_t*) &packet, *t = nbTtys+1;
-  char *ttytreepath,*ttytreepathstop;
+  uint32_t *nbTtys, *t;
+  char *ttytreepath,*cur,*next;
   int ttypath;
-  unsigned int n;
+  unsigned int n, nttytreepath;
+  size_t size;
 
   pthread_mutex_lock(&handle->state_mutex);
   if ((handle->state & STCONTROLLINGTTY)) {
@@ -1231,23 +1657,100 @@ int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, int *tt
   pthread_mutex_unlock(&handle->read_mutex);
 
   /* OK, Now we know where we are, so get the effective control of the terminal! */
-  *nbTtys = 0;
   ttytreepath = getenv("WINDOWPATH");
-  if (!ttytreepath && getenv("DISPLAY"))
+  if (!ttytreepath && (getenv("DISPLAY") || getenv("WAYLAND_DISPLAY"))) {
     /* Cope with some DMs which are not setting WINDOWPATH (e.g. gdm 3.12) */
     ttytreepath = getenv("XDG_VTNR");
-  if (ttytreepath)
-  for(; *ttytreepath && t-(nbTtys+1)<=BRLAPI_MAXPACKETSIZE/sizeof(uint32_t);
-    *t++ = htonl(ttypath), (*nbTtys)++, ttytreepath = ttytreepathstop+1) {
-    ttypath=strtol(ttytreepath,&ttytreepathstop,0);
-    /* TODO: log it out. check overflow/underflow & co */
-    if (ttytreepathstop==ttytreepath) break;
+
+#ifdef HAVE_SD_SESSION_GET_VT
+    if (!ttytreepath) {
+      /* Fallback to asking logind */
+      char *id;
+      unsigned vtnr = 0;
+      int ret;
+
+      ret = sd_pid_get_session(0, &id);
+      if (ret == 0 && id != NULL) {
+	sd_session_get_vt(id, &vtnr);
+	free(id);
+      } else {
+	char **sessions;
+	/* Not even logind knows :/ we are probably logged in from gdm */
+	ret = sd_uid_get_sessions(getuid(), 0, &sessions);
+
+	if (ret > 0) {
+	  int i, chosen = -1;
+
+	  for (i = 0; i < ret; i++) {
+	    char *type;
+
+	    ret = sd_session_get_type(sessions[i], &type);
+	    if (ret == 0) {
+	      if (strcmp(type, "tty") != 0 &&
+	          strcmp(type, "unspecified") != 0) {
+		/* x11, wayland or mir, so graphical.
+		 * User normally has only one of them */
+		if (chosen >= 0) {
+		  /* Oops, several sessions? That is not supposed to happen, better
+		   * choose none of them. */
+		  chosen = -1;
+		  break;
+		}
+		chosen = i;
+	      }
+	    }
+	  }
+
+	  if (chosen >= 0) sd_session_get_vt(sessions[i], &vtnr);
+
+	  for (i = 0; i < ret; i++) free(sessions[i]);
+	  free(sessions);
+	}
+      }
+
+      if (vtnr) {
+	size_t size = sizeof(vtnr)*3 + 1;
+	ttytreepath=alloca(size);
+	snprintf(ttytreepath, size, "%u", vtnr);
+      }
+    }
+#endif /* HAVE_SD_SESSION_GET_VT */
   }
 
-  for (n=0; n<nttys; n++) *t++ = htonl(ttys[n]);
-  (*nbTtys)+=nttys;
+  nttytreepath = 0;
+  if (ttytreepath) {
+    /* Count ttys from path */
+    for(cur = ttytreepath; *cur; nttytreepath++, cur = next+1) {
+      strtol(cur,&next,0);
+      if (next==cur) {
+        syslog(LOG_WARNING, "Erroneous window path %s", ttytreepath);
+        pthread_mutex_unlock(&handle->state_mutex);
+        brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
+        return -1;
+      }
+      if (*next==0) { nttytreepath++; break; }
+    }
+  }
 
-  *nbTtys = htonl(*nbTtys);
+  size = (1 + nttytreepath + nttys) * sizeof(uint32_t);
+  size += 1 + (driverName ? strlen(driverName) : 0);
+  packet = alloca(size);
+  nbTtys = packet;
+  t = nbTtys+1;
+  *nbTtys = htonl(nttytreepath + nttys);
+
+  if (ttytreepath) {
+    /* First add ttys from environment path */
+    for(cur=ttytreepath; *cur; nttytreepath++, cur=next+1) {
+      ttypath=strtol(cur,&next,0);
+      *t++ = htonl(ttypath);
+      if (*next==0) break;
+    }
+  }
+
+  /* Then add ttys from caller path */
+  for (n=0; n<nttys; n++) *t++ = htonl(ttys[n]);
+
   p = (unsigned char *) t;
   if (driverName==NULL) n = 0; else n = strlen(driverName);
   if (n>BRLAPI_MAXNAMELENGTH) {
@@ -1258,7 +1761,8 @@ int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, int *tt
   p++;
   if (n) p = mempcpy(p, driverName, n);
 
-  if ((res=brlapi__writePacketWaitForAck(handle,BRLAPI_PACKET_ENTERTTYMODE,&packet,(p-(unsigned char *)&packet))) == 0) {
+  assert(p-(unsigned char *)packet == size);
+  if ((res=brlapi__writePacketWaitForAck(handle,BRLAPI_PACKET_ENTERTTYMODE,packet,size)) == 0) {
     handle->state |= STCONTROLLINGTTY;
   }
 
@@ -1374,7 +1878,7 @@ static int brlapi___writeText(brlapi_handle_t *handle, int cursor, const void *s
   brlapi_packet_t packet;
   brlapi_writeArgumentsPacket_t *wa = &packet.writeArguments;
   unsigned char *p = &wa->data;
-  char *locale;
+  const char *locale;
   int res;
   size_t len;
 
@@ -1521,29 +2025,58 @@ int BRLAPI_STDCALL brlapi_writeWText(int cursor, const wchar_t *str)
 /* Writes dot-matrix to the braille display */
 int BRLAPI_STDCALL brlapi__writeDots(brlapi_handle_t *handle, const unsigned char *dots)
 {
-  int res;
-  unsigned int size = handle->brlx * handle->brly;
   brlapi_writeArguments_t wa = BRLAPI_WRITEARGUMENTS_INITIALIZER;
+  unsigned int size = handle->brlx * handle->brly;
+
   if (size == 0) {
     brlapi_errno=BRLAPI_ERROR_INVALID_PARAMETER;
     return -1;
   }
+
+  unsigned char andMask[size];
+  memset(andMask, 0, size);
+  wa.andMask = andMask;
+
+  unsigned char orMask[size];
+  memcpy(orMask, dots, size);
+  wa.orMask = orMask;
+
+  char text[(size * 3) + 1];
+  wa.text = text;
+  wa.charset = "utf-8";
+
   {
-    char text[size+1];
-    unsigned char andMask[size], orMask[size];
-    memset(text, ' ', size);
-    text[size] = 0;
-    wa.regionBegin = 1;
-    wa.regionSize = size;
-    wa.text = text;
-    memcpy(orMask, dots, size);
-    wa.orMask = orMask;
-    memset(andMask, 0, size);
-    wa.andMask = andMask;
-    wa.cursor = 0;
-    res = brlapi__write(handle,&wa);
+    /* Pass a UTF8-encoded string of the braille characters as the text.
+     *
+     * The Unicode row for the braille pattern characters is U+2800.
+     * Each of the eight dots is represented by a bit in the low-order byte:
+     * Dot1 by 0X01, Dot2 by 0X02, ..., Dot7 by 0X40, and Dot8 by 0X80.
+     *
+     * The UTF-8 template for the Unicode braille row is: 0XE2, 0XA0, 0X80.
+     * Dots 1-6 are the low-order six bits of the last (0X80) byte.
+     * Dots 7-8 are the low-order two bits of the middle (0XA0) byte.
+     */
+
+    char *byte = text;
+    const unsigned char *cell = dots;
+    const unsigned char *end = cell + size;
+
+    while (cell < end) {
+      *byte++ = 0XE2;
+      *byte++ = 0XA0 | ((*cell >> 6) & 0X3); // dots 7-8
+      *byte++ = 0X80 | (*cell & 0X3F); // dots 1-6
+      cell += 1;
+    }
+
+    *byte = 0;
+    wa.textSize = byte - text;
   }
-  return res;
+
+  wa.regionBegin = 1;
+  wa.regionSize = size;
+  wa.cursor = BRLAPI_CURSOR_OFF;
+
+  return brlapi__write(handle, &wa);
 }
 
 int BRLAPI_STDCALL brlapi_writeDots(const unsigned char *dots)
@@ -1631,7 +2164,7 @@ int brlapi__write(brlapi_handle_t *handle, const brlapi_writeArguments_t *s)
     }
     *((uint32_t *) p) = htonl(s->cursor);
     p += sizeof(uint32_t);
-  } else if (s->cursor!=-1) {
+  } else if (s->cursor != BRLAPI_CURSOR_LEAVE) {
     brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
     return -1;
   }
@@ -1718,7 +2251,7 @@ int BRLAPI_STDCALL brlapi__readKeyWithTimeout(brlapi_handle_t *handle, int timeo
   pthread_mutex_unlock(&handle->read_mutex);
 
   pthread_mutex_lock(&handle->key_mutex);
-  res=brlapi__waitForPacket(handle,BRLAPI_PACKET_KEY, buf, sizeof(buf), 0, timeout_ms);
+  res = brlapi__waitForPacket(handle,BRLAPI_PACKET_KEY, buf, sizeof(buf), TRY_WAIT_FOR_EXPECTED_PACKET, timeout_ms);
   pthread_mutex_unlock(&handle->key_mutex);
   if (res == -3) {
     if (timeout_ms == 0) return 0;
@@ -1732,7 +2265,7 @@ int BRLAPI_STDCALL brlapi__readKeyWithTimeout(brlapi_handle_t *handle, int timeo
     return 0;
   }
   if (res < 0) return -1;
-  *code = ((brlapi_keyCode_t)ntohl(buf[0]) << 32) | ntohl(buf[1]);
+  *code = brlapi_packetToKeyCode(buf);
   return 1;
 }
 
@@ -1901,7 +2434,7 @@ done:
 static int ignore_accept_key_ranges(brlapi_handle_t *handle, int what, const brlapi_range_t ranges[], unsigned int n)
 {
   uint32_t ints[n][4];
-  unsigned int i, remaining, todo;
+  unsigned int i;
 
   for (i=0; i<n; i++) {
     ints[i][0] = htonl(ranges[i].first >> 32);
@@ -1910,13 +2443,8 @@ static int ignore_accept_key_ranges(brlapi_handle_t *handle, int what, const brl
     ints[i][3] = htonl(ranges[i].last & 0xffffffff);
   };
 
-  for (remaining = n; remaining; remaining -= todo) {
-    todo = remaining;
-    if (todo > BRLAPI_MAXPACKETSIZE / (2*sizeof(brlapi_keyCode_t)))
-      todo = BRLAPI_MAXPACKETSIZE / (2*sizeof(brlapi_keyCode_t));
-    if (brlapi__writePacketWaitForAck(handle,(what ? BRLAPI_PACKET_ACCEPTKEYRANGES : BRLAPI_PACKET_IGNOREKEYRANGES),&ints[n-remaining],todo*2*sizeof(brlapi_keyCode_t)))
-      return -1;
-  }
+  if (brlapi__writePacketWaitForAck(handle,(what ? BRLAPI_PACKET_ACCEPTKEYRANGES : BRLAPI_PACKET_IGNOREKEYRANGES),ints,n*2*sizeof(brlapi_keyCode_t)))
+    return -1;
   return 0;
 }
 
@@ -1999,24 +2527,25 @@ int BRLAPI_STDCALL brlapi_ignoreKeys(brlapi_rangeType_t r, const brlapi_keyCode_
 
 /* brlapi_errlist: error messages */
 const char *brlapi_errlist[] = {
-  "Success",                            /* BRLAPI_ERROR_SUCESS */
-  "Insufficient memory",                /* BRLAPI_ERROR_NOMEM */
-  "Tty is busy",                        /* BRLAPI_ERROR_TTYBUSY */
-  "Device is busy",                     /* BRLAPI_ERROR_DEVICEBUSY */
-  "Unknown instruction",                /* BRLAPI_ERROR_UNKNOWN_INSTRUCTION */
-  "Illegal instruction",                /* BRLAPI_ERROR_ILLEGAL_INSTRUCTION */
-  "Invalid parameter",                  /* BRLAPI_ERROR_INVALID_PARAMETER */
-  "Invalid packet",                     /* BRLAPI_ERROR_INVALID_PACKET */
-  "Connection refused",                 /* BRLAPI_ERROR_CONNREFUSED */
-  "Operation not supported",            /* BRLAPI_ERROR_OPNOTSUPP */
-  "getaddrinfo() error",                /* BRLAPI_ERROR_GAIERR */
-  "libc error",                         /* BRLAPI_ERROR_LIBCERR */
-  "Can't determine tty number",         /* BRLAPI_ERROR_UNKNOWNTTY */
-  "Bad protocol version",               /* BRLAPI_ERROR_PROTOCOL_VERSION */
-  "Unexpected end of file",             /* BRLAPI_ERROR_EOF */
-  "Key file is empty",                  /* BRLAPI_ERROR_EMPTYKEY */
-  "Driver error",                       /* BRLAPI_ERROR_DRIVERERROR */
-  "Authentication failed",              /* BRLAPI_ERROR_AUTHENTICATION */
+  [0]                                = "Success",
+  [BRLAPI_ERROR_NOMEM]               = "Insufficient memory",
+  [BRLAPI_ERROR_TTYBUSY]             = "Tty is busy",
+  [BRLAPI_ERROR_DEVICEBUSY]          = "Device is busy",
+  [BRLAPI_ERROR_UNKNOWN_INSTRUCTION] = "Unknown instruction",
+  [BRLAPI_ERROR_ILLEGAL_INSTRUCTION] = "Illegal instruction",
+  [BRLAPI_ERROR_INVALID_PARAMETER]   = "Invalid parameter",
+  [BRLAPI_ERROR_INVALID_PACKET]      = "Invalid packet",
+  [BRLAPI_ERROR_CONNREFUSED]         = "Connection refused",
+  [BRLAPI_ERROR_OPNOTSUPP]           = "Operation not supported",
+  [BRLAPI_ERROR_GAIERR]              = "getaddrinfo() error",
+  [BRLAPI_ERROR_LIBCERR]             = "libc error",
+  [BRLAPI_ERROR_UNKNOWNTTY]          = "Can't determine tty number",
+  [BRLAPI_ERROR_PROTOCOL_VERSION]    = "Bad protocol version",
+  [BRLAPI_ERROR_EOF]                 = "Unexpected end of file",
+  [BRLAPI_ERROR_EMPTYKEY]            = "Key file is empty",
+  [BRLAPI_ERROR_DRIVERERROR]         = "Driver error",
+  [BRLAPI_ERROR_AUTHENTICATION]      = "Authentication failed",
+  [BRLAPI_ERROR_READONLY_PARAMETER]  = "Parameter can not be changed",
 };
 
 /* brlapi_nerr: number of error codes */
@@ -2136,7 +2665,7 @@ brlapi_exceptionHandler_t BRLAPI_STDCALL brlapi_setExceptionHandler(brlapi_excep
 
 int BRLAPI_STDCALL brlapi__strexception(brlapi_handle_t *handle, char *buf, size_t n, int err, brlapi_packetType_t type, const void *packet, size_t size)
 {
-  int chars = 16; /* Number of bytes to dump */
+  int chars = 128; /* Number of bytes to dump */
   char hexString[3*chars+1];
   int i, nbChars = MIN(chars, size);
   char *p = hexString;

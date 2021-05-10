@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,14 +21,17 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "parameters.h"
 #include "log.h"
 #include "strfmt.h"
 #include "scr.h"
+#include "scr_special.h"
 #include "scr_menu.h"
+#include "update.h"
 #include "brl_cmds.h"
 #include "cmd_queue.h"
 #include "alert.h"
-#include "charset.h"
+#include "utf8.h"
 #include "core.h"
 
 typedef struct {
@@ -118,10 +121,10 @@ newRenderedMenuItem (Menu *menu) {
     {
       size_t currentLength = 0;
        
-      currentLength += convertTextToWchars(&characters[currentLength], labelString, maximumLength-currentLength);
+      currentLength += makeWcharsFromUtf8(labelString, &characters[currentLength], maximumLength-currentLength);
       settingIndent = currentLength;
 
-      currentLength += convertTextToWchars(&characters[currentLength], settingString, maximumLength-currentLength);
+      currentLength += makeWcharsFromUtf8(settingString, &characters[currentLength], maximumLength-currentLength);
       actualLength = currentLength;
     }
 
@@ -318,6 +321,15 @@ settingChanged (void) {
   screenUpdated = 1;
 }
 
+void
+menuScreenUpdated (void) {
+  screenUpdated = 1;
+
+  if (isSpecialScreen(SCR_MENU)) {
+    scheduleUpdateIn("menu screen updated", SCREEN_UPDATE_SCHEDULE_DELAY);
+  }
+}
+
 static int
 handleCommand_MenuScreen (int command) {
   switch (command) {
@@ -338,11 +350,10 @@ handleCommand_MenuScreen (int command) {
         return 1;
       }
     }
-
+    /* fall through */
     case BRL_CMD_KEY(ESCAPE):
     case BRL_CMD_KEY(ENTER): {
       int handled = handleCommand(BRL_CMD_PREFMENU);
-
       if (handled) setFocusedItem();
       return handled;
     }

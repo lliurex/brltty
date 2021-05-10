@@ -1,7 +1,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2006-2019 by
+# Copyright (C) 2006-2021 by
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
 #
@@ -83,7 +83,7 @@ then
    AC_SUBST([JAVA_JNI_HDR])
    AC_SUBST([JAVA_JNI_INC], ["'${JAVA_JNI_INC}'"])
    AC_SUBST([JAVA_JNI_FLAGS])
-   BRLTTY_JAVA_DIRECTORY([JNI], [/usr/lib*/java /usr/lib*/jni /mingw])
+   BRLTTY_JAVA_DIRECTORY([JNI], [/usr/lib*/java /usr/lib*/jni /usr/lib/*/jni /mingw])
 else
    AC_MSG_WARN([Java compiler not found])
 fi
@@ -103,14 +103,16 @@ else
 fi])
 
 AC_DEFUN([BRLTTY_JAVA_DIRECTORY], [dnl
-JAVA_$1_DIR=""
-for directory in $2
-do
-   test -d "${directory}" && {
-      JAVA_$1_DIR="${directory}"
-      break
-   }
-done
+if test -z "${JAVA_$1_DIR}"
+then
+   for directory in $2
+   do
+      test -d "${directory}" && {
+	 JAVA_$1_DIR="${directory}"
+	 break
+      }
+   done
+fi
 
 if test -n "${JAVA_$1_DIR}"
 then

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -28,6 +28,18 @@ extern BlinkDescriptor screenCursorBlinkDescriptor;
 extern BlinkDescriptor attributesUnderlineBlinkDescriptor;
 extern BlinkDescriptor uppercaseLettersBlinkDescriptor;
 extern BlinkDescriptor speechCursorBlinkDescriptor;
+
+extern int getBlinkPeriod (BlinkDescriptor *blink);
+extern int getBlinkPercentage (BlinkDescriptor *blink);
+extern int setBlinkProperties (BlinkDescriptor *blink, int period, int percentage);
+
+static inline int setBlinkPeriod (BlinkDescriptor *blink, int period) {
+  return setBlinkProperties(blink, period, getBlinkPercentage(blink));
+}
+
+static inline int setBlinkPercentage (BlinkDescriptor *blink, int percentage) {
+  return setBlinkProperties(blink, getBlinkPeriod(blink), percentage);
+}
 
 extern int isBlinkVisible (const BlinkDescriptor *blink);
 extern void setBlinkState (BlinkDescriptor *blink, int visible);

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,38 +21,39 @@
 #include "log.h"
 #include "api_control.h"
 #include "api_server.h"
+#include "report.h"
 #include "core.h"
 
 #ifndef ENABLE_API
-const char *const api_parameters[] = {NULL};
+const char *const api_serverParameters[] = {NULL};
 
 void
-api_identify (int full) {
+api_logServerIdentity (int full) {
 }
 
 int
-api_start (BrailleDisplay *brl, char **parameters) {
+api_startServer (BrailleDisplay *brl, char **parameters) {
   return 0;
 }
 
 void
-api_stop (BrailleDisplay *brl) {
+api_stopServer (BrailleDisplay *brl) {
 }
 
 void
-api_link (BrailleDisplay *brl) {
+api_linkServer (BrailleDisplay *brl) {
 }
 
 void
-api_unlink (BrailleDisplay *brl) {
+api_unlinkServer (BrailleDisplay *brl) {
 }
 
 void
-api_suspend (BrailleDisplay *brl) {
+api_suspendDriver (BrailleDisplay *brl) {
 }
 
 int
-api_resume (BrailleDisplay *brl) {
+api_resumeDriver (BrailleDisplay *brl) {
   return 0;
 }
 
@@ -76,29 +77,33 @@ api_handleKeyEvent (KeyGroup group, KeyNumber number, int press) {
 }
 
 int
-api_flush (BrailleDisplay *brl) {
+api_flushOutput (BrailleDisplay *brl) {
   return 0;
+}
+
+void
+api_updateParameter (brlapi_param_t parameter, brlapi_param_subparam_t subparam) {
 }
 #endif /* ENABLE_API */
 
-static int apiStarted = 0;
-static int apiLinked = 0;
-static int driverClaimed = 0;
+static int isRunning = 0;
+static int isLinked = 0;
+static int isClaimed = 0;
 
 static void
-apiIdentify (int full) {
-  api_identify(full);
+apiLogServerIdentity (int full) {
+  api_logServerIdentity(full);
 }
 
 static const char *const *
-apiGetParameters (void) {
-  return api_parameters;
+apiGetServerParameters (void) {
+  return api_serverParameters;
 }
 
 static int
-apiStart (char **parameters) {
-  if (api_start(&brl, parameters)) {
-    apiStarted = 1;
+apiStartServer (char **parameters) {
+  if (api_startServer(&brl, parameters)) {
+    isRunning = 1;
     return 1;
   }
 
@@ -106,42 +111,42 @@ apiStart (char **parameters) {
 }
 
 static void
-apiStop (void) {
-  api_stop(&brl);
-  apiStarted = 0;
+apiStopServer (void) {
+  api_stopServer(&brl);
+  isRunning = 0;
 }
 
 static int
-apiIsStarted (void) {
-  return apiStarted;
+apiIsServerRunning (void) {
+  return isRunning;
 }
 
 static void
-apiLink (void) {
-  if (apiStarted) {
-    api_link(&brl);
-    apiLinked = 1;
+apiLinkServer (void) {
+  if (isRunning) {
+    api_linkServer(&brl);
+    isLinked = 1;
   }
 }
 
 static void
-apiUnlink (void) {
-  if (apiStarted) {
-    api_unlink(&brl);
-    apiLinked = 0;
+apiUnlinkServer (void) {
+  if (isRunning) {
+    api_unlinkServer(&brl);
+    isLinked = 0;
   }
 }
 
 static int
-apiIsLinked (void) {
-  return apiLinked;
+apiIsServerLinked (void) {
+  return isLinked;
 }
 
 static void
-apiSuspend (void) {
+apiSuspendDriver (void) {
 #ifdef ENABLE_API
-  if (apiStarted) {
-    api_suspend(&brl);
+  if (isRunning) {
+    api_suspendDriver(&brl);
   } else
 #endif /* ENABLE_API */
 
@@ -151,9 +156,9 @@ apiSuspend (void) {
 }
 
 static int
-apiResume (void) {
+apiResumeDriver (void) {
 #ifdef ENABLE_API
-  if (apiStarted) return api_resume(&brl);
+  if (isRunning) return api_resumeDriver(&brl);
 #endif /* ENABLE_API */
 
   return constructBrailleDriver();
@@ -161,9 +166,9 @@ apiResume (void) {
 
 static int
 apiClaimDriver (void) {
-  if (!driverClaimed && apiStarted) {
+  if (!isClaimed && isRunning) {
     if (!api_claimDriver(&brl)) return 0;
-    driverClaimed = 1;
+    isClaimed = 1;
   }
 
   return 1;
@@ -171,44 +176,53 @@ apiClaimDriver (void) {
 
 static void
 apiReleaseDriver (void) {
-  if (driverClaimed) {
+  if (isClaimed) {
     api_releaseDriver(&brl);
-    driverClaimed = 0;
+    isClaimed = 0;
   }
 }
 
 static int
 apiHandleCommand (int command) {
-  if (!apiStarted) return 0;
+  if (!isRunning) return 0;
   return api_handleCommand(command);
 }
 
 static int
 apiHandleKeyEvent (KeyGroup group, KeyNumber number, int press) {
-  if (!apiStarted) return 0;
+  if (!isRunning) return 0;
   return api_handleKeyEvent(group, number, press);
 }
 
 static int
-apiFlush (void) {
-  if (!apiStarted) return 1;
-  return api_flush(&brl);
+apiFlushOutput (void) {
+  if (!isRunning) return 1;
+  return api_flushOutput(&brl);
+}
+
+static void
+apiUpdateParameter (brlapi_param_t parameter, brlapi_param_subparam_t subparam) {
+  if (isRunning) {
+    api_updateParameter(parameter, subparam);
+  } else {
+    reportParameterUpdated(parameter, subparam);
+  }
 }
 
 const ApiMethods api = {
-  .identify = apiIdentify,
-  .getParameters = apiGetParameters,
+  .logServerIdentity = apiLogServerIdentity,
+  .getServerParameters = apiGetServerParameters,
 
-  .start = apiStart,
-  .stop = apiStop,
-  .isStarted = apiIsStarted,
+  .startServer = apiStartServer,
+  .stopServer = apiStopServer,
+  .isServerRunning = apiIsServerRunning,
 
-  .link = apiLink,
-  .unlink = apiUnlink,
-  .isLinked = apiIsLinked,
+  .linkServer = apiLinkServer,
+  .unlinkServer = apiUnlinkServer,
+  .isServerLinked = apiIsServerLinked,
 
-  .suspend = apiSuspend,
-  .resume = apiResume,
+  .suspendDriver = apiSuspendDriver,
+  .resumeDriver = apiResumeDriver,
 
   .claimDriver = apiClaimDriver,
   .releaseDriver = apiReleaseDriver,
@@ -216,5 +230,6 @@ const ApiMethods api = {
   .handleCommand = apiHandleCommand,
   .handleKeyEvent = apiHandleKeyEvent,
 
-  .flush = apiFlush
+  .flushOutput = apiFlushOutput,
+  .updateParameter = apiUpdateParameter
 };

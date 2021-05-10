@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -68,6 +68,7 @@ SYMBOL_POINTER(restartScreenDriver);
 SYMBOL_POINTER(changeScreenDriver);
 SYMBOL_POINTER(changeScreenParameters);
 
+SYMBOL_POINTER(changeMessageLocale);
 SYMBOL_POINTER(showMessage);
 
 typedef struct {
@@ -111,6 +112,7 @@ BEGIN_SYMBOL_TABLE
   SYMBOL_ENTRY(changeScreenDriver),
   SYMBOL_ENTRY(changeScreenParameters),
 
+  SYMBOL_ENTRY(changeMessageLocale),
   SYMBOL_ENTRY(showMessage),
 END_SYMBOL_TABLE
 
@@ -444,6 +446,13 @@ JAVA_STATIC_METHOD (
   jstring parameters
 ) {
   return changeStringValue(env, changeScreenParameters_p, parameters);
+}
+
+JAVA_STATIC_METHOD (
+  org_a11y_brltty_core_CoreWrapper, changeMessageLocale, jboolean,
+  jstring locale
+) {
+  return changeStringValue(env, changeMessageLocale_p, locale);
 }
 
 JAVA_STATIC_METHOD (

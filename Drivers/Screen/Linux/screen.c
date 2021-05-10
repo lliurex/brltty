@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -47,23 +47,27 @@
 #include "ascii.h"
 #include "unicode.h"
 #include "charset.h"
+#include "scr_gpm.h"
 #include "system_linux.h"
 
 typedef enum {
   PARM_CHARSET,
-  PARM_HFB,
-  PARM_LOG_SFM,
+  PARM_FALLBACK_TEXT,
+  PARM_HIGH_FONT_BIT,
+  PARM_LOG_SCREEN_FONT_MAP,
   PARM_UNICODE,
-  PARM_VT,
+  PARM_VIRTUAL_TERMINAL_NUMBER,
 } ScreenParameters;
-#define SCRPARMS "charset", "hfb", "logsfm", "unicode", "vt"
+#define SCRPARMS "charset", "fallbacktext", "hfb", "logsfm", "unicode", "vt"
 
 #include "scr_driver.h"
 #include "screen.h"
 
 static const char *problemText;
+static const char *fallbackText;
+
 static unsigned int logScreenFontMap;
-static unsigned int directUnicode;
+static unsigned int unicodeEnabled;
 static int virtualTerminalNumber;
 
 #define UNICODE_ROW_DIRECT 0XF000
@@ -318,8 +322,8 @@ convertCharacter (const wchar_t *character) {
 }
 
 static int
-setDeviceName (const char **name, const char *const *names, const char *description) {
-  return (*name = resolveDeviceName(names, description)) != NULL;
+setDeviceName (const char **name, const char *const *names, int strict, const char *description) {
+  return (*name = resolveDeviceName(names, strict, description)) != NULL;
 }
 
 static char *
@@ -347,7 +351,7 @@ static const char *consoleName = NULL;
 static int
 setConsoleName (void) {
   static const char *const names[] = {"tty0", "vc/0", NULL};
-  return setDeviceName(&consoleName, names, "console");
+  return setDeviceName(&consoleName, names, 0, "console");
 }
 
 static void
@@ -365,7 +369,7 @@ openConsole (int *fd, int vt) {
   char *name = vtName(consoleName, vt);
 
   if (name) {
-    int console = openCharacterDevice(name, O_RDWR|O_NOCTTY, TTY_MAJOR, vt);
+    int console = openCharacterDevice(name, O_WRONLY|O_NOCTTY, TTY_MAJOR, vt);
 
     if (console != -1) {
       logMessage(LOG_CATEGORY(SCREEN_DRIVER),
@@ -462,7 +466,7 @@ controlCurrentConsole (int operation, void *argument) {
 }
 
 static const int NO_CONSOLE = 0;
-static const int MAIN_CONSOLE = 1;
+static const int MAIN_CONSOLE = 0;
 static int mainConsoleDescriptor;
 
 static void
@@ -485,7 +489,7 @@ static const char *unicodeName = NULL;
 static int
 setUnicodeName (void) {
   static const char *const names[] = {"vcsu", "vcsu0", NULL};
-  return setDeviceName(&unicodeName, names, "unicode");
+  return setDeviceName(&unicodeName, names, 1, "unicode");
 }
 
 static void
@@ -506,7 +510,7 @@ openUnicode (int *fd, int vt) {
   char *name = vtName(unicodeName, vt);
 
   if (name) {
-    int unicode = openCharacterDevice(name, O_RDWR|O_NOCTTY, VCS_MAJOR, 0X40|vt);
+    int unicode = openCharacterDevice(name, O_RDWR, VCS_MAJOR, 0X40|vt);
 
     if (unicode != -1) {
       logMessage(LOG_CATEGORY(SCREEN_DRIVER),
@@ -534,6 +538,7 @@ closeCurrentUnicode (void) {
 
 static int
 openCurrentUnicode (void) {
+  if (!unicodeEnabled) return 0;
   return openUnicode(&unicodeDescriptor, virtualTerminalNumber);
 }
 
@@ -662,7 +667,7 @@ canMonitorScreen (void) {
 static int
 setScreenName (void) {
   static const char *const names[] = {"vcsa", "vcsa0", "vcc/a", NULL};
-  return setDeviceName(&screenName, names, "screen");
+  return setDeviceName(&screenName, names, 0, "screen");
 }
 
 static int
@@ -921,16 +926,23 @@ setVgaCharacterCount (int force) {
       .op = KD_FONT_OP_GET
     };
 
-    if (controlCurrentConsole(KDFONTOP, &cfo) != -1) {
-      logMessage(LOG_CATEGORY(SCREEN_DRIVER),
-                 "Font Properties: %ux%u*%u",
-                 cfo.width, cfo.height, cfo.charcount);
-      vgaCharacterCount = cfo.charcount;
-    } else {
-      vgaCharacterCount = 0;
+    vgaCharacterCount = 0;
+    {
+      static unsigned char isNotImplemented = 0;
 
-      if (errno != EINVAL) {
-        logMessage(LOG_WARNING, "ioctl[KDFONTOP[GET]]: %s", strerror(errno));
+      if (!isNotImplemented) {
+        if (controlCurrentConsole(KDFONTOP, &cfo) != -1) {
+          logMessage(LOG_CATEGORY(SCREEN_DRIVER),
+                     "Font Properties: %ux%u*%u",
+                     cfo.width, cfo.height, cfo.charcount);
+          vgaCharacterCount = cfo.charcount;
+        } else {
+          if (errno == ENOSYS) isNotImplemented = 1;
+
+          if (errno != EINVAL) {
+            logMessage(LOG_WARNING, "ioctl[KDFONTOP[GET]]: %s", strerror(errno));
+          }
+        }
       }
     }
   }
@@ -1067,91 +1079,117 @@ setTranslationTable (int force) {
 
 static int
 readScreenRow (int row, size_t size, ScreenCharacter *characters, int *offsets) {
-  uint16_t vgaBuffer[size];
-  uint32_t textBuffer[size];
   off_t offset = row * size;
+
+  uint16_t vgaBuffer[size];
+  if (!readScreenContent(offset, vgaBuffer, size)) return 0;
+
+  uint32_t unicodeBuffer[size];
+  const uint32_t *unicode = NULL;
+
+  if (unicodeEnabled) {
+    if (readUnicodeContent(offset, unicodeBuffer, size)) {
+      unicode = unicodeBuffer;
+    }
+  }
+
+  ScreenCharacter *character = characters;
   int column = 0;
 
-  if (readScreenContent(offset, vgaBuffer, size)) {
+  {
     const uint16_t *vga = vgaBuffer;
     const uint16_t *end = vga + size;
-    const uint32_t *text = NULL;
-    ScreenCharacter *character = characters;
+    int blanks = 0;
 
-    if (directUnicode) {
-      if (unicodeCacheUsed) {
-        if (readUnicodeContent(offset, textBuffer, size)) {
-          text = textBuffer;
-        }
-      }
-    }
-
-    while (vga != end) {
-      if (character) {
-        character->attributes = ((*vga & unshiftedAttributesMask) |
-                                 ((*vga & shiftedAttributesMask) >> 1)) >> 8;
-
-        if (text) {
-          character->text = *text++;
-        } else {
-          uint16_t position = *vga & 0XFF;
-          if (*vga & fontAttributesMask) position |= 0X100;
-
-          wint_t wc = convertCharacter(&translationTable[position]);
-          character->text = (wc != WEOF)? wc: WC_C(' ');
-        }
-
-        character += 1;
-      }
-
-      if (offsets) offsets[column++] = vga - vgaBuffer;
-      vga += 1;
-    }
-
-    {
+    while (vga < end) {
       wint_t wc;
 
-      while ((wc = convertCharacter(NULL)) != WEOF) {
+      if (unicode) {
+        wc = *unicode++;
+
+        if ((blanks > 0) && (wc == WC_C(' '))) {
+          blanks -= 1;
+          wc = WEOF;
+        } else {
+          blanks = getCharacterWidth(wc) - 1;
+        }
+      } else {
+        uint16_t position = *vga & 0XFF;
+        if (*vga & fontAttributesMask) position |= 0X100;
+        wc = convertCharacter(&translationTable[position]);
+      }
+
+      if (wc != WEOF) {
+        if (character) {
+          character->attributes = ((*vga & unshiftedAttributesMask) |
+                                   ((*vga & shiftedAttributesMask) >> 1)) >> 8;
+
+          character->text = wc;
+          character += 1;
+        }
+
+        if (offsets) offsets[column] = vga - vgaBuffer;
+        column += 1;
+      }
+
+      vga += 1;
+    }
+  }
+
+  if (!unicode) {
+    wint_t wc;
+
+    while ((wc = convertCharacter(NULL)) != WEOF) {
+      if (column < size) {
         if (character) {
           character->text = wc;
           character->attributes = SCR_COLOUR_DEFAULT;
           character += 1;
         }
 
-        if (offsets) offsets[column++] = size - 1;
+        if (offsets) offsets[column] = size - 1;
+        column += 1;
       }
     }
-
-    return 1;
   }
 
-  return 0;
+  while (column < size) {
+    if (character) {
+      static const ScreenCharacter pad = {
+        .text = WC_C(' '),
+        .attributes = SCR_COLOUR_DEFAULT
+      };
+
+      *character++ = pad;
+    }
+
+    if (offsets) offsets[column] = size - 1;
+    column += 1;
+  }
+
+  return 1;
 }
 
 static void
 adjustCursorColumn (short *column, short row, short columns) {
-  const CharsetEntry *charset = getCharsetEntry();
+  int offsets[columns];
 
-  if (charset->isMultiByte) {
-    int offsets[columns];
+  if (readScreenRow(row, columns, NULL, offsets)) {
+    int first = 0;
+    int last = columns - 1;
 
-    if (readScreenRow(row, columns, NULL, offsets)) {
-      int first = 0;
-      int last = columns - 1;
+    while (first <= last) {
+      int current = (first + last) / 2;
 
-      while (first <= last) {
-        int current = (first + last) / 2;
-
-        if (offsets[current] < *column) {
-          first = current + 1;
-        } else {
-          last = current - 1;
-        }
+      if (offsets[current] < *column) {
+        first = current + 1;
+      } else {
+        last = current - 1;
       }
-
-      if (first == columns) first -= 1;
-      *column = first;
     }
+
+    if (first == columns) first -= 1;
+    *column = first;
   }
 }
 
@@ -1197,6 +1235,8 @@ resetKeyboard (void) {
 
 static int
 processParameters_LinuxScreen (char **parameters) {
+  fallbackText = parameters[PARM_FALLBACK_TEXT];
+
   {
     const char *names = parameters[PARM_CHARSET];
 
@@ -1206,7 +1246,7 @@ processParameters_LinuxScreen (char **parameters) {
 
   highFontBit = 0;
   {
-    const char *parameter = parameters[PARM_HFB];
+    const char *parameter = parameters[PARM_HIGH_FONT_BIT];
 
     if (parameter && *parameter) {
       int bit = 0;
@@ -1230,7 +1270,7 @@ processParameters_LinuxScreen (char **parameters) {
 
   logScreenFontMap = 0;
   {
-    const char *parameter = parameters[PARM_LOG_SFM];
+    const char *parameter = parameters[PARM_LOG_SCREEN_FONT_MAP];
 
     if (parameter && *parameter) {
       if (!validateYesNo(&logScreenFontMap, parameter)) {
@@ -1239,12 +1279,12 @@ processParameters_LinuxScreen (char **parameters) {
     }
   }
 
-  directUnicode = 1;
+  unicodeEnabled = 1;
   {
     const char *parameter = parameters[PARM_UNICODE];
 
     if (parameter && *parameter) {
-      if (!validateYesNo(&directUnicode, parameter)) {
+      if (!validateYesNo(&unicodeEnabled, parameter)) {
         logMessage(LOG_WARNING, "%s: %s", "invalid direct unicode setting", parameter);
       }
     }
@@ -1252,7 +1292,7 @@ processParameters_LinuxScreen (char **parameters) {
 
   virtualTerminalNumber = 0;
   {
-    const char *parameter = parameters[PARM_VT];
+    const char *parameter = parameters[PARM_VIRTUAL_TERMINAL_NUMBER];
 
     if (parameter && *parameter) {
       static const int minimum = 0;
@@ -1306,13 +1346,17 @@ construct_LinuxScreen (void) {
 
   if (setScreenName()) {
     if (setConsoleName()) {
-      if (setUnicodeName()) {
-        if (openMainConsole()) {
-          if (setCurrentScreen(virtualTerminalNumber)) {
-            openKeyboard();
-            brailleDeviceOfflineListener = registerReportListener(REPORT_BRAILLE_DEVICE_OFFLINE, lxBrailleDeviceOfflineListener, NULL);
-            return 1;
-          }
+      if (unicodeEnabled) {
+        if (!setUnicodeName()) {
+          unicodeEnabled = 0;
+        }
+      }
+
+      if (openMainConsole()) {
+        if (setCurrentScreen(virtualTerminalNumber)) {
+          openKeyboard();
+          brailleDeviceOfflineListener = registerReportListener(REPORT_BRAILLE_DEVICE_OFFLINE, lxBrailleDeviceOfflineListener, NULL);
+          return 1;
         }
       }
     }
@@ -1385,7 +1429,7 @@ static int
 getConsoleState (struct vt_stat *state) {
   if (controlMainConsole(VT_GETSTATE, state) != -1) return 1;
   logSystemError("ioctl[VT_GETSTATE]");
-  problemText = "can't get console state";
+  problemText = gettext("can't get console state");
   return 0;
 }
 
@@ -1463,7 +1507,7 @@ getConsoleNumber (void) {
     if (!canOpenCurrentConsole()) {
       problemText = gettext("console not in use");
     } else if (!openCurrentConsole()) {
-      problemText = "can't open console";
+      problemText = gettext("can't open console");
     }
 
     setTranslationTable(1);
@@ -1492,7 +1536,13 @@ static int
 refreshCache (void) {
   size_t size = refreshScreenBuffer(&screenCacheBuffer, &screenCacheSize);
   if (!size) return 0;
-  if (!refreshUnicodeCache(size)) return 0;
+
+  if (unicodeEnabled) {
+    if (!refreshUnicodeCache(size)) {
+      return 0;
+    }
+  }
+
   return 1;
 }
 
@@ -1503,8 +1553,8 @@ refresh_LinuxScreen (void) {
       problemText = NULL;
 
       if (!refreshCache()) {
-        problemText = "can't read screen content";
-        return 1;
+        problemText = gettext("can't read screen content");
+        goto done;
       }
 
       {
@@ -1521,6 +1571,13 @@ refresh_LinuxScreen (void) {
 
     inTextMode = testTextMode();
     screenUpdated = 0;
+
+  done:
+    if (problemText) {
+      if (*fallbackText) {
+        problemText = gettext(fallbackText);
+      }
+    }
   }
 
   return 1;
@@ -1541,7 +1598,7 @@ getScreenDescription (ScreenDescription *description) {
     return 1;
   }
 
-  problemText = "can't read screen header";
+  problemText = gettext("can't read screen header");
   return 0;
 }
 
@@ -1570,46 +1627,6 @@ describe_LinuxScreen (ScreenDescription *description) {
 }
 
 static int
-getScreenRow (
-  ScreenCharacter *buffer,
-  unsigned int row, unsigned int width,
-  unsigned int offset, unsigned int count
-) {
-  const ScreenCharacter *bufferEnd = buffer + count;
-
-  {
-    ScreenCharacter characters[width];
-    if (!readScreenRow(row, width, characters, NULL)) return 0;
-
-    const ScreenCharacter *character = &characters[offset];
-    const ScreenCharacter *end = character + count;
-    int blanks = 0;
-
-    while (character < end) {
-      if ((blanks > 0) && (character->text == WC_C(' '))) {
-        blanks -= 1;
-      } else {
-        blanks = getCharacterWidth(character->text) - 1;
-        *buffer++ = *character;
-      }
-
-      character += 1;
-    }
-  }
-
-  {
-    static const ScreenCharacter character = {
-      .text = WC_C(' '),
-      .attributes = SCR_COLOUR_DEFAULT
-    };
-
-    while (buffer < bufferEnd) *buffer++ = character;
-  }
-
-  return 1;
-}
-
-static int
 readCharacters_LinuxScreen (const ScreenBox *box, ScreenCharacter *buffer) {
   ScreenSize size;
 
@@ -1621,7 +1638,12 @@ readCharacters_LinuxScreen (const ScreenBox *box, ScreenCharacter *buffer) {
       }
 
       for (unsigned int row=0; row<box->height; row+=1) {
-        if (!getScreenRow(buffer, box->top+row, size.columns, box->left, box->width)) return 0;
+        ScreenCharacter characters[size.columns];
+        if (!readScreenRow(box->top+row, size.columns, characters, NULL)) return 0;
+
+        memcpy(buffer, &characters[box->left],
+               (box->width * sizeof(characters[0])));
+
         buffer += box->width;
       }
 
@@ -2124,10 +2146,13 @@ insertTranslated (ScreenKey key, int (*insertCharacter)(wchar_t character)) {
           break;
 
         case K_METABIT:
-          if (*character < 0X80) {
-            *character |= 0X80;
-            break;
+          if (*character >= 0X80) {
+            logMessage(LOG_WARNING, "can't add meta bit to character: U+%04X", *character);
+            return 0;
           }
+
+          *character |= 0X80;
+          break;
 
         default:
           logMessage(LOG_WARNING, "unsupported keyboard meta mode: %d", meta);
@@ -2387,7 +2412,7 @@ handleCommand_LinuxScreen (int command) {
 static void
 scr_initialize (MainScreen *main) {
   initializeRealScreen(main);
-  includeGpmScreen(main);
+  gpmIncludeScreenHandlers(main);
 
   main->base.poll = poll_LinuxScreen;
   main->base.refresh = refresh_LinuxScreen;

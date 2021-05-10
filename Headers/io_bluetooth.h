@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,6 +19,7 @@
 #ifndef BRLTTY_INCLUDED_IO_BLUETOOTH
 #define BRLTTY_INCLUDED_IO_BLUETOOTH
 
+#include "strfmth.h"
 #include "async_io.h"
 
 #ifdef __cplusplus
@@ -45,8 +46,14 @@ extern void bthInitializeConnectionRequest (BluetoothConnectionRequest *request)
 extern int bthParseAddress (uint64_t *address, const char *string);
 extern int bthParseChannelNumber (uint8_t *channel, const char *string);
 
+extern STR_DECLARE_FORMATTER (bthFormatAddress, uint64_t address);
+
 extern BluetoothConnection *bthOpenConnection (const BluetoothConnectionRequest *request);
 extern void bthCloseConnection (BluetoothConnection *connection);
+extern const char *bthMakeConnectionIdentifier (BluetoothConnection *connection, char *buffer, size_t size);
+
+extern uint64_t bthGetAddress (BluetoothConnection *connection);
+extern uint8_t bthGetChannel (BluetoothConnection *connection);
 
 extern int bthMonitorInput (BluetoothConnection *connection, AsyncMonitorCallback *callback, void *data);
 extern int bthAwaitInput (BluetoothConnection *connection, int timeout);
@@ -58,6 +65,7 @@ extern ssize_t bthReadData (
 
 extern ssize_t bthWriteData (BluetoothConnection *connection, const void *buffer, size_t size);
 
+#define BLUETOOTH_DEVICE_QUALIFIER "bluetooth"
 extern int isBluetoothDeviceIdentifier (const char **identifier);
 
 #ifdef __cplusplus

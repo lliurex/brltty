@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -869,6 +869,7 @@ usbReadEndpoint (
 
           break;
         }
+        /* fall through */
 
       case UsbEndpointTransfer_Bulk:
         count = usbBulkTransfer(endpoint, buffer, length, timeout);
@@ -1069,25 +1070,27 @@ ASYNC_MONITOR_CALLBACK(usbHandleCompletedInputRequests) {
     int error = parameters->error;
 
     if (error) {
-      logActionError(error, "USBFS output monitor");
-      usbSetDeviceInputError(device, errno);
+      logActionError(error, "USBFS monitor");
+      usbSetDeviceInputError(device, error);
       return 0;
     }
   }
 
   while ((endpoint = usbReapURB(device, 0))) {
     UsbEndpointExtension *eptx = endpoint->extension;
-    struct usbdevfs_urb *urb;
 
-    while ((urb = dequeueItem(eptx->completedRequests))) {
+    while (1) {
+      struct usbdevfs_urb *urb = dequeueItem(eptx->completedRequests);
+      if (!urb) break;
       usbLogURB(urb, "reaped");
 
-      {
-        int handled = usbHandleCompletedInputRequest(endpoint, urb);
-        if (!handled) usbSetEndpointInputError(endpoint, errno);
+      int handled = usbHandleCompletedInputRequest(endpoint, urb);
+      int error = errno;
+      free(urb);
 
-        free(urb);
-        if (!handled) return 0;
+      if (!handled) {
+        usbSetEndpointInputError(endpoint, error);
+        return 0;
       }
     }
   }
@@ -1246,7 +1249,7 @@ usbMakeSysfsPath (const char *usbfsPath) {
     int count = 0;
     while (1) {
       if (tail == usbfsPath) return 0;
-      if (!isPathDelimiter(*--tail)) continue;
+      if (!isPathSeparator(*--tail)) continue;
       if (++count == 2) break;
     }
   }
@@ -1445,7 +1448,7 @@ usbGetFileSystem (const char *type, const FileSystemCandidate *candidates, Mount
     char *directory = makeWritablePath(type);
 
     if (directory) {
-      if (ensureDirectory(directory)) {
+      if (ensureDirectory(directory, 0)) {
         if (verify(directory)) return directory;
 
         {

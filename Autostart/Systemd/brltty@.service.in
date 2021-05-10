@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -23,27 +23,29 @@ Documentation=man:brltty(1)
 Documentation=@PACKAGE_URL@
 
 ConditionPathExists=%I
+RequiresMountsFor=@WRITABLE_DIRECTORY@
 RequiresMountsFor=@UPDATABLE_DIRECTORY@
-RequiresMountsFor=@api_socket_directory@
-
-Wants=systemd-udev-settle.service
-After=systemd-udev-settle.service
+RequiresMountsFor=@BRLAPI_SOCKETPATH@
 
 StopWhenUnneeded=true
 RefuseManualStart=true
-RefuseManualStop=true
 
 
 [Service]
 
+SyslogIdentifier=brltty
 Environment="BRLTTY_SYSTEMD_INSTANCE=%I"
-ExecStart=/usr/libexec/brltty-systemd-wrapper
+
+StandardInput=null
+StandardOutput=null
+StandardError=inherit
+
+PIDFile=%t/brltty/brltty-%i.pid
+Environment="BRLTTY_PID_FILE=%t/brltty/brltty-%i.pid"
 
 Type=@SYSTEMD_SERVICE_TYPE@
 Environment="BRLTTY_EXECUTABLE_ARGUMENTS=@SYSTEMD_SERVICE_ARGUMENTS@"
-
-PIDFile=%t/brltty-%i.pid
-Environment="BRLTTY_PID_FILE=%t/brltty-%i.pid"
+ExecStart=@SCRIPTS_DIRECTORY@/systemd-wrapper
 
 TimeoutStartSec=5
 TimeoutStopSec=10
@@ -54,4 +56,51 @@ RestartSec=30
 Nice=-10
 OOMScoreAdjust=-900
 
+# for playing alert tunes via the built-in PC speaker (KDMKTONE, KIOCSOUND)
+ExecStartPre=-+/sbin/modprobe pcspkr
+AmbientCapabilities=cap_sys_tty_config
+
+# for creating virtual devices
+ExecStartPre=-+/sbin/modprobe uinput
+
+# for injecting input characters typed on a braille device (TIOCSTI)
+AmbientCapabilities=cap_sys_admin
+
+# for creating needed but missing special device files
+AmbientCapabilities=cap_mknod
+
+#######################################################
+# keep these synchronized with sysusers.d/brltty.conf #
+#######################################################
+
+User=brltty
+
+# for reading screen content (/dev/vcs*)
+SupplementaryGroups=tty
+
+# for virtual console monitoring and control (/dev/tty<n>)
+SupplementaryGroups=tty
+
+# for serial I/O (/dev/ttyS<n>)
+# probably only one of these should be uncommented
+SupplementaryGroups=dialout
+#SupplementaryGroups=uucp
+
+# for USB I/o via USBFS (/dev/bus/usb/*/*)
+SupplementaryGroups=root
+
+# for playing sound via the ALSA framework
+SupplementaryGroups=audio
+
+# for playing sound via the Pulse Audio daemon
+SupplementaryGroups=pulse-access
+
+# for monitoring keyboard input (/dev/input/*)
+SupplementaryGroups=input
+
+# for creating virtual devices (/dev/uinput or /dev/input/uinput)
+SupplementaryGroups=root
+
+# for reading the BrlAPI authorization key file
+SupplementaryGroups=brlapi
 

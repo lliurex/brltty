@@ -5,4 +5,5 @@ bindings.$O: $(SRC_TOP)Headers/common_java.h
 bindings.$O: $(BLD_TOP)Programs/brlapi.h
 bindings.$O: $(BLD_TOP)Programs/brlapi_constants.h
 bindings.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+bindings.$O: $(SRC_TOP)Programs/brlapi_param.h
 

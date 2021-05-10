@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -195,7 +195,8 @@ renderStatusField_generic (unsigned char *cells) {
   cells[gscScreenNumber] = scr.number;
   cells[gscFrozenScreen] = isSpecialScreen(SCR_FROZEN);
   cells[gscDisplayMode] = ses->displayMode;
-  cells[gscTextStyle] = prefs.textStyle;
+  cells[gscSixDotBraille] = isSixDotBraille();
+  cells[gscContractedBraille] = isContractedBraille();
   cells[gscSlidingBrailleWindow] = prefs.slidingBrailleWindow;
   cells[gscSkipIdenticalLines] = prefs.skipIdenticalLines;
   cells[gscSkipBlankBrailleWindows] = prefs.skipBlankBrailleWindows;
@@ -210,7 +211,7 @@ renderStatusField_generic (unsigned char *cells) {
   cells[gscAlertTunes] = prefs.alertTunes;
   cells[gscAutorepeat] = prefs.autorepeatEnabled;
   cells[gscAutospeak] = prefs.autospeak;
-  cells[gscBrailleInputMode] = prefs.brailleInputMode;
+  cells[gscBrailleTypingMode] = prefs.brailleTypingMode;
 }
 
 typedef struct {

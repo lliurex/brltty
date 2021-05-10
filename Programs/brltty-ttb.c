@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -93,7 +93,7 @@ showUndefinedCharacters (TextTableData *ttd) {
         if (character == UNICODE_REPLACEMENT_CHARACTER) continue;
         if ((character & ~UNICODE_CELL_MASK) == UNICODE_BRAILLE_ROW) continue;
 
-        if (!getUnicodeCellEntry(ttd, character)) {
+        if (!getUnicodeCell(ttd, character)) {
           const TextTableHeader *header = getTextTableHeader(ttd);
 
           const TextTableAliasEntry *alias = locateTextTableAlias(
@@ -142,8 +142,8 @@ static int opt_undefined;
 #endif /* HAVE_UNDEFINED_CHARACTERS_SUPPORT */
 
 BEGIN_OPTION_TABLE(programOptions)
-  { .letter = 'T',
-    .word = "tables-directory",
+  { .word = "tables-directory",
+    .letter = 'T',
     .flags = OPT_Hidden,
     .argument = "directory",
     .setting.string = &opt_tablesDirectory,
@@ -152,36 +152,36 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("Path to directory containing text tables.")
   },
 
-  { .letter = 'e',
-    .word = "edit",
+  { .word = "edit",
+    .letter = 'e',
     .setting.flag = &opt_edit,
     .description = strtext("Edit table.")
   },
 
-  { .letter = 'i',
-    .word = "input-format",
+  { .word = "input-format",
+    .letter = 'i',
     .argument = "format",
     .setting.string = &opt_inputFormat,
     .description = strtext("Format of input file.")
   },
 
-  { .letter = 'o',
-    .word = "output-format",
+  { .word = "output-format",
+    .letter = 'o',
     .argument = "format",
     .setting.string = &opt_outputFormat,
     .description = strtext("Format of output file.")
   },
 
-  { .letter = 'c',
-    .word = "charset",
+  { .word = "charset",
+    .letter = 'c',
     .argument = "charset",
     .setting.string = &opt_charset,
     .description = strtext("8-bit character set to use.")
   },
 
 #ifdef HAVE_UNDEFINED_CHARACTERS_SUPPORT
-  { .letter = 'u',
-    .word = "undefined",
+  { .word = "undefined",
+    .letter = 'u',
     .setting.flag = &opt_undefined,
     .description = strtext("Report the characters within the current screen font that aren't defined within the text table.")
   },
@@ -220,7 +220,7 @@ typedef int AliasWriter (FILE *file, const TextTableAliasEntry *alias, const voi
 
 static int
 getDots (TextTableData *ttd, wchar_t character, unsigned char *dots) {
-  const unsigned char *cell = getUnicodeCellEntry(ttd, character);
+  const unsigned char *cell = getUnicodeCell(ttd, character);
   if (!cell) return 0;
   *dots = *cell;
   return 1;
@@ -351,7 +351,7 @@ writeCharacters (FILE *file, TextTableData *ttd, CharacterWriter writer, const v
       wint_t character = convertCharToWchar(byte);
 
       if (character != WEOF) {
-        const unsigned char *cell = getUnicodeCellEntry(ttd, character);
+        const unsigned char *cell = getUnicodeCell(ttd, character);
 
         if (cell) {
           int isPrimary = isPrimaryCharacter(ttd, character, *cell);
@@ -785,8 +785,8 @@ writeCharacter_leftrighthalf_XCompose (
   const unsigned char *byte, int isPrimary, const void *_data
 ) {
   if (isPrimary) {
-    unsigned char leftDots = getLeftDots(dots);
-    unsigned char rightDots = getRightDots(dots);
+    unsigned char leftDots = brlGetLeftDots(dots);
+    unsigned char rightDots = brlGetRightDots(dots);
 
     if (!writeCharacter_half_XCompose(file, character, leftDots, rightDots)) return 0;
     if (!leftDots)
@@ -820,8 +820,8 @@ writeCharacter_lefthalf_XCompose (
   const unsigned char *byte, int isPrimary, const void *_data
 ) {
   if (isPrimary) {
-    unsigned char leftDots = getLeftDots(dots);
-    unsigned char rightDots = getRightDotsToLeftDots(dots);
+    unsigned char leftDots = brlGetLeftDots(dots);
+    unsigned char rightDots = brlGetRightDotsToLeftDots(dots);
 
     if (!writeCharacter_half_XCompose(file, character, leftDots, rightDots)) return 0;
   }
@@ -842,13 +842,40 @@ error:
 }
 
 static int
+writeCharacter_lefthalfalt_XCompose (
+  FILE *file, wchar_t character, unsigned char dots,
+  const unsigned char *byte, int isPrimary, const void *_data
+) {
+  if (isPrimary) {
+    unsigned char leftDots = brlGetLeftDots(dots);
+    unsigned char rightDots = brlGetRightDotsToLeftDotsAlt(dots);
+
+    if (!writeCharacter_half_XCompose(file, character, leftDots, rightDots)) return 0;
+  }
+
+  return 1;
+}
+
+static int
+writeTable_lefthalfalt_XCompose (
+  const char *path, FILE *file, TextTableData *ttd, const void *data
+) {
+  if (!writeHeaderComment(file, writeHashComment)) goto error;
+  if (!writeCharacters(file, ttd, writeCharacter_lefthalfalt_XCompose, NULL)) goto error;
+  return 1;
+
+error:
+  return 0;
+}
+
+static int
 writeCharacter_righthalf_XCompose (
   FILE *file, wchar_t character, unsigned char dots,
   const unsigned char *byte, int isPrimary, const void *_data
 ) {
   if (isPrimary) {
-    unsigned char leftDots = getLeftDotsToRightDots(dots);
-    unsigned char rightDots = getRightDots(dots);
+    unsigned char leftDots = brlGetLeftDotsToRightDots(dots);
+    unsigned char rightDots = brlGetRightDots(dots);
 
     if (!writeCharacter_half_XCompose(file, character, leftDots, rightDots)) return 0;
   }
@@ -862,6 +889,33 @@ writeTable_righthalf_XCompose (
 ) {
   if (!writeHeaderComment(file, writeHashComment)) goto error;
   if (!writeCharacters(file, ttd, writeCharacter_righthalf_XCompose, NULL)) goto error;
+  return 1;
+
+error:
+  return 0;
+}
+
+static int
+writeCharacter_righthalfalt_XCompose (
+  FILE *file, wchar_t character, unsigned char dots,
+  const unsigned char *byte, int isPrimary, const void *_data
+) {
+  if (isPrimary) {
+    unsigned char leftDots = brlGetLeftDotsToRightDotsAlt(dots);
+    unsigned char rightDots = brlGetRightDots(dots);
+
+    if (!writeCharacter_half_XCompose(file, character, leftDots, rightDots)) return 0;
+  }
+
+  return 1;
+}
+
+static int
+writeTable_righthalfalt_XCompose (
+  const char *path, FILE *file, TextTableData *ttd, const void *data
+) {
+  if (!writeHeaderComment(file, writeHashComment)) goto error;
+  if (!writeCharacters(file, ttd, writeCharacter_righthalfalt_XCompose, NULL)) goto error;
   return 1;
 
 error:
@@ -1034,8 +1088,16 @@ static const FormatEntry formatEntries[] = {
     .write = writeTable_lefthalf_XCompose,
   },
 
+  { .name = "lefthalfalt-XCompose",
+    .write = writeTable_lefthalfalt_XCompose,
+  },
+
   { .name = "righthalf-XCompose",
     .write = writeTable_righthalf_XCompose,
+  },
+
+  { .name = "righthalfalt-XCompose",
+    .write = writeTable_righthalfalt_XCompose,
   },
 
   { .name = "jbt",
@@ -1654,7 +1716,7 @@ findCharacter (EditTableData *etd, int backward) {
         wint_t wc = convertCharToWchar(byte);
 
         if (wc != WEOF) {
-          if (getUnicodeCellEntry(etd->ttd, wc)) {
+          if (getUnicodeCell(etd->ttd, wc)) {
             etd->character.byte = byte;
             return 1;
           }
@@ -1803,7 +1865,7 @@ toggleCharacter (EditTableData *etd) {
   if (!getCharacter(etd, &character)) return 0;
 
   {
-    const unsigned char *cell = getUnicodeCellEntry(etd->ttd, character);
+    const unsigned char *cell = getUnicodeCell(etd->ttd, character);
     if (cell && !*cell) {
       unsetTextTableCharacter(etd->ttd, character);
     } else if (!setTextTableCharacter(etd->ttd, character, 0)) {
@@ -1820,7 +1882,7 @@ toggleDot (EditTableData *etd, unsigned char dot) {
   wchar_t character;
 
   if (getCharacter(etd, &character)) {
-    const unsigned char *cell = getUnicodeCellEntry(etd->ttd, character);
+    const unsigned char *cell = getUnicodeCell(etd->ttd, character);
     unsigned char dots = cell? *cell: 0;
 
     if (setTextTableCharacter(etd->ttd, character, dots^dot)) {

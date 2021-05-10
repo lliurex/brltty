@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -29,8 +29,9 @@ extern "C" {
 
 #define STR_BEGIN(buffer, size) { \
 char *strNext = (buffer); \
-char *const strStart = strNext; \
-char *const strEnd = strStart + (size); \
+const char *const strStart = strNext; \
+const char *const strEnd = strStart + (size); \
+const char *const strLast = strEnd - 1; \
 *strNext = 0;
 
 #define STR_END }
@@ -44,7 +45,7 @@ char *const strEnd = strStart + (size); \
 #define STR_POP() ((strNext > strStart)? --strNext: NULL)
 
 #define STR_ADJUST(length) \
-do { if ((strNext += (length)) > strEnd) strNext = strEnd; } while (0)
+do { if ((strNext += (length)) > strLast) strNext = (char *)strLast; } while (0)
 
 #define STR_BEGIN_FORMATTER(name, ...) \
 STR_DECLARE_FORMATTER(name, __VA_ARGS__) { \

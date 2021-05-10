@@ -1,0 +1,1010 @@
+~~~~~~~~~~~~~~~
+BRLTTY on Linux
+~~~~~~~~~~~~~~~
+
+.. include:: prologue.rst
+
+.. |super user| replace:: ``root``
+.. |recommended user| replace:: ``brltty``
+.. |user information text| replace:: Braille Device Daemon
+.. |nologin shell path| replace:: ``/sbin/nologin``
+.. |safe shell path| replace:: ``/bin/sh``
+.. |safe command search path| replace:: ``/usr/sbin:/sbin:/usr/bin:/bin``
+
+.. |sockets directory name| replace:: ``BrlAPI``
+.. |updatable directory name| replace:: ``brltty``
+.. |writable directory name| replace:: ``brltty``
+
+.. |configuration file path| replace:: ``/etc/brltty.conf``
+.. |key file path| replace:: ``/etc/brlapi.key``
+
+.. |sockets directory path| replace:: ``/var/lib/BrlAPI/``
+.. |updatable directory path| replace:: ``/var/lib/brltty/``
+.. |writable directory path| replace:: ``/var/run/brltty/``
+
+.. |the super user| replace:: the super user (|super user|)
+.. |user information field| replace:: user information (gecos) field
+.. |configuration directive| replace:: configuration directive (in |configuration file path|)
+.. |environment variable| replace:: environment variable (if the ``-E`` command line option has been specified)
+.. |configure option| replace:: configure option (at build time)
+.. |speaker| replace:: built-in PC speaker
+.. |uinput device| replace:: ``uinput`` device (``/dev/uinput`` or ``/dev/input/uinput``)
+.. |key file| replace:: authorization key file (usually |key file path|)
+.. |sockets directory| replace:: sockets directory (usually |sockets directory path|)
+.. |updatable directory| replace:: updatable directory (usually |updatable directory path|)
+.. |writable directory| replace:: writable directory (usually |writable directory path|)
+
+.. |keyboard key tables| replace::
+  keyboard key tables
+  (which allow keyboard key combinations to be bound
+  to BRLTTY's navigation and configuration commands)
+
+.. |cap_setgid| replace:: *cap_setgid*
+.. |cap_chown| replace:: *cap_chown*
+.. |cap_fowner| replace:: *cap_fowner*
+.. |cap_dac_override| replace:: *cap_dac_override*
+.. |cap_sys_module| replace:: *cap_sys_module*
+.. |cap_sys_admin| replace:: **cap_sys_admin**
+.. |cap_sys_tty_config| replace:: **cap_sys_tty_config**
+.. |cap_mknod| replace:: **cap_mknod**
+
+.. |cap_setgid reason| replace:: switching to the primary group of `the unprivileged user`_ and establishing the `needed group memberships`_
+.. |cap_chown reason| replace:: claiming ownership of the `state directories`_
+.. |cap_fowner reason| replace:: adding group permissions to the `state directories`_
+.. |cap_dac_override reason| replace:: creating missing `state directories`_
+.. |cap_sys_module reason| replace:: installing the needed `kernel modules`_
+.. |cap_sys_admin reason| replace:: injecting input characters
+.. |cap_sys_tty_config reason| replace:: using the |speaker|
+.. |cap_mknod reason| replace:: creating needed but missing device files
+
+Least Privilege
+===============
+
+When BRLTTY starts executing as |the super user|,
+i.e. when its initial effective user identifier is 0,
+it has unrestricted access to all of the privileged operations
+that the host has to offer.
+While we always endeavour to ensure that BRLTTY isn't abusing this freedom,
+we also don't feel that it's worth risking the possibility
+that our code might be hacked.
+To reduce this possibility, therefore, BRLTTY first
+establishes a `safer execution environment`_ within which It only has
+access to those `privileged host operations`_ that it actually needs.
+This is a best security practice known as **least privilege**.
+
+Safer Execution Environment
+---------------------------
+
+When Started by the Super User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+BRLTTY takes a number of steps to establish a safer execution environment:
+
+* Set a `safe command search path`_.
+* Set a `safe default shell`_.
+* `Namespace isolation`_.
+* Switch to executing as `the unprivileged user`_.
+* Install the needed `kernel modules`_.
+* Establish the `needed group memberships`_.
+* Set its `required capabilities`_.
+* Relinquish all non-required capabilities.
+* Install the `system call filter`_.
+
+The Unprivileged User
+`````````````````````
+
+When BRLTTY starts executing as |the super user|,
+one of the first things it does is switch
+to executing as an unprivileged user.
+The user is selected as follows:
+
+Explicit Specification
+  This method is only allowed when BRLTTY was started as |the super user|.
+  It may be specified via the ``user`` `privilege parameter`_.
+  If it isn't explicitly specified,
+  or if there's a problem:
+
+  * The user doesn't exist.
+
+  * The specification is ignored because
+    BRLTTY wasn't started as |the super user|.
+
+  then the default user is selected.
+
+The Default
+  The default unprivileged user is the one specified at build time
+  via the ``lx:user=`` parameter
+  of the ``--with-privilege-parameters`` option
+  of BRLTTY's ``configure`` command.
+  If there's a problem:
+
+  * The user doesn't exist.
+  * BRLTTY wasn't configured to have a default unprivileged user.
+
+  then BRLTTY continues to execute as |the super user|.
+
+Continuing to Run as the Super User
+  This is the last resort!
+  In this case:
+
+  * BRLTTY still establishes the rest of its `safer execution environment`_.
+
+  * Establishing the `needed group memberships`_ replaces
+    (rather than extends) the supplementary group list.
+
+After having successfully switched to executing as an unprivileged user,
+the following is done:
+
+* Ensure that all of the user identifiers
+  (real, effective, saved, filesystem)
+  are set to the selected user.
+
+* Ensure that all of the group identifiers
+  (real, effective, saved, filesystem)
+  are set to the primary group of the selected user.
+
+* If any of the following environment variables is set
+  then reset it to the name of the selected user:
+
+  + LOGNAME
+  + USER
+
+* Ensure that the following environment variables aren't set:
+
+  + XDG_CONFIG_HOME
+  + XDG_DATA_DIRS
+
+* Change the XDG runtime directory
+  (set the ``XDG_RUNTIME_DIR`` environment variable)
+  to that of the selected user.
+
+* Extend the supplementary group list with the `needed group memberships`_.
+
+* If the selected user's home directory is defined then switch to it by:
+
+  * Changing the working directory.
+  * Setting the ``HOME`` environment variable.
+
+  The |updatable directory| is used instead if:
+
+  * The user's home directory isn't defined.
+  * BRLTTY is unable to switch to the user's home directory.
+  * BRLTTY had to continue executing as |the super user|.
+
+State Directories
+`````````````````
+
+A state directory is one which a program needs to be able to write data to.
+BRLTTY's state directories are:
+
+|sockets directory|
+  This directory is where BRLTTY creates BrlAPI's
+  local (UNIX domain) server sockets.
+  It needs to be world writable, and, as such,
+  should also have its sticky bit set.
+  So:
+
+  .. parsed-literal:: chmod ugo=rwx,o+t *path*
+
+|updatable directory|
+  This directory is where BRLTTY saves user data.
+  This includes:
+
+  * preferences files
+  * clipboard content
+
+|writable directory|
+  This directory is where BRLTTY creates private copies of
+  file system objects that it needs but
+  that don't already exist (or, at least, that it can't find),
+  or that are inaccessible (can't be opened).
+  It's also where, if requested, BRLTTY creates its input FIFO
+  (which allows users to take advantage of its text-to-speech capability).
+
+The actual locations of these directories can be specified in a number of ways.
+From highest to lowest precedence, they are:
+
+* command line option
+* |configuration directive|
+* |environment variable|
+* default location (can be changed with ``configure`` at build time)
+
+.. table:: State Directory Location Specification
+
+  =========  ======  ===================  ==========================  ==========================
+  Directory  Option  Config Directive     Environment Variable        Default Location
+  ---------  ------  -------------------  --------------------------  --------------------------
+  Sockets                                                             |sockets directory path|
+  Updatable  -U      updatable-directory  BRLTTY_UPDATABLE_DIRECTORY  |updatable directory path|
+  Writable   -W      writable-directory   BRLTTY_WRITABLE_DIRECTORY   |writable directory path|
+  =========  ======  ===================  ==========================  ==========================
+
+After having successfully switched to executing as `the unprivileged user`_,
+BRLTTY attempts to gain full access to its state directories.
+The most common case where this is necessary is
+to automate the transition from an older release of BRLTTY
+from the days when it had to execute as |the super user|.
+Another (much rarer) case would be
+when transitioning from one unprivileged user to another.
+
+The main reason that BRLTTY does this job is
+that it's extremely difficult for a blind user to figure out what's wrong
+before his/her braille device is up and running.
+Put another way, it can be near impossible for a braille user to figure out
+why BRLTTY is having problems while BRLTTY is having problems.
+
+The following actions are taken for each of the state directories:
+
+* If it doesn't exist then it is created.
+  This usually requires the |cap_dac_override| (temporary) capability
+  because it's usually a subdirectory of a directory
+  that can only be written to by |the super user|,
+  e.g. ``/var/lib/``.
+
+* Its owning user and group are changed to be
+  the user and the primary group of the user
+  that BRLTTY Is executing as.
+  The same change is also made to whatever the directory contains.
+  This requires the |cap_chown| (temporary) capability
+  for a directory or file that's owned by a different user.
+
+* Group read and write permissions are added to it
+  and to whatever it contains.
+  For directories, group search permission is also added
+  and the set-group-ID bit is set.
+  This requires the |cap_fowner| (temporary) capability
+  for a directory or file that's owned by a different user.
+
+Gaining full access to a state directory is only attempted
+if the last component of its path is its expected name:
+
+.. table:: Expected State Directory Names
+
+  =========  ==========================
+  Directory  Expected Name
+  ---------  --------------------------
+  Sockets    |sockets directory name|
+  Updatable  |updatable directory name|
+  Writable   |writable directory name|
+  =========  ==========================
+
+This is a protective measure, given that command line options, etc
+can be used to change the location of a state directory
+to a non-BRLTTY-specific location.
+It prevents BRLTTY from Attempting to gain full access
+to another program's data, or, even worse, to a public directory.
+If it's really necessary to use such a directory
+then it's far better to let a human being take care of it.
+
+When Started by an Unprivileged User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+BRLTTY, as of release 6.2, can be started
+by an unprivileged user (not |super user|).
+Use cases for this include system administrators or users
+who'd like BRLTTY to be startable
+by any user, by users who belong to a specific group, etc.
+
+In order for an unprivileged user to successfully start BRLTTY,
+the environment needs to be prepared as follows:
+
+* Assign the `required capabilities`_ to BRLTTY's executable.
+
+* Give the user that's to be able to start BRLTTY
+  the `needed group memberships`_.
+  This isn't necessary, i.e. BRLTTY will join them by itself,
+  if the |cap_setgid| (temporary) capability
+  has also been assigned to its executable.
+  In this case, BRLTTY will extend the supplementary group list
+  that it inherited from the user with any needed groups that are missing.
+
+* Install the needed `kernel modules`_.
+  This isn't necessary, i.e. BRLTTY will install them by itself,
+  if the |cap_sys_module| (temporary) capability
+  has also been assigned to its executable.
+
+* Ensure that BRLTTY's `state directories`_
+  have been created,
+  have the correct ownership,
+  and have the correct permissions.
+  Each of these prerequisites isn't necessary,
+  i.e. BRLTTY will take care of it by itself,
+  if the associated (temporary) capability
+  has also been assigned to its executable.
+  They are:
+
+  .. table:: Temporary Capabilities for State Directory Prerequisites
+
+    ============  ====================
+    Prerequisite  Temporary Capability
+    ------------  --------------------
+    creation      |cap_dac_override|
+    ownership     |cap_chown|
+    permissions   |cap_fowner|
+    ============  ====================
+
+.. _privilege parameter:
+
+Privilege Parameters
+~~~~~~~~~~~~~~~~~~~~
+
+Privilege parameters control how BRLTTY establishes
+its `safer execution environment`_.
+From highest to lowest precedence, they can be specified via:
+
+* The ``--privilege-parameters`` (or ``-z``) command line option.
+* The ``privilege-parameters`` |configuration directive|.
+* The ``BRLTTY_PRIVILEGE_PARAMETERS`` |environment variable|.
+* The ``--with-privilege-parameters`` |configure option|.
+
+Each of these takes a comma-separated list of parameters in the form::
+
+  platform:name=value
+
+The ``platform:`` part is optional -
+if it's omitted then the parameter setting applies on all platforms.
+It's best, therefore, to always include it.
+The platform code for Linux is ``lx``.
+
+The command line option can be specified any number of times.
+Likewise, the configuration directive can be specified any number of times.
+Additional specifications extend, rather than replace, the parameter list.
+The same parameter specified later at the same level of precedence,
+or at a higher level of precedence, overrides its earlier setting.
+
+The following privilege parameters are supported for Linux:
+
+``path``
+  This parameter sets the `safe command search path`_.
+  No attempt is made to validate it.
+
+``scfmode``
+  This parameter sets the mode of the `system call filter`_.
+  The supported modes are:
+
+  ``no``
+    Don't install the filter.
+    This is the default.
+
+  ``log``
+    Log each unapproved system call to ``syslog``.
+    It's still executed.
+
+  ``fail``
+    Each unapproved system call fails with ``errno`` set to ``EPERM``
+    (operation not permitted).
+
+  ``kill``
+    An attempt to execute an unapproved system call
+    causes the entire BRLTTY process to be killed.
+
+``shell``
+  This parameter sets the path to the `safe default shell`_.
+  No attempt is made to validate it.
+
+``user``
+  This parameter sets `the unprivileged user`_.
+
+Staying Privileged
+~~~~~~~~~~~~~~~~~~
+
+If the ``--stay-privileged`` (or ``-Z``) command line option is specified
+then BRLTTY will retain all of the privileges
+that it had when it was invoked.
+It won't:
+
+* Switch to an unprivileged user
+  (i.e. it'll continue to execute as the invoking user).
+
+* Relinquish any group memberships.
+  Missing `needed group memberships`_ are, if possible, still established.
+
+* Relinquish any capabilities.
+  Missing `required capabilities`_ are, if possible, still acquired.
+
+Safe Command Search Path
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A safe command search path is established
+by setting the ``PATH`` environment variable
+to a system-configured set of safe directories.
+You can find out which ones they are by running this command::
+
+  getconf PATH
+
+If, for some reason, the system-configured path isn't available
+then |safe command search path| is used.
+
+The path can be explicitly set
+via the ``path`` `privilege parameter`_.
+
+Safe Default Shell
+~~~~~~~~~~~~~~~~~~
+
+A safe default shell for external software to assume
+is established by setting the ``SHELL`` environment variable
+to |safe shell path|.
+On many systems, this is the Bourne Shell.
+On others, it's a symbolic link to some other shell.
+To find out what it is on your system, run this command:
+
+.. parsed-literal:: ls -l |safe shell path|
+
+Note that scripts usually internally specify which shell is to be used.
+
+The default shell can be explicitly set
+via the ``shell`` `privilege parameter`_.
+
+Namespace Isolation
+~~~~~~~~~~~~~~~~~~~
+
+BRLTTY isolates some of the kernel namespaces
+that are associated with its process.
+The namespaces that it currently isolates are:
+
+cgroup
+  This namespace is used to manage control groups.
+
+mount
+  This namespace is used to manage mount points.
+
+UTS
+  This namespace is used to manage the host name and the NIS domain name.
+
+System Call Filter
+~~~~~~~~~~~~~~~~~~
+
+The kernel provides a system call filter,
+known as ``seccomp`` (secure computing),
+that verifies that only an approved set of system calls is being used.
+The default is that BRLTTY doesn't actually use it
+because, by nature, using a system call filter
+makes a program somewhat fragile.
+Reasons for this include:
+
+* The various object libraries that BRLTTY relies on, e.g. ``libc``,
+  might change which system calls they use from one release to the next.
+
+* The filter is also applied to any external software,
+  e.g. text-to-speech engines,
+  that BRLTTY uses.
+
+Even though the default is that BRLTTY doesn't use the filter,
+access to it is still provided for those users or administrators who prefer
+to avail themselves of the additional protection that it offers.
+Use the ``scfmode`` `privilege parameter`_ to specify how BRLTTY uses it.
+
+* Specify ``log`` if you'd like BRLTTY to continue executing normally
+  but to also record any unapproved system calls in the system log.
+
+* Specify ``fail`` if you'd like unapproved system calls to fail,
+  with BRLTTY attempting to handle those failures.
+  Note that, while BRLTTY endeavours to handle such failures well,
+  external software that it uses might not.
+
+* Specify ``kill`` if you'd like an unapproved system call
+  to cause the entire BRLTTY process to be summarily killed.
+
+Installing the filter also includes configuring BRLTTY's process
+so that no external command that it subsequently invokes
+will be able to acquire any additional privileges.
+See the ``PR_SET_NO_NEW_PRIVS`` section of the man page for ``prctl``
+for details.
+The quick summary is that, when executing any host command:
+
+* It's set-user-ID bit will be ignored.
+* It's set-group-ID bit will be ignored.
+* It's file capabilities will be ignored.
+
+The current list of approved system calls
+is in the ``syscalls_linux.h`` header,
+which is in the ``Programs/`` subdirectory of BRLTTY's source tree.
+BRLTTY must be rebuilt in order for changes to the list to become effective.
+Please let us know if you discover any system calls
+that are missing and should be added.
+
+Preparing the Environment
+-------------------------
+
+Creating the Unprivileged User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend that `the unprivileged user`_ be named |recommended user|,
+and that it be a system user.
+
+The user's primary group should be user-specific.
+Ideally, it should have the same name as the user.
+
+The user's supplementary group list should include
+all of the groups that own the various system resources
+that BRLTTY needs access to in order for it to do its job properly.
+See `Needed Group Memberships`_ for details.
+
+The user should have a home directory.
+It should be on a local file system
+so that BRLTTY can start properly when there are network problems.
+
+There's normally no need for anyone to log into the user.
+This can be enforced by setting its login shell to |nologin shell path|.
+
+The |user information field| should be set
+to a user-friendly description of why it exists.
+We recommend something like:
+
+.. parsed-literal:: |user information text|
+
+The ``useradd`` Command
+```````````````````````
+
+The host command to create a user is:
+
+.. parsed-literal:: useradd *option* ... *name*
+
+It must be run as |the super user|.
+
+It accepts a lot of options.
+For all of the details, run this command::
+
+  man useradd
+
+Unless there are special and/or unusual considerations,
+its most important options are:
+
+.. table:: ``useradd`` Options
+
+  ========================  ========================================
+  Option                    Action
+  ------------------------  ----------------------------------------
+  ``--system``              create a system user
+  ``--user-group``          create a user-specific primary group
+  ``--gid`` *group*         set the primary group
+  ``--groups`` *group*,...  set the supplementary group list
+  ``--no-create-home``      don't create the home directory
+  ``--create-home``         create the home directory
+  ``--home`` *path*         the absolute path for the home directory
+  ``--comment`` *text*      set the |user information field|
+  ``--shell`` *path*        set the login shell
+  ========================  ========================================
+
+The ``brltty-mkuser`` Script
+````````````````````````````
+
+The top-level directory of BRLTTY's source tree contains
+a script named ``brltty-mkuser`` that simplifies the job of
+Creating and making changes to `the unprivileged user`_.
+For details, run this command::
+
+  brltty-mkuser -h
+
+The following options require special mention:
+
+``-U`` *name*
+  This option specifies the name of the user
+  that's to be created or changed.
+  If the default unprivileged user was configured at build time
+  then It defaults to that user.
+
+``-N``
+  This option allows the creation of a new user.
+
+``-E``
+  This option allows changes to be made to an existing user.
+
+``-G``
+  This option suppresses setting the user's supplementary group list.
+  A new user won't belong to any supplementary groups,
+  and an existing user will retain its current supplementary group memberships.
+
+Note that this script is safe to accidentally invoke because
+both creating a new user (``-N``)
+and making changes to an existing user (``-E``)
+must be explicitly allowed.
+These options aren't mutually exclusive - both may be specified.
+
+The user's supplementary group list is used
+to establish the `needed group memberships`_.
+Each of the following options removes a group from the full list,
+and, therefore, also removes that group's associated functionality from BRLTTY.
+If a group's name is shown in *italics* then it's only our recommendation
+as its actual name isn't defined by any standard or convention.
+
+.. table:: ``brltty-mkuser`` Options for Excluding Supplementary Groups
+
+  ======  ================  ========================================
+  Option  Removes Group     Lost Functionality
+  ------  ----------------  ----------------------------------------
+  ``-a``  ``audio``         playing sound via the ALSA framework
+  ``-b``  *brlapi*          reading BrlAPI's |key file|
+  ``-c``  ``tty``           access to the virtual consoles
+  ``-k``  ``input``         keyboard monitoring
+  ``-p``  ``pulse-access``  playing sound via the Pulse Audio server
+  ``-s``  *dialout*         access to serial devices
+  ``-u``  usually ``root``  access to USB devices
+  ======  ================  ========================================
+
+The following options are for configuring
+the basic (password file) fields of the user:
+
+.. table:: ``brltty-mkuser`` Options for New / Existing User Configuration
+
+  ======  =======  ============================
+  Option  Operand  Sets / Changes
+  ------  -------  ----------------------------
+  ``-d``  *path*   the home directory
+  ``-g``  *group*  the primary group
+  ``-i``  *text*   the |user information field|
+  ``-l``  *path*   the login shell
+  ======  =======  ============================
+
+If any of these options isn't specified, then:
+
+* When making changes to an existing user, it has no effect.
+  Its associated field isn't changed.
+
+* When creating a new user, the defaults are:
+
+  .. table:: ``brltty-mkuser`` Defaults for New User Configuration
+
+    ======  ====================================================
+    Option  Default When creating a New User
+    ------  ----------------------------------------------------
+    ``-d``  the updatable directory (|updatable directory path|)
+    ``-g``  a new group with the same name as the user
+    ``-i``  |user information text|
+    ``-l``  |nologin shell path|
+    ======  ====================================================
+
+The following options are primarily for developers:
+
+.. table:: ``brltty-mkuser`` Options for Developers
+
+  ======  ====================================================
+  Option  Description
+  ------  ----------------------------------------------------
+  ``-S``  use ``sudo`` to execute the commands as root
+  ``-T``  test mode - show the commands that would be executed
+  ======  ====================================================
+
+Assigning Capabilities to the Executable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Don't do this if you only want BRLTTY to execute successfully
+`when started as the super user`_.**
+
+First, here's a summary of all of the capabilities that BRLTTY needs
+`when started by an unprivileged user`_.
+
+* The `required capabilities`_ are highlighted **this way**.
+  They're needed throughout BRLTTY's execution.
+
+* The `temporary capabilities`_ are highlighted *this way*.
+  They're only needed when BRLTTY starts,
+  and are relinquished when they're no longer needed.
+
+.. table:: Capability Summary
+
+  ====================  ===========================
+  Capability            Reason
+  --------------------  ---------------------------
+  |cap_chown|           |cap_chown reason|
+  |cap_dac_override|    |cap_dac_override reason|
+  |cap_fowner|          |cap_fowner reason|
+  |cap_mknod|           |cap_mknod reason|
+  |cap_setgid|          |cap_setgid reason|
+  |cap_sys_admin|       |cap_sys_admin reason|
+  |cap_sys_module|      |cap_sys_module reason|
+  |cap_sys_tty_config|  |cap_sys_tty_config reason|
+  ====================  ===========================
+
+The ``setcap`` Command
+``````````````````````
+
+The host command to assign all of the capabilities,
+i.e. both the `required capabilities`_ and the `temporary capabilities`_,
+to BRLTTY's executable
+so that it'll be fully functional `when started by an unprivileged user`_,
+without requiring any additional administrator configuration,
+is::
+
+  setcap cap_setgid,cap_chown,cap_fowner,cap_dac_override,cap_sys_module,cap_sys_admin,cap_sys_tty_config,cap_mknod+p /path/to/brltty
+
+It must be run as |the super user|.
+
+The ``brltty-setcaps`` Script
+`````````````````````````````
+
+The top-level directory of BRLTTY's source tree contains
+a script named ``brltty-setcaps`` that simplifies the job of
+`assigning capabilities to the executable`_.
+Its default is to assign all of them.
+For details, run this command::
+
+  brltty-setcaps -h
+
+It requires one positional argument - the path to BRLTTY's executable.
+It also accepts a number of options (which must precede that path).
+In particular, each of the following options
+removes a capability from the full set,
+and, therefore, also removes the functionality
+that that capability grants from BRLTTY.
+
+.. table:: ``brltty-setcaps`` Options for Excluding Capabilities
+
+  ======  ====================  ===========================
+  Option  Removes Capability    Lost Functionality
+  ------  --------------------  ---------------------------
+  ``-c``  |cap_dac_override|    |cap_dac_override reason|
+  ``-d``  |cap_mknod|           |cap_mknod reason|
+  ``-g``  |cap_setgid|          |cap_setgid reason|
+  ``-i``  |cap_sys_admin|       |cap_sys_admin reason|
+  ``-m``  |cap_sys_module|      |cap_sys_module reason|
+  ``-o``  |cap_chown|           |cap_chown reason|
+  ``-p``  |cap_fowner|          |cap_fowner reason|
+  ``-s``  |cap_sys_tty_config|  |cap_sys_tty_config reason|
+  ======  ====================  ===========================
+
+The following options are primarily for developers:
+
+.. table:: ``brltty-setcaps`` Options for Developers
+
+  ======  ====================================================
+  Option  Description
+  ------  ----------------------------------------------------
+  ``-C``  don't set the capabilities
+  ``-G``  set group root execution
+  ``-S``  use ``sudo`` to execute the commands as root
+  ``-T``  test mode - show the commands that would be executed
+  ``-U``  set user root execution
+  ======  ====================================================
+
+Privileged Host Operations
+--------------------------
+
+The privileged host operations that BRLTTY needs to be able to perform
+in order to be fully functional are:
+
+Kernel Modules
+~~~~~~~~~~~~~~
+
+BRLTTY relies on functionality provided by these kernel modules:
+
+**pcspkr**
+  For playing alert tunes via the |speaker|.
+
+**uinput**
+  For creating virtual devices via the |uinput device|.
+
+Needed Group Memberships
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+BRLTTY relies on file system and server (daemon) access
+granted via membership in the following owning user groups.
+
+* A group name shown in **bold** is its actual name.
+
+* A group name shown in *italics* is our recommended name for it
+  as its actual name isn't defined by any standard or convention.
+
+**audio**
+  For playing sound via the ALSA framework.
+
+*brlapi*
+  For reading BrlAPI's |key file|.
+  In other words, the group that owns that file.
+
+**dialout** (some distributions use **uucp**)
+  For serial I/O via these ``/dev/`` devices:
+
+  **ttyS<n>**
+    Actual serial ports.
+
+  **ttyACM<n>**
+    USB to serial adapters that implement the CDC ACM standard.
+
+  **ttyUSB<n>**
+    Other USB to serial adapters.
+
+**input**
+  For monitoring keyboard input via the devices in ``/dev/input/``.
+  This capability is used to support |keyboard key tables|.
+
+**pulse-access**
+  For playing sound via the Pulse Audio daemon.
+
+**root**
+  For:
+
+  * USB I/O via ``USBFS`` (using the devices in ``/dev/bus/usb/``).
+  * Creating virtual devices via the |uinput device|.
+
+  Note that this is the ``root`` group - not the ``root`` user.
+
+**tty**
+  For:
+
+  * Reading screen content via the ``/dev/vcs`` devices.
+  * Virtual console monitoring and control via the ``/dev/tty<n>`` devices.
+
+* `When started by the super user`_,
+  existing group memberships are relinquished.
+
+* `When started by an unprivileged user`_,
+  existing group memberships are retained.
+
+Required Capabilities
+~~~~~~~~~~~~~~~~~~~~~
+
+BRLTTY uses the privileged kernel operations
+that are granted via these capabilities
+throughout its execution.
+They are retained within its ``permitted`` and ``effective`` sets,
+but not within its ``inheritable`` and ``ambient`` sets.
+In other words, they're for BRLTTY itself
+and aren't passed along to any host command that it runs.
+
+|cap_mknod|
+  For creating needed but missing device files.
+
+|cap_sys_admin|
+  For using ``TIOCSTI`` to inject input characters typed on a braille device.
+
+|cap_sys_tty_config|
+  For using ``KDMKTONE`` and ``KIOCSOUND`` to play alert tunes via the |speaker|.
+
+Temporary Capabilities
+~~~~~~~~~~~~~~~~~~~~~~
+
+BRLTTY only uses the privileged kernel operations
+that are granted via these capabilities
+`when started by an unprivileged user`_.
+They allow it to configure itself,
+thus not relying so heavily on explicit administrator configuration,
+and are relinquished right after this has been done.
+
+|cap_chown|
+  If this capability has also been assigned to BRLTTY's executable
+  then it can claim ownership of its `state directories`_
+  and their contents
+  after having successfully switched to executing as `the unprivileged user`_.
+  The primary group of that user is used.
+
+|cap_dac_override|
+  If this capability has also been assigned to BRLTTY's executable
+  then it can create missing `state directories`_
+  after having successfully switched to executing as `the unprivileged user`_.
+
+|cap_fowner|
+  If this capability has also been assigned to BRLTTY's executable
+  then it can add group permissions to its `state directories`_
+  and to their contents
+  after having successfully switched to executing as `the unprivileged user`_.
+  Both read and write group permissions are added to all files and directories.
+  In addition, for all directories,
+  group search permission is added
+  and the set-group-ID bit is set.
+
+|cap_setgid|
+  If this capability has also been assigned to BRLTTY's executable
+  then it internally extends its supplementary group list
+  with any `needed group memberships`_ that are missing.
+
+|cap_sys_admin|
+  While this is one of the `required capabilities`_,
+  it's also needed as a temporary capability for `namespace isolation`_.
+
+|cap_sys_module|
+  If this capability has also been assigned to BRLTTY's executable
+  then the needed `kernel modules`_ needn't have been already installed
+  because they can be internally installed.
+
+Known Problems
+--------------
+
+Writing to SYSFS Files
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ``SYSFS`` virtual file system (usually mounted at ``/sys/``)
+contains some files that BRLTTY occasionally needs to write to.
+While they can be read by anyone,
+they can only be written to by |the super user|.
+BRLTTY needs to be able to write to these files
+for (at least) the following reasons:
+
+* Disabling USB autosuspend.
+  Some USB-connected braille devices don't respond very well
+  to being automatically suspended by the kernel.
+  In these cases, BRLTTY disables the feature
+  by writing to the ``power/autosuspend`` file
+  of the associated PCI device.
+
+A possible approach might be to add Udev rules.
+
+Creating Virtual Devices via Uinput
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |uinput device| is usually only readable and writable
+by |the super user|.
+Without any group and/or others access,
+it's impossible for BRLTTY to access it
+after having switched to `the unprivileged user`_.
+
+This situation could be easily resolved
+by granting group read and write permissions to the device.
+This shouldn't be problematic because its owned by the ``root`` group.
+Even better, of course, would be to give the device its own group
+(e.g. named ``uinput``).
+
+BRLTTY currently gets around this problem by including the following
+Udev rule to add an ACL (access control list) entry to the device::
+
+  KERNEL=="uinput", ACTION=="add", TEST=="/usr/bin/setfacl",
+  RUN+="/usr/bin/setfacl -m u:brltty:rw /dev/$name"
+
+If BRLTTY finds that it isn't permitted to open the device
+(perhaps because the Udev rule isn't present)
+then its fallback method Is to create a private copy of the device file
+within its |writable directory|.
+This requires the |cap_mknod| capability.
+
+Other alternatives include:
+
+* Adding the ``cap_dac_override`` (permanent) capability
+  so that BRLTTY isn't subject to file ownership restrictions.
+  This is a very, very bad idea
+  but, for completeness, it's on the table.
+
+* Adding the ``cap_fowner`` (temporary) capability
+  so that BRLTTY can add an acl (access control list) entry
+  that grants itself access to the device.
+
+* Adding the ``cap_fowner`` (temporary) capability
+  so that BRLTTY can add group read and write permissions to the device.
+
+Being able to create virtual devices
+is a very important ability for BRLTTY to have.
+It's used for:
+
+* Creating a virtual keyboard in order to
+  forward those keyboard events (key presses and releases)
+  that haven't been claimed by bindings within |keyboard key tables|
+  back to the system.
+
+* Creating a virtual keyboard in order to inject simulated typing. 
+  This is done to support the typing of
+  arbitrary combinations of modifier keys (shift, control, alt, etc),
+  in combination (or not) with any character(s) and/or special key(s),
+  on the keyboard of a braille device.
+  The fallback interface - ``TIOCSTI`` - only provides character injection,
+  which means that it can only support the typing of individual characters
+  and the pressing of those special keys
+  that can be emulated by well-known escape sequences.
+
+* Creating a virtual sound device in order to
+  watch for tones sent to the |speaker|.
+  This is done to support the redirection of these tones
+  to the PCM interface of a sound card.
+  While sighted users seem to be content with not hearing these tones
+  on a computer that doesn't have a |speaker|,
+  most blind users rely on being able to hear them.
+  For example, a blind person can't see a visual bell.
+
+* Creating a virtual LED device in order to
+  monitor what the keyboard LEDs are showing.
+  This is done to support the generation of
+  An audio-based rendering of LED state changes.
+
+Creating Private Copies of Device Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default location of the |writable directory| on a modern system
+is usually on a memory-resident file system
+that has been mounted with the ``nodev`` option.
+This prevents a device file within that file system from being opened,
+even if its permissions (mode, acl, etc) allow it.
+The good news is that this isn't usually a problem
+on a well-configured system
+because it's extremely rare for a needed device file to be missing.
+If it is, then the best solution is
+to change the writable directory to a better location
+(see `State Directories`_ for how to do that).
+

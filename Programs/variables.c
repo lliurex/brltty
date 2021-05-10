@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,7 +24,7 @@
 #include "strfmt.h"
 #include "variables.h"
 #include "queue.h"
-#include "charset.h"
+#include "utf8.h"
 
 typedef struct {
   const wchar_t *characters;
@@ -278,10 +278,10 @@ getVariableValue (const Variable *variable, const wchar_t **characters, int *len
 
 int
 setStringVariable (VariableNestingLevel *vnl, const char *name, const char *value) {
-  size_t nameLength = getUtf8Length(name);
+  size_t nameLength = countUtf8Characters(name);
   wchar_t nameBuffer[nameLength + 1];
 
-  size_t valueLength = getUtf8Length(value);
+  size_t valueLength = countUtf8Characters(value);
   wchar_t valueBuffer[valueLength + 1];
 
   {

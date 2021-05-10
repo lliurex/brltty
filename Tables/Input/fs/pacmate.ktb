@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -22,8 +22,8 @@ note The rear row of cursor routing keys is actually a set of navigation keys.
 note The 10 middle keys (5 on each side of the center) are special.
 note The two outer ones are named LeftSelector and RightSelector.
 note The eight inner ones are named Hot1 through Hot8.
-note The LeftAdvance key is any key to the left of the special keys.
-note The RightAdvance key is any key to the right of the special keys.
+note The PanLeft key is any key to the left of the special keys.
+note The PanRight key is any key to the right of the special keys.
 
 bind Hot1 SKPIDLNS
 bind RightSelector+Hot1 SKPBLNKWINS

@@ -6,12 +6,23 @@ application_name_label Name
 application_version_label Version
 application_copyright_label Copyright
 
-input_service_name BRLTTY Input Service
-input_service_type Keyboards on Braille Devices
-input_service_not_enabled input service not enabled
-input_service_not_selected input service not selected
-input_service_not_started input service not started
-input_service_not_connected input service not connected
+inputService_name BRLTTY Input Service
+inputService_type Keyboards on Braille Devices
+inputService_not_enabled input service not enabled
+inputService_not_selected input service not selected
+inputService_not_started input service not started
+inputService_not_connected input service not connected
+
+updateApplication_problem_failed application not updated
+
+packageInstaller_problem_failed package not installed
+packageInstaller_problem_same same version
+packageInstaller_problem_downgrade downgrade not allowed
+
+fileDownloader_title BRLTTY File Downloader
+fileDownloader_problem_failed file not downloaded
+fileDownloader_state_connecting connecting
+fileDownloader_state_downloading downloading
 
 checkbox_state_unchecked No
 checkbox_state_checked Yes
@@ -35,7 +46,12 @@ GLOBAL_BUTTON_BROWSE_WEB_SITE Browse Web Site
 GLOBAL_BUTTON_BROWSE_COMMUNITY_MESSAGES Browse Community Messages
 GLOBAL_BUTTON_POST_COMMUNITY_MESSAGE Post Community Message
 GLOBAL_BUTTON_MANAGE_COMMUNITY_MEMBERSHIP Manage Community Membership
+
 GLOBAL_BUTTON_UPDATE_APPLICATION Update Application
+GLOBAL_CHECKBOX_DEVELOPER_BUILD Developer Build
+GLOBAL_CHECKBOX_ALLOW_DOWNGRADE Allow Downgrade
+
+CHOOSER_TITLE_ACCESSIBILITY_ACTIONS Accessibility Actions
 
 SETTINGS_SCREEN_MAIN BRLTTY Settings
 SETTINGS_SCREEN_GENERAL General Settings
@@ -220,16 +236,16 @@ ATTRIBUTES_TABLE_LABEL_upper_lower foreground colour in the upper square and bac
 
 CONTRACTION_TABLE_LABEL_af Afrikaans (contracted)
 CONTRACTION_TABLE_LABEL_am Amharic (uncontracted)
-CONTRACTION_TABLE_LABEL_de_basis German (uncontracted)
-CONTRACTION_TABLE_LABEL_de_kurzschrift German (contracted - 1998 standard)
-CONTRACTION_TABLE_LABEL_de_kurzschrift_1998 German (contracted - 1998 standard)
-CONTRACTION_TABLE_LABEL_de_kurzschrift_2015 German (contracted - 2015 standard)
-CONTRACTION_TABLE_LABEL_de_vollschrift German (basic contractions)
+CONTRACTION_TABLE_LABEL_de_g0 German (uncontracted)
+CONTRACTION_TABLE_LABEL_de_g1 German (basic contractions)
+CONTRACTION_TABLE_LABEL_de_g2 German (contracted - 1998 standard)
+CONTRACTION_TABLE_LABEL_de_1998 German (contracted - 1998 standard)
+CONTRACTION_TABLE_LABEL_de_2015 German (contracted - 2015 standard)
 CONTRACTION_TABLE_LABEL_en_ueb_g2 English (Unified English Braille, grade 2)
 CONTRACTION_TABLE_LABEL_en_us_g2 English (US, grade 2)
 CONTRACTION_TABLE_LABEL_es Spanish (grade 2)
-CONTRACTION_TABLE_LABEL_fr_abrege French (contracted)
-CONTRACTION_TABLE_LABEL_fr_integral French (uncontracted)
+CONTRACTION_TABLE_LABEL_fr_g1 French (uncontracted)
+CONTRACTION_TABLE_LABEL_fr_g2 French (contracted)
 CONTRACTION_TABLE_LABEL_ha Hausa (contracted)
 CONTRACTION_TABLE_LABEL_id Indonesian (contracted)
 CONTRACTION_TABLE_LABEL_ipa International Phonetic Alphabet
@@ -247,7 +263,6 @@ CONTRACTION_TABLE_LABEL_si Sinhalese (uncontracted)
 CONTRACTION_TABLE_LABEL_sw Swahili (contracted)
 CONTRACTION_TABLE_LABEL_th Thai (contracted)
 CONTRACTION_TABLE_LABEL_zh_tw Chinese (Taiwan, uncontracted)
-CONTRACTION_TABLE_LABEL_zh_tw_ucb Chinese (Taiwan, Unique Chinese Braille)
 CONTRACTION_TABLE_LABEL_zu Zulu (contracted)
 
 KEYBOARD_TABLE_LABEL_braille bindings for braille keyboards

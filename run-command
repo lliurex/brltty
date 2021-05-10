@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 ###############################################################################
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -17,29 +17,52 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-. "`dirname "${0}"`/prologue.sh"
+. "$(dirname "${0}")/prologue.sh"
+setBuildRoot
 
-[ -z "${LD_LIBRARY_PATH}" ] || LD_LIBRARY_PATH=":${LD_LIBRARY_PATH}"
-LD_LIBRARY_PATH="${programDirectory}/Programs${LD_LIBRARY_PATH}"
-export LD_LIBRARY_PATH
+[ "${#}" -eq 0 ] && {
+cat <<END_OF_USAGE
+Usage: ${programName} command [argument ...]
+Execute the specified command with the specified arguments. If not root
+then execute the command as root via sudo.
 
-vgFile=""
-vgDirectory="${BRLTTY_VALGRIND}"
+Environment Variables:
+  <COMMAND>_VALGRIND_DIRECTORY=path
+    If set then write a valgrind memory usage log to a file named
+    <command>-yyyymmdd-HHMMSS.vg in the specified directory.
 
-[ -z "${vgDirectory}" ] || {
-  [ ! -d "${vgDirectory}" ] || {
-    [ ! -w "${vgDirectory}" ] || {
-      vgFile="${vgDirectory}/$(basename "${1}")-$(date +%Y%m%d-%H%M%S).vg"
-    }
-  }
+END_OF_USAGE
+exit 0
 }
 
-if [ -n "${vgFile}" ]
-then
-  set -- valgrind --log-file="${vgFile}" --leak-check=full --show-reachable=yes "${@}"
-else
-  set -- exec "${@}"
-fi
+commandName="${1}"
+shift 1
 
-"${@}"
+readonly commandPath="$(type -P "${commandName}")"
+[ -n "${commandPath}" ] || semanticError "command not found: ${commandName}"
+readonly commandName="${commandPath##*/}"
+set -- "${commandPath}" "${@}"
+
+readonly variablePrefix="${commandName^^?}"
+getVariable "${variablePrefix}_VALGRIND_DIRECTORY" vgDirectory
+
+[ -n "${LD_LIBRARY_PATH}" ] && LD_LIBRARY_PATH=":${LD_LIBRARY_PATH}"
+export LD_LIBRARY_PATH="${BRLTTY_BUILD_ROOT}/Programs${LD_LIBRARY_PATH}"
+
+[ -n "${vgDirectory}" ] && {
+   [ -e "${vgDirectory}" ] || semanticError "directory not found: ${vgDirectory}"
+   [ -d "${vgDirectory}" ] || semanticError "not a directory: ${vgDirectory}"
+   [ -w "${vgDirectory}" ] || semanticError "directory not writable: ${vgDirectory}"
+
+   vgFile="${vgDirectory}/${commandName}-$(date +%Y%m%d-%H%M%S).vg"
+   programMessage "valgrind log: ${vgFile}"
+
+   set -- valgrind \
+       --log-file="${vgFile}" \
+       --leak-check=full \
+       --show-reachable=yes \
+       "${@}"
+}
+
+exec "${@}"
 exit "${?}"

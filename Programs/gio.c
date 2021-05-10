@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -215,6 +215,31 @@ gioDisconnectResource (GioEndpoint *endpoint) {
 const void *
 gioGetApplicationData (GioEndpoint *endpoint) {
   return endpoint->options.applicationData;
+}
+
+const char *
+gioMakeResourceIdentifier (GioEndpoint *endpoint, char *buffer, size_t size) {
+  const char *identifier = NULL;
+  MakeResourceIdentifierMethod *method = endpoint->methods->makeResourceIdentifier;
+
+  if (!method) {
+    logUnsupportedOperation("makeResourceIdentifier");
+  } else {
+    identifier = method(endpoint->handle, buffer, size);
+  }
+
+  return identifier;
+}
+
+char *
+gioGetResourceIdentifier (GioEndpoint *endpoint) {
+  char buffer[0X100];
+  const char *identifier = gioMakeResourceIdentifier(endpoint, buffer, sizeof(buffer));
+  if (!identifier) return NULL;
+
+  char *copy = strdup(identifier);
+  if (!copy) logMallocError();
+  return copy;
 }
 
 char *
@@ -551,7 +576,7 @@ handleInput (GioHandleInputObject *hio, int error) {
   return hio->handler(&parameters);
 }
 
-ASYNC_MONITOR_CALLBACK(handleInputMonitor) {
+ASYNC_MONITOR_CALLBACK(gioInputMonitor) {
   GioHandleInputObject *hio = parameters->data;
 
   handleInput(hio, parameters->error);
@@ -581,14 +606,14 @@ gioNewHandleInputObject (
     hio->data = data;
 
     if (endpoint) {
-      if (gioMonitorInput(endpoint, handleInputMonitor, hio)) {
+      if (gioMonitorInput(endpoint, gioInputMonitor, hio)) {
         handleInput(hio, 0);
         return hio;
       }
     }
 
     if (asyncNewRelativeAlarm(&hio->pollAlarm, 0, handleInputAlarm, hio)) {
-      if (asyncResetAlarmEvery(hio->pollAlarm, pollInterval)) {
+      if (asyncResetAlarmInterval(hio->pollAlarm, pollInterval)) {
         return hio;
       }
 

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -28,10 +28,11 @@ import java.util.HashSet;
 
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import android.widget.ImageView;
 import android.graphics.Rect;
 
 public class RenderedScreen {
-  private static final String LOG_TAG = RenderedScreen.class.getName();
+  private final static String LOG_TAG = RenderedScreen.class.getName();
 
   private final AccessibilityNodeInfo eventNode;
   private final AccessibilityNodeInfo rootNode;
@@ -72,7 +73,7 @@ public class RenderedScreen {
     return screenElements.get(node);
   }
 
-  public final ScreenElement findRenderedScreenElement (AccessibilityNodeInfo node) {
+  public final ScreenElement findScreenElement (AccessibilityNodeInfo node) {
     ScreenElement element = getScreenElement(node);
 
     if (element != null) {
@@ -88,7 +89,7 @@ public class RenderedScreen {
         AccessibilityNodeInfo child = node.getChild(childIndex);
 
         if (child != null) {
-          element = findRenderedScreenElement(child);
+          element = findScreenElement(child);
 
           child.recycle();
           child = null;
@@ -101,8 +102,12 @@ public class RenderedScreen {
     return null;
   }
 
+  public final ScreenElement findScreenElement (int column, int row) {
+    return screenElements.findByBrailleLocation(column, row);
+  }
+
   public final boolean performAction (int column, int row) {
-    ScreenElement element = screenElements.findByBrailleLocation(column, row);
+    ScreenElement element = findScreenElement(column, row);
     if (element == null) return false;
 
     Rect location = element.getBrailleLocation();
@@ -115,7 +120,7 @@ public class RenderedScreen {
     }
   };
 
-  private static final int SIGNIFICANT_NODE_ACTIONS
+  private final static int SIGNIFICANT_NODE_ACTIONS
     = AccessibilityNodeInfo.ACTION_CLICK
     | AccessibilityNodeInfo.ACTION_LONG_CLICK
     | AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
@@ -164,6 +169,8 @@ public class RenderedScreen {
           if (sb.length() > 0) sb.append(' ');
           sb.append(text);
         }
+      } else if (ScreenUtilities.isSubclassOf(node, ImageView.class)) {
+        includeDescription = true;
       }
     }
 
@@ -178,7 +185,7 @@ public class RenderedScreen {
       }
     }
 
-    if (ApplicationUtilities.haveKitkat) {
+    if (APITests.haveKitkat) {
       AccessibilityNodeInfo.RangeInfo range = node.getRangeInfo();
 
       if (range != null) {
@@ -282,6 +289,20 @@ public class RenderedScreen {
           if (hasActions) {
             if ((text = getDescription(root)) == null) {
               text = ScreenUtilities.getClassName(root);
+              String name = root.getViewIdResourceName();
+
+              if (name != null) {
+                String marker = ":id/";
+                int index = name.indexOf(marker);
+                name = (index < 0)? null: name.substring(index + marker.length());
+              }
+
+              if (text == null) {
+                text = name;
+              } else if (name != null) {
+                text += " " + name;
+              }
+
               if (text == null) text = "?";
               text = "(" + text + ")";
             }
@@ -292,7 +313,8 @@ public class RenderedScreen {
           String label = ChromeRole.getLabel(root);
 
           if (label != null) {
-            if (text != null) label += ' ' + text;
+            if (!label.isEmpty()) label = String.format("(%s) ", label);
+            if (text != null) label += text;
             text = label;
           }
         }
@@ -327,7 +349,7 @@ public class RenderedScreen {
     AccessibilityNodeInfo root = getRootNode();
 
     if (root != null) {
-      if (ApplicationUtilities.haveJellyBean) {
+      if (APITests.haveJellyBean) {
         AccessibilityNodeInfo node = root.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY);
 
         if (node != null) {
@@ -348,17 +370,17 @@ public class RenderedScreen {
       {
         AccessibilityNodeInfo node;
 
-        if (ApplicationUtilities.haveJellyBean) {
+        if (APITests.haveJellyBean) {
           node = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
-        } else if (ApplicationUtilities.haveIceCreamSandwich) {
+        } else if (APITests.haveIceCreamSandwich) {
           node = ScreenUtilities.findFocusedNode(root);
         } else {
           node = null;
         }
 
-        if (!ApplicationUtilities.haveJellyBean) {
+        if (!APITests.haveJellyBean) {
           if (node == null) {
-            if (ApplicationUtilities.haveIceCreamSandwich) {
+            if (APITests.haveIceCreamSandwich) {
               if ((node = ScreenUtilities.findFocusableNode(root)) != null) {
                 if (!node.performAction(AccessibilityNodeInfo.ACTION_FOCUS)) {
                   node.recycle();

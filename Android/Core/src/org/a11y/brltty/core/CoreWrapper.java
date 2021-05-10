@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -62,7 +62,9 @@ public abstract class CoreWrapper {
   public native static boolean changeScreenDriver (String driver);
   public native static boolean changeScreenParameters (String parameters);
 
+  public native static boolean changeMessageLocale (String locale);
   public native static void showMessage (String text);
+
   public native static boolean setEnvironmentVariable (String name, String value);
 
   public static boolean changeLogCategories (Set<String> categories) {

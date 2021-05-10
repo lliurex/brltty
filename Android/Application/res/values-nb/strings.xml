@@ -9,12 +9,23 @@
   <string name="application_version_label">Versjon</string>
   <string name="application_copyright_label">Opphavsrett</string>
 
-  <string name="input_service_name">Inndatatjeneste for BRLTTY</string>
-  <string name="input_service_type">Tastatur på punktskriftenheter</string>
-  <string name="input_service_not_enabled">inndatatjenesten er ikke aktivert</string>
-  <string name="input_service_not_selected">inndatatjenesten er ikke valgt</string>
-  <string name="input_service_not_started">inndatatjenesten er ikke startet</string>
-  <string name="input_service_not_connected">inndatatjenesten er ikke tilkoblet</string>
+  <string name="inputService_name">Inndatatjeneste for BRLTTY</string>
+  <string name="inputService_type">Tastatur på punktskriftenheter</string>
+  <string name="inputService_not_enabled">inndatatjenesten er ikke aktivert</string>
+  <string name="inputService_not_selected">inndatatjenesten er ikke valgt</string>
+  <string name="inputService_not_started">inndatatjenesten er ikke startet</string>
+  <string name="inputService_not_connected">inndatatjenesten er ikke tilkoblet</string>
+
+  <string name="updateApplication_problem_failed">programmet er ikke oppdatert</string>
+
+  <string name="packageInstaller_problem_failed">pakken er ikke installert</string>
+  <string name="packageInstaller_problem_same">samme versjon</string>
+  <string name="packageInstaller_problem_downgrade">nedgradering er ikke tillatt</string>
+
+  <string name="fileDownloader_title">BRLTTY filnedlaster</string>
+  <string name="fileDownloader_problem_failed">fila er ikke lastet ned</string>
+  <string name="fileDownloader_state_connecting">kobler til</string>
+  <string name="fileDownloader_state_downloading">laster ned</string>
 
   <string name="checkbox_state_unchecked">nei</string>
   <string name="checkbox_state_checked">ja</string>
@@ -38,7 +49,12 @@
   <string name="GLOBAL_BUTTON_BROWSE_COMMUNITY_MESSAGES">Bla gjennom fellesskapsmeldinger</string>
   <string name="GLOBAL_BUTTON_POST_COMMUNITY_MESSAGE">Post fellesskapsmelding</string>
   <string name="GLOBAL_BUTTON_MANAGE_COMMUNITY_MEMBERSHIP">Administrer fellesskapsmedlemskap</string>
+
   <string name="GLOBAL_BUTTON_UPDATE_APPLICATION">Oppdater programmet</string>
+  <string name="GLOBAL_CHECKBOX_DEVELOPER_BUILD">Utviklerutgave</string>
+  <string name="GLOBAL_CHECKBOX_ALLOW_DOWNGRADE">Tillat nedgradering</string>
+
+  <string name="CHOOSER_TITLE_ACCESSIBILITY_ACTIONS">Tilgjengelighetshandlinger</string>
 
   <string name="SETTINGS_SCREEN_MAIN">Innstillinger for BRLTTY</string>
   <string name="SETTINGS_SCREEN_GENERAL">Generelle innstillinger</string>
@@ -223,16 +239,16 @@
 
   <string name="CONTRACTION_TABLE_LABEL_af">afrikaans (kortskrift)</string>
   <string name="CONTRACTION_TABLE_LABEL_am">amharisk (fullskrift)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_basis">tysk (fullskrift)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift">tysk (kortskrift - 1998-standard)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_1998">tysk (kortskrift - 1998-standard)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_2015">tysk (kortskrift - 2015-standard)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_vollschrift">tysk (enkel kortskrift)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g0">tysk (fullskrift)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g1">tysk (enkel kortskrift)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g2">tysk (kortskrift - 1998-standard)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_1998">tysk (kortskrift - 1998-standard)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_2015">tysk (kortskrift - 2015-standard)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_ueb_g2">engelsk (Unified English Braille, grade 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_us_g2">engelsk (US, grade 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_es">spansk (grade 2)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_abrege">fransk (kortskrift)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_integral">fransk (fullskrift)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g1">fransk (fullskrift)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g2">fransk (kortskrift)</string>
   <string name="CONTRACTION_TABLE_LABEL_ha">hausa (kortskrift)</string>
   <string name="CONTRACTION_TABLE_LABEL_id">indonesisk (kortskrift)</string>
   <string name="CONTRACTION_TABLE_LABEL_ipa">internasjonalt fonetisk alfabet</string>
@@ -250,7 +266,6 @@
   <string name="CONTRACTION_TABLE_LABEL_sw">swahili (kortskrift)</string>
   <string name="CONTRACTION_TABLE_LABEL_th">thai (kortskrift)</string>
   <string name="CONTRACTION_TABLE_LABEL_zh_tw">kinesisk (Taiwan, fullskrift)</string>
-  <string name="CONTRACTION_TABLE_LABEL_zh_tw_ucb">kinesisk (Taiwan, Unique Chinese Braille)</string>
   <string name="CONTRACTION_TABLE_LABEL_zu">zulu (kortskrift)</string>
 
   <string name="KEYBOARD_TABLE_LABEL_braille">alternativ for punktskrifttastatur</string>

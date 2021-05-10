@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -59,34 +59,58 @@ typedef unsigned char BrlDots;
 #define BRL_DOT_7 BRL_DOT(7) /* lower-left dot of computer braille cell */
 #define BRL_DOT_8 BRL_DOT(8) /* lower-right dot of computer braille cell */
 
+#define BRL_DOTS_LEFT (BRL_DOT_1 | BRL_DOT_2 | BRL_DOT_3 | BRL_DOT_7)
+#define BRL_DOTS_RIGHT (BRL_DOT_4 | BRL_DOT_5 | BRL_DOT_6 | BRL_DOT_8)
+#define BRL_DOTS_ALL (BRL_DOTS_LEFT | BRL_DOTS_RIGHT)
+
 static inline BrlDots
-getLeftDots (unsigned char cell) {
-  return cell & (BRL_DOT_1 | BRL_DOT_2 | BRL_DOT_3 | BRL_DOT_7);
+brlGetLeftDots (BrlDots cell) {
+  return cell & BRL_DOTS_LEFT;
 }
 
 static inline BrlDots
-getRightDots (unsigned char cell) {
-  return cell & (BRL_DOT_4 | BRL_DOT_5 | BRL_DOT_6 | BRL_DOT_8);
+brlGetRightDots (BrlDots cell) {
+  return cell & BRL_DOTS_RIGHT;
 }
 
 static inline BrlDots
-getRightDotsToLeftDots (BrlDots cell) {
-  unsigned char ret = 0;
-  if (cell & BRL_DOT_4) ret |= BRL_DOT_1;
-  if (cell & BRL_DOT_5) ret |= BRL_DOT_2;
-  if (cell & BRL_DOT_6) ret |= BRL_DOT_3;
-  if (cell & BRL_DOT_8) ret |= BRL_DOT_7;
-  return ret;
+brlGetLeftDotsToRightDots (BrlDots cell) {
+  BrlDots dots = 0;
+  if (cell & BRL_DOT_1) dots |= BRL_DOT_4;
+  if (cell & BRL_DOT_2) dots |= BRL_DOT_5;
+  if (cell & BRL_DOT_3) dots |= BRL_DOT_6;
+  if (cell & BRL_DOT_7) dots |= BRL_DOT_8;
+  return dots;
 }
 
 static inline BrlDots
-getLeftDotsToRightDots (BrlDots cell) {
-  unsigned char ret = 0;
-  if (cell & BRL_DOT_1) ret |= BRL_DOT_4;
-  if (cell & BRL_DOT_2) ret |= BRL_DOT_5;
-  if (cell & BRL_DOT_3) ret |= BRL_DOT_6;
-  if (cell & BRL_DOT_7) ret |= BRL_DOT_8;
-  return ret;
+brlGetRightDotsToLeftDots (BrlDots cell) {
+  BrlDots dots = 0;
+  if (cell & BRL_DOT_4) dots |= BRL_DOT_1;
+  if (cell & BRL_DOT_5) dots |= BRL_DOT_2;
+  if (cell & BRL_DOT_6) dots |= BRL_DOT_3;
+  if (cell & BRL_DOT_8) dots |= BRL_DOT_7;
+  return dots;
+}
+
+static inline BrlDots
+brlGetLeftDotsToRightDotsAlt (BrlDots cell) {
+  BrlDots dots = 0;
+  if (cell & BRL_DOT_1) dots |= BRL_DOT_6;
+  if (cell & BRL_DOT_2) dots |= BRL_DOT_5;
+  if (cell & BRL_DOT_3) dots |= BRL_DOT_4;
+  if (cell & BRL_DOT_7) dots |= BRL_DOT_8;
+  return dots;
+}
+
+static inline BrlDots
+brlGetRightDotsToLeftDotsAlt (BrlDots cell) {
+  BrlDots dots = 0;
+  if (cell & BRL_DOT_4) dots |= BRL_DOT_3;
+  if (cell & BRL_DOT_5) dots |= BRL_DOT_2;
+  if (cell & BRL_DOT_6) dots |= BRL_DOT_1;
+  if (cell & BRL_DOT_8) dots |= BRL_DOT_7;
+  return dots;
 }
 
 static inline BrlDots
@@ -98,6 +122,14 @@ static inline char
 brlDotToNumber (BrlDots dot) {
   int shift = ffs(dot);
   return shift? ((char)shift + '0'): 0;
+}
+
+static inline void
+brlRemapDot (BrlDots *dots, BrlDots from, BrlDots to) {
+  if (*dots & from) {
+    *dots &= ~from;
+    *dots |= to;
+  }
 }
 
 typedef BrlDots BrlDotTable[BRL_DOT_COUNT];

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -28,12 +28,13 @@
 #include <string.h>
 
 #include "log.h"
+#include "unicode.h"
 #include "scr.h"
 #include "scr_real.h"
 #include "driver.h"
 
 MainScreen mainScreen;
-BaseScreen *currentScreen = &mainScreen.base;
+BaseScreen *currentScreen = NULL;
 
 int
 isMainScreen (void) {
@@ -53,6 +54,8 @@ getScreenDriverDefinition (const ScreenDriver *driver) {
 static void
 initializeScreen (void) {
   screen->initialize(&mainScreen);
+  currentScreen = &mainScreen.base;
+  currentScreen->onForeground();
 }
 
 void
@@ -103,12 +106,40 @@ describeScreen (ScreenDescription *description) {
 
 int
 readScreen (short left, short top, short width, short height, ScreenCharacter *buffer) {
-  ScreenBox box;
-  box.left = left;
-  box.top = top;
-  box.width = width;
-  box.height = height;
-  return currentScreen->readCharacters(&box, buffer);
+  const ScreenBox box = {
+    .left = left,
+    .top = top,
+    .width = width,
+    .height = height,
+  };
+
+  if (!currentScreen->readCharacters(&box, buffer)) return 0;
+
+  ScreenCharacter *character = buffer;
+  const ScreenCharacter *end = character + (box.width * box.height);
+
+  while (character < end) {
+    wchar_t *text = &character->text;
+
+    if ((*text <= 0) || (*text > UNICODE_LAST_CHARACTER)) {
+      // This is not a valid Unicode character - return the replacement character.
+
+      size_t index = character - buffer;
+      unsigned int column = box.left + (index % box.width);
+      unsigned int row = box.top + (index / box.width);
+
+      logMessage(LOG_ERR,
+        "invalid character U+%04lX on screen at [%u,%u]",
+        (unsigned long)*text, column, row
+      );
+
+      *text = UNICODE_REPLACEMENT_CHARACTER;
+    }
+
+    character += 1;
+  }
+
+  return 1;
 }
 
 int
@@ -149,6 +180,28 @@ unhighlightScreenRegion (void) {
 int
 getScreenPointer (int *column, int *row) {
   return currentScreen->getPointer(column, row);
+}
+
+int
+clearScreenTextSelection (void) {
+  return currentScreen->clearSelection();
+}
+
+int
+setScreenTextSelection (int startColumn, int startRow, int endColumn, int endRow) {
+  if ((endRow < startRow) || ((endRow == startRow) && (endColumn < startColumn))) {
+    int temp;
+
+    temp = endColumn;
+    endColumn = startColumn;
+    startColumn = temp;
+
+    temp = endRow;
+    endRow = startRow;
+    startRow = temp;
+  }
+
+  return currentScreen->setSelection(startColumn, startRow, endColumn, endRow);
 }
 
 int

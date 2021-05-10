@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -51,34 +51,90 @@ extern "C" {
 #define JAVA_SIG_CONSTRUCTOR(arguments)    JAVA_SIG_METHOD(JAVA_SIG_VOID, arguments)
 
 #define JAVA_OBJ_LANG(name) "java/lang/" name
+#define JAVA_OBJ_IO(name) "java/io/" name
 #define JAVA_OBJ_UTIL(name) "java/util/" name
+#define JAVA_OBJ_CONCURRENT(name) JAVA_OBJ_UTIL("concurrent/" name)
 
+#define JAVA_OBJ_CHAR_SEQUENCE JAVA_OBJ_LANG("CharSequence")
 #define JAVA_OBJ_CLASS JAVA_OBJ_LANG("Class")
-#define JAVA_SIG_CLASS JAVA_SIG_OBJECT(JAVA_OBJ_CLASS)
-
+#define JAVA_OBJ_EOF_EXCEPTION JAVA_OBJ_IO("EOFException")
+#define JAVA_OBJ_ILLEGAL_ARGUMENT_EXCEPTION JAVA_OBJ_LANG("IllegalArgumentException")
 #define JAVA_OBJ_ILLEGAL_STATE_EXCEPTION JAVA_OBJ_LANG("IllegalStateException")
-#define JAVA_SIG_ILLEGAL_STATE_EXCEPTION JAVA_SIG_OBJECT(JAVA_OBJ_ILLEGAL_STATE_EXCEPTION)
-
+#define JAVA_OBJ_INTERRUPTED_IO_EXCEPTION JAVA_OBJ_IO("InterruptedIOException")
 #define JAVA_OBJ_ITERATOR JAVA_OBJ_UTIL("Iterator")
-#define JAVA_SIG_ITERATOR JAVA_SIG_OBJECT(JAVA_OBJ_ITERATOR)
-
 #define JAVA_OBJ_LOCALE JAVA_OBJ_UTIL("Locale")
-#define JAVA_SIG_LOCALE JAVA_SIG_OBJECT(JAVA_OBJ_LOCALE)
-
 #define JAVA_OBJ_NULL_POINTER_EXCEPTION JAVA_OBJ_LANG("NullPointerException")
-#define JAVA_SIG_NULL_POINTER_EXCEPTION JAVA_SIG_OBJECT(JAVA_OBJ_NULL_POINTER_EXCEPTION)
-
+#define JAVA_OBJ_OBJECT JAVA_OBJ_LANG("Object")
 #define JAVA_OBJ_OUT_OF_MEMORY_ERROR JAVA_OBJ_LANG("OutOfMemoryError")
-#define JAVA_SIG_OUT_OF_MEMORY_ERROR JAVA_SIG_OBJECT(JAVA_OBJ_OUT_OF_MEMORY_ERROR)
-
 #define JAVA_OBJ_STRING JAVA_OBJ_LANG("String")
-#define JAVA_SIG_STRING JAVA_SIG_OBJECT(JAVA_OBJ_STRING)
-
 #define JAVA_OBJ_THREAD JAVA_OBJ_LANG("Thread")
+#define JAVA_OBJ_TIMEOUT_EXCEPTION JAVA_OBJ_CONCURRENT("TimeoutException")
+#define JAVA_OBJ_UNSATISFIED_LINK_ERROR JAVA_OBJ_LANG("UnsatisfiedLinkError")
+
+#define JAVA_SIG_CHAR_SEQUENCE JAVA_SIG_OBJECT(JAVA_OBJ_CHAR_SEQUENCE)
+#define JAVA_SIG_CLASS JAVA_SIG_OBJECT(JAVA_OBJ_CLASS)
+#define JAVA_SIG_ITERATOR JAVA_SIG_OBJECT(JAVA_OBJ_ITERATOR)
+#define JAVA_SIG_LOCALE JAVA_SIG_OBJECT(JAVA_OBJ_LOCALE)
+#define JAVA_SIG_STRING JAVA_SIG_OBJECT(JAVA_OBJ_STRING)
 #define JAVA_SIG_THREAD JAVA_SIG_OBJECT(JAVA_OBJ_THREAD)
 
-#define JAVA_OBJ_UNSATISFIED_LINK_ERROR JAVA_OBJ_LANG("UnsatisfiedLinkError")
-#define JAVA_SIG_UNSATISFIED_LINK_ERROR JAVA_SIG_OBJECT(JAVA_OBJ_UNSATISFIED_LINK_ERROR)
+#define JAVA_CLASS_VARIABLE(name) jclass name = NULL
+#define JAVA_METHOD_VARIABLE(name) jmethodID name = 0;
+
+static inline int
+javaFindClass (JNIEnv *env, jclass *class, const char *name) {
+  if (*class) return 1;
+  return !!(*class = (*env)->FindClass(env, name));
+}
+
+static inline int
+javaFindMethod (
+  JNIEnv *env, jmethodID *method, jclass class,
+  const char *name, const char *signature
+) {
+  if (*method) return 1;
+  return !!(*method = (*env)->GetMethodID(env, class, name, signature));
+}
+
+#define JAVA_FIND_METHOD(env, method, class, name, arguments, returns) \
+(javaFindMethod(env, method, class, name, JAVA_SIG_METHOD(returns, arguments)))
+
+#define JAVA_FIND_CONSTRUCTOR(env, constructor, class, arguments) \
+(javaFindMethod(env, constructor, class, JAVA_CONSTRUCTOR_NAME, JAVA_SIG_CONSTRUCTOR(arguments)))
+
+#define javaPtrToLong(p) ((jlong)(intptr_t)(p))
+#define javaPtrFromLong(l) ((void *)(intptr_t)(l))
+
+static inline int
+javaFindClassAndMethod (
+  JNIEnv *env,
+  jclass *class, const char *className,
+  jmethodID *method, const char *methodName,
+  const char *signature
+) {
+  return javaFindClass(env, class, className)
+      && javaFindMethod(env, method, *class, methodName, signature);
+}
+
+static inline jboolean
+javaHasExceptionOccurred (JNIEnv *env) {
+  return (*env)->ExceptionCheck(env);
+}
+
+static inline jthrowable
+javaGetException (JNIEnv *env) {
+  return (*env)->ExceptionOccurred(env);
+}
+
+static inline void
+javaDescribeException (JNIEnv *env) {
+  return (*env)->ExceptionDescribe(env);
+}
+
+static inline void
+javaClearException (JNIEnv *env) {
+  return (*env)->ExceptionClear(env);
+}
 
 #ifdef __cplusplus
 }

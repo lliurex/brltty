@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,7 +23,7 @@
 
 #include "log.h"
 #include "strfmt.h"
-#include "charset.h"
+#include "utf8.h"
 #include "cmd.h"
 #include "brl_cmds.h"
 #include "ktb.h"
@@ -204,7 +204,7 @@ searchKeyNameEntry (const void *target, const void *element) {
   return compareKeyValues(value, &(*kne)->value);
 }
 
-static const KeyNameEntry *
+const KeyNameEntry *
 findKeyNameEntry (KeyTable *table, const KeyValue *value) {
   const KeyNameEntry *const *array = table->keyNames.table;
   unsigned int count = table->keyNames.count;

@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2002-2019 by
+ * Copyright (C) 2002-2021 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -89,9 +89,13 @@ extern "C" {
  */
 typedef uint64_t brlapi_keyCode_t;
 
-/** Hex print format for brlapi_keyCode_t */
+/** Define a brlapi_keyCode_t constant */
+#define BRLAPI_KEYCODE_C(value) UINT64_C(value)
+
+/** Hexadecimal print format for brlapi_keyCode_t */
 #define BRLAPI_PRIxKEYCODE PRIx64
-/** Unsigned print format for brlapi_keyCode_t */
+
+/** Unsigned decimal print format for brlapi_keyCode_t */
 #define BRLAPI_PRIuKEYCODE PRIu64
 
 /** Brlapi_keyCode_t's biggest value
@@ -165,6 +169,40 @@ typedef uint64_t brlapi_keyCode_t;
 #define BRLAPI_KEY_SYM_FUNCTION		UINT64_C(0X0000FFBE)
 #define BRLAPI_KEY_SYM_DELETE		UINT64_C(0X0000FFFF)
 #define BRLAPI_KEY_SYM_UNICODE		UINT64_C(0X01000000)
+
+/**
+ * When brlapi_enterTtyMode() or brlapi_entg$erTtyModeWithPath() is called
+ * with a driver name, brlapi_readKey() and brlapi_readKeyWithTimeout()
+ * will return driver-specific key codes. From most- to least-significant,
+ * their eight bytes are: F 0 0 0 0 0 G N. F is a byte that contains flag
+ * bits which are common for all drivers. BRLAPI_DRV_KEY_PRESS, which
+ * indicates that it's a key press (as opposed to a release) event, is the
+ * only currently defined flag. The other flag bits are always 0.
+ * G is the key's group, and N is the key's number within that group.
+ */
+
+/** Flag for a driver-specific keycode press (not set means a release) */
+#define BRLAPI_DRV_KEY_PRESS BRLAPI_KEYCODE_C(0X8000000000000000)
+
+/** Shift for key number of brlapi_keyCode_t */
+#define BRLAPI_DRV_KEY_NUMBER_SHIFT 0
+/** Mask for key number of brlapi_keyCode_t */
+#define BRLAPI_DRV_KEY_NUMBER_MASK 0XFF
+/** Get key number of brlapi_keyCode_t */
+#define BRLAPI_DRV_KEY_NUMBER(code) (((code) & BRLAPI_DRV_KEY_NUMBER_MASK) >> BRLAPI_DRV_KEY_NUMBER_SHIFT)
+
+/** Shift for key group of brlapi_keyCode_t */
+#define BRLAPI_DRV_KEY_GROUP_SHIFT 8
+/** Mask for key group of brlapi_keyCode_t */
+#define BRLAPI_DRV_KEY_GROUP_MASK 0XFF00
+/** Get key group of brlapi_keyCode_t */
+#define BRLAPI_DRV_KEY_GROUP(code) (((code) & BRLAPI_DRV_KEY_GROUP_MASK) >> BRLAPI_DRV_KEY_GROUP_SHIFT)
+
+/** Mask for key value (group and number) of brlapi_keyCode_t */
+#define BRLAPI_DRV_KEY_VALUE_MASK (BRLAPI_DRV_KEY_GROUP_MASK | BRLAPI_DRV_KEY_NUMBER_MASK)
+
+/** Key number representing any key in the group */
+#define BRLAPI_DRV_KEY_NUMBER_ANY 0XFF
 
 /** @} */
 

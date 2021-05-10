@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,6 +19,7 @@
 #include "prologue.h"
 
 #include "log.h"
+#include "lock.h"
 #include "file.h"
 #include "atb.h"
 #include "atb_internal.h"
@@ -34,6 +35,22 @@ static AttributesTable internalAttributesTable = {
 
 AttributesTable *attributesTable = &internalAttributesTable;
 
+static LockDescriptor *
+getAttributesTableLock (void) {
+  static LockDescriptor *lock = NULL;
+  return getLockDescriptor(&lock, "attributes-table");
+}
+
+void
+lockAttributesTable (void) {
+  obtainExclusiveLock(getAttributesTableLock());
+}
+
+void
+unlockAttributesTable (void) {
+  releaseLock(getAttributesTableLock());
+}
+
 unsigned char
 convertAttributesToDots (AttributesTable *table, unsigned char attributes) {
   return table->header.fields->attributesToDots[attributes];
@@ -43,7 +60,7 @@ int
 replaceAttributesTable (const char *directory, const char *name) {
   AttributesTable *newTable = NULL;
 
-  if (name) {
+  if (*name) {
     char *path;
 
     if ((path = makeAttributesTablePath(directory, name))) {
@@ -62,7 +79,10 @@ replaceAttributesTable (const char *directory, const char *name) {
   if (newTable) {
     AttributesTable *oldTable = attributesTable;
 
-    attributesTable = newTable;
+    lockAttributesTable();
+      attributesTable = newTable;
+    unlockAttributesTable();
+
     destroyAttributesTable(oldTable);
     return 1;
   }

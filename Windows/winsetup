@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -17,13 +17,13 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-. "`dirname "${0}"`/../prologue.sh"
+. "`dirname "${0}"`/../brltty-prologue.sh"
 . "${programDirectory}/mingw.sh"
 
 set -e
 umask 022
 
-readonly urlArchiveRoot="http://brltty.app/archive/Windows"
+readonly defaultArchiveRoot="http://brltty.app/archive/Windows"
 readonly defaultTemporaryDirectory="${TMPDIR:-/tmp}/brltty-${programName}"
 
 havePath() {
@@ -45,12 +45,19 @@ verifyDirectory() {
 }
 
 findCommand() {
-   local name="${1}"
-   local variable="${2}"
+   local variable="${1}"
+   shift 1
 
-   local path="$(command -v "${name}")"
-   [ -n "${path}" ] || return 1
-   [ -z "${variable}" ] || setVariable "${variable}" "${path}"
+   for name
+   do
+      local path="$(command -v "${name}")"
+      [ -n "${path}" ] && {
+         setVariable "${variable}" "${path}"
+         return 0
+      }
+   done
+
+   return 1
 }
 
 executeCommand() {
@@ -69,7 +76,7 @@ downloadFile() {
 
    logMessage step "downloading file: ${source}"
    [ -z "${target}" ] && target="${source##*/}"
-   executeCommand wget -q -O "${target}" "${urlArchiveRoot}/${source}"
+   executeCommand wget -nv -O "${target}" "${archiveRoot}/${source}"
 }
 
 unpackArchive() {
@@ -88,23 +95,25 @@ unpackArchive() {
 applyPatch() {
    local patch="${1}"
    local directory="${2}"
-   shift 2
+   local file="${3}"
+   local pattern="${4}"
 
-   while [ "${#}" -gt 0 ]
-   do
-      local file="${1}"
-      local pattern="${2}"
-      shift 2
+   local path="${directory}/${file}"
 
-      grep -q "${pattern}" "${directory}/${file}" || {
+   if [ -f "${path}" ]
+   then
+      grep -q "${pattern}" "${path}" || {
          local name="${patch##*/}"
          logMessage task "applying patch: ${name}"
 
-         downloadFile "${patch}"
-         "${dryRun}" || executeCommand patch -N -i "${temporaryDirectory}/${name}" -d "${directory}"
-         return 0
+         "${dryRun}" || {
+            downloadFile "${patch}"
+            executeCommand patch -N -i "${temporaryDirectory}/${name}" -d "${directory}" "${file}"
+         }
       }
-   done
+   else
+      logMessage warning "file not found: ${path}"
+   fi
 }
 
 installFile() {
@@ -116,9 +125,12 @@ installFile() {
 
    [ -e "${target}" ] || {
       logMessage task "installing file: ${target}"
-      downloadFile "${file}"
-      [ -d "${directory}" ] || "${dryRun}" || executeCommand mkdir -p "${directory}"
-      "${dryRun}" || executeCommand cp "${source}" "${target}"
+
+      "${dryRun}" || {
+         downloadFile "${file}"
+         [ -d "${directory}" ] || executeCommand mkdir -p "${directory}"
+         executeCommand cp "${source}" "${target}"
+      }
    }
 }
 
@@ -143,24 +155,27 @@ installWindowsArchive() {
 
    havePath "${path}" || {
       logMessage task "installing Windows archive: ${archive}"
-      downloadFile "${archive}"
 
-      local directory="content-${archive}"
-      executeCommand mkdir "${directory}"
-      executeCommand cd "${directory}"
+      "${dryRun}" || {
+         downloadFile "${archive}"
 
-      unpackArchive "../${archive}"
-      set -- *
+         local directory="content-${archive}"
+         executeCommand mkdir "${directory}"
+         executeCommand cd "${directory}"
 
-      if [ "${#}" -eq 1 -a -d "${1}" ]
-      then
-         "${dryRun}" || executeCommand mv "${1}" "${path}"
-         executeCommand cd ..
-         "${dryRun}" || executeCommand rmdir "${directory}"
-      else
-         executeCommand cd ..
-         "${dryRun}" || executeCommand mv "${directory}" "${path}"
-      fi
+         unpackArchive "../${archive}"
+         set -- *
+
+         if [ "${#}" -eq 1 -a -d "${1}" ]
+         then
+            executeCommand mv "${1}" "${path}"
+            executeCommand cd ..
+            executeCommand rmdir "${directory}"
+         else
+            executeCommand cd ..
+            executeCommand mv "${directory}" "${path}"
+         fi
+      }
    }
 }
 
@@ -170,9 +185,9 @@ installMingwArchive() {
 
    havePath "${mingwDirectory}/${path}" || {
       logMessage task "installing MinGW archive: ${archive}"
-      downloadFile "MinGW/${archive}"
 
       "${dryRun}" || {
+         downloadFile "MinGW/${archive}"
          executeCommand cd "${mingwDirectory}"
          unpackArchive "${temporaryDirectory}/${archive}"
          executeCommand cd "${temporaryDirectory}"
@@ -186,7 +201,7 @@ installMingwPackage() {
 
    havePath "${path}" || {
       logMessage task "installing MinGW package: ${package}"
-      "${dryRun}" || executeCommand mingw-get install "${package}"
+      "${dryRun}" || executeCommand mingw-get --verbose=0 install "${package}"
    }
 }
 
@@ -237,11 +252,12 @@ installLibUSB1() {
 installCython() {
    local python
 
-   if findCommand python python
+   if findCommand python python py
    then
+      export PYTHONIOENCODING="utf-8"
       local directory="${python%/*}"
 
-      findCommand cython || {
+      findCommand cython cython || {
          logMessage task "installing Cython"
          "${dryRun}" || executeCommand pip -q install cython
       }
@@ -254,10 +270,19 @@ installCython() {
    fi
 }
 
+addProgramOption a string.URL archiveRoot "the URL for BRLTTY's Windows archive" "${defaultArchiveRoot}"
 addProgramOption d flag dryRun "dry run - don't actually install anything"
 addProgramOption k flag keepFiles "keep (do not remove) the temporary directory"
+addProgramOption p string.directory pythonDirectory "the directory where Python has been installed"
 addProgramOption t string.directory temporaryDirectory "the temporary directory to use" "${defaultTemporaryDirectory}"
 parseProgramArguments "${@}"
+
+[ -n "${archiveRoot}" ] || archiveRoot="${defaultArchiveRoot}"
+
+[ -n "${pythonDirectory}" ] && {
+   [ -d "${pythonDirectory}" ] || semanticError "Python directory not found: ${pythonDirectory}"
+   PATH="${pythonDirectory}:${pythonDirectory}/scripts:${PATH}"
+}
 
 readonly windowsDirectory="/c"
 verifyDirectory "${windowsDirectory}"

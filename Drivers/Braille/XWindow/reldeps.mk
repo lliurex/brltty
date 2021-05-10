@@ -7,8 +7,8 @@ braille.$O: $(SRC_TOP)Headers/log.h
 braille.$O: $(SRC_TOP)Headers/parse.h
 braille.$O: $(SRC_TOP)Headers/charset.h
 braille.$O: $(SRC_TOP)Headers/lock.h
+braille.$O: $(SRC_TOP)Headers/utf8.h
 braille.$O: $(SRC_TOP)Headers/unicode.h
-braille.$O: $(SRC_TOP)Headers/api_types.h
 braille.$O: $(SRC_TOP)Headers/async.h
 braille.$O: $(SRC_TOP)Headers/async_io.h
 braille.$O: $(SRC_TOP)Headers/brl_base.h

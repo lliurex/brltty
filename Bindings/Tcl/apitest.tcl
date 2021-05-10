@@ -2,7 +2,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2006-2019 by Dave Mielke <dave@mielke.cc>
+# Copyright (C) 2006-2021 by Dave Mielke <dave@mielke.cc>
 #
 # libbrlapi comes with ABSOLUTELY NO WARRANTY.
 #
@@ -17,7 +17,6 @@
 ###############################################################################
 
 source [file join [file dirname $argv0] prologue.tcl]
-load libbrlapi_tcl.so
 
 proc putProperties {label properties} {
    puts stdout "$label: $properties"

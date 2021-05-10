@@ -8,7 +8,6 @@ braille.$O: $(SRC_TOP)Headers/device.h
 braille.$O: $(SRC_TOP)Headers/async.h
 braille.$O: $(SRC_TOP)Headers/async_wait.h
 braille.$O: $(SRC_TOP)Headers/ascii.h
-braille.$O: $(SRC_TOP)Headers/api_types.h
 braille.$O: $(SRC_TOP)Headers/async_io.h
 braille.$O: $(SRC_TOP)Headers/brl_base.h
 braille.$O: $(SRC_TOP)Headers/brl_cmds.h

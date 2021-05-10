@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -182,19 +182,19 @@ BEGIN_KEY_NAME_TABLE(sat_basic)
   KEY_NAME_ENTRY(AL_KEY_Right, "Right"),
   KEY_NAME_ENTRY(AL_KEY_Down, "Down"),
 
-  KEY_NAME_ENTRY(AL_KEY_LeftPadF1, "LeftPadF1"),
-  KEY_NAME_ENTRY(AL_KEY_LeftPadUp, "LeftPadUp"),
-  KEY_NAME_ENTRY(AL_KEY_LeftPadLeft, "LeftPadLeft"),
-  KEY_NAME_ENTRY(AL_KEY_LeftPadDown, "LeftPadDown"),
-  KEY_NAME_ENTRY(AL_KEY_LeftPadRight, "LeftPadRight"),
-  KEY_NAME_ENTRY(AL_KEY_LeftPadF2, "LeftPadF2"),
+  KEY_NAME_ENTRY(AL_KEY_SpeechPadF1, "SpeechPadF1"),
+  KEY_NAME_ENTRY(AL_KEY_SpeechPadUp, "SpeechPadUp"),
+  KEY_NAME_ENTRY(AL_KEY_SpeechPadLeft, "SpeechPadLeft"),
+  KEY_NAME_ENTRY(AL_KEY_SpeechPadDown, "SpeechPadDown"),
+  KEY_NAME_ENTRY(AL_KEY_SpeechPadRight, "SpeechPadRight"),
+  KEY_NAME_ENTRY(AL_KEY_SpeechPadF2, "SpeechPadF2"),
 
-  KEY_NAME_ENTRY(AL_KEY_RightPadF1, "RightPadF1"),
-  KEY_NAME_ENTRY(AL_KEY_RightPadUp, "RightPadUp"),
-  KEY_NAME_ENTRY(AL_KEY_RightPadLeft, "RightPadLeft"),
-  KEY_NAME_ENTRY(AL_KEY_RightPadDown, "RightPadDown"),
-  KEY_NAME_ENTRY(AL_KEY_RightPadRight, "RightPadRight"),
-  KEY_NAME_ENTRY(AL_KEY_RightPadF2, "RightPadF2"),
+  KEY_NAME_ENTRY(AL_KEY_NavPadF1, "NavPadF1"),
+  KEY_NAME_ENTRY(AL_KEY_NavPadUp, "NavPadUp"),
+  KEY_NAME_ENTRY(AL_KEY_NavPadLeft, "NavPadLeft"),
+  KEY_NAME_ENTRY(AL_KEY_NavPadDown, "NavPadDown"),
+  KEY_NAME_ENTRY(AL_KEY_NavPadRight, "NavPadRight"),
+  KEY_NAME_ENTRY(AL_KEY_NavPadF2, "NavPadF2"),
 END_KEY_NAME_TABLE
 
 BEGIN_KEY_NAME_TABLE(sat_extra)
@@ -553,7 +553,7 @@ static const ModelEntry modelBC680 = {
 
 static const ModelEntry modelEL12 = {
   .identifier = 0X40,
-  .name = "EL12 Touch",
+  .name = "EasyLink 12 Touch",
   .columns = 12,
   .flags = MOD_FLAG_FORCE_FROM_0,
   .keyTableDefinition = &KEY_TABLE_DEFINITION(el)
@@ -881,7 +881,7 @@ updateConfiguration1 (BrailleDisplay *brl, int autodetecting, const unsigned cha
 }
 
 static int
-setFirmness1 (BrailleDisplay *brl, BrailleFirmness setting) {
+setBrailleFirmness1 (BrailleDisplay *brl, BrailleFirmness setting) {
   return writeParameter1(brl, 3,
                          setting * 4 / BRL_FIRMNESS_MAXIMUM);
 }
@@ -898,7 +898,7 @@ identifyModel1 (BrailleDisplay *brl, unsigned char identifier) {
   if (model->name) {
     if (setDefaultConfiguration(brl)) {
       if (model->flags & MOD_FLAG_CAN_CONFIGURE) {
-        brl->setFirmness = setFirmness1;
+        brl->setBrailleFirmness = setBrailleFirmness1;
 
         if (!writeFunction1(brl, 0X07)) return 0;
 
@@ -1077,12 +1077,12 @@ readCommand1 (BrailleDisplay *brl) {
 
       case 0X77: /* satellite keypads */
         if (key <= 0X05) {
-          enqueueKeyEvent(brl, AL_GRP_NavigationKeys, key+AL_KEY_LEFT_PAD, press);
+          enqueueKeyEvent(brl, AL_GRP_NavigationKeys, key+AL_KEY_SPEECH_PAD, press);
           continue;
         }
 
         if ((key >= 0X20) && (key <= 0X25)) {
-          enqueueKeyEvent(brl, AL_GRP_NavigationKeys, key-0X20+AL_KEY_RIGHT_PAD, press);
+          enqueueKeyEvent(brl, AL_GRP_NavigationKeys, key-0X20+AL_KEY_NAV_PAD, press);
           continue;
         }
 
@@ -1402,7 +1402,7 @@ interpretKeyEvent2 (BrailleDisplay *brl, unsigned char group, unsigned char key)
 static BraillePacketVerifierResult
 verifyPacket2s (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   unsigned char byte = bytes[size-1];
@@ -1652,7 +1652,7 @@ static const ProtocolOperations protocol2sOperations = {
 static BraillePacketVerifierResult
 verifyPacket2u (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   unsigned char byte = bytes[size-1];

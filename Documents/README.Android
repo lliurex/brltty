@@ -2,7 +2,7 @@
 BRLTTY on Android
 ~~~~~~~~~~~~~~~~~
 
-.. |SDK build tools version| replace:: 26.0.1
+.. |SDK build tools version| replace:: 29.0.6
 .. |NDK version| replace:: r16b
 .. |JDK version| replace:: 1.8
 
@@ -18,36 +18,51 @@ BRLTTY has been designed to run on at least Android 4.1 (Jelly Bean). While it
 does run on Android 4.0 (Ice Cream Sandwich), many of its highly desirable
 features won't work.
 
-BRLTTY requires access to a number of privileged Android operating system
-capabilities. The required permissions are as follows:
+BRLTTY requires access to a number of privileged
+Android operating system capabilities.
+The required permissions are as follows:
 
 ``BIND_ACCESSIBILITY_SERVICE``
-   This permission is required so that BRLTTY can inspect the layout and
-   content of the screen.
+  * For inspecting the layout and content of the screen.
 
 ``BIND_INPUT_METHOD``
-   This permission is required so that Android will accept input from your
-   braille device's keyboard.
+  * For Android to accept input via BRLTTY from your braille device's keyboard.
 
 ``WAKE_LOCK``
-   This permission is required so that BRLTTY can reset the Android device's
-   lock timer each time you interact with a control on your braille device.
+  * For resetting the Android device's lock timer
+    each time you interact with a control on your braille device.
 
 ``BLUETOOTH``
-   This permission is required so that BRLTTY can use Bluetooth to communicate
-   with your braille device.
+  * For communicating with a braille device via Bluetooth.
 
 ``BLUETOOTH_ADMIN``
-   This permission is required on Android 4.0 (Ice Cream Sandwich) so that
-   BRLTTY can use Bluetooth to communicate with your braille device.
+  * For communicating with a braille device via Bluetooth
+    on Android 4.0 (Ice Cream Sandwich).
 
 ``INTERNET``
-   This permission is required so that BRLTTY can listen on a TCP/IP port for
-   BrlAPI client connection requests.
+  * For listening on a TCP/IP port for BrlAPI client connection requests.
 
 ``READ_EXTERNAL_STORAGE``
-   This permission is required so that BRLTTY can read customized data files
-   from your SD card.
+  * For reading `customized data files`_
+    from your Android device's primary shared/external storage area.
+
+``SYSTEM_ALERT_WINDOW``
+  * For presenting the Accessibility Actions chooser.
+
+``RECEIVE_BOOT_COMPLETED``
+  * For knowing when locked storage can be accessed after a reboot.
+
+``REQUEST_INSTALL_PACKAGES``
+  * For upgrading to a newer release.
+
+``ACCESS_WIFI_STATE``
+  * For getting Wi-Fi status values (for the INDICATORS command).
+
+``ACCESS_FINE_LOCATION``
+  * For getting the Wi-Fi SSID (for the INDICATORS command).
+
+``ACCESS_COARSE_UPDATES``
+  * For getting the cell signal strength (for the INDICATORS command).
 
 Quick Start
 -----------
@@ -234,25 +249,25 @@ You can enable BRLTTY's keyboard support in one of the following ways:
   The ``Keyboard and Input Methods`` section of this screen shows the
   ``Default`` (currently selected) input method, and contains a check box for
   each installed input method. An input method is enabled if its check box is
-  checked, so, to enable BRLTTY's keyboard support, check the box labeled
+  checked, so, to enable BRLTTY's keyboard support, check the box labelled
   ``BRLTTY Input Service``. Once it's been enabled, you can select it at any
   time by adjusting the ``Default`` setting.
 
 * If BRLTTY is running then switching between input methods is much easier.
-  Go to `BRLTTY's Actions Screen`_ and tap ``Switch Input Method``. This
+  Go to BRLTTY's `Actions screen`_ and tap ``Switch Input Method``. This
   brings up Android's Input Method Picker, which presents a set of radio
   buttons - one for each enabled input method. If there's no radio button for
   BRLTTY's input method then it hasn't been enabled yet. To enable it, tap the
-  button labeled ``Set up input methods``. This screen contains a check box for
-  each installed input method. Check the box labeled ``BRLTTY Input Service``.
+  button labelled ``Set up input methods``. This screen contains a check box for
+  each installed input method. Check the box labelled ``BRLTTY Input Service``.
   Then tap the ``Back`` button to return to the ``Language and Input`` screen,
   find the ``Keyboard and Input Methods`` section, and set the ``Default``
   input method to BRLTTY's input method.
 
-BRLTTY's Actions Screen
-~~~~~~~~~~~~~~~~~~~~~~~
+Actions Screen
+~~~~~~~~~~~~~~
 
-This screen presents several common actions that you may wish to perform:
+BRLTTY's Actions screen presents several common actions that you may wish to perform:
 
 * Switch Input Method
 * BRLTTY Settings
@@ -267,7 +282,7 @@ This screen presents several common actions that you may wish to perform:
 You can get to this screen using any of the following methods:
 
 * From your braille device via global action #5.
-  See `Performing Global Actions`_ for details.
+  See `Global Actions`_ for details.
 
 * From the notifications shade.
   Open it by dragging the status bar downward:
@@ -283,6 +298,24 @@ You can get to this screen using any of the following methods:
 
   * The device's system navigation area isn't rendered via software.
   * An application has chosen to hide the system navigation area.
+
+Customized Data Files
+~~~~~~~~~~~~~~~~~~~~~
+
+You can customize any of BRLTTY's data files,
+e.g. a text, contraction, or key table or subtable.
+To do this, add a file with the same name directly into a folder named ``brltty``
+at the top-level of your Android device's primary shared/external storage area.
+This area might be internal (on the device itself)
+or external (on a removal storage device, e.g. an SD card).
+Normally, it's the area that ``/sdcard`` is symbolically linked to.
+
+BRLTTY won't be aware of your customized data files
+if this area has been mounted by a computer.
+
+It's safe to include the original data file from your customized copy.
+If you're only adding lines, therefore, then your customized copy
+need only contain those additions and the include statement.
 
 Navigating the Screen
 ---------------------
@@ -329,19 +362,20 @@ focus to that folder's first entry. This eliminates the need to search for it.
 The Cursor Routing Keys
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The cursor routing keys of the braille device perform their usual function when
+The cursor routing keys of your braille device perform their usual function when
 within an input area if it has input focus - the key above a given
 character brings the cursor to that character. In any other context, however, a
 cursor routing key performs an action on the screen element under it. Starting
 with the leftmost routing key over a screen element, which we'll call key #1,
 these actions are as follows:
 
-1) set accessibility focus (used for cursor tracking and routing)
+1) Bring accessibility focus (cursor)
 2) tap (click)
 3) hold (long click)
 4) scroll backward (up or left)
 5) scroll forward (down or right)
 6) context click
+7) accessibility actions
 
 A range control (progress bar, volume slider, etc) can be adjusted up/down
 via the scroll forward/backward actions.
@@ -433,8 +467,27 @@ For example::
 
   Connect <disabled)
 
-Performing Global Actions
-~~~~~~~~~~~~~~~~~~~~~~~~~
+When There's No Text
+````````````````````
+
+A screen element that has no text of its own,
+and that BRLTTY doesn't explicitly support,
+is normally not rendered.
+Examples of these include:
+
+* A graphic (e.g. an image view).
+* A container used to construct the screen's layout (e.g. a frame layout).
+
+It's still necessary to render it, however, if it implements
+an action (e.g. a tap) which the user needs to be able to perform.
+
+If the application's developer has provided descriptive text
+then that text is rendered.
+If not, then BRLTTY renders a generic description within (parentheses).
+It contains the widget's type, and, if available, it's source code identifier.
+
+Global Actions
+~~~~~~~~~~~~~~
 
 Android supports a number of global actions that can be performed by pressing
 special hardware buttons and/or by touching reserved areas on the screen.
@@ -442,31 +495,249 @@ BRLTTY also offers a way to perform these actions from your braille device.
 While a better way may be developed in the future, this is how it can be done
 right now.
 
-Since Android doesn't use the keyboard function keys (commonly named ``F1``
-through ``F12``), BRLTTY uses them to perform global Android actions according
-to the following table:
+* Since Android doesn't use the keyboard function keys
+  (commonly named ``F1`` through ``F12``),
+  BRLTTY uses them to perform the global actions.
+  The way a braille device emulates keyboard function keys
+  differs from model to model,
+  so you should check the BRLTTY documentation for your braille device.
+  The most common way is to press the corresponding cursor routing key
+  along with some other key or key combination.
+  For braille devices that have a braille keyboard,
+  the most common key to be used in conjunction with a cursor routing key
+  in order to emulate a keyboard function key is the space bar.
 
-  =======  ==========================  ===================
-  Key      Action                      Android Release
-  -------  --------------------------  -------------------
-  ``F1``   Home                        4.1 (Jelly Bean)
-  ``F2``   Back                        4.1 (Jelly Bean)
-  ``F3``   Notifications               4.1 (Jelly Bean)
-  ``F4``   Overview (Recent Apps)      4.1 (Jelly Bean)
-  ``F5``   `BRLTTY's Actions Screen`_  \*
-  ``F6``   Quick Settings              4.2 (Jelly Bean MR1)
-  ``F7``   Move to Previous Item       \*
-  ``F8``   Move to Next Item           \*
-  ``F9``   Power Off Dialog            5.0 (Lollipop)
-  ``F10``  Menu Key                    \*
-  =======  ==========================  ===================
+* If your braille device has a braille keyboard
+  then you can perform the global actions
+  via chords that also include dots 7 and 8.
+  For example, Space + Dots78 + Dots125 (h) goes to the home screen.
 
-The way a braille device emulates keyboard function keys differs from model to
-model, so you should check the BRLTTY documentation for your braille device.
-The most common way is to press the corresponding cursor routing key along with
-some other key or key combination. For braille devices that have a braille
-keyboard, the most common key to be used in conjunction with a cursor routing
-key in order to emulate a keyboard function key is the space bar.
+.. table:: Global Android Actions
+
+  =======  =========  =====================================  =====================
+  FN-Key   Chord78+   Action                                 As of Android Release
+  -------  ---------  -------------------------------------  ---------------------
+  ``F1``   125 (h)    go to the Home screen                  4.1 (Jelly Bean)
+  ``F2``   12 (b)     tap the Back button                    4.1 (Jelly Bean)
+  ``F3``   1345 (n)   go to the Notifications screen         4.1 (Jelly Bean)
+  ``F4``   1235 (r)   tap the Recent Apps (Overview) button  4.1 (Jelly Bean)
+  ``F5``   123456     go to BRLTTY's `Actions screen`_       \*
+  ``F6``   23         move to the first item                 \*
+  ``F7``   2          move to the previous item              \*
+  ``F8``   5          move to the next item                  \*
+  ``F9``   56         move to the last item                  \*
+  ``F10``  134 (m)    tap the Menu button                    \*
+  ``F11``  36         return to the active window            4.0 (Kitkat)
+  ``F12``  3          switch to the previous window          4.0 (Kitkat)
+  ``F13``  6          switch to the next window              4.0 (Kitkat)
+  ``F14``  2345 (t)   show the window title                  6.0 (Nougat)
+  ``F15``  24 (i)     show various device status indicators           \*
+  ``F16``  234 (s)    go to the Quick Settings screen        4.2 (Jelly Bean MR1)
+  ``F17``  135 (o)    go to the Device Options screen        5.0 (Lollipop)
+  =======  =========  =====================================  =====================
+
+Text Selection and the Clipboard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As with the `global actions`_,
+if your braille device has a braille keyboard
+then you can perform text selection actions
+via chords that also include dots 7 and 8.
+For example, Space + Dots78 + Dots14 (c)
+copies the selected text to Adroid's clipboard.
+This works as of Android release 4.3 (Jelly Bean MR2).
+
+.. table:: Text Selection and Clipboard Actions
+
+  ========  =======================================
+  Chord78+  Action
+  --------  ---------------------------------------
+  1 (a)     select all of the text
+  4         clear the text selection
+  14 (c)    copy the selected text to the clipboard
+  1236 (v)  paste the text on the clipboard
+  1346 (x)  cut the selected text to the clipboard
+  ========  =======================================
+
+The text selection extends inclusively
+from its first endpoint through its second one.
+The attribute underlining feature (see the Show Attributes preference)
+is used to show which text has currently been selected.
+It may be helpful to set the attribute underline to blink
+if the cursor isn't set to blink, and vice versa.
+
+In addition to being able to select all of the text,
+there are ways to select a specific portion of the text.
+Exactly how this is done depends on which braille device you're using.
+There is, however, one way to do it that works
+on any braille device that has cursor routing keys.
+
+The cursor routing key where the cursor is
+normally doesn't serve any useful purpose.
+If, however, you enable the Start Text Selection preference
+(which can be found within the Navigation Options submenu),
+then it enters `text selection mode`_
+with that character being both the first and second endpoints.
+This method has the constraint that the first endpoint of the text selection
+must be a character that the cursor can get to.
+
+.. _Text Selection Mode:
+
+When in text selection mode,
+pressing a cursor routing key changes the second endpoint of the selection.
+This may be done any number of times.
+The second endpoint may be either after or before the first one.
+
+Commands
+````````
+
+HOST_COPY
+  Copy the selected text to the host clipboard
+  and then deselect it.
+
+HOST_CUT
+  Copy the selected text to the host clipboard
+  and then delete it.
+
+HOST_PASTE
+  Insert the text on the host clipboard after the screen cursor.
+
+TXTSEL_ALL
+  Select all of the text.
+
+TXTSEL_CLEAR
+  Clear (deselect) the current text selection.
+
+TXTSEL_SET
+  Select a specific portion of the text.
+  This command requires that both endpoints of the text
+  are within the current braille window.
+  The key combination needs two cursor routing (or equivalent) keys.
+  We recommend a long press of two cursor routing keys
+  (if the braille device supports it).
+
+TXTSEL_START
+  Enter `text selection mode`_ with that character being both endpoints.
+  With this method, the first endpoint of the text selection can be anywehre,
+  i.e. it isn't constrained to be a character that the cursor can get to.
+  The key combination needs a cursor routing (or equivalent) key.
+  We recommend a long press of a cursor routing key
+  (if the braille device supports it).
+
+Web Pages
+~~~~~~~~~
+
+Element Annotations
+```````````````````
+
+A number of elements within a web page are annotated
+in order to help distinguish them from the surrounding text.
+Each annotation is placed immediately before
+the text of the element that it describes.
+It consists of a three-letter tag,
+optionally followed by descriptivE data,
+all enclosed within (parentheses).
+Here are some examples:
+
+.. table:: Web Page Element Annotation Examples
+
+  =================  ====================================================
+  Example            Meaning
+  -----------------  ----------------------------------------------------
+  (btn) Submit       a Submit button
+  (lnk https://...)  the target URL of a link
+  (tbl 4x9)          the start of a table with four columns and nine rows
+  (col 2@3)          the second column of the third row of a table
+  =================  ====================================================
+
+The following table lists all of the annotations:
+
+.. table:: Web Page Element Annotations
+
+  ==========  =====================================  ===========
+  Annotation  Meaning                                Data
+  ----------  -------------------------------------  -----------
+  btn         button
+  cap         table caption
+  col         column in table row                    coordinates
+  frm         start of form
+  hdg         heading (unspecified level)
+  hd1         level one heading
+  hd2         level two heading
+  hd3         level three heading
+  hd4         level four heading
+  hd5         level five heading
+  hd6         level six heading
+  hdr         header of table column                 coordinates
+  lnk         target of link                         URL
+  pop         combo box (single or Multiple choice)
+  pwd         password field
+  row         start of table row
+  tbl         start of table                         dimensions
+  txt         text field or area
+  \--------   horizontal divider
+  ==========  =====================================  ===========
+
+Structural Navigation
+`````````````````````
+
+Pressing Dots2578 enters Structural navigation mode.
+When in this mode,
+a web page, when being browsed with Chrome, can be structurally navigated
+by pressing dot combinations on your braille device.
+Press Dots78 (without Space) to return to the default key bindings.
+
+When in this mode,
+combinations of dots 1 through 6 specify the type of element
+that you'd like to navigate to.
+Adding dot 7 means move to the previous element of that type,
+and adding dot 8 means move to the next element of that type.
+If neither dot 7 nor dot 8 is added then the current direction is used.
+
+The current direction defaults to (starts out as) ``next``.
+Pressing dot 7 by itself sets it to ``previous``,
+and pressing dot 8 by itself sets it to ``next``.
+
+If the key table for your braille device defines
+a key to be the Left Alt (meta) modifier
+then you don't need to switch to/from structural navigation mode.
+Just hold that key while pressing
+the desired structural navigation dot combination.
+
+The following element types are supported
+(where possible, a hopefully easy-to-remember character has been chosen):
+
+.. table:: Structurally Navigable Web Page Elements
+
+  ======  ====  =====================================
+  Dots    Char  Go to the Previous/Next
+  ------  ----  -------------------------------------
+  1       a     article
+  12      b     button
+  14      c     control
+  145     d     ARIA landmark
+  15      e     editable text
+  124     f     focusable item
+  1245    g     graphic
+  125     h     heading (any level)
+  24      i     list item
+  123     l     link (visited or unvisited)
+  134     m     media
+  135     o     list (ordered or unordered)
+  1235    r     radio button
+  234     s     section
+  2345    t     table
+  136     u     unvisited link
+  1236    v     visited link
+  1346    x     check box
+  1356    z     combo box (single or multiple choice)
+  2       1     level one heading
+  23      2     level two heading
+  25      3     level three heading
+  256     4     level four heading
+  26      5     level five heading
+  235     6     level six heading
+  ======  ====  =====================================
 
 When BRLTTY Crashes
 -------------------

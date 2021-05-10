@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #include "embed.h"
+#include "strfmt.h"
 #include "cmd_queue.h"
 #include "cmd_speech.h"
 #include "cmd_utils.h"
@@ -35,15 +36,28 @@
 #ifdef ENABLE_SPEECH_SUPPORT
 static void
 sayScreenRegion (int left, int top, int width, int height, int track, SayMode mode) {
+  if (mode == sayImmediate) muteSpeech(&spk, __func__);
+
   size_t count = width * height;
   ScreenCharacter characters[count];
-
-  if (mode == sayImmediate) muteSpeech(&spk, __func__);
   readScreen(left, top, width, height, characters);
+
+  {
+    ScreenCharacter *character = characters;
+    ScreenCharacter *end = character + count;
+    character += width - 1;
+
+    while (character < end) {
+      if (iswspace(character->text)) character->text = WC_C('\n');
+      character += width;
+    }
+  }
+
   spk.track.isActive = track;
   spk.track.screenNumber = scr.number;
   spk.track.firstLine = top;
   spk.track.speechLocation = SPK_LOC_NONE;
+
   sayScreenCharacters(characters, count, 0);
 }
 
@@ -94,13 +108,16 @@ handleSpeechCommands (int command, void *data) {
       enableSpeechDriver(1);
       break;
 
-    case BRL_CMD_SPKHOME:
+    case BRL_CMD_SPKHOME: {
       if (scr.number == spk.track.screenNumber) {
-        trackSpeech();
-      } else {
-        alert(ALERT_COMMAND_REJECTED);
+        if (startScreenCursorRouting(ses->spkx, ses->spky)) {
+          break;
+        }
       }
+
+      alert(ALERT_COMMAND_REJECTED);
       break;
+    }
 
     case BRL_CMD_MUTE:
       muteSpeech(&spk, "command");
@@ -436,18 +453,20 @@ handleSpeechCommands (int command, void *data) {
 
     case BRL_CMD_DESC_CURR_CHAR: {
       char description[0X50];
-      formatCharacterDescription(description, sizeof(description), ses->spkx, ses->spky);
+      STR_BEGIN(description, sizeof(description));
+      STR_FORMAT(formatCharacterDescription, ses->spkx, ses->spky);
+      STR_END;
       sayString(&spk, description, SAY_OPT_MUTE_FIRST);
       break;
     }
 
-    case BRL_CMD_ROUTE_CURR_LOCN:
-      if (routeScreenCursor(ses->spkx, ses->spky, scr.number)) {
-        alert(ALERT_ROUTING_STARTED);
-      } else {
+    case BRL_CMD_ROUTE_CURR_LOCN: {
+      if (!startScreenCursorRouting(ses->spkx, ses->spky)) {
         alert(ALERT_COMMAND_REJECTED);
       }
+
       break;
+    }
 
     case BRL_CMD_SPEAK_CURR_LOCN: {
       char buffer[0X50];

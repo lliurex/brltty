@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -30,6 +30,7 @@
 #endif
 
 #include "options.h"
+#include "pid.h"
 #include "brl_cmds.h"
 #include "brl_dots.h"
 #include "cmd.h"
@@ -50,70 +51,77 @@ static int opt_showModelIdentifier;
 static int opt_showSize;
 static int opt_showKeyCodes;
 static int opt_suspendMode;
+static int opt_parameters;
 static int opt_threadMode;
 
 BEGIN_OPTION_TABLE(programOptions)
-  { .letter = 'n',
-    .word = "name",
+  { .word = "name",
+    .letter = 'n',
     .setting.flag = &opt_showName,
     .description = "Show the name of the braille driver."
   },
 
-  { .letter = 'm',
-    .word = "model",
+  { .word = "model",
+    .letter = 'm',
     .setting.flag = &opt_showModelIdentifier,
     .description = "Show the model identifier of the braille device."
   },
 
 
-  { .letter = 'w',
-    .word = "window",
+  { .word = "window",
+    .letter = 'w',
     .setting.flag = &opt_showSize,
     .description = "Show the dimensions of the braille window."
   },
 
-  { .letter = 'd',
-    .word = "dots",
+  { .word = "dots",
+    .letter = 'd',
     .setting.flag = &opt_showDots,
     .description = "Show dot pattern."
   },
 
-  { .letter = 'l',
-    .word = "learn",
+  { .word = "learn",
+    .letter = 'l',
     .setting.flag = &opt_learnMode,
     .description = "Enter interactive command learn mode."
   },
 
-  { .letter = 'k',
-    .word = "keycodes",
+  { .word = "keycodes",
+    .letter = 'k',
     .setting.flag = &opt_showKeyCodes,
     .description = "Enter interactive keycode learn mode."
   },
 
-  { .letter = 's',
-    .word = "suspend",
+  { .word = "suspend",
+    .letter = 's',
     .setting.flag = &opt_suspendMode,
     .description = "Suspend the braille driver (press ^C or send SIGUSR1 to resume)."
   },
 
-  { .letter = 't',
-    .word = "thread",
+  { .word = "parameters",
+    .letter = 'p',
+    .setting.flag = &opt_parameters,
+    .description = "Test parameters"
+  },
+
+  { .word = "thread",
+    .letter = 't',
     .setting.flag = &opt_threadMode,
     .description = "Exercise threaded use"
   },
 
-  { .letter = 'b',
-    .word = "brlapi",
+  { .word = "brlapi",
+    .letter = 'b',
     .argument = "[host][:port]",
     .setting.string = &opt_host,
     .description = "BrlAPIa host and/or port to connect to."
   },
 
-  { .letter = 'a',
-    .word = "auth",
-    .argument = "file",
+  { .word = "auth",
+    .letter = 'a',
+    .argument = "scheme+...",
     .setting.string = &opt_auth,
-    .description = "BrlAPI authorization/authentication string."
+    .description = "BrlAPI authorization/authentication schemes."
   },
 END_OPTION_TABLE
 
@@ -204,7 +212,7 @@ static void enterLearnMode(void)
   int res;
   brlapi_keyCode_t code;
   int cmd;
-  char buf[0X100];
+  char buf[0X100], *val;
 
   fprintf(stderr,"Entering command learn mode\n");
   if (brlapi_enterTtyMode(-1, NULL)<0) {
@@ -224,22 +232,58 @@ static void enterLearnMode(void)
                     (CDO_IncludeName | CDO_IncludeOperand));
     brlapi_writeText(BRLAPI_CURSOR_OFF, buf);
     fprintf(stderr, "%s\n", buf);
+    val = brlapi_getParameterAlloc(BRLAPI_PARAM_COMMAND_LONG_NAME, cmd, BRLAPI_PARAMF_GLOBAL, NULL);
+    fprintf(stderr, "%s\n", val);
+    free(val);
     if (cmd==BRL_CMD_LEARN) return;
   }
   brlapi_perror("brlapi_readKey");
 }
 
+static char *getKeyName (brlapi_keyCode_t key)
+{
+  return brlapi_getParameterAlloc(BRLAPI_PARAM_KEY_SHORT_NAME, (key & ~BRLAPI_DRV_KEY_PRESS), BRLAPI_PARAMF_GLOBAL, NULL);
+}
+
+static void listKeys(void)
+{
+  size_t length;
+  brlapi_param_driverKeycode_t *keys = brlapi_getParameterAlloc(BRLAPI_PARAM_DEVICE_KEY_CODES, 0, BRLAPI_PARAMF_GLOBAL, &length);
+
+  if (keys) {
+    length /= sizeof(*keys);
+    printf("%zu keys\n", length);
+
+    for (int i=0; i<length; i+=1) {
+      printf("key %04"BRLAPI_PRIxKEYCODE":", keys[i]);
+
+      {
+        char *name = getKeyName(keys[i]);
+
+        if (name) {
+          printf(" name %s", name);
+          free(name);
+        }
+      }
+
+      printf("\n");
+    }
+
+    free(keys);
+  }
+}
+
 static void showKeyCodes(void)
 {
-  int res;
-  brlapi_keyCode_t cmd;
   char buf[0X100];
 
-  fprintf(stderr,"Entering keycode learn mode\n");
+  fprintf(stderr, "Entering keycode learn mode\n");
+
   if (brlapi_getDriverName(buf, sizeof(buf))==-1) {
     brlapi_perror("getDriverName");
     return;
   }
+
   if (brlapi_enterTtyMode(-1, buf)<0) {
     brlapi_perror("enterTtyMode");
     return;
@@ -250,17 +294,32 @@ static void showKeyCodes(void)
     return;
   }
 
-  if (brlapi_writeText(BRLAPI_CURSOR_OFF, "show key codes")<0) {
+  if (brlapi_writeText(BRLAPI_CURSOR_OFF, "showing key codes")<0) {
     brlapi_perror("brlapi_writeText");
     exit(PROG_EXIT_FATAL);
   }
 
-  while ((res = brlapi_readKey(1, &cmd)) != -1) {
-    sprintf(buf, "0X%" BRLAPI_PRIxKEYCODE " (%" BRLAPI_PRIuKEYCODE ")",cmd, cmd);
+  int res;
+  brlapi_keyCode_t key;
+
+  while ((res = brlapi_readKeyWithTimeout(10000, &key)) > 0) {
+    const char *action = (key & BRLAPI_DRV_KEY_PRESS)? "press": "release";
+    size_t length = snprintf(buf, sizeof(buf), "%04" BRLAPI_PRIxKEYCODE " (%" BRLAPI_PRIuKEYCODE ") %s", key, key, action);
+
+    {
+      char *name = getKeyName(key);
+
+      if (name) {
+        snprintf(&buf[length], (sizeof(buf) - length), ": %s", name);
+        free(name);
+      }
+    }
+
     brlapi_writeText(BRLAPI_CURSOR_OFF, buf);
     fprintf(stderr, "%s\n", buf);
   }
-  brlapi_perror("brlapi_readKey");
+
+  if (res < 0) brlapi_perror("brlapi_readKey");
 }
 
 #ifdef SIGUSR1
@@ -269,31 +328,83 @@ static void emptySignalHandler(int sig) { }
 
 static void suspendDriver(void)
 {
-  char name[30];
+  char driver[30];
   fprintf(stderr, "Getting driver name: ");
-  if (brlapi_getDriverName(name, sizeof(name))<0) {
+
+  if (brlapi_getDriverName(driver, sizeof(driver))<0) {
     brlapi_perror("failed");
     exit(PROG_EXIT_FATAL);
   }
-  fprintf(stderr, "%s\n", name);
-  fprintf(stderr, "Suspending\n");
-  if (brlapi_suspendDriver(name)) {
+  fprintf(stderr, "%s\n", driver);
+
+  fprintf(stderr, "Suspending driver\n");
+  if (brlapi_suspendDriver(driver)) {
     brlapi_perror("suspend");
   } else {
 #ifdef SIGUSR1
     signal(SIGUSR1,emptySignalHandler);
 #endif /* SIGUSR1 */
-    fprintf(stderr, "Sleeping\n");
-#ifdef HAVE_PAUSE
-    pause();
-#endif /* HAVE_PAUSE */
-    fprintf(stderr, "Resuming\n");
+
+    {
+      ProcessIdentifier pid = getProcessIdentifier();
+      fprintf(stderr, "Waiting (to resume, send SIGUSR1 to process %"PRIpid")\n", pid);
+    }
+
+    brlapi_pause(-1);
+
 #ifdef SIGUSR1
     signal(SIGUSR1,SIG_DFL);
 #endif /* SIGUSR1 */
-    if (brlapi_resumeDriver())
+
+    fprintf(stderr, "Resuming driver\n");
+    if (brlapi_resumeDriver()) {
       brlapi_perror("resumeDriver");
+    }
   }
+}
+
+static void brailleRetainDotsChanged(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, void *priv, const void *data, size_t len)
+{
+  const brlapi_param_retainDots_t *d = data;
+  if (parameter != BRLAPI_PARAM_RETAIN_DOTS)
+  {
+    printf("handler called for %x, another parameter than retaindot parameter?!\n", parameter);
+    return;
+  }
+  printf("new retain dots %zd: %d\n", len, *d);
+}
+
+static void testParameters(void)
+{
+  brlapi_param_retainDots_t val;
+  if (brlapi_getParameter(BRLAPI_PARAM_RETAIN_DOTS, 0, BRLAPI_PARAMF_LOCAL, &val, sizeof(val)) < 0) {
+    brlapi_perror("getParameter");
+  }
+  printf("retain dots was %d\n", val);
+  printf("now watching retain dots parameter\n");
+  if (brlapi_watchParameter(BRLAPI_PARAM_RETAIN_DOTS, 0, BRLAPI_PARAMF_LOCAL, brailleRetainDotsChanged, NULL, NULL, 0) == 0) {
+    brlapi_perror("watchParameter");
+  }
+  val = 0;
+  printf("setting retain dots parameter to %d\n", val);
+  if (brlapi_setParameter(BRLAPI_PARAM_RETAIN_DOTS, 0, BRLAPI_PARAMF_LOCAL, &val, sizeof(val)) < 0) {
+    brlapi_perror("setParameter");
+  }
+  if (brlapi_getParameter(BRLAPI_PARAM_RETAIN_DOTS, 0, BRLAPI_PARAMF_LOCAL, &val, sizeof(val)) < 0) {
+    brlapi_perror("getParameter");
+  }
+  printf("retain dots now %d\n", val);
+  val = 1;
+  printf("setting retain dots parameter to %d\n", val);
+  if (brlapi_setParameter(BRLAPI_PARAM_RETAIN_DOTS, 0, BRLAPI_PARAMF_LOCAL, &val, sizeof(val)) < 0) {
+    brlapi_perror("setParameter");
+  }
+  if (brlapi_getParameter(BRLAPI_PARAM_RETAIN_DOTS, 0, BRLAPI_PARAMF_LOCAL, &val, sizeof(val)) < 0) {
+    brlapi_perror("getParameter");
+  }
+  printf("retain dots now %d\n", val);
+
+  listKeys();
 }
 
 volatile int thread_done;
@@ -384,6 +495,10 @@ main (int argc, char *argv[]) {
 
     if (opt_suspendMode) {
       suspendDriver();
+    }
+
+    if (opt_parameters) {
+      testParameters();
     }
 
     if (opt_threadMode) {

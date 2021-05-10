@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,7 +31,7 @@
 #include <errno.h>
 #include <sys/time.h>
 
-#include "timing.h"
+#include "gettime.h"
 
 #ifndef ETIMEDOUT
 #define ETIMEDOUT EAGAIN
@@ -55,7 +55,7 @@ struct timespec {
 static inline DWORD pthread_gettimeout_np(const struct timespec *abs_timeout) {
   struct timeval now;
   LONG timeout;
-  gettimeofday(&now, NULL);
+  getRealTime(&now);
   timeout = (abs_timeout->tv_sec  - now.tv_sec) * 1000 +
             (abs_timeout->tv_nsec - now.tv_usec * 1000) / 1000000;
   if (timeout < 0)

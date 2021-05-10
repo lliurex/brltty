@@ -1,7 +1,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2005-2019 by
+# Copyright (C) 2005-2021 by
 #   Alexis Robert <alexissoft@free.fr>
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #
@@ -119,7 +119,7 @@ else
    fi
 fi
 
-AC_PATH_PROGS([CYTHON], [cython])
+AC_PATH_PROGS([CYTHON], [cython cython3])
 if test -z "${CYTHON}"
 then
    AC_MSG_WARN([Cython compiler not found])

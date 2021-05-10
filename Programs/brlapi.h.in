@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2002-2019 by
+ * Copyright (C) 2002-2021 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -143,19 +143,34 @@ size_t BRLAPI_STDCALL brlapi_getHandleSize(void);
 #else /* BRLAPI_WIN32 */
 #define BRLAPI_DEFAUTH_KEYFILE "keyfile:" BRLAPI_ETCDIR "/" BRLAPI_AUTHKEYFILE
 
-#ifdef USE_POLKIT
+#ifdef HAVE_POLKIT
 #define BRLAPI_DEFAUTH_POLKIT "+polkit"
-#else /* USE_POLKIT */
+#else /* HAVE_POLKIT */
 #define BRLAPI_DEFAUTH_POLKIT ""
-#endif /* USE_POLKIT */
+#endif /* HAVE_POLKIT */
 
 #define BRLAPI_DEFAUTH BRLAPI_DEFAUTH_KEYFILE BRLAPI_DEFAUTH_POLKIT
 #endif /* BRLAPI_WIN32 */
 
+/** OS-dependent file descriptor type
+ *
+ * This is the type for file descriptors returned by brlapi_openConnection() and
+ * brlapi_getFileDescriptor().
+ */
 #ifdef __MINGW32__
 typedef HANDLE brlapi_fileDescriptor;
 #else /* __MINGW32__ */
 typedef int brlapi_fileDescriptor;
+#endif /* __MINGW32__ */
+
+/** Invalid value for brlapi_fileDescriptor
+ *
+ * This is returned by brlapi_getFileDescriptor() when the connection is closed.
+ */
+#ifdef __MINGW32__
+#define BRLAPI_INVALID_FILE_DESCRIPTOR INVALID_HANDLE_VALUE
+#else /* __MINGW32__ */
+#define BRLAPI_INVALID_FILE_DESCRIPTOR -1
 #endif /* __MINGW32__ */
 
 /** \brief Settings structure for \e BrlAPI connection
@@ -196,7 +211,7 @@ typedef struct {
    *
    * Setting \c NULL defaults it to local installation setup or to the content
    * of the BRLAPI_AUTH environment variable, if it exists. */
-  char *auth;
+  const char *auth;
 
   /** This tells where the \e BrlAPI server resides: it might be listening on
    * another computer, on any TCP port. It should look like "foo:1", which
@@ -206,7 +221,7 @@ typedef struct {
    * Settings \c NULL defaults it to localhost, using the local installation's
    * default TCP port, or to the content of the BRLAPI_HOST environment
    * variable, if it exists. */
-  char *host;
+  const char *host;
 } brlapi_connectionSettings_t;
 
 /* BRLAPI_SETTINGS_INITIALIZER */
@@ -222,7 +237,7 @@ typedef struct {
  * the specified port. It writes the authorization key on the socket and
  * waits for acknowledgement.
  *
- * \return the file descriptor, or -1 on error
+ * \return the file descriptor, or BRLAPI_INVALID_FILE_DESCRIPTOR on error
  *
  * \note The file descriptor is returned in case the client wants to
  * communicate with the server without using \e libbrlapi functions. If it uses
@@ -263,6 +278,20 @@ typedef struct {
 brlapi_fileDescriptor BRLAPI_STDCALL brlapi_openConnection(const brlapi_connectionSettings_t *desiredSettings, brlapi_connectionSettings_t *actualSettings);
 #endif /* BRLAPI_NO_SINGLE_SESSION */
 brlapi_fileDescriptor BRLAPI_STDCALL brlapi__openConnection(brlapi_handle_t *handle, const brlapi_connectionSettings_t *desiredSettings, brlapi_connectionSettings_t *actualSettings);
+
+/* brlapi_fileDescriptor */
+/** Return the file descriptor used by the BrlAPI connection
+ *
+ * This allows to use it with \c select(), \c g_io_add_watch(), \c
+ * XtAppAddInput(), etc.
+ *
+ * BRLAPI_INVALID_FILE_DESCRIPTOR is returned when the connection was closed.
+ */
+#ifndef BRLAPI_NO_SINGLE_SESSION
+brlapi_fileDescriptor BRLAPI_STDCALL brlapi_getFileDescriptor(void);
+#endif /* BRLAPI_NO_SINGLE_SESSION */
+brlapi_fileDescriptor BRLAPI_STDCALL brlapi__getFileDescriptor(brlapi_handle_t *handle);
+
 
 /* brlapi_closeConnection */
 /** Cleanly close the socket
@@ -330,9 +359,10 @@ void * BRLAPI_STDCALL brlapi__getClientData(brlapi_handle_t *handle);
  * \param buffer is the buffer provided by the application;
  * \param size is the maximum size for the name buffer.
  *
- * \return -1 on error, or a positive value giving the size of the needed
- * buffer, if the supplied one is too small (same as snprintf()).
-*/
+ * \return -1 on error, otherwise a positive value giving the size of the needed
+ * buffer (including '\\0'). If that value is bigger than \p size, the value was
+ * truncated and the caller should retry with a bigger buffer accordingly.
+ */
 #ifndef BRLAPI_NO_SINGLE_SESSION
 int BRLAPI_STDCALL brlapi_getDriverName(char *buffer, size_t size);
 #endif /* BRLAPI_NO_SINGLE_SESSION */
@@ -347,9 +377,10 @@ int BRLAPI_STDCALL brlapi__getDriverName(brlapi_handle_t *handle, char *buffer, 
  * \param buffer is the buffer given by the application;
  * \param size is the maximum size for the identifier buffer.
  *
- * \return -1 on error, or a positive value giving the size of the needed
- * buffer, if the supplied one is too small (same as snprintf()).
-*/
+ * \return -1 on error, otherwise a positive value giving the size of the needed
+ * buffer (including '\\0'). If that value is bigger than \p size, the value was
+ * truncated and the caller should retry with a bigger buffer accordingly.
+ */
 #ifndef BRLAPI_NO_SINGLE_SESSION
 int BRLAPI_STDCALL brlapi_getModelIdentifier(char *buffer, size_t size);
 #endif /* BRLAPI_NO_SINGLE_SESSION */
@@ -371,14 +402,14 @@ int BRLAPI_STDCALL brlapi__getDisplaySize(brlapi_handle_t *handle, unsigned int 
  * the server which tty it will handle.
  *
  * The application must also specify how braille keys will be delivered to it.
- * Two ways are possible: key codes and commands:
+ * Two ways are possible:
  *
- * - key codes are specific to each braille driver, since the raw key code, as
- *   defined in the driver will be given for each key press.
+ * - driver-specific keycodes: applications will get values specific to each braille driver, since the keycode, as
+ *   defined in the driver will be given for each key event (press or release).
  *   Using them leads to building highly driver-dependent applications, which
  *   can yet sometimes be useful to mimic existing proprietary applications
  *   for instance.
- * - commands means that applications will get exactly the same values as
+ * - commands: applications will get exactly the same values as
  *   \e brltty. This allows driver-independent clients, which will hopefully
  *   be nice to use with a lot of different terminals.
  * \sa brlapi_readKey()
@@ -394,8 +425,7 @@ int BRLAPI_STDCALL brlapi__getDisplaySize(brlapi_handle_t *handle, unsigned int 
  *
  * \param driver tells how the application wants brlapi_readKey() to return
  * key presses. NULL or "" means BRLTTY commands are required,
- * whereas a driver name means that raw key codes returned by this
- * driver are expected.
+ * whereas a driver name means that driver-specific keycodes are expected.
  *
  * WINDOWPATH and WINDOWID should be propagated when running remote applications
  * via ssh, for instance, along with BRLAPI_HOST and the authorization key (see
@@ -716,8 +746,8 @@ int BRLAPI_STDCALL brlapi_describeKeyCode (brlapi_keyCode_t code, brlapi_describ
  * If the application doesn't want to see some command events,
  * it should call brlapi_ignoreKeys()
  *
- * If some driver name was given to brlapi_enterTtyMode(), a raw keycode is returned,
- * as specified by the terminal driver, usually in <brltty/brldefs-xy> where xy
+ * If a driver name was given to brlapi_enterTtyMode(), a driver-specific keycode is returned,
+ * as specified by the braille driver, usually in <brltty/brldefs-xy> where xy
  * is the driver's code. It generally corresponds to the very code that the
  * terminal tells to the driver.
  * This should only be used by applications which are dedicated to a particular
@@ -742,7 +772,8 @@ int BRLAPI_STDCALL brlapi_describeKeyCode (brlapi_keyCode_t code, brlapi_describ
  * keypresses.
  *
  * Else, you'll probably want to use the file descriptor returned by
- * brlapi_openConnection() in your "big polling loop". For instance:
+ * brlapi_openConnection() or brlapi_getFileDescriptor() in your "big polling loop".
+ * For instance:
  *
  * - in a \c select() loop, just add it to the \c readfds and \c exceptfds file
  *   descriptor sets;
@@ -765,8 +796,9 @@ int BRLAPI_STDCALL brlapi_describeKeyCode (brlapi_keyCode_t code, brlapi_describ
  * some of them may be left in libbrlapi's internal key buffer and you wouldn't
  * get them immediately.
  *
- * \note If the read is interrupted by a signal, brlapi_readKey() will return
- * -1, brlapi_errno will be BRLAPI_ERROR_LIBCERR and errno will be EINTR.
+ * \note If the read is interrupted by a signal or by a parameter change
+ * notification, brlapi_readKey() will return -1, brlapi_errno will be
+ * BRLAPI_ERROR_LIBCERR and errno will be EINTR.
  */
 #ifndef BRLAPI_NO_SINGLE_SESSION
 int BRLAPI_STDCALL brlapi_readKey(int wait, brlapi_keyCode_t *code);
@@ -781,6 +813,10 @@ int BRLAPI_STDCALL brlapi__readKey(brlapi_handle_t *handle, int wait, brlapi_key
  *
  * \param timeout_ms specifies how long the function should wait for a keypress.
  * \param code holds the key code if a key press is indeed read.
+ *
+ * \return -1 on error, signal interrupt or parameter change notification and
+ * *code is then undefined, 0 if the timeout expired and no key was pressed, or
+ * 1 and *code holds the key code.
  *
  * If the timeout expires without any key being pressed, 0 is returned.
  *
@@ -813,9 +849,6 @@ typedef enum {
  * \param type type of keys to be ignored
  * \param keys array of keys to be ignored
  * \param count number of keys
- *
- * \note The given codes should be \e brltty commands (NULL or "" was given to
- * brlapi_enterTtyMode())
  */
 #ifndef BRLAPI_NO_SINGLE_SESSION
 int BRLAPI_STDCALL brlapi_ignoreKeys(brlapi_rangeType_t type, const brlapi_keyCode_t keys[], unsigned int count);
@@ -831,9 +864,6 @@ int BRLAPI_STDCALL brlapi__ignoreKeys(brlapi_handle_t *handle, brlapi_rangeType_
  * \param type type of keys to be ignored
  * \param keys array of keys to be ignored
  * \param count number of keys
- *
- * \note The given codes should be \e brltty commands (NULL or "" was given to
- * brlapi_enterTtyMode())
  */
 #ifndef BRLAPI_NO_SINGLE_SESSION
 int BRLAPI_STDCALL brlapi_acceptKeys(brlapi_rangeType_t type, const brlapi_keyCode_t keys[], unsigned int count);
@@ -869,7 +899,7 @@ int BRLAPI_STDCALL brlapi_acceptAllKeys(void);
 int BRLAPI_STDCALL brlapi__acceptAllKeys(brlapi_handle_t *handle);
 #define brlapi__acceptAllKeys(handle) brlapi__acceptKeys(handle, brlapi_rangeType_all, NULL, 0)
 
-/** Type for raw keycode ranges
+/** Type for keycode ranges
  *
  * Denotes the set of keycodes between \e first and \e last (inclusive)
  */
@@ -886,9 +916,7 @@ typedef struct {
  *
  * \param ranges key ranges, which are inclusive
  * \param count number of ranges
- *
- * \note The given codes should be raw keycodes (i.e. some driver name was given
- * to brlapi_enterTtyMode()) */
+ */
 #ifndef BRLAPI_NO_SINGLE_SESSION
 int BRLAPI_STDCALL brlapi_ignoreKeyRanges(const brlapi_range_t ranges[], unsigned int count);
 #endif /* BRLAPI_NO_SINGLE_SESSION */
@@ -902,9 +930,7 @@ int BRLAPI_STDCALL brlapi__ignoreKeyRanges(brlapi_handle_t *handle, const brlapi
  *
  * \param ranges key ranges, which are inclusive
  * \param count number of ranges
- *
- * \note The given codes should be raw keycodes (i.e. some driver name was given
- * to brlapi_enterTtyMode()) */
+ */
 #ifndef BRLAPI_NO_SINGLE_SESSION
 int BRLAPI_STDCALL brlapi_acceptKeyRanges(const brlapi_range_t ranges[], unsigned int count);
 #endif /* BRLAPI_NO_SINGLE_SESSION */
@@ -969,7 +995,9 @@ ssize_t BRLAPI_STDCALL brlapi__sendRaw(brlapi_handle_t *handle, const void *buff
  * \param buffer points on a buffer where the function will store the received
  * data;
  * \param size holds the buffer size.
- * \return its size, -1 on error or signal interruption */
+ * \return its size, -1 on error, or on interruption by a signal or a parameter
+ * change notification, in which case brlapi_errno will be BRLAPI_ERROR_LIBCERR
+ * and errno will be EINTR. */
 #ifndef BRLAPI_NO_SINGLE_SESSION
 ssize_t BRLAPI_STDCALL brlapi_recvRaw(void *buffer, size_t size);
 #endif /* BRLAPI_NO_SINGLE_SESSION */
@@ -993,6 +1021,178 @@ int BRLAPI_STDCALL brlapi__suspendDriver(brlapi_handle_t *handle, const char *dr
 int BRLAPI_STDCALL brlapi_resumeDriver(void);
 #endif /* BRLAPI_NO_SINGLE_SESSION */
 int BRLAPI_STDCALL brlapi__resumeDriver(brlapi_handle_t *handle);
+/** @} */
+
+#include "brlapi_param.h"
+
+/** \defgroup brlapi_parameterManagement Parameter management
+ * \brief How to manage BrlAPI parameters
+ *
+ * There are several kinds of parameters:
+ * - states associated with the braille device itself, such as its size or
+ * parameters of the device port
+ * - states of the BrlAPI connection itself, such as the displaying level or
+ * key passing preferences.
+ * - general states such as the cut buffer,
+ * - braille parameters: braille table, contraction, cursor shape, etc,
+ * - browse parameters: line skip, beep, etc.
+ *
+ * Some of them are subdivided in subparameters.  Others have only subparameter 0.
+ *
+ * Some of them are read-only, others are read/write.
+ *
+ * A client can either request the immediate content of a parameter by
+ * using brlapi_getParameter(); set the content of a parameter by using
+ * brlapi_setParameter(); or register a callback that may be called immediately
+ * and on each change of a given parameter, by using brlapi_watchParameter().
+ *
+ * @{ */
+
+/** Flags for parameter requests */
+typedef uint32_t brlapi_param_flags_t;
+#define BRLAPI_PARAMF_LOCAL          0X00    /**< Refer to the value local to the connection instead of the global value */
+#define BRLAPI_PARAMF_GLOBAL         0X01    /**< Refer to the global value instead of the value local to the connection */
+#define BRLAPI_PARAMF_SELF           0X02    /**< Specify whether to receive notifications of value self-changes */
+
+/* brlapi_getParameter */
+/** Get the content of a parameter
+ *
+ * brlapi_getParameter gets the current content of a parameter
+ *
+ * \param parameter is the parameter whose content shall be gotten;
+ * \param subparam is a specific instance of the parameter;
+ * \param flags specify which value and how it should be returned;
+ * \param data is a buffer where content of the parameter shall be stored;
+ * \param len is the size of the buffer.
+ *
+ * \return the real size of the parameter's content. If the parameter does not fit in the provided buffer, it is truncated to len bytes (but the real size of the parameter is still returned). In that case, the client must call brlapi_getParameter again with a big enough buffer.
+ */
+#ifndef BRLAPI_NO_SINGLE_SESSION
+ssize_t BRLAPI_STDCALL brlapi_getParameter(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, void* data, size_t len);
+#endif
+ssize_t BRLAPI_STDCALL brlapi__getParameter(brlapi_handle_t *handle, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, void* data, size_t len);
+
+/* brlapi_getParameterAlloc */
+/** Return the content of a parameter
+ *
+ * brlapi_getParameterAlloc gets the current content of a parameter, by returning it as a newly-allocated buffer.
+ * The buffer is allocated to one byte more than the parameter value. This byte is set to zero. This allows, for string parameters, to be able to immediately use it as a C string.
+ *
+ * \param parameter is the parameter whose content shall be gotten;
+ * \param subparam is a specific instance of the parameter;
+ * \param flags specify which value and how it should be returned;
+ * \param len is the address where to store the size of the parameter value.
+ *
+ * \return a newly-allocated buffer that contains the value of the parameter. The caller must call free() on it after use. NULL is returned on errors
+ */
+#ifndef BRLAPI_NO_SINGLE_SESSION
+void * BRLAPI_STDCALL brlapi_getParameterAlloc(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, size_t *len);
+#endif
+void * BRLAPI_STDCALL brlapi__getParameterAlloc(brlapi_handle_t *handle, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, size_t *len);
+
+/* brlapi_setParameter */
+/** Set the content of a parameter
+ *
+ * brlapi_setParameter sets the content of a parameter
+ *
+ * \param parameter is the parameter to set;
+ * \param subparam is a specific instance of the parameter;
+ * \param flags specify which value and how it should be set;
+ * \param data is a buffer containing the data to store in the parameter;
+ * \param len is the size of the data.
+ *
+ * \return 0 on success, -1 on error (read-only parameter for instance).
+ */
+#ifndef BRLAPI_NO_SINGLE_SESSION
+int BRLAPI_STDCALL brlapi_setParameter(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, const void* data, size_t len);
+#endif
+int BRLAPI_STDCALL brlapi__setParameter(brlapi_handle_t *handle, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, const void* data, size_t len);
+
+/* brlapi_paramCallback_t */
+/** Callback for parameter changes
+ *
+ * When a parameter gets changed, application-defined callbacks set by the
+ * brlapi_watchParameter() function are called.
+ *
+ * \param parameter is the parameter that changed;
+ * \param flags specify which value and how it was changed;
+ * \param priv is the void pointer that was passed to the brlapi_watchParameter call which registered the callback;
+ * \param data is a buffer containing the new value of the parameter;
+ * \param len is the size of the data.
+ *
+ * This callback only gets called when the application calls some brlapi_
+ * function (i.e. BrlAPI gets direct control of the execution).
+ */
+typedef void (*brlapi_paramCallback_t)(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, void *priv, const void *data, size_t len);
+
+/* brlapi_paramCallbackDescriptor_t */
+/** Type for callback descriptors
+ * This is returned by brlapi_watchParameter, to be passed to
+ * brlapi_unwatchParameter.
+ */
+typedef void *brlapi_paramCallbackDescriptor_t;
+
+/* brlapi_watchParameter */
+/** Set a parameter change callback
+ *
+ * brlapi_watchParameter registers a parameter change callback: whenever the
+ * given parameter changes, the given function is called.
+ *
+ * \param parameter is the parameter to watch;
+ * \param subparam is a specific instance of the parameter;
+ * \param flags specify which value and how it should be monitored;
+ * \param func is the function to call on parameter change;
+ * \param priv is a void pointer which will be passed as such to the function;
+ * \param data is a buffer where the current content of the parameter shall be
+ * stored;
+ * \param len is the size of the buffer.
+ *
+ * \return the callback descriptor (to be passed to brlapi_unwatchParameter to
+ * unregister the callback), or NULL on error.
+ *
+ * \note Default parameter callbacks don't do anything, except the ones for
+ * display size which just raise SIGWINCH.
+ * \note If data is NULL, the callback will be called immediately by
+ * brlapi_watchParameter, for providing the initial value
+ */
+#ifndef BRLAPI_NO_SINGLE_SESSION
+brlapi_paramCallbackDescriptor_t BRLAPI_STDCALL brlapi_watchParameter(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, brlapi_paramCallback_t func, void *priv, void* data, size_t len);
+#endif
+brlapi_paramCallbackDescriptor_t BRLAPI_STDCALL brlapi__watchParameter(brlapi_handle_t *handle, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, brlapi_paramCallback_t func, void *priv, void* data, size_t len);
+
+/* brlapi_unwatchParameter */
+/** Clear a parameter change callback
+ *
+ * brlapi_unwatchParameter unregisters a parameter change callback: the
+ * callback function previously registered with brlapi_watchParameter will
+ * not be called any longer.
+ *
+ * \param descriptor refers to the callback to be removed.
+ *
+ * \return 0 on success, -1 on error.
+ */
+#ifndef BRLAPI_NO_SINGLE_SESSION
+int BRLAPI_STDCALL brlapi_unwatchParameter(brlapi_paramCallbackDescriptor_t descriptor);
+#endif
+int BRLAPI_STDCALL brlapi__unwatchParameter(brlapi_handle_t *handle, brlapi_paramCallbackDescriptor_t descriptor);
+
+/** @} */
+
+/** \defgroup brlapi_misc Miscellaneous functions
+ * @{ */
+
+/* brlapi_pause */
+/**
+ * Waits until an event is received from the BrlAPI server
+ * \param timeout_ms specifies an optional timeout which can be zero for polling, or -1 for infinite wait
+ * \return 0 on timeout, -1 on error, or on interruption by a signal or a parameter
+ * change notification, in which case brlapi_errno will be BRLAPI_ERROR_LIBCERR
+ * and errno will be EINTR. */
+#ifndef BRLAPI_NO_SINGLE_SESSION
+int BRLAPI_STDCALL brlapi_pause(int timeout_ms);
+#endif
+int BRLAPI_STDCALL brlapi__pause(brlapi_handle_t *handle, int timeout_ms);
+
 /** @} */
 
 /** \defgroup brlapi_error Error handling
@@ -1035,6 +1235,7 @@ int BRLAPI_STDCALL brlapi__resumeDriver(brlapi_handle_t *handle);
 #define BRLAPI_ERROR_EMPTYKEY             15  /**< Key file empty */
 #define BRLAPI_ERROR_DRIVERERROR          16  /**< Packet returned by driver too large */
 #define BRLAPI_ERROR_AUTHENTICATION       17  /**< Authentication failed */
+#define BRLAPI_ERROR_READONLY_PARAMETER   18  /**< Parameter can not be changed */
 
 /* brlapi_errlist */
 /** Error message list

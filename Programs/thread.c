@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -34,17 +34,16 @@
 typedef struct {
   ThreadFunction *function;
   void *argument;
-  char name[0];
+  char name[];
 } RunThreadArgument;
 
 static void *
 runThread (void *argument) {
   RunThreadArgument *run = argument;
-  void *result;
 
   setThreadName(run->name);
   logMessage(LOG_CATEGORY(ASYNC_EVENTS), "thread starting: %s", run->name);
-  result = run->function(run->argument);
+  void *result = run->function(run->argument);
   logMessage(LOG_CATEGORY(ASYNC_EVENTS), "thread finished: %s", run->name);
 
   free(run);

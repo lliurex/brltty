@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -68,6 +68,10 @@ typedef enum {
   ALERT_KEYS_AUTORELEASED,
 
   ALERT_SCROLL_UP,
+
+  ALERT_CONTEXT_DEFAULT,
+  ALERT_CONTEXT_PERSISTENT,
+  ALERT_CONTEXT_TEMPORARY,
 } AlertIdentifier;
 
 extern void alert (AlertIdentifier identifier);

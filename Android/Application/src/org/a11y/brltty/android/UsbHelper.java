@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -36,7 +36,7 @@ import android.app.PendingIntent;
 import android.hardware.usb.*;
 
 public class UsbHelper {
-  private static final String LOG_TAG = UsbHelper.class.getName();
+  private final static String LOG_TAG = UsbHelper.class.getName();
 
   private static Context usbContext;
   private static UsbManager usbManager;
@@ -44,7 +44,7 @@ public class UsbHelper {
   private static BroadcastReceiver permissionReceiver;
   private static PendingIntent permissionIntent;
 
-  private static final String ACTION_USB_PERMISSION =
+  private final static String ACTION_USB_PERMISSION =
     "org.a11y.brltty.android.USB_PERMISSION";
 
   private static void makePermissionReceiver () {
@@ -78,7 +78,7 @@ public class UsbHelper {
   }
 
   public static void begin () {
-    usbContext = ApplicationContext.get();
+    usbContext = BrailleApplication.get();
     usbManager = ApplicationUtilities.getUsbManager();
     makePermissionReceiver();
   }
