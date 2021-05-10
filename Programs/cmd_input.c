@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -227,61 +227,91 @@ handleInputCommands (int command, void *data) {
       switch (command & BRL_MSK_BLK) {
         case BRL_CMD_BLK(PASSKEY): {
           ScreenKey key;
+          int mightScroll = 0;
 
           switch (arg) {
             case BRL_KEY_ENTER:
               key = SCR_KEY_ENTER;
               break;
+
             case BRL_KEY_TAB:
               key = SCR_KEY_TAB;
               break;
+
             case BRL_KEY_BACKSPACE:
               key = SCR_KEY_BACKSPACE;
               break;
+
             case BRL_KEY_ESCAPE:
               key = SCR_KEY_ESCAPE;
               break;
+
             case BRL_KEY_CURSOR_LEFT:
               key = SCR_KEY_CURSOR_LEFT;
+              mightScroll = 1;
               break;
+
             case BRL_KEY_CURSOR_RIGHT:
               key = SCR_KEY_CURSOR_RIGHT;
+              mightScroll = 1;
               break;
+
             case BRL_KEY_CURSOR_UP:
               key = SCR_KEY_CURSOR_UP;
+              mightScroll = 1;
               break;
+
             case BRL_KEY_CURSOR_DOWN:
               key = SCR_KEY_CURSOR_DOWN;
+              mightScroll = 1;
               break;
+
             case BRL_KEY_PAGE_UP:
               key = SCR_KEY_PAGE_UP;
+              mightScroll = 1;
               break;
+
             case BRL_KEY_PAGE_DOWN:
               key = SCR_KEY_PAGE_DOWN;
+              mightScroll = 1;
               break;
+
             case BRL_KEY_HOME:
               key = SCR_KEY_HOME;
+              mightScroll = 1;
               break;
+
             case BRL_KEY_END:
               key = SCR_KEY_END;
+              mightScroll = 1;
               break;
+
             case BRL_KEY_INSERT:
               key = SCR_KEY_INSERT;
               break;
+
             case BRL_KEY_DELETE:
               key = SCR_KEY_DELETE;
               break;
+
             default:
-              if (arg < BRL_KEY_FUNCTION) goto badKey;
+              if (arg < BRL_KEY_FUNCTION) goto REJECT_KEY;
               key = SCR_KEY_FUNCTION + (arg - BRL_KEY_FUNCTION);
               break;
           }
 
-          applyModifierFlags(icd, &flags);
-          if (!insertKey(key, flags)) {
-          badKey:
-            alert(ALERT_COMMAND_REJECTED);
+          if (mightScroll && prefs.scrollAwareCursorNavigation && ses->trackScreenCursor) {
+            if (!trackScreenCursor(1)) {
+              goto REJECT_KEY;
+            }
           }
+
+          applyModifierFlags(icd, &flags);
+          if (!insertKey(key, flags)) goto REJECT_KEY;
+          break;
+
+        REJECT_KEY:
+          alert(ALERT_COMMAND_REJECTED);
           break;
         }
 
@@ -295,16 +325,16 @@ handleInputCommands (int command, void *data) {
           applyModifierFlags(icd, &flags);
           wchar_t character;
 
-          switch (prefs.brailleInputMode) {
-            case BRL_INPUT_TEXT:
+          switch (prefs.brailleTypingMode) {
+            case BRL_TYPING_TEXT:
               character = convertDotsToCharacter(textTable, arg);
               break;
 
             default:
-              logMessage(LOG_WARNING, "unknown braille input mode: %u", prefs.brailleInputMode);
+              logMessage(LOG_WARNING, "unknown braille typing mode: %u", prefs.brailleTypingMode);
               /* fall through */
 
-            case BRL_INPUT_DOTS:
+            case BRL_TYPING_DOTS:
               character = UNICODE_BRAILLE_ROW | arg;
               break;
           }

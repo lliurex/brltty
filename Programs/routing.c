@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,6 +31,7 @@
 #include <sys/wait.h>
 #endif /* SIGUSR1 */
 
+#include "parameters.h"
 #include "log.h"
 #include "program.h"
 #include "thread.h"
@@ -39,17 +40,6 @@
 #include "scr.h"
 #include "routing.h"
 
-/*
- * These control the performance of cursor crd.  The optimal settings
- * will depend heavily on system load, etc.  See the documentation for
- * further details.
- * NOTE: if you try to route the cursor to an invalid place, BRLTTY won't
- * give up until the timeout has elapsed!
- */
-#define ROUTING_NICENESS	10	/* niceness of cursor routing subprocess */
-#define ROUTING_INTERVAL	1	/* how often to check for response */
-#define ROUTING_TIMEOUT	2000	/* max wait for response to key press */
-
 typedef enum {
   CRR_DONE,
   CRR_NEAR,
@@ -57,11 +47,11 @@ typedef enum {
 } RoutingResult;
 
 typedef struct {
-#ifdef HAVE_SIGNAL_H
+#ifdef SIGUSR1
   struct {
     sigset_t mask;
   } signal;
-#endif /* HAVE_SIGNAL_H */
+#endif /* SIGUSR1 */
 
   struct {
     int number;
@@ -236,7 +226,7 @@ awaitCursorMotion (CursorRoutingData *crd, int direction) {
   long int timeout = crd->time.sum / crd->time.count;
 
   while (1) {
-    asyncWait(ROUTING_INTERVAL);
+    asyncWait(ROUTING_POLL_INTERVAL);
 
     TimeValue now;
     getMonotonicTime(&now);
@@ -258,7 +248,7 @@ awaitCursorMotion (CursorRoutingData *crd, int direction) {
         crd->time.count += 1;
       }
 
-      if (ROUTING_INTERVAL) {
+      if (ROUTING_POLL_INTERVAL) {
         start = now;
       } else {
         asyncWait(1);
@@ -385,7 +375,7 @@ routeCursor (const RoutingParameters *parameters) {
   /* initialize the routing data structure */
   crd.screen.number = parameters->screen;
   crd.vertical.buffer = NULL;
-  crd.time.sum = ROUTING_TIMEOUT;
+  crd.time.sum = ROUTING_MAXIMUM_TIMEOUT;
   crd.time.count = 1;
 
   if (getCurrentPosition(&crd)) {
@@ -408,10 +398,10 @@ routeCursor (const RoutingParameters *parameters) {
 
   if (crd.vertical.buffer) free(crd.vertical.buffer);
 
-  if (crd.screen.number != parameters->screen) return ROUTING_ERROR;
-  if (crd.current.row != parameters->row) return ROUTING_WRONG_ROW;
-  if ((parameters->column >= 0) && (crd.current.column != parameters->column)) return ROUTING_WRONG_COLUMN;
-  return ROUTING_DONE;
+  if (crd.screen.number != parameters->screen) return ROUTING_STATUS_FAILURE;
+  if (crd.current.row != parameters->row) return ROUTING_STATUS_ROW;
+  if ((parameters->column >= 0) && (crd.current.column != parameters->column)) return ROUTING_STATUS_COLUMN;
+  return ROUTING_STATUS_SUCCEESS;
 }
 
 #ifdef SIGUSR1
@@ -437,7 +427,7 @@ getRoutingStatus (int wait) {
 
       if (process == routingProcess) {
         routingProcess = NOT_ROUTING;
-        return WIFEXITED(status)? WEXITSTATUS(status): ROUTING_ERROR;
+        return WIFEXITED(status)? WEXITSTATUS(status): ROUTING_STATUS_FAILURE;
       }
 
       if (process == -1) {
@@ -445,7 +435,7 @@ getRoutingStatus (int wait) {
 
         if (errno == ECHILD) {
           routingProcess = NOT_ROUTING;
-          return ROUTING_ERROR;
+          return ROUTING_STATUS_FAILURE;
         }
 
         logSystemError("waitpid");
@@ -453,7 +443,7 @@ getRoutingStatus (int wait) {
     }
   }
 
-  return ROUTING_NONE;
+  return ROUTING_STATUS_NONE;
 }
 
 static void
@@ -469,12 +459,12 @@ exitCursorRouting (void *data) {
   stopRouting();
 }
 #else /* SIGUSR1 */
-static RoutingStatus routingStatus = ROUTING_NONE;
+static RoutingStatus routingStatus = ROUTING_STATUS_NONE;
 
 RoutingStatus
 getRoutingStatus (int wait) {
   RoutingStatus status = routingStatus;
-  routingStatus = ROUTING_NONE;
+  routingStatus = ROUTING_STATUS_NONE;
   return status;
 }
 
@@ -493,10 +483,10 @@ startRoutingProcess (const RoutingParameters *parameters) {
 
   switch (routingProcess = fork()) {
     case 0: { /* child: cursor routing subprocess */
-      int result = ROUTING_ERROR;
+      RoutingStatus status = ROUTING_STATUS_FAILURE;
 
-      if (!ROUTING_INTERVAL) {
-        int niceness = nice(ROUTING_NICENESS);
+      if (!ROUTING_POLL_INTERVAL) {
+        int niceness = nice(ROUTING_PROCESS_NICENESS);
 
         if (niceness == -1) {
           logSystemError("nice");
@@ -504,11 +494,11 @@ startRoutingProcess (const RoutingParameters *parameters) {
       }
 
       if (constructRoutingScreen()) {
-        result = routeCursor(parameters);		/* terminate child process */
+        status = routeCursor(parameters);		/* terminate child process */
         destructRoutingScreen();		/* close second thread of screen reading */
       }
 
-      _exit(result);		/* terminate child process */
+      _exit(status);		/* terminate child process */
     }
 
     case -1: /* error: fork() failed */
@@ -516,9 +506,12 @@ startRoutingProcess (const RoutingParameters *parameters) {
       routingProcess = NOT_ROUTING;
       break;
 
-    default: /* parent: continue while cursor is being routed */
+    default: {
+      /* parent: continue while cursor is being routed */
+
       {
         static int first = 1;
+
         if (first) {
           first = 0;
           onProgramExit("cursor-routing", exitCursorRouting, NULL);
@@ -527,6 +520,7 @@ startRoutingProcess (const RoutingParameters *parameters) {
 
       started = 1;
       break;
+    }
   }
 
   return started;

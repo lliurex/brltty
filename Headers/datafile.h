@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -49,7 +49,7 @@ typedef struct {
 } DataFileParameters;
 
 extern int processDataFile (const char *name, const DataFileParameters *parameters);
-extern void reportDataError (DataFile *file, char *format, ...) PRINTF(2, 3);
+extern void reportDataError (DataFile *file, const char *format, ...) PRINTF(2, 3);
 
 extern int processDataStream (
   DataFile *includer,

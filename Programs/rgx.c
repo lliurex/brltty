@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,7 +23,7 @@
 #include "log.h"
 #include "rgx.h"
 #include "rgx_internal.h"
-#include "charset.h"
+#include "utf8.h"
 #include "queue.h"
 #include "strfmt.h"
 
@@ -77,9 +77,9 @@ rgxLogError (int error, const RGX_Matcher *matcher, RGX_OffsetType *offset) {
   STR_PRINTF(": ");
 
   {
-    size_t left = STR_LEFT;
+    size_t oldLength = STR_LENGTH;
     STR_FORMAT(rgxFormatErrorMessage, error);
-    if (STR_LEFT == left) STR_PRINTF("unrecognized error %d", error);
+    if (STR_LENGTH == oldLength) STR_PRINTF("unrecognized error %d", error);
   }
 
   if (matcher) {
@@ -373,7 +373,7 @@ rgxDestroyObject (RGX_Object *rgx) {
 
 static int
 rgxOption (
-  RGX_OptionAction action, RGX_CompileOption option,
+  RGX_OptionAction action, int option,
   RGX_OptionsType *bits, const RGX_OptionMap *map
 ) {
   RGX_OptionsType bit = ((option >= 0) && (option < map->count))? map->array[option]: 0;

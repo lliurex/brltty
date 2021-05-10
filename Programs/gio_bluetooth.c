@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -35,6 +35,11 @@ disconnectBluetoothResource (GioHandle *handle) {
   bthCloseConnection(handle->connection);
   free(handle);
   return 1;
+}
+
+static const char *
+makeBluetoothResourceIdentifier (GioHandle *handle, char *buffer, size_t size) {
+  return bthMakeConnectionIdentifier(handle->connection, buffer, size);
 }
 
 static char *
@@ -74,6 +79,7 @@ getBluetoothResourceObject (GioHandle *handle) {
 static const GioMethods gioBluetoothMethods = {
   .disconnectResource = disconnectBluetoothResource,
 
+  .makeResourceIdentifier = makeBluetoothResourceIdentifier,
   .getResourceName = getBluetoothResourceName,
 
   .writeData = writeBluetoothData,
@@ -94,7 +100,7 @@ static const GioPublicProperties gioPublicProperties_bluetooth = {
   .testIdentifier = testBluetoothIdentifier,
 
   .type = {
-    .name = "Bl;uetooth",
+    .name = "Bluetooth",
     .identifier = GIO_TYPE_BLUETOOTH
   }
 };

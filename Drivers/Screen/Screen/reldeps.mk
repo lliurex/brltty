@@ -9,12 +9,12 @@ screen.$O: $(SRC_TOP)Headers/strfmth.h
 screen.$O: $(SRC_TOP)Headers/hostcmd.h
 screen.$O: $(SRC_TOP)Headers/charset.h
 screen.$O: $(SRC_TOP)Headers/lock.h
+screen.$O: $(SRC_TOP)Headers/utf8.h
 screen.$O: $(SRC_TOP)Headers/ascii.h
 screen.$O: $(SRC_TOP)Headers/driver.h
 screen.$O: $(SRC_TOP)Headers/ktb_types.h
 screen.$O: $(SRC_TOP)Headers/scr_base.h
 screen.$O: $(SRC_TOP)Headers/scr_driver.h
-screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 screen.$O: $(SRC_TOP)Headers/scr_main.h
 screen.$O: $(SRC_TOP)Headers/scr_real.h
 screen.$O: $(SRC_TOP)Headers/scr_types.h

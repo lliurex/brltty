@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -113,7 +113,7 @@ struct BrailleDataStruct {
 static BraillePacketVerifierResult
 verifyPacket_ProfiLine (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   switch (size) {
@@ -166,7 +166,7 @@ static const ModelEntry modelEntry_ProfiLine = {
 static BraillePacketVerifierResult
 verifyPacket_MobilLine (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   off_t index = size - 1;
@@ -247,6 +247,10 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
     .parity = SERIAL_PARITY_ODD
   };
 
+  BEGIN_USB_STRING_LIST(usbManufacturers_0403_6001)
+    "Hedo Reha Technik GmbH",
+  END_USB_STRING_LIST
+
   BEGIN_USB_CHANNEL_DEFINITIONS
     { /* ProfiLine */
       .vendor=0X0403, .product=0XDE59,
@@ -266,6 +270,7 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
 
     { /* MobilLine */
       .vendor=0X0403, .product=0X6001,
+      .manufacturers = usbManufacturers_0403_6001,
       .configuration=1, .interface=0, .alternative=0,
       .inputEndpoint=1, .outputEndpoint=2,
       .serial = &serialParameters_MobilLine,
@@ -308,7 +313,7 @@ writeCells (BrailleDisplay *brl, int wait) {
 }
 
 static int
-writeIdentityRequest (BrailleDisplay *brl) {
+writeIdentifyRequest (BrailleDisplay *brl) {
   memset(brl->data->textCells, 0, sizeof(brl->data->textCells));
   memset(brl->data->statusCells, 0, sizeof(brl->data->statusCells));
   return writeCells(brl, 0);
@@ -334,7 +339,7 @@ brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
       makeOutputTable(dotsTable_ISO11548_1);
 
       if (probeBrailleDisplay(brl, PROBE_RETRY_LIMIT, NULL, PROBE_INPUT_TIMEOUT,
-                              writeIdentityRequest,
+                              writeIdentifyRequest,
                               readPacket, &response, sizeof(response),
                               isIdentityResponse)) {
         setBrailleKeyTable(brl, brl->data->model->keyTableDefinition);

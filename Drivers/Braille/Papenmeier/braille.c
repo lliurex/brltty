@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -99,7 +99,7 @@ typedef struct {
   void (*writeText) (BrailleDisplay *brl, unsigned int start, unsigned int count);
   void (*writeStatus) (BrailleDisplay *brl, unsigned int start, unsigned int count);
   void (*flushCells) (BrailleDisplay *brl);
-  int (*setFirmness) (BrailleDisplay *brl, BrailleFirmness setting);
+  int (*setBrailleFirmness) (BrailleDisplay *brl, BrailleFirmness setting);
 } ProtocolOperations;
 
 typedef enum {
@@ -207,7 +207,7 @@ interpretIdentity (BrailleDisplay *brl, unsigned char id, int major, int minor) 
 static BraillePacketVerifierResult
 verifyPacket1 (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   unsigned char byte = bytes[size-1];
@@ -584,7 +584,7 @@ typedef struct {
 static BraillePacketVerifierResult
 verifyPacket2 (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   Packet2 *packet = data;
@@ -887,7 +887,7 @@ releaseResources2 (BrailleDisplay *brl) {
 }
 
 static int
-setFirmness2 (BrailleDisplay *brl, BrailleFirmness setting) {
+setBrailleFirmness2 (BrailleDisplay *brl, BrailleFirmness setting) {
   unsigned char data[] = {(setting * 98 / BRL_FIRMNESS_MAXIMUM) + 2, 0X99};
   return writePacket2(brl, 6, sizeof(data), data);
 }
@@ -896,7 +896,7 @@ static const ProtocolOperations protocolOperations2 = {
   initializeTerminal2, releaseResources2,
   readCommand2,
   writeCells2, writeCells2, flushCells2,
-  setFirmness2
+  setBrailleFirmness2
 };
 
 typedef struct {
@@ -1061,7 +1061,7 @@ static int
 startTerminal (BrailleDisplay *brl) {
   if (gioDiscardInput(brl->gioEndpoint)) {
     if (identifyTerminal(brl)) {
-      brl->setFirmness = brl->data->protocol->setFirmness;
+      brl->setBrailleFirmness = brl->data->protocol->setBrailleFirmness;
 
       memset(brl->data->textCells, 0, brl->data->model->textColumns);
       memset(brl->data->statusCells, 0, brl->data->model->statusCount);
@@ -1206,7 +1206,7 @@ initializeGenericStatusCodes (BrailleDisplay *brl) {
 
         SET(BRL_CMD_FREEZE, PM_GSC_FLAG, gscFrozenScreen);
         SET(BRL_CMD_DISPMD, PM_GSC_FLAG, gscDisplayMode);
-        SET(BRL_CMD_SIXDOTS, PM_GSC_FLAG, gscTextStyle);
+        SET(BRL_CMD_SIXDOTS, PM_GSC_FLAG, gscSixDotBraille);
         SET(BRL_CMD_SLIDEWIN, PM_GSC_FLAG, gscSlidingBrailleWindow);
         SET(BRL_CMD_SKPIDLNS, PM_GSC_FLAG, gscSkipIdenticalLines);
         SET(BRL_CMD_SKPBLNKWINS, PM_GSC_FLAG, gscSkipBlankBrailleWindows);
@@ -1221,7 +1221,7 @@ initializeGenericStatusCodes (BrailleDisplay *brl) {
         SET(BRL_CMD_TUNES, PM_GSC_FLAG, gscAlertTunes);
         SET(BRL_CMD_AUTOREPEAT, PM_GSC_FLAG, gscAutorepeat);
         SET(BRL_CMD_AUTOSPEAK, PM_GSC_FLAG, gscAutospeak);
-        SET(BRL_CMD_BRLUCDOTS, PM_GSC_FLAG, gscBrailleInputMode);
+        SET(BRL_CMD_BRLUCDOTS, PM_GSC_FLAG, gscBrailleTypingMode);
       }
 #undef SET
     }

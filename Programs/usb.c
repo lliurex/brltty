@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -34,7 +34,7 @@
 #include "bitmask.h"
 #include "parse.h"
 #include "file.h"
-#include "charset.h"
+#include "utf8.h"
 #include "device.h"
 #include "timing.h"
 #include "async_wait.h"
@@ -1577,18 +1577,18 @@ typedef enum {
   USB_CHAN_GENERIC_DEVICES
 } UsbChannelParameter;
 
+static const char *const usbChannelParameters[] = {
+  "serialNumber",
+  "vendorIdentifier",
+  "productIdentifier",
+  "genericDevices",
+  NULL
+};
+
 static char **
 usbGetChannelParameters (const char *identifier) {
-  static const char *const names[] = {
-    "serialNumber",
-    "vendorIdentifier",
-    "productIdentifier",
-    "genericDevices",
-    NULL
-  };
-
   if (!identifier) identifier = "";
-  return getDeviceParameters(names, identifier);
+  return getDeviceParameters(usbChannelParameters, identifier);
 }
 
 UsbChannel *
@@ -1651,6 +1651,74 @@ usbCloseChannel (UsbChannel *channel) {
   free(channel);
 }
 
+const char *
+usbMakeChannelIdentifier (UsbChannel *channel, char *buffer, size_t size) {
+  UsbDevice *device = channel->device;
+
+  UsbDeviceDescriptor descriptor;
+  if (!usbGetDeviceDescriptor(device, &descriptor)) return NULL;
+
+  size_t length;
+  STR_BEGIN(buffer, size);
+  STR_PRINTF("%s%c", USB_DEVICE_QUALIFIER, PARAMETER_QUALIFIER_CHARACTER);
+
+  {
+    uint16_t vendorIdentifier = getLittleEndian16(descriptor.idVendor);
+
+    if (vendorIdentifier) {
+      STR_PRINTF(
+        "%s%c0X%04X%c",
+        usbChannelParameters[USB_CHAN_VENDOR_IDENTIFIER],
+        PARAMETER_ASSIGNMENT_CHARACTER,
+        vendorIdentifier,
+        DEVICE_PARAMETER_SEPARATOR
+      );
+    }
+  }
+
+  {
+    uint16_t productIdentifier = getLittleEndian16(descriptor.idProduct);
+
+    if (productIdentifier) {
+      STR_PRINTF(
+        "%s%c0X%04X%c",
+        usbChannelParameters[USB_CHAN_PRODUCT_IDENTIFIER],
+        PARAMETER_ASSIGNMENT_CHARACTER,
+        productIdentifier,
+        DEVICE_PARAMETER_SEPARATOR
+      );
+    }
+  }
+
+  {
+    char *serialNumber = usbGetSerialNumber(device, 1000);
+
+    if (serialNumber) {
+      if (!strchr(serialNumber, DEVICE_PARAMETER_SEPARATOR)) {
+        STR_PRINTF(
+          "%s%c%s%c",
+          usbChannelParameters[USB_CHAN_SERIAL_NUMBER],
+          PARAMETER_ASSIGNMENT_CHARACTER,
+          serialNumber,
+          DEVICE_PARAMETER_SEPARATOR
+        );
+      }
+
+      free(serialNumber);
+    }
+  }
+
+  length = STR_LENGTH;
+  STR_END;
+
+  {
+    char *last = &buffer[length] - 1;
+    if (*last == DEVICE_PARAMETER_SEPARATOR) *last = 0;
+  }
+
+  return buffer;
+}
+
 static int
 usbCompareDeviceEntries (const void *element1, const void *element2) {
   const UsbDeviceEntry *entry1 = element1;
@@ -1689,5 +1757,5 @@ usbGetDriverCodes (uint16_t vendor, uint16_t product) {
 
 int
 isUsbDeviceIdentifier (const char **identifier) {
-  return hasQualifier(identifier, "usb");
+  return hasQualifier(identifier, USB_DEVICE_QUALIFIER);
 }

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -90,13 +90,13 @@ serviceControlHandler (DWORD code) {
 
     case SERVICE_CONTROL_PAUSE:
       SET_SERVICE_STATE(SERVICE_PAUSE_PENDING, PROG_EXIT_SUCCESS);
-      api.suspend();
+      api.suspendDriver();
       SET_SERVICE_STATE(SERVICE_PAUSED, PROG_EXIT_SUCCESS);
       break;
 
     case SERVICE_CONTROL_CONTINUE:
       SET_SERVICE_STATE(SERVICE_CONTINUE_PENDING, PROG_EXIT_SUCCESS);
-      if (api.resume()) {
+      if (api.resumeDriver()) {
         SET_SERVICE_STATE(SERVICE_RUNNING, PROG_EXIT_SUCCESS);
       } else {
         SET_SERVICE_STATE(SERVICE_PAUSED, PROG_EXIT_SUCCESS);

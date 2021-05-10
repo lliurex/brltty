@@ -7,16 +7,15 @@ speech.$O: $(SRC_TOP)Headers/log.h
 speech.$O: $(SRC_TOP)Headers/file.h
 speech.$O: $(SRC_TOP)Headers/get_sockets.h
 speech.$O: $(SRC_TOP)Headers/parse.h
-speech.$O: $(SRC_TOP)Headers/get_pthreads.h
+speech.$O: $(SRC_TOP)Headers/get_thread.h
+speech.$O: $(SRC_TOP)Headers/gettime.h
 speech.$O: $(SRC_TOP)Headers/thread.h
-speech.$O: $(SRC_TOP)Headers/timing.h
 speech.$O: $(SRC_TOP)Headers/win_pthread.h
 speech.$O: $(SRC_TOP)Headers/queue.h
 speech.$O: $(SRC_TOP)Headers/note_types.h
 speech.$O: $(SRC_TOP)Headers/notes.h
 speech.$O: $(SRC_TOP)Headers/pcm.h
 speech.$O: $(SRC_TOP)Headers/dynld.h
-speech.$O: $(SRC_TOP)Headers/api_types.h
 speech.$O: $(SRC_TOP)Headers/async.h
 speech.$O: $(SRC_TOP)Headers/brl_types.h
 speech.$O: $(SRC_TOP)Headers/cmd.h
@@ -35,6 +34,7 @@ speech.$O: $(SRC_TOP)Headers/serial_types.h
 speech.$O: $(SRC_TOP)Headers/spk.h
 speech.$O: $(SRC_TOP)Headers/spk_types.h
 speech.$O: $(SRC_TOP)Headers/strfmth.h
+speech.$O: $(SRC_TOP)Headers/timing.h
 speech.$O: $(SRC_TOP)Headers/usb_types.h
 speech.$O: $(SRC_TOP)Programs/brl.h
 speech.$O: $(SRC_TOP)Programs/core.h

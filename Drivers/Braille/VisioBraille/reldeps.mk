@@ -10,7 +10,6 @@ braille.$O: $(SRC_TOP)Headers/ktb_types.h
 braille.$O: $(SRC_TOP)Headers/scr_types.h
 braille.$O: $(SRC_TOP)Programs/scr.h
 braille.$O: $(SRC_TOP)Headers/message.h
-braille.$O: $(SRC_TOP)Headers/api_types.h
 braille.$O: $(SRC_TOP)Headers/async.h
 braille.$O: $(SRC_TOP)Headers/async_io.h
 braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -36,6 +35,7 @@ vstp_main.$O: $(SRC_DIR)/vstp_main.c
 vstp_main.$O: $(BLD_TOP)Programs/brlapi.h
 vstp_main.$O: $(BLD_TOP)Programs/brlapi_constants.h
 vstp_main.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+vstp_main.$O: $(SRC_TOP)Programs/brlapi_param.h
 vstp_main.$O: $(SRC_DIR)/vstp.h
 
 # Dependencies for vstp_transfer.$O:
@@ -43,6 +43,7 @@ vstp_transfer.$O: $(SRC_DIR)/vstp_transfer.c
 vstp_transfer.$O: $(BLD_TOP)Programs/brlapi.h
 vstp_transfer.$O: $(BLD_TOP)Programs/brlapi_constants.h
 vstp_transfer.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+vstp_transfer.$O: $(SRC_TOP)Programs/brlapi_param.h
 vstp_transfer.$O: $(SRC_TOP)Programs/brlapi_protocol.h
 vstp_transfer.$O: $(SRC_DIR)/vstp.h
 

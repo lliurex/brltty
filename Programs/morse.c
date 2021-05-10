@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,7 +23,7 @@
 #include "log.h"
 #include "morse.h"
 #include "tune.h"
-#include "charset.h"
+#include "utf8.h"
 
 static const MorsePattern morsePatterns[] = {
   [WC_C('a')] = 0B101,
@@ -53,6 +53,7 @@ static const MorsePattern morsePatterns[] = {
   [WC_C('y')] = 0B10010,
   [WC_C('z')] = 0B11100,
 
+#ifdef HAVE_WCHAR_H
   [WC_C('ä')] = 0B10101,
   [WC_C('á')] = 0B101001,
   [WC_C('å')] = 0B101001,
@@ -60,6 +61,7 @@ static const MorsePattern morsePatterns[] = {
   [WC_C('ñ')] = 0B100100,
   [WC_C('ö')] = 0B11000,
   [WC_C('ü')] = 0B10011,
+#endif /* HAVE_WCHAR_H */
 
   [WC_C('0')] = 0B100000,
   [WC_C('1')] = 0B100001,
@@ -138,13 +140,13 @@ addMorseElement (MorseObject *morse, const ToneElement *element) {
 static int
 addMorseMark (MorseObject *morse, unsigned int units) {
   ToneElement element = TONE_PLAY((morse->parameters.unit * units), morse->parameters.frequency);
-  return addMorseElement(morse, &element);;
+  return addMorseElement(morse, &element);
 }
 
 static int
 addMorseGap (MorseObject *morse, unsigned int units) {
   ToneElement element = TONE_REST((morse->parameters.unit * units));
-  return addMorseElement(morse, &element);;
+  return addMorseElement(morse, &element);
 }
 
 int
@@ -299,7 +301,7 @@ newMorseObject (void) {
     morse->elements.array = NULL;
     morse->elements.size = 0;
 
-    clearMorseSequence(morse);;
+    clearMorseSequence(morse);
     return morse;
   } else {
     logMallocError();

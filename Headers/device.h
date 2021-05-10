@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -28,12 +28,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 extern FILE *getConsole (void);
-extern int writeConsole (const unsigned char *bytes, size_t count);
-extern int ringBell (void);
+extern int writeToConsole (const unsigned char *bytes, size_t count);
+extern int ringConsoleBell (void);
 
 extern const char *getDeviceDirectory (void);
 extern char *getDevicePath (const char *device);
-extern const char *resolveDeviceName (const char *const *names, const char *description);
+extern const char *resolveDeviceName (const char *const *names, int strict, const char *description);
 
 #define DEVICE_PARAMETER_SEPARATOR '+'
 extern char **getDeviceParameters (const char *const *names, const char *identifier);

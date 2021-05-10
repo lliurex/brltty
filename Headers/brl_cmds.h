@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -208,7 +208,7 @@ typedef enum {
   BRL_CMD_CLIP_SAVE /* save clipboard to disk */,
   BRL_CMD_CLIP_RESTORE /* restore clipboard from disk */,
 
-  BRL_CMD_BRLUCDOTS /* set braille input mode dots/text */,
+  BRL_CMD_BRLUCDOTS /* set braille typing mode dots/text */,
   BRL_CMD_BRLKBD /* set braille keyboard enabled/disabled */,
 
   BRL_CMD_UNSTICK /* clear all sticky input modifiers */,
@@ -232,6 +232,34 @@ typedef enum {
 
   BRL_CMD_SPEAK_INDENT /* speak indent of current line */,
   BRL_CMD_ASPK_INDENT /* set autospeak indent of current line on/off */,
+
+  BRL_CMD_REFRESH /* refresh braille display */,
+  BRL_CMD_INDICATORS /* show various device status indicators */,
+
+  BRL_CMD_TXTSEL_CLEAR /* clear the text selection */,
+  BRL_CMD_TXTSEL_ALL /* select all of the text */,
+  BRL_CMD_HOST_COPY /* copy selected text to host clipboard */,
+  BRL_CMD_HOST_CUT /* cut selected text to host clipboard */,
+  BRL_CMD_HOST_PASTE /* insert host clipboard text after screen cursor */,
+
+  BRL_CMD_GUI_TITLE /* show the window title */,
+  BRL_CMD_GUI_BRL_ACTIONS /* open the braille actions window */,
+  BRL_CMD_GUI_HOME /* go to the home screen */,
+  BRL_CMD_GUI_BACK /* go back to the previous screen */,
+  BRL_CMD_GUI_DEV_SETTINGS /* open the device settings window */,
+  BRL_CMD_GUI_DEV_OPTIONS /* open the device options window */,
+  BRL_CMD_GUI_APP_LIST /* open the application list window */,
+  BRL_CMD_GUI_APP_MENU /* open the application-specific menu */,
+  BRL_CMD_GUI_APP_ALERTS /* open the application alerts window */,
+
+  BRL_CMD_GUI_AREA_ACTV /* return to the active screen area */,
+  BRL_CMD_GUI_AREA_PREV /* switch to the previous screen area */,
+  BRL_CMD_GUI_AREA_NEXT /* switch to the next screen area */,
+
+  BRL_CMD_GUI_ITEM_FRST /* move to the first item in the screen area */,
+  BRL_CMD_GUI_ITEM_PREV /* move to the previous item in the screen area */,
+  BRL_CMD_GUI_ITEM_NEXT /* move to the next item in the screen area */,
+  BRL_CMD_GUI_ITEM_LAST /* move to the last item in the screen area */,
 
   BRL_basicCommandCount /* must be last */
 } BRL_BasicCommand;
@@ -265,10 +293,10 @@ typedef enum {
   BRL_BLK_SET_CONTRACTION_TABLE /* set contraction table */,
   BRL_BLK_SET_KEYBOARD_TABLE /* set keyboard table */,
   BRL_BLK_SET_LANGUAGE_PROFILE /* set language profile */,
-  BRL_BLK_18 /* (reserved) */,
-  BRL_BLK_19 /* (reserved) */,
-  BRL_BLK_1A /* (reserved) */,
-  BRL_BLK_1B /* (reserved) */,
+  BRL_BLK_ROUTE_LINE /* bring screen cursor to line */,
+  BRL_BLK_REFRESH_LINE /* refresh braille line */,
+  BRL_BLK_TXTSEL_START /* start text selection */,
+  BRL_BLK_TXTSEL_SET /* set text selection */,
   BRL_BLK_1C /* (reserved) */,
   BRL_BLK_1D /* (reserved) */,
   BRL_BLK_SELECTVT /* bind to specific virtual terminal */,

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,7 +24,7 @@
 #include <ctype.h>
 
 #include "prefs.h"
-#include "prefs_internal.h"
+#include "pref_tables.h"
 #include "status_types.h"
 #include "defaults.h"
 #include "log.h"
@@ -34,9 +34,6 @@
 
 #define PREFS_COMMENT_CHARACTER '#'
 #define PREFS_MAGIC_NUMBER 0x4005
-
-Preferences prefs;                /* environment (i.e. global) parameters */
-unsigned char statusFieldsSet;
 
 void
 setStatusFields (const unsigned char *fields) {
@@ -101,8 +98,124 @@ setStatusStyle (unsigned char style) {
   }
 }
 
+static int
+comparePreferenceNames (const char *name1, const char *name2) {
+  return strcmp(name1, name2);
+}
+
+static int
+sortPreferenceDefinitions (const void *element1, const void *element2) {
+  const PreferenceDefinition *const *pref1 = element1;
+  const PreferenceDefinition *const *pref2 = element2;
+  return comparePreferenceNames((*pref1)->name, (*pref2)->name);
+}
+
+static int
+searchPreferenceDefinition (const void *target, const void *element) {
+  const char *name = target;
+  const PreferenceDefinition *const *pref = element;
+  return comparePreferenceNames(name, (*pref)->name);
+}
+
+static const PreferenceDefinition *
+findPreferenceDefinition (const char *name) {
+  static const PreferenceDefinition **sortedDefinitions = NULL;
+
+  if (!sortedDefinitions) {
+    if (!(sortedDefinitions = malloc(ARRAY_SIZE(sortedDefinitions, preferenceDefinitionCount)))) {
+      logMallocError();
+      return NULL;
+    }
+
+    for (unsigned int index=0; index<preferenceDefinitionCount; index+=1) {
+      sortedDefinitions[index] = &preferenceDefinitionTable[index];
+    }
+
+    qsort(
+      sortedDefinitions, preferenceDefinitionCount,
+      sizeof(*sortedDefinitions), sortPreferenceDefinitions
+    );
+  }
+
+  {
+    const PreferenceDefinition *const *pref = bsearch(
+      name, sortedDefinitions, preferenceDefinitionCount,
+      sizeof(*sortedDefinitions), searchPreferenceDefinition
+    );
+
+    if (pref) return *pref;
+  }
+
+  return NULL;
+}
+
+static int
+sortPreferenceAliases (const void *element1, const void *element2) {
+  const PreferenceAlias *const *alias1 = element1;
+  const PreferenceAlias *const *alias2 = element2;
+  return comparePreferenceNames((*alias1)->oldName, (*alias2)->oldName);
+}
+
+static int
+searchPreferenceAlias (const void *target, const void *element) {
+  const char *name = target;
+  const PreferenceAlias *const *alias = element;
+  return comparePreferenceNames(name, (*alias)->oldName);
+}
+
+static const PreferenceAlias *
+findPreferenceAlias (const char *name) {
+  static const PreferenceAlias **sortedAliases = NULL;
+
+  if (!sortedAliases) {
+    if (!(sortedAliases = malloc(ARRAY_SIZE(sortedAliases, preferenceAliasCount)))) {
+      logMallocError();
+      return NULL;
+    }
+
+    for (unsigned int index=0; index<preferenceAliasCount; index+=1) {
+      sortedAliases[index] = &preferenceAliasTable[index];
+    }
+
+    qsort(
+      sortedAliases, preferenceAliasCount,
+      sizeof(*sortedAliases), sortPreferenceAliases
+    );
+  }
+
+  {
+    const PreferenceAlias *const *alias = bsearch(
+      name, sortedAliases, preferenceAliasCount,
+      sizeof(*sortedAliases), searchPreferenceAlias
+    );
+
+    if (alias) return *alias;
+  }
+
+  return NULL;
+}
+
+const PreferenceDefinition *
+findPreference (const char *name) {
+  while (name) {
+    {
+      const PreferenceDefinition *pref = findPreferenceDefinition(name);
+      if (pref) return pref;
+    }
+
+    {
+      const PreferenceAlias *alias = findPreferenceAlias(name);
+      if (!alias) break;
+      name = alias->newName;
+    }
+  }
+
+  if (name) logMessage(LOG_WARNING, "unknown preference: %s", name);
+  return NULL;
+}
+
 static void
-resetPreference (const PreferenceEntry *pref) {
+resetPreference (const PreferenceDefinition *pref) {
   if (pref->settingCount) {
     memset(pref->setting, pref->defaultValue, pref->settingCount);
   } else {
@@ -121,130 +234,11 @@ resetPreferences (void) {
   prefs.version = 6;
 
   {
-    const PreferenceEntry *pref = preferenceTable;
-    const PreferenceEntry *end = pref + preferenceCount;
+    const PreferenceDefinition *pref = preferenceDefinitionTable;
+    const PreferenceDefinition *end = pref + preferenceDefinitionCount;
 
     while (pref < end) resetPreference(pref++);
   }
-}
-
-char *
-makePreferencesFilePath (const char *name) {
-  if (!name) name = PREFERENCES_FILE;
-  return makeUpdatablePath(name);
-}
-
-static int
-comparePreferenceNames (const char *name1, const char *name2) {
-  return strcmp(name1, name2);
-}
-
-static int
-sortPreferencesByName (const void *element1, const void *element2) {
-  const PreferenceEntry *const *pref1 = element1;
-  const PreferenceEntry *const *pref2 = element2;
-
-  return comparePreferenceNames((*pref1)->name, (*pref2)->name);
-}
-
-static int
-searchPreferenceByName (const void *target, const void *element) {
-  const char *name = target;
-  const PreferenceEntry *const *pref = element;
-  return comparePreferenceNames(name, (*pref)->name);
-}
-
-const PreferenceEntry *
-findPreferenceByName (const char *name) {
-  static const PreferenceEntry **sortedPreferences = NULL;
-
-  if (!sortedPreferences) {
-    if (!(sortedPreferences = malloc(ARRAY_SIZE(sortedPreferences, preferenceCount)))) {
-      logMallocError();
-      return NULL;
-    }
-
-    {
-      unsigned int index;
-
-      for (index=0; index<preferenceCount; index+=1) {
-        sortedPreferences[index] = &preferenceTable[index];
-      }
-    }
-
-    qsort(sortedPreferences, preferenceCount, sizeof(*sortedPreferences), sortPreferencesByName);
-  }
-
-  {
-    const PreferenceEntry *const *pref = bsearch(
-      name, sortedPreferences,
-      preferenceCount, sizeof(*sortedPreferences),
-      searchPreferenceByName
-    );
-
-    if (pref) return *pref;
-  }
-
-  return NULL;
-}
-
-static int
-sortAliasesByOldName (const void *element1, const void *element2) {
-  const PreferenceAliasEntry *const *alias1 = element1;
-  const PreferenceAliasEntry *const *alias2 = element2;
-
-  return comparePreferenceNames((*alias1)->oldName, (*alias2)->oldName);
-}
-
-static int
-searchAliasByOldName (const void *target, const void *element) {
-  const char *name = target;
-  const PreferenceAliasEntry *const *alias = element;
-
-  return comparePreferenceNames(name, (*alias)->oldName);
-}
-
-const PreferenceEntry *
-findPreferenceByAlias (const char *name) {
-  static const PreferenceAliasEntry **sortedAliases = NULL;
-
-  if (!sortedAliases) {
-    if (!(sortedAliases = malloc(ARRAY_SIZE(sortedAliases, preferenceAliasCount)))) {
-      logMallocError();
-      return NULL;
-    }
-
-    {
-      unsigned int index;
-
-      for (index=0; index<preferenceAliasCount; index+=1) {
-        sortedAliases[index] = &preferenceAliasTable[index];
-      }
-    }
-
-    qsort(sortedAliases, preferenceAliasCount, sizeof(*sortedAliases), sortAliasesByOldName);
-  }
-
-  {
-    const PreferenceAliasEntry *const *alias = bsearch(
-      name, sortedAliases,
-      preferenceAliasCount, sizeof(*sortedAliases),
-      searchAliasByOldName
-    );
-
-    if (alias) return findPreferenceByName((*alias)->newName);
-  }
-
-  return NULL;
-}
-
-const PreferenceEntry *
-findPreferenceEntry (const char *name) {
-  const PreferenceEntry *pref;
-
-  if ((pref = findPreferenceByName(name))) return pref;
-  if ((pref = findPreferenceByAlias(name))) return pref;
-  return NULL;
 }
 
 static int
@@ -291,7 +285,7 @@ setPreference (char *string) {
   }
 
   if (name) {
-    const PreferenceEntry *pref = findPreferenceEntry(name);
+    const PreferenceDefinition *pref = findPreference(name);
 
     if (pref) {
       if (pref->encountered) *pref->encountered = 1;
@@ -319,8 +313,6 @@ setPreference (char *string) {
         logMessage(LOG_WARNING, "missing preference setting: %s", name);
       } else if (!changePreferenceSetting(name, operand, pref->setting, pref->settingNames)) {
       }
-    } else {
-      logMessage(LOG_WARNING, "unknown preference: %s", name);
     }
   } else {
     logMessage(LOG_WARNING, "missing preference name");
@@ -329,8 +321,15 @@ setPreference (char *string) {
   return 1;
 }
 
+char *
+makePreferencesFilePath (const char *name) {
+  if (!name) name = PREFERENCES_FILE;
+  return makeUpdatablePath(name);
+}
+
 static int
-processPreferenceLine (char *line, void *data) {
+processPreferenceLine (const LineHandlerParameters *parameters) {
+  char *line = parameters->line.text;
   while (isspace(*line)) line += 1;
   if (!*line) return 1;
   if (*line == PREFS_COMMENT_CHARACTER) return 1;
@@ -343,7 +342,7 @@ loadPreferencesFile (const char *path) {
   FILE *file = openDataFile(path, "rb", 1);
 
   if (file) {
-    Preferences newPreferences;
+    PreferenceSettings newPreferences;
     size_t length = fread(&newPreferences, 1, sizeof(newPreferences), file);
 
     if (ferror(file)) {
@@ -363,8 +362,8 @@ loadPreferencesFile (const char *path) {
       ok = 1;
 
       {
-        const PreferenceEntry *pref = preferenceTable;
-        const PreferenceEntry *end = pref + preferenceCount;
+        const PreferenceDefinition *pref = preferenceDefinitionTable;
+        const PreferenceDefinition *end = pref + preferenceDefinitionCount;
 
         const unsigned char *from = prefs.magic;
         const unsigned char *to = from + length;
@@ -439,7 +438,7 @@ loadPreferencesFile (const char *path) {
 }
 
 static int
-putPreferenceComment (FILE *file, const PreferenceEntry *pref) {
+putPreferenceComment (FILE *file, const PreferenceDefinition *pref) {
   if (fprintf(file, "\n%c %s", PREFS_COMMENT_CHARACTER, pref->name) < 0) return 0;
 
   if (pref->settingCount) {
@@ -475,7 +474,7 @@ putPreferenceComment (FILE *file, const PreferenceEntry *pref) {
 }
 
 static int
-putPreferenceSetting (FILE *file, unsigned char setting, const PreferenceStringTable *names) {
+putSetting (FILE *file, unsigned char setting, const PreferenceStringTable *names) {
   if (fputc(' ', file) == EOF) return 0;
 
   if (names && (setting < names->count)) {
@@ -487,43 +486,60 @@ putPreferenceSetting (FILE *file, unsigned char setting, const PreferenceStringT
   return 1;
 }
 
+static int
+putPreference (FILE *file, const PreferenceDefinition *pref) {
+  if (pref->dontSave) return 1;
+
+  if (!putPreferenceComment(file, pref)) return 0;
+  if (fputs(pref->name, file) == EOF) return 0;
+
+  if (pref->settingCount) {
+    unsigned char count = pref->settingCount;
+    unsigned char *setting = pref->setting;
+
+    while (count-- && *setting) {
+      if (!putSetting(file, *setting++, pref->settingNames)) return 0;
+    }
+  } else if (!putSetting(file, *pref->setting, pref->settingNames)) {
+    return 0;
+  }
+
+  if (fputs("\n", file) == EOF) return 0;
+  return 1;
+}
+
+static int
+putPreferences (FILE *file) {
+  const PreferenceDefinition *pref = preferenceDefinitionTable;
+  const PreferenceDefinition *const end = pref + preferenceDefinitionCount;
+
+  while (pref < end) {
+    if (!putPreference(file, pref)) return 0;
+    pref += 1;
+  }
+
+  return 1;
+}
+
 int
 savePreferencesFile (const char *path) {
   int ok = 0;
   FILE *file = openDataFile(path, "w", 0);
 
   if (file) {
-    const PreferenceEntry *pref = preferenceTable;
-    const PreferenceEntry *const end = pref + preferenceCount;
-
-    if (fprintf(file, "%c %s Preferences File\n", PREFS_COMMENT_CHARACTER, PACKAGE_NAME) < 0) goto done;
-
-    while (pref < end) {
-      if (!putPreferenceComment(file, pref)) break;
-      if (fputs(pref->name, file) == EOF) break;
-
-      if (pref->settingCount) {
-        unsigned char count = pref->settingCount;
-        unsigned char *setting = pref->setting;
-
-        while (count-- && *setting) {
-          if (!putPreferenceSetting(file, *setting++, pref->settingNames)) goto done;
-        }
-      } else if (!putPreferenceSetting(file, *pref->setting, pref->settingNames)) {
-        goto done;
+    if (fprintf(file, "%c %s Preferences File\n", PREFS_COMMENT_CHARACTER, PACKAGE_NAME) >= 0) {
+      if (putPreferences(file)) {
+        ok = 1;
       }
-
-      if (fputs("\n", file) == EOF) goto done;
-
-      pref += 1;
     }
 
-    ok = 1;
-  done:
     if (!ok) {
       if (!ferror(file)) errno = EIO;
-      logMessage(LOG_ERR, "%s: %s: %s",
-                 gettext("cannot write to preferences file"), path, strerror(errno));
+      logMessage(LOG_ERR,
+        "%s: %s: %s",
+        gettext("cannot write to preferences file"),
+        path, strerror(errno)
+      );
     }
 
     fclose(file);

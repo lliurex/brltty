@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -20,32 +20,42 @@ UDEV_RULES_SEQUENCE = 90
 #UDEV_RULES_TYPE = all
 UDEV_RULES_TYPE = no-generic
 
-UDEV_LIBRARY_DIRECTORY = $(INSTALL_ROOT)$(libdir)/udev
+UDEV_SCRIPTS_DIRECTORY = $(INSTALL_ROOT)$(SCRIPTS_DIRECTORY)
+UDEV_LIBRARY_DIRECTORY = $(INSTALL_ROOT)$(UDEV_DIR)
 UDEV_RULES_DIRECTORY = $(UDEV_LIBRARY_DIRECTORY)/rules.d
 
+UDEV_PATH_PREFIX = $(UDEV_RULES_DIRECTORY)/$(UDEV_RULES_SEQUENCE)-$(PACKAGE_TARNAME)-
 UDEV_RULES_EXTENSION = rules
-UDEV_RULES_FILE = $(UDEV_RULES_SEQUENCE)-$(PACKAGE_TARNAME).$(UDEV_RULES_EXTENSION)
+UDEV_NAME_DEVICE = device.$(UDEV_RULES_EXTENSION)
+UDEV_NAME_UINPUT = uinput.$(UDEV_RULES_EXTENSION)
 
-install-library-directory:
-	$(INSTALL_DIRECTORY) $(UDEV_LIBRARY_DIRECTORY)
+install-scripts-directory:
+	$(INSTALL_DIRECTORY) $(UDEV_SCRIPTS_DIRECTORY)
 
-install-programs: install-library-directory
-	$(INSTALL_SCRIPT) $(SRC_DIR)/$(PACKAGE_TARNAME)-wrapper $(UDEV_LIBRARY_DIRECTORY)
+install-wrapper: install-scripts-directory
+	$(INSTALL_SCRIPT) $(SRC_DIR)/udev-wrapper $(UDEV_SCRIPTS_DIRECTORY)
 
 install-rules-directory:
 	$(INSTALL_DIRECTORY) $(UDEV_RULES_DIRECTORY)
 
-install-rules-all: install-programs install-rules-directory
-	$(INSTALL_DATA) $(SRC_DIR)/rules $(UDEV_RULES_DIRECTORY)/$(UDEV_RULES_FILE)
+install-rules: install-rules-directory
+	$(INSTALL_DATA) $(BLD_DIR)/$(UDEV_NAME_DEVICE) $(UDEV_PATH_PREFIX)$(UDEV_NAME_DEVICE)
+	$(INSTALL_DATA) $(SRC_DIR)/$(UDEV_NAME_UINPUT) $(UDEV_PATH_PREFIX)$(UDEV_NAME_UINPUT)
+
+install-rules-all: install-wrapper install-rules
 
 install-rules-no-generic: install-rules-all
-	$(SRC_TOP)updusbdevs -quiet -quiet -nogeneric udev:$(UDEV_RULES_DIRECTORY)/$(UDEV_RULES_FILE)
+	$(SRC_TOP)updusbdevs -quiet -quiet -nogeneric udev:$(UDEV_PATH_PREFIX)$(UDEV_NAME_DEVICE)
 
 install: install-rules-$(UDEV_RULES_TYPE)
 
 uninstall:
 	-rm -f $(UDEV_RULES_DIRECTORY)/?*-$(PACKAGE_TARNAME).$(UDEV_RULES_EXTENSION)
-	-rm -f $(UDEV_LIBRARY_DIRECTORY)/$(PACKAGE_TARNAME)-*
+	-rm -f $(UDEV_RULES_DIRECTORY)/?*-$(PACKAGE_TARNAME)-*.$(UDEV_RULES_EXTENSION)
+	-rm -f $(UDEV_SCRIPTS_DIRECTORY)/udev-*
+
+distclean::
+	-rm device.rules
 
 reload:
 	udevadm control --reload

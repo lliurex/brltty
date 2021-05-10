@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,7 +21,6 @@
 
 #include "driver.h"
 #include "ktb_types.h"
-#include "api_types.h"
 #include "gio_types.h"
 #include "queue.h"
 #include "async.h"
@@ -49,36 +48,35 @@ typedef enum {
 } TouchSensitivity;
 
 typedef enum {
-  BRL_INPUT_TEXT,
-  BRL_INPUT_DOTS
-} BrailleInputMode;
-
-typedef enum {
-  BRL_ORIENTATION_NORMAL,
-  BRL_ORIENTATION_ROTATED
-} BrailleDisplayOrientation;
+  BRL_TYPING_TEXT,
+  BRL_TYPING_DOTS
+} BrailleTypingMode;
 
 typedef struct BrailleDisplayStruct BrailleDisplay;
 typedef struct BrailleDataStruct BrailleData;
 
+typedef int RefreshBrailleDisplayMethod (BrailleDisplay *brl);
+typedef int RefreshBrailleRowMethod (BrailleDisplay *brl, int row);
+
 typedef int SetBrailleFirmnessMethod (BrailleDisplay *brl, BrailleFirmness setting);
 typedef int SetTouchSensitivityMethod (BrailleDisplay *brl, TouchSensitivity setting);
-typedef int SetBrailleAutorepeatMethod (BrailleDisplay *brl, int on, int delay, int interval);
-
-typedef void SetRotateInputMethod (BrailleDisplay *brl, KeyGroup *group, KeyNumber *number);
+typedef int SetAutorepeatPropertiesMethod (BrailleDisplay *brl, int on, int delay, int interval);
 
 struct BrailleDisplayStruct {
   BrailleData *data;
 
-  SetBrailleFirmnessMethod *setFirmness;
-  SetTouchSensitivityMethod *setSensitivity;
-  SetBrailleAutorepeatMethod *setAutorepeat;
+  RefreshBrailleDisplayMethod *refreshBrailleDisplay;
+  RefreshBrailleRowMethod *refreshBrailleRow;
+
+  SetBrailleFirmnessMethod *setBrailleFirmness;
+  SetTouchSensitivityMethod *setTouchSensitivity;
+  SetAutorepeatPropertiesMethod *setAutorepeatProperties;
 
   unsigned int textColumns;
   unsigned int textRows;
   unsigned int statusColumns;
   unsigned int statusRows;
-  unsigned hideCursor:1;
+  unsigned char cellSize;
 
   const char *keyBindings;
   KEY_NAME_TABLES_REFERENCE keyNames;
@@ -88,20 +86,19 @@ struct BrailleDisplayStruct {
   unsigned int writeDelay;
 
   unsigned char *buffer;
-  unsigned isCoreBuffer:1;
+  unsigned char quality;
+  unsigned char isCoreBuffer:1;
 
   void (*bufferResized) (unsigned int rows, unsigned int columns);
-  unsigned resizeRequired:1;
+  unsigned char resizeRequired:1;
 
   int cursor;
 
-  unsigned noDisplay:1;
-  unsigned hasFailed:1;
-  unsigned isOffline:1;
-  unsigned isSuspended:1;
-
-  SetRotateInputMethod *rotateInput;
-  const ApiMethods *api;
+  unsigned char noDisplay:1;
+  unsigned char hasFailed:1;
+  unsigned char isOffline:1;
+  unsigned char isSuspended:1;
+  unsigned char hideCursor:1;
 
   struct {
     Queue *messages;
@@ -114,6 +111,16 @@ struct BrailleDisplayStruct {
     } missing;
   } acknowledgements;
 };
+
+static inline int
+hasEightDotCells (const BrailleDisplay *brl) {
+  return brl->cellSize >= 8;
+}
+
+static inline int
+isMultiRow (const BrailleDisplay *brl) {
+  return brl->textRows > 1;
+}
 
 typedef struct {
   DRIVER_DEFINITION_DECLARATION;

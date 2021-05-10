@@ -1,0 +1,50 @@
+apitest {program | client} [argument ...]
+
+Programs (see the programs/ subdirectory):
+  -help
+  version
+
+Clients (see the clients/ subdirectory):
+  -help
+  -server host[:port] (default is localhost:0)
+  -authorization scheme+...
+  api-error
+  api-exception
+    -wait seconds (default is 5)
+  bound-commands
+  computer-braille
+  driver-keys
+  echo [tty ...]
+    -commands | -keys
+    -values | -names
+    -reads count (default is 10)
+    -timeout seconds (default is 10)
+  get-driver
+  get-model
+  get-size
+  list-parameters [parameter [subparam]]
+  pause
+    -wait seconds (default is 5)
+  set-parameter parameter value
+  write-arguments
+    -wait seconds (default is 5)
+    -text text
+    -begin cell# (default is 1)
+    -length #cells (default is largest size of: text, and-mask, or-mask)
+    -cursor {leave | no | cell#}
+    -display {default | display#}
+    -fix | -nofix
+    -render
+  write-dots [dots ...]
+    -wait seconds (default is 5)
+  write-text [text ...]
+    -wait seconds (default is 5)
+    -cursor {no | leave | cell#}
+
+These aren't case sensitive and allow unambiguous truncations:
+  program names (e.g. v for version)
+  client names (e.g. l for list-parameters)
+  option names (e.g. -h for -help)
+  parameter names (e.g. clip for clipboard-content)
+  boolean operands (false/true, off/on, no/yes, 0/1)
+

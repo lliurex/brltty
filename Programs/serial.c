@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #include "log.h"
+#include "strfmt.h"
 #include "parameters.h"
 #include "parse.h"
 #include "device.h"
@@ -43,6 +44,11 @@
 #endif /* serial package */
 
 #include "serial_internal.h"
+
+const char *
+serialGetDevicePath (SerialDevice *serial) {
+  return serial->devicePath;
+}
 
 const SerialBaudEntry *
 serialGetBaudEntry (unsigned int baud) {
@@ -677,20 +683,20 @@ typedef enum {
   SERIAL_DEV_FLOW_CONTROL
 } SerialDeviceParameter;
 
+static const char *const serialDeviceParameters[] = {
+  "name",
+  "baud",
+  "dataBits",
+  "stopBits",
+  "parity",
+  "flowControl",
+  NULL
+};
+
 static char **
 serialGetDeviceParameters (const char *identifier) {
-  static const char *const names[] = {
-    "name",
-    "baud",
-    "dataBits",
-    "stopBits",
-    "parity",
-    "flowControl",
-    NULL
-  };
-
   if (!identifier) identifier = "";
-  return getDeviceParameters(names, identifier);
+  return getDeviceParameters(serialDeviceParameters, identifier);
 }
 
 SerialDevice *
@@ -701,26 +707,19 @@ serialOpenDevice (const char *identifier) {
     SerialDevice *serial;
 
     if ((serial = malloc(sizeof(*serial)))) {
-      char *path;
+      memset(serial, 0, sizeof(*serial));
 
       {
         const char *name = parameters[SERIAL_DEV_NAME];
-
         if (!*name) name = SERIAL_FIRST_DEVICE;
-        path = getDevicePath(name);
+        serial->devicePath = getDevicePath(name);
       }
 
-      if (path) {
-        int connected;
-
+      if (serial->devicePath) {
         serial->fileDescriptor = -1;
         serial->stream = NULL;
 
-        connected = serialConnectDevice(serial, path);
-        free(path);
-        path = NULL;
-
-        if (connected) {
+        if (serialConnectDevice(serial, serial->devicePath)) {
           int ok = 1;
 
           if (!serialConfigureBaud(serial, parameters[SERIAL_DEV_BAUD])) ok = 0;
@@ -735,6 +734,8 @@ serialOpenDevice (const char *identifier) {
           serialCloseDevice(serial);
           return NULL;
         }
+
+        free(serial->devicePath);
       }
 
       free(serial);
@@ -764,7 +765,25 @@ serialCloseDevice (SerialDevice *serial) {
     serialDisconnectDevice(serial);
   }
 
+  free(serial->devicePath);
   free(serial);
+}
+
+const char *
+serialMakeDeviceIdentifier (SerialDevice *serial, char *buffer, size_t size) {
+  STR_BEGIN(buffer, size);
+
+  STR_PRINTF(
+    "%s%c%s%c%s",
+    SERIAL_DEVICE_QUALIFIER,
+    PARAMETER_QUALIFIER_CHARACTER,
+    serialDeviceParameters[SERIAL_DEV_NAME],
+    PARAMETER_ASSIGNMENT_CHARACTER,
+    serialGetDevicePath(serial)
+  );
+
+  STR_END;
+  return buffer;
 }
 
 int
@@ -871,7 +890,7 @@ isSerialDeviceIdentifier (const char **identifier) {
   if (isDosDevice(*identifier, "COM")) return 1;
 #endif /* ALLOW_DOS_DEVICE_NAMES */
 
-  if (hasQualifier(identifier, "serial")) return 1;
+  if (hasQualifier(identifier, SERIAL_DEVICE_QUALIFIER)) return 1;
   if (hasNoQualifier(*identifier)) return 1;
   return 0;
 }

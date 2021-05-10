@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -92,7 +92,7 @@ installFiles_winusb() {
    fi
 }
 
-. "`dirname "${0}"`/../prologue.sh"
+. "`dirname "${0}"`/../brltty-prologue.sh"
 . "${programDirectory}/mingw.sh"
 
 defaultUsbPackage="libusb"
@@ -112,6 +112,7 @@ addWindowsPackageOption P python
 addWindowsPackageOption I icu
 addProgramOption C string.directory cygwinRoot "the root directory of a Cygwin installation"
 addProgramParameter source sourceRoot "the top-level directory of the source tree"
+optionalProgramParameters
 addProgramParameter revision buildRevision "the revision of the build"
 parseProgramArguments "${@}"
 
@@ -121,8 +122,26 @@ sourceRoot="$(cd "${sourceRoot}" && pwd -W)"
 revisionIdentifier="$("${sourceRoot}/getrevid" "${sourceRoot}")"
 logMessage task "revision identifier: ${revisionIdentifier}"
 
-[ -z "${cygwinRoot}" ] || {
-   if [ -d "${cygwinRoot}/cygdrive" ]
+[ -n "${buildRevision}" ] || {
+   buildRevision="${revisionIdentifier%-g*}-"
+   buildRevision="${buildRevision#*-}"
+   buildRevision="${buildRevision#*-}"
+
+   if [ -n "${buildRevision}" ]
+   then
+      buildRevision="${buildRevision%-}"
+   else
+      buildRevision="0"
+   fi
+}
+
+[ -n "${cygwinRoot}" ] || {
+   directory=/cygwin
+   [ -e "${directory}" ] && cygwinRoot="${directory}"
+}
+
+[ -n "${cygwinRoot}" ] && {
+   if [ -f "${cygwinRoot}/cygwin.ico" ]
    then
       export PATH="${PATH}:${cygwinRoot}/bin"
       export nodosfilewarning=1
@@ -203,10 +222,13 @@ mkdir -p "${buildRoot}"
 cd "${buildRoot}"
 
 logMessage task "configuring build"
-configureOptions="--enable-relocatable-install --with-usb-package="${usbPackage}" --disable-i18n --without-params-package --without-mntpt-package --without-mntfs-package --without-kbd-package --without-bell-package --without-leds-package --without-libbraille --disable-speech-support --disable-java-bindings --disable-ocaml-bindings --disable-tcl-bindings"
-"../source/configure" --quiet --prefix=/ ${configureOptions}
+"../source/cfg-windows" \
+   --prefix=/ \
+   --enable-relocatable-install \
+   --with-usb-package="${usbPackage}" \
+   --quiet
 
-. ./config.sh
+. ./brltty-config.sh
 buildVersion="${BRLTTY_VERSION}-${buildRevision}"
 buildName="${BRLTTY_TARNAME}-win-${buildVersion}-${usbPackage}"
 
@@ -219,7 +241,7 @@ make -s -C Documents
 
 logMessage task "installing files"
 installRoot="${temporaryDirectory}/install/${buildName}"
-make -s install \
+make -s install install-messages \
    JAVA_JAR_DIR=/lib JAVA_JNI_DIR=/lib \
    PYTHON_PREFIX="Python" \
    INSTALL_ROOT="${installRoot}"
@@ -236,8 +258,7 @@ do
 done
 
 readmeHeader="\
-This is an unofficial build of ${BRLTTY_NAME} ${BRLTTY_VERSION} which also includes a few fixes
-for Windows.
+This build of ${BRLTTY_NAME} ${BRLTTY_VERSION} includes Windows-specific patches.
 
 You should probably read doc/BRLTTY.txt and doc/Windows.txt for information
 on BRLTTY.
@@ -282,7 +303,17 @@ ${configureLines}
 cd "${buildRoot}"
 installFile "Documents/brltty.conf" "etc/brltty.conf"
 installFile "Drivers/BrlAPI/WindowEyes/webrloem109.dll" "WindowEyes/"
-installFile "Bindings/Python/dist/Brlapi-${BRLAPI_RELEASE}.win32.exe" "Python/"
+
+set -- Bindings/Python/dist/Brlapi-${BRLAPI_RELEASE}.*.exe
+if [ "${#}" -gt 0 ]
+then
+   for file
+   do
+      installFile "${file}" "Python/"
+   done
+else
+   logMessage warning "Python bindings installer not found"
+fi
 
 cd "${sourceRoot}"
 installFile "LICENSE-LGPL" "LICENSE-LGPL.txt"
@@ -336,14 +367,15 @@ cd "${programDirectory}"
 installFile "msvcr90.dll" "bin/"
 installFile "brltty.cat" "bin/"
 installFile "brltty_x64.cat" "bin/"
-installFile "install.bat" "/"
-installFile "uninstall.bat" "/"
-installFile "run-debug.bat" "/"
+installFile "run-brltty.bat" "/"
+installFile "debug-brltty.bat" "/"
+installFile "enable-brlapi.bat" "/"
+installFile "disable-brlapi.bat" "/"
 
 installFiles ${usbWindowsPackages}
 
 cd /mingw/bin
-for file in libgcc_s_dw2-1.dll libiconv-2.dll libpdcurses*.dll
+for file in libgcc_s_dw2-1.dll libiconv-2.dll libpdcurses*.dll libintl-8.dll
 do
    installFile "${file}" "bin/"
 done
@@ -444,11 +476,11 @@ then
             then
                case "${extension}"
                in
-                  bat | cat | conf | h | htm | html | inf | nsi | policy | txt | xml | [tack]t[bi])
+                  bat | cat | conf | h | htm | html | inf | nsi | pc | policy | sh | txt | xml | [tack]t[bi])
                      "${unix2dosPath}" -q -o "${path}"
                      ;;
 
-                  a | def | dll | doc | egg-info | exe | exp | lib | pdf | pyd | sys | ttf);;
+                  a | def | dll | doc | egg-info | exe | exp | lib | mo | pdf | pyd | sys | ttf);;
                   *) logMessage warning "unexpected file extension: ${handle}";;
                esac
             fi

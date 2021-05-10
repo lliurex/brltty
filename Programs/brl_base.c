@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,12 +23,12 @@
 
 #include "log.h"
 #include "report.h"
+#include "api_control.h"
 #include "queue.h"
 #include "async_alarm.h"
 #include "brl_base.h"
 #include "brl_utils.h"
 #include "brl_dots.h"
-#include "prefs.h"
 #include "kbd_keycodes.h"
 #include "io_generic.h"
 #include "cmd_queue.h"
@@ -139,33 +139,6 @@ translateInputCell (unsigned char cell) {
   return translateCell(inputTable, cell);
 }
 
-void
-applyBrailleDisplayOrientation (unsigned char *cells, size_t count) {
-  switch (prefs.brailleDisplayOrientation) {
-    case BRL_ORIENTATION_ROTATED: {
-      static TranslationTable rotateTable = {[1] = 0};
-
-      const unsigned char *source = cells;
-      const unsigned char *end = source + count;
-
-      unsigned char buffer[count];
-      unsigned char *target = &buffer[count];
-
-      if (!rotateTable[1]) {
-        makeTranslationTable(dotsTable_rotated, rotateTable);
-      }
-
-      while (source < end) *--target = rotateTable[*source++];
-      memcpy(cells, buffer, count);
-      break;
-    }
-
-    default:
-    case BRL_ORIENTATION_NORMAL:
-      break;
-  }
-}
-
 int
 awaitBrailleInput (BrailleDisplay *brl, int timeout) {
   return gioAwaitInput(brl->gioEndpoint, timeout);
@@ -212,12 +185,12 @@ readBraillePacket (
   void *packet, size_t size,
   BraillePacketVerifier *verifyPacket, void *data
 ) {
+  if (!endpoint) endpoint = brl->gioEndpoint;
+
   unsigned char *bytes = packet;
   size_t count = 0;
   size_t length = 1;
   int started = 0;
-
-  if (!endpoint) endpoint = brl->gioEndpoint;
 
   while (1) {
     unsigned char byte;
@@ -228,36 +201,37 @@ readBraillePacket (
     }
 
   gotByte:
-    started = 1;
-
     if (count < size) {
       bytes[count++] = byte;
+      BraillePacketVerifierResult result = verifyPacket(brl, bytes, count, &length, data);
 
-      {
-        BraillePacketVerifierResult result = verifyPacket(brl, bytes, count, &length, data);
+      switch (result) {
+        case BRL_PVR_EXCLUDE:
+          count -= 1;
+          /* fall through */
+        case BRL_PVR_INCLUDE:
+          started = 1;
+          break;
 
-        switch (result) {
-          case BRL_PVR_EXCLUDE:
-            count -= 1;
-          case BRL_PVR_INCLUDE:
-            break;
+        case BRL_PVR_IGNORE:
+          count -= 1;
+          continue;
 
-          default:
-            logMessage(LOG_WARNING, "unimplemented braille packet verifier result: %u", result);
-            /* fall through */
-          case BRL_PVR_INVALID:
-            started = 0;
+        default:
+          logMessage(LOG_WARNING, "unimplemented braille packet verifier result: %u", result);
+          /* fall through */
+        case BRL_PVR_INVALID:
+          started = 0;
+          length = 1;
 
-            if (--count) {
-              logShortPacket(bytes, count);
-              count = 0;
-              length = 1;
-              goto gotByte;
-            }
+          if (--count) {
+            logShortPacket(bytes, count);
+            count = 0;
+            goto gotByte;
+          }
 
-            logIgnoredByte(byte);
-            continue;
-        }
+          logIgnoredByte(byte);
+          continue;
       }
 
       if (count >= length) {
@@ -468,6 +442,7 @@ probeBrailleDisplay (
 
           default:
             logMessage(LOG_WARNING, "unimplemented braille response result: %u", result);
+            /* fall through */
           case BRL_RSP_FAIL:
             return 0;
         }
@@ -490,6 +465,120 @@ probeBrailleDisplay (
 void
 releaseBrailleKeys (BrailleDisplay *brl) {
   releaseAllKeys(brl->keyTable);
+}
+
+KeyNumberSet
+mapKeyNumbers (KeyNumberSet fromKeys, const KeyNumberMapEntry *map, size_t count) {
+  KeyNumberSet toKeys = fromKeys;
+  const KeyNumberMapEntry *end = map + count;
+
+  while (map < end) {
+    KeyNumber key = map->from;
+    int yes = (key == KTB_KEY_ANY)? 0: isKeyNumberIncluded(fromKeys, key);
+
+    setKeyNumberIncluded(&toKeys, map->to, yes);
+    map += 1;
+  }
+
+  return toKeys;
+}
+
+void
+remapKeyNumbers (KeyNumberSet *keys, const KeyNumberMapEntry *map, size_t count) {
+  *keys = mapKeyNumbers(*keys, map, count);
+}
+
+struct KeyNumberSetMapStruct {
+  const KeyNumberSetMapEntry *linear;
+  const KeyNumberSetMapEntry **sorted;
+  size_t count;
+};
+
+static int
+compareKeyNumberSets (KeyNumberSet keys1, KeyNumberSet keys2) {
+  if (keys1 < keys2) return -1;
+  if (keys1 > keys2) return 1;
+  return 0;
+}
+
+static int
+sortKeyNumberSets (const void *element1, const void *element2) {
+  const KeyNumberSetMapEntry *const *entry1 = element1;
+  const KeyNumberSetMapEntry *const *entry2 = element2;
+  return compareKeyNumberSets((*entry1)->from, (*entry2)->from);
+}
+
+static int
+searchKeyNumberSetMapEntry (const void *target, const void *element) {
+  const KeyNumberSet *reference = target;
+  const KeyNumberSetMapEntry *const *entry = element;
+  return compareKeyNumberSets(*reference, (*entry)->from);
+}
+
+KeyNumberSetMap *
+newKeyNumberSetMap (const KeyNumberSetMapEntry *entries, size_t count) {
+  KeyNumberSetMap *map;
+
+  if ((map = malloc(sizeof(*map)))) {
+    memset(map, 0, sizeof(*map));
+
+    map->linear = entries;
+    map->count = count;
+
+    if (count < 4) {
+      map->sorted = NULL;
+      return map;
+    }
+
+    if ((map->sorted = malloc(ARRAY_SIZE(map->sorted, count)))) {
+      for (size_t i=0; i<count; i+=1) {
+        map->sorted[i] = &entries[i];
+      }
+
+      qsort(map->sorted, map->count, sizeof(*map->sorted), sortKeyNumberSets);
+      return map;
+    }
+
+    free(map);
+  }
+
+  logMallocError();
+  return NULL;
+}
+
+void
+destroyKeyNumberSetMap (KeyNumberSetMap *map) {
+  if (map->sorted) free(map->sorted);
+  free(map);
+}
+
+KeyNumberSet
+mapKeyNumberSet (KeyNumberSet keys, const KeyNumberSetMap *map) {
+  if (map) {
+    if (map->sorted) {
+      const KeyNumberSetMapEntry *const *entry = bsearch(
+        &keys, map->sorted, map->count,
+        sizeof(*map->sorted), searchKeyNumberSetMapEntry
+      );
+
+      if (entry) return (*entry)->to;
+    } else {
+      const KeyNumberSetMapEntry *entry = map->linear;
+      const KeyNumberSetMapEntry *end = entry + map->count;
+
+      while (entry < end) {
+        if (keys == entry->from) return entry->to;
+        entry += 1;
+      }
+    }
+  }
+
+  return keys;
+}
+
+void
+remapKeyNumberSet (KeyNumberSet *keys, const KeyNumberSetMap *map) {
+  *keys = mapKeyNumberSet(*keys, map);
 }
 
 typedef struct {
@@ -527,24 +616,9 @@ enqueueKeyEvent (
   KeyGroup group, KeyNumber number, int press
 ) {
   report(REPORT_BRAILLE_KEY_EVENT, NULL);
-
-  if (brl->api) {
-    if (brl->api->handleKeyEvent(group, number, press)) {
-      return 1;
-    }
-  }
+  if (api.handleKeyEvent(group, number, press)) return 1;
 
   if (brl->keyTable) {
-    switch (prefs.brailleDisplayOrientation) {
-      case BRL_ORIENTATION_ROTATED:
-        if (brl->rotateInput) brl->rotateInput(brl, &group, &number);
-        break;
-
-      default:
-      case BRL_ORIENTATION_NORMAL:
-        break;
-    }
-
     processKeyEvent(brl->keyTable, getCurrentCommandContext(), group, number, press);
     return 1;
   }

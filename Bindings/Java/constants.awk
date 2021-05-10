@@ -1,7 +1,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2006-2019 by
+# Copyright (C) 2006-2021 by
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
 #
@@ -58,11 +58,11 @@ function brlFlag(name, symbol, value, help) {
 }
 
 function brlDot(number, symbol, value, help) {
-  writeJavaConstant("byte", "DOT" number, "(byte) (" value ")", help)
+  writeJavaConstant("int", "DOT" number, value, help)
 }
 
 function apiConstant(name, symbol, value, help) {
-  writeJavaConstant("int", name, value);
+  writeJavaConstant("int", name, value, help);
 }
 
 function apiMask(name, symbol, value, help) {

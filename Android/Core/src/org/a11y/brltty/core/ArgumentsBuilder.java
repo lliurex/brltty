@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -48,6 +48,7 @@ public class ArgumentsBuilder {
   private String logFile = null;
   private String configurationFile = null;
   private String preferencesFile = null;
+  private String localeDirectory = null;
   private String driversDirectory = null;
   private String writableDirectory = null;
   private String updatableDirectory = null;
@@ -114,6 +115,15 @@ public class ArgumentsBuilder {
 
   public final ArgumentsBuilder setPreferencesFile (String value) {
     preferencesFile = value;
+    return this;
+  }
+
+  public final String getLocaleDirectory () {
+    return  localeDirectory;
+  }
+
+  public final ArgumentsBuilder setLocaleDirectory (String value) {
+    localeDirectory = value;
     return this;
   }
 
@@ -274,6 +284,7 @@ public class ArgumentsBuilder {
     addOption(arguments, "-f", configurationFile);
     addOption(arguments, "-F", preferencesFile);
 
+    addOption(arguments, "--locale-directory", localeDirectory);
     addOption(arguments, "-D", driversDirectory);
     addOption(arguments, "-W", writableDirectory);
     addOption(arguments, "-U", updatableDirectory);

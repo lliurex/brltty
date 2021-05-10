@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,11 +19,37 @@
 #ifndef BRLTTY_INCLUDED_API_CONTROL
 #define BRLTTY_INCLUDED_API_CONTROL
 
-#include "api_types.h"
+#include "brlapi_param.h"
+#include "ktb_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+typedef struct {
+  void (*logServerIdentity) (int full);
+  const char *const * (*getServerParameters) (void);
+
+  int (*startServer) (char **parameters);
+  void (*stopServer) (void);
+  int (*isServerRunning) (void);
+
+  void (*linkServer) (void);
+  void (*unlinkServer) (void);
+  int (*isServerLinked) (void);
+
+  void (*suspendDriver) (void);
+  int (*resumeDriver) (void);
+
+  int (*claimDriver) (void);
+  void (*releaseDriver) (void);
+
+  int (*handleCommand) (int command);
+  int (*handleKeyEvent) (KeyGroup group, KeyNumber number, int press);
+
+  int (*flushOutput) (void);
+  void (*updateParameter) (brlapi_param_t parameter, brlapi_param_subparam_t subparam);
+} ApiMethods;
 
 extern const ApiMethods api;
 

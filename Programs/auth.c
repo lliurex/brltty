@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -316,7 +316,7 @@ authKeyfile_client (AuthDescriptor *auth, FileDescriptor fd, void *data) {
 static int
 authKeyfile_server (AuthDescriptor *auth, FileDescriptor fd, void *data) {
   MethodDescriptor_keyfile *keyfile = data;
-  logMessage(LOG_DEBUG, "checking key file: %s", keyfile->path);
+  logMessage(LOG_CATEGORY(SERVER_EVENTS), "checking key file: %s", keyfile->path);
   return 1;
 }
 
@@ -439,7 +439,7 @@ authGroup_server (AuthDescriptor *auth, FileDescriptor fd, void *data) {
          checkPeerGroup(&auth->peerCredentials, group);
 }
 
-#ifdef USE_POLKIT
+#ifdef HAVE_POLKIT
 #include <polkit/polkit.h>
 
 typedef struct {
@@ -508,34 +508,50 @@ authPolkit_server (AuthDescriptor *auth, FileDescriptor fd, void *data) {
   socklen_t length = sizeof(cred);
 
   if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &cred, &length) != -1) {
-    logMessage(LOG_DEBUG, "attempting to authenticate pid %d via polkit", cred.pid);
+    logMessage(LOG_CATEGORY(SERVER_EVENTS),
+      "attempting to authorize client (pid %d, uid %d) via polkit",
+      cred.pid, cred.uid
+    );
 
-    PolkitSubject *subject = polkit_unix_process_new_for_owner(cred.pid, 0, cred.uid);
-    if (subject) {
-      GError *error_local = NULL;
-
-      PolkitAuthorizationResult *result = polkit_authority_check_authorization_sync(
-        polkit->authority,			/* authority */
-        subject,				/* PolkitSubject for client */
-        "org.a11y.brlapi.write-display",		/* name of polkit action */
-        NULL,					/* details */
-        POLKIT_CHECK_AUTHORIZATION_FLAGS_NONE,	/* disallow interaction */
-        NULL,					/* GCancellable */
-        &error_local				/* returned error */
+    if (cred.uid == -1) {
+      logMessage(LOG_CATEGORY(SERVER_EVENTS),
+        "user not specified in credentials"
       );
-
-      if (result) {
-        int isAuthorized = polkit_authorization_result_get_is_authorized(result);
-        g_object_unref(result);
-
-        logMessage(LOG_DEBUG, "polkit_authority_check_authorization_sync returned %d", isAuthorized);
-        return isAuthorized;
-      } else {
-        logMessage(LOG_ERR, "polkit_authority_check_authorization_sync error: %s", error_local->message);
-        g_error_free(error_local);
-      }
     } else {
-      logSystemError("polkit_unix_process_new_for_owner");
+      PolkitSubject *subject = polkit_unix_process_new_for_owner(cred.pid, 0, cred.uid);
+
+      if (subject) {
+        GError *error_local = NULL;
+
+        PolkitAuthorizationResult *result = polkit_authority_check_authorization_sync(
+          polkit->authority,			/* authority */
+          subject,				/* PolkitSubject for client */
+          "org.a11y.brlapi.write-display",		/* name of polkit action */
+          NULL,					/* details */
+          POLKIT_CHECK_AUTHORIZATION_FLAGS_NONE,	/* disallow interaction */
+          NULL,					/* GCancellable */
+          &error_local				/* returned error */
+        );
+
+        if (result) {
+          int isAuthorized = polkit_authorization_result_get_is_authorized(result);
+          g_object_unref(result);
+
+          logMessage(LOG_CATEGORY(SERVER_EVENTS),
+            "polkit_authority_check_authorization_sync returned %d",
+            isAuthorized
+          );
+
+          return isAuthorized;
+        } else {
+          logMessage(LOG_ERR, "polkit_authority_check_authorization_sync error: %s", error_local->message);
+          g_error_free(error_local);
+        }
+
+        g_object_unref(subject);
+      } else {
+        logSystemError("polkit_unix_process_new_for_owner");
+      }
     }
   } else {
     logSystemError("getsockopt[SO_PEERCRED]");
@@ -543,7 +559,7 @@ authPolkit_server (AuthDescriptor *auth, FileDescriptor fd, void *data) {
 
   return 0;
 }
-#endif /* USE_POLKIT */
+#endif /* HAVE_POLKIT */
 #endif /* CAN_CHECK_CREDENTIALS */
 
 /* general functions */
@@ -571,14 +587,14 @@ static const MethodDefinition methodDefinitions[] = {
     .server = authGroup_server
   },
 
-#ifdef USE_POLKIT
+#ifdef HAVE_POLKIT
   { .name = "polkit",
     .initialize = authPolkit_initialize,
     .release = authPolkit_release,
     .client = NULL,
     .server = authPolkit_server
   },
-#endif /* USE_POLKIT */
+#endif /* HAVE_POLKIT */
 #endif /* CAN_CHECK_CREDENTIALS */
 
   {.name = NULL}
@@ -625,7 +641,7 @@ initializeMethodDescriptor (MethodDescriptor *method, const char *parameter) {
     }
   }
 
-  logMessage(LOG_WARNING, "unknown authentication/authorization method: %.*s", nameLength, name);
+  logMessage(LOG_WARNING, "unknown authorization method: %.*s", nameLength, name);
   return 0;
 }
 

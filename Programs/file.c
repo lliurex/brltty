@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,10 +21,20 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include <ctype.h>
 #include <errno.h>
+#include <ctype.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <limits.h>
+#include <locale.h>
+
+#ifdef HAVE_LANGINFO_H
+#include <langinfo.h>
+#endif /* HAVE_LANGINFO_H */
+
+#ifdef HAVE_ICONV_H
+#include <iconv.h>
+#endif /* HAVE_ICONV_H */
 
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
@@ -36,18 +46,18 @@
 #include "file.h"
 #include "parse.h"
 #include "async_wait.h"
-#include "charset.h"
+#include "utf8.h"
 #include "program.h"
 
 
 int
-isPathDelimiter (const char character) {
-  return character == FILE_PATH_DELIMITER;
+isPathSeparator (const char character) {
+  return character == PATH_SEPARATOR_CHARACTER;
 }
 
 int
 isAbsolutePath (const char *path) {
-  if (isPathDelimiter(path[0])) return 1;
+  if (isPathSeparator(path[0])) return 1;
 
 #if defined(__MINGW32__) || defined(__MSDOS__)
   if (strchr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", toupper(path[0])) && (path[1] == ':')) return 1;
@@ -59,7 +69,7 @@ isAbsolutePath (const char *path) {
 static size_t
 stripPathDelimiter (const char *path, size_t length) {
   while (length) {
-    if (!isPathDelimiter(path[length-1])) break;
+    if (!isPathSeparator(path[length-1])) break;
     length -= 1;
   }
   return length;
@@ -71,16 +81,20 @@ getPathDirectory (const char *path) {
   size_t end = stripPathDelimiter(path, length);
 
   if (end) {
-    while (--end)
-      if (isPathDelimiter(path[end-1]))
+    while (--end) {
+      if (isPathSeparator(path[end-1])) {
         break;
+      }
+    }
 
-    if ((length = end))
-      if ((end = stripPathDelimiter(path, length)))
+    if ((length = end)) {
+      if ((end = stripPathDelimiter(path, length))) {
         length = end;
+      }
+    }
   }
 
-  if (!length) length = strlen(path = ".");
+  if (!length) length = strlen((path = CURRENT_DIRECTORY_NAME));
   {
     char *directory = malloc(length + 1);
 
@@ -100,7 +114,7 @@ locatePathName (const char *path) {
   const char *name = path + strlen(path);
 
   while (name != path) {
-    if (isPathDelimiter(*--name)) {
+    if (isPathSeparator(*--name)) {
       ++name;
       break;
     }
@@ -143,7 +157,7 @@ joinPath (const char *const *components, unsigned int count) {
     const char *next = *--component;
 
     if (next && *next) {
-      if ((first != size) && !isPathDelimiter(next[strlen(next)-1])) {
+      if ((first != size) && !isPathSeparator(next[strlen(next)-1])) {
         strings[--first] = "/";
       }
 
@@ -318,26 +332,40 @@ testDirectoryPath (const char *path) {
 }
 
 int
-createDirectory (const char *path) {
+createDirectory (const char *path, int worldWritable) {
 #if defined(GRUB_RUNTIME)
   errno = EROFS;
 
 #else /* make directory */
-  if (mkdir(path
-#ifndef __MINGW32__
-           ,(S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)
+#ifdef __MINGW32__
+  if (mkdir(path) != -1) return 1;
+#else /* __MINGW32__ */
+  if (mkdir(path, (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)) != -1) {
+    if (!worldWritable) return 1;
+    if (chmod(path, (S_IRWXU | S_IRWXG | S_IRWXO | S_ISVTX)) != -1) return 1;
+
+    logMessage(LOG_WARNING,
+      "%s: %s: %s",
+      gettext("cannot make world writable"),
+      path, strerror(errno)
+    );
+
+    return 0;
+  }
 #endif /* __MINGW32__ */
-           ) != -1) return 1;
 #endif /* make directory */
 
-  logMessage(LOG_WARNING, "%s: %s: %s",
-             gettext("cannot create directory"),
-             path, strerror(errno));
+  logMessage(LOG_WARNING,
+    "%s: %s: %s",
+    gettext("cannot create directory"),
+    path, strerror(errno)
+  );
+
   return 0;
 }
 
 int
-ensureDirectory (const char *path) {
+ensureDirectory (const char *path, int worldWritable) {
   if (testDirectoryPath(path)) return 1;
 
   if (errno == EEXIST) {
@@ -350,19 +378,31 @@ ensureDirectory (const char *path) {
       if (!directory) return 0;
 
       {
-         int exists = ensureDirectory(directory);
+         int exists = ensureDirectory(directory, 0);
          free(directory);
          if (!exists) return 0;
       }
     }
 
-    if (createDirectory(path)) {
+    if (createDirectory(path, worldWritable)) {
       logMessage(LOG_NOTICE, "directory created: %s", path);
       return 1;
     }
   }
 
   return 0;
+}
+
+int
+ensurePathDirectory (const char *path) {
+  char *directory = getPathDirectory(path);
+  if (!directory) return 0;
+
+  {
+    int exists = ensureDirectory(directory, 0);
+    free(directory);
+    return exists;
+  }
 }
 
 static void
@@ -373,7 +413,7 @@ setDirectory (const char **variable, const char *directory) {
 static const char *
 getDirectory (const char *const *variable) {
   if (*variable && **variable) {
-    if (ensureDirectory(*variable)) {
+    if (ensureDirectory(*variable, 0)) {
       return *variable;
     }
   }
@@ -490,24 +530,26 @@ getHomeDirectory (void) {
 
 static char *
 makeOverridePath (const char *base, int xdg) {
-  return makePath(base, (xdg? PACKAGE_TARNAME: ("." PACKAGE_TARNAME)));
+  return makePath(base, (xdg? PACKAGE_TARNAME: (CURRENT_DIRECTORY_NAME PACKAGE_TARNAME)));
 }
 
 static int
 addOverridePath (char **paths, size_t *index, const char *base, int xdg) {
   char *path = makeOverridePath(base, xdg);
-
   if (!path) return 0;
-  logMessage(LOG_INFO, "Override Directory: %s", path);
+
+  logMessage(LOG_DEBUG, "override directory: %s", path);
   paths[(*index)++] = path;
   return 1;
 }
 
+static char **overrideDirectories = NULL;
+
 const char *const *
 getAllOverrideDirectories (void) {
-  static const char *const *overrideDirectories = NULL;
-
   if (!overrideDirectories) {
+    logMessage(LOG_DEBUG, "determining override directories");
+
     const char *secondaryList = getenv("XDG_CONFIG_DIRS");
     int secondaryCount;
     char **secondaryBases = splitString(((secondaryList && *secondaryList)? secondaryList: "/etc/xdg"), ':', &secondaryCount);
@@ -597,7 +639,7 @@ done:
         paths[index] = NULL;
 
         if (index == count) {
-          overrideDirectories = (const char *const *)paths;
+          overrideDirectories = paths;
         } else {
           deallocateStrings(paths);
         }
@@ -611,7 +653,7 @@ done:
     if (!overrideDirectories) logMessage(LOG_WARNING, "no override directories");
   }
 
-  return overrideDirectories;
+  return (const char *const *)overrideDirectories;
 }
 
 const char *
@@ -626,6 +668,15 @@ getPrimaryOverrideDirectory (void) {
 
   logMessage(LOG_WARNING, "no primary override directory");
   return NULL;
+}
+
+void
+forgetOverrideDirectories (void) {
+  if (overrideDirectories) {
+    logMessage(LOG_DEBUG, "forgetting override directories");
+    deallocateStrings(overrideDirectories);
+    overrideDirectories = NULL;
+  }
 }
 
 #if defined(F_SETLK)
@@ -860,26 +911,26 @@ openFile (const char *path, const char *mode, int optional) {
 }
 
 int
-readLine (FILE *file, char **buffer, size_t *size) {
+readLine (FILE *file, char **buffer, size_t *size, size_t *length) {
   char *line;
 
   if (ferror(file)) return 0;
   if (feof(file)) return 0;
 
   if (!*size) {
-    if (!(*buffer = malloc(*size = 0X80))) {
+    if (!(*buffer = malloc((*size = 0X80)))) {
       logMallocError();
       return 0;
     }
   }
 
   if ((line = fgets(*buffer, *size, file))) {
-    size_t length = strlen(line); /* Line length including new-line. */
+    size_t count = strlen(line); /* Line length including new-line. */
 
     /* No trailing new-line means that the buffer isn't big enough. */
-    while (line[length-1] != '\n') {
+    while (line[count-1] != '\n') {
       /* If necessary, extend the buffer. */
-      if ((*size - (length + 1)) == 0) {
+      if ((*size - (count + 1)) == 0) {
         size_t newSize = *size << 1;
         char *newBuffer = realloc(*buffer, newSize);
 
@@ -893,23 +944,28 @@ readLine (FILE *file, char **buffer, size_t *size) {
       }
 
       /* Read the rest of the line into the end of the buffer. */
-      if (!(line = fgets(&(*buffer)[length], *size-length, file))) {
-        if (!ferror(file)) return 1;
-        logSystemError("read");
+      if (!(line = fgets(&(*buffer)[count], (*size -count), file))) {
+        if (!ferror(file)) goto done;
+        logSystemError("fgets");
         return 0;
       }
 
-      length += strlen(line); /* New total line length. */
+      count += strlen(line); /* New total line length. */
       line = *buffer; /* Point to the beginning of the line. */
     }
 
-    if (--length > 0)
-      if (line[length-1] == '\r')
-        --length;
-    line[length] = 0; /* Remove trailing new-line. */
+    if (--count > 0) {
+      if (line[count-1] == '\r') {
+        count -= 1;
+      }
+    }
+
+    line[count] = 0; /* Remove trailing new-line. */
+  done:
+    if (length) *length = count;
     return 1;
   } else if (ferror(file)) {
-    logSystemError("read");
+    logSystemError("fgets");
   }
 
   return 0;
@@ -923,20 +979,22 @@ readLine (FILE *file, char **buffer, size_t *size) {
  */
 int
 processLines (FILE *file, LineHandler handleLine, void *data) {
-  unsigned int lineNumber = 0;
   char *buffer = NULL;
   size_t bufferSize = 0;
 
-  while (readLine(file, &buffer, &bufferSize)) {
-    char *line = buffer;
+  LineHandlerParameters parameters = {
+    .data = data,
 
-    if (!lineNumber++) {
-      static const char utf8ByteOrderMark[] = {0XEF, 0XBB, 0XBF};
-      static const unsigned int length = sizeof(utf8ByteOrderMark);
-      if (strncmp(line, utf8ByteOrderMark, length) == 0) line += length;
-    }
+    .line = {
+      .number = 0,
+    },
+  };
 
-    if (!handleLine(line, data)) break;
+  while (1) {
+    parameters.line.number += 1;
+    if (!readLine(file, &buffer, &bufferSize, &parameters.line.length)) break;
+    parameters.line.text = buffer;
+    if (!handleLine(&parameters)) break;
   }
 
   if (buffer) free(buffer);
@@ -951,6 +1009,25 @@ STR_BEGIN_FORMATTER(formatInputError, const char *file, const int *line, const c
 STR_END_FORMATTER
 
 #ifdef __MINGW32__
+const char *
+getConsoleEncoding (void) {
+  static char encoding[0X10];
+
+  if (!encoding[0]) {
+    unsigned cp = GetConsoleOutputCP();
+
+    if (cp == CP_UTF8) {
+      strcpy(encoding, "UTF-8");
+    } else {
+      snprintf(encoding, sizeof(encoding), "CP%u", cp);
+    }
+
+    logMessage(LOG_DEBUG, "Console Encoding: %s", encoding);
+  }
+
+  return encoding;
+}
+
 ssize_t
 readFileDescriptor (FileDescriptor fileDescriptor, void *buffer, size_t size) {
   {
@@ -999,6 +1076,30 @@ createAnonymousPipe (FileDescriptor *pipeInput, FileDescriptor *pipeOutput) {
 }
 
 #else /* unix file/socket descriptor operations */
+const char *
+getConsoleEncoding (void) {
+  static const char *encoding = NULL;
+
+  if (!encoding) {
+    setlocale(LC_ALL, "");
+
+#ifdef HAVE_NL_LANGINFO
+    encoding = nl_langinfo(CODESET);
+#endif /* HAVE_NL_LANGINFO */
+
+    if (encoding) {
+      if (!(encoding = strdup(encoding))) {
+        logMallocError();
+      }
+    }
+
+    if (!encoding) encoding = "";
+    logMessage(LOG_DEBUG, "Console Encoding: %s", encoding);
+  }
+
+  return encoding;
+}
+
 ssize_t
 readFileDescriptor (FileDescriptor fileDescriptor, void *buffer, size_t size) {
   return read(fileDescriptor, buffer, size);
@@ -1029,6 +1130,58 @@ createAnonymousPipe (FileDescriptor *pipeInput, FileDescriptor *pipeOutput) {
   return 0;
 }
 #endif /* basic file/socket descriptor operations */
+
+void
+writeWithConsoleEncoding (FILE *stream, const char *bytes, size_t count) {
+  const char *consoleEncoding = getConsoleEncoding();
+
+  if (!consoleEncoding || isCharsetUTF8(consoleEncoding)) {
+    consoleEncoding = "";
+  }
+
+  if (*consoleEncoding) {
+#ifdef HAVE_ICONV_H
+    static const char internalEncoding[] = "UTF-8";
+    static iconv_t iconvHandle = (iconv_t)-1;
+
+    if (iconvHandle == (iconv_t)-1) {
+      if ((iconvHandle = iconv_open(consoleEncoding, internalEncoding)) == (iconv_t)-1) {
+        logMessage(LOG_WARNING,
+          "iconv open error: %s -> %s: %s",
+          internalEncoding, consoleEncoding, strerror(errno)
+        );
+
+        consoleEncoding = "";
+        goto noTranslation;
+      }
+    }
+
+    const char *inputNext = bytes;
+    size_t inputLeft = count;
+
+    char outputBuffer[inputLeft * MB_LEN_MAX];
+    char *outputNext = outputBuffer;
+    size_t outputLeft = sizeof(outputBuffer);
+
+    ssize_t result = iconv(
+      iconvHandle,
+      (char **)&inputNext, &inputLeft,
+      &outputNext, &outputLeft
+    );
+
+    if (result != -1) {
+      size_t length = outputNext - outputBuffer;
+      outputBuffer[length] = 0;
+      fputs(outputBuffer, stream);
+    }
+
+    return;
+#endif /* HAVE_ICONV_H */
+  }
+
+noTranslation:
+  fwrite(bytes, 1, count, stream);
+}
 
 #ifdef GOT_SOCKETS
 ssize_t

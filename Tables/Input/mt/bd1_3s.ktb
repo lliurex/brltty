@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -16,7 +16,7 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-title Metec BD I with 3 Keys and Status Cells
+title Metec BD I (with 3 keys and status cells)
 
 include bd1_3.kti
 include status.kti

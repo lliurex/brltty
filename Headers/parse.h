@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -29,6 +29,8 @@ extern int extendStringSetting (char **setting, const char *value, int prepend);
 extern void deallocateStrings (char **array);
 extern char **splitString (const char *string, char delimiter, int *count);
 
+extern int changeListSetting (char ***list, char **setting, const char *value);
+
 extern int rescaleInteger (int value, int from, int to);
 extern int isInteger (int *value, const char *string);
 extern int isUnsignedInteger (unsigned int *value, const char *string);
@@ -42,13 +44,13 @@ extern int validateChoice (unsigned int *value, const char *string, const char *
 extern int validateChoiceEx (unsigned int *value, const char *string, const void *choices, size_t size);
 
 typedef struct {
-  const char *true;
-  const char *false;
+  const char *on;
+  const char *off;
 } FlagKeywordPair;
 
 static inline const char *
 getFlagKeyword (const FlagKeywordPair *fkp, int state) {
-  return state? fkp->true: fkp->false;
+  return state? fkp->on: fkp->off;
 }
 
 extern FlagKeywordPair fkpOnOff;
@@ -86,7 +88,7 @@ extern int isFloat (float *value, const char *string);
 extern int validateFloat (float *value, const char *string, const float *minimum, const float *maximum);
 #endif /* NO_FLOAT */
 
-#define FILE_PATH_DELIMITER  '/'
+#define PATH_SEPARATOR_CHARACTER       '/'
 #define PARAMETER_SEPARATOR_CHARACTER  ','
 #define PARAMETER_ASSIGNMENT_CHARACTER '='
 #define PARAMETER_QUALIFIER_CHARACTER  ':'

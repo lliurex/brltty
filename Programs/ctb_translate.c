@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,10 +21,29 @@
 #include <string.h>
 
 #include "log.h"
+#include "lock.h"
 #include "ctb_translate.h"
 #include "ttb.h"
 #include "unicode.h"
 #include "prefs.h"
+
+ContractionTable *contractionTable = NULL;
+
+static LockDescriptor *
+getContractionTableLock (void) {
+  static LockDescriptor *lock = NULL;
+  return getLockDescriptor(&lock, "contraction-table");
+}
+
+void
+lockContractionTable (void) {
+  obtainExclusiveLock(getContractionTableLock());
+}
+
+void
+unlockContractionTable (void) {
+  releaseLock(getContractionTableLock());
+}
 
 CharacterEntry *
 getCharacterEntry (BrailleContractionData *bcd, wchar_t character) {
@@ -330,4 +349,37 @@ contractText (
 
   *inputLength = getInputConsumed(&bcd);
   *outputLength = getOutputConsumed(&bcd);
+}
+
+int
+replaceContractionTable (const char *directory, const char *name) {
+  ContractionTable *table = NULL;
+
+  if (*name) {
+    char *path = makeContractionTablePath(directory, name);
+
+    if (path) {
+      logMessage(LOG_DEBUG, "compiling contraction table: %s", path);
+
+      if (!(table = compileContractionTable(path))) {
+        logMessage(LOG_ERR, "%s: %s", gettext("cannot compile contraction table"), path);
+      }
+
+      free(path);
+    }
+
+    if (!table) return 0;
+  }
+
+  {
+    ContractionTable *oldTable = contractionTable;
+
+    lockContractionTable();
+      contractionTable = table;
+    unlockContractionTable();
+
+    if (oldTable) destroyContractionTable(oldTable);
+  }
+
+  return 1;
 }

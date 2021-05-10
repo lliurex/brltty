@@ -4,6 +4,7 @@ braille.$O: $(SRC_TOP)Headers/prologue.h
 braille.$O: $(BLD_TOP)config.h
 braille.$O: $(BLD_TOP)forbuild.h
 braille.$O: $(SRC_TOP)Headers/system_windows.h
+braille.$O: $(SRC_TOP)Headers/get_select.h
 braille.$O: $(SRC_TOP)Headers/log.h
 braille.$O: $(SRC_TOP)Headers/get_sockets.h
 braille.$O: $(SRC_TOP)Headers/io_misc.h
@@ -12,10 +13,10 @@ braille.$O: $(SRC_TOP)Headers/async.h
 braille.$O: $(SRC_TOP)Headers/async_wait.h
 braille.$O: $(SRC_TOP)Headers/charset.h
 braille.$O: $(SRC_TOP)Headers/lock.h
+braille.$O: $(SRC_TOP)Headers/utf8.h
 braille.$O: $(SRC_TOP)Headers/cmd.h
 braille.$O: $(SRC_TOP)Headers/cmd_types.h
 braille.$O: $(SRC_TOP)Headers/strfmth.h
-braille.$O: $(SRC_TOP)Headers/api_types.h
 braille.$O: $(SRC_TOP)Headers/async_io.h
 braille.$O: $(SRC_TOP)Headers/brl_base.h
 braille.$O: $(SRC_TOP)Headers/brl_cmds.h

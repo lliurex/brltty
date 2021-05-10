@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -17,6 +17,8 @@
  */
 
 package org.a11y.brltty.android;
+import org.a11y.brltty.android.activities.ActionsActivity;
+import org.a11y.brltty.android.settings.DeviceManager;
 
 import android.content.Context;
 import android.content.Intent;
@@ -40,7 +42,7 @@ public abstract class BrailleNotification {
 
   private static Context getContext () {
     if (applicationContext == null) {
-      applicationContext = ApplicationContext.get();
+      applicationContext = BrailleApplication.get();
     }
 
     return applicationContext;
@@ -78,7 +80,7 @@ public abstract class BrailleNotification {
   private static void makeBuilder () {
     Context context = getContext();
 
-    if (ApplicationUtilities.haveOreo) {
+    if (APITests.haveOreo) {
       NotificationManager nm = getManager();
       NotificationChannel channel = nm.getNotificationChannel(NOTIFICATION_CHANNEL);
 
@@ -108,11 +110,11 @@ public abstract class BrailleNotification {
       .setContentIntent(newPendingIntent(ActionsActivity.class))
       ;
 
-    if (ApplicationUtilities.haveJellyBeanMR1) {
+    if (APITests.haveJellyBeanMR1) {
       notificationBuilder.setShowWhen(false);
     }
 
-    if (ApplicationUtilities.haveLollipop) {
+    if (APITests.haveLollipop) {
       notificationBuilder.setCategory(Notification.CATEGORY_SERVICE);
     }
   }

@@ -5,6 +5,7 @@ $(BLD_TOP)Bindings/Java/bindings.$O: $(SRC_TOP)Headers/common_java.h
 $(BLD_TOP)Bindings/Java/bindings.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Bindings/Java/bindings.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Bindings/Java/bindings.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Bindings/Java/bindings.$O: $(SRC_TOP)Programs/brlapi_param.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Bindings/OCaml/brlapi_stubs.$O:
@@ -12,6 +13,7 @@ $(BLD_TOP)Bindings/OCaml/brlapi_stubs.$O: $(SRC_TOP)Bindings/OCaml/brlapi_stubs.
 $(BLD_TOP)Bindings/OCaml/brlapi_stubs.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Bindings/OCaml/brlapi_stubs.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Bindings/OCaml/brlapi_stubs.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Bindings/OCaml/brlapi_stubs.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Bindings/OCaml/brlapi_stubs.$O: $(SRC_TOP)Programs/brlapi_protocol.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -20,6 +22,7 @@ $(BLD_TOP)Bindings/Python/bindings.$O: $(SRC_TOP)Bindings/Python/bindings.c
 $(BLD_TOP)Bindings/Python/bindings.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Bindings/Python/bindings.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Bindings/Python/bindings.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Bindings/Python/bindings.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Bindings/Python/bindings.$O: $(SRC_TOP)Bindings/Python/bindings.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -28,7 +31,9 @@ $(BLD_TOP)Bindings/Tcl/bindings.$O: $(SRC_TOP)Bindings/Tcl/bindings.c
 $(BLD_TOP)Bindings/Tcl/bindings.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Bindings/Tcl/bindings.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Bindings/Tcl/bindings.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Bindings/Tcl/bindings.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Bindings/Tcl/bindings.$O: $(SRC_TOP)Headers/brl_dots.h
+$(BLD_TOP)Bindings/Tcl/bindings.$O: $(BLD_TOP)Bindings/Tcl/parameters.auto.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Drivers/Braille/Albatross/braille.$O:
@@ -40,7 +45,6 @@ $(BLD_TOP)Drivers/Braille/Albatross/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/Albatross/braille.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Braille/Albatross/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Albatross/braille.$O: $(SRC_TOP)Headers/async_wait.h
-$(BLD_TOP)Drivers/Braille/Albatross/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Albatross/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Albatross/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/Albatross/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -82,7 +86,6 @@ $(BLD_TOP)Drivers/Braille/Alva/braille.$O: $(SRC_TOP)Headers/io_generic.h
 $(BLD_TOP)Drivers/Braille/Alva/braille.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Drivers/Braille/Alva/braille.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Drivers/Braille/Alva/braille.$O: $(SRC_TOP)Headers/io_usb.h
-$(BLD_TOP)Drivers/Braille/Alva/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Alva/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/Alva/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Drivers/Braille/Alva/braille.$O: $(SRC_TOP)Headers/brl_dots.h
@@ -106,7 +109,6 @@ $(BLD_TOP)Drivers/Braille/B2G/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/B2G/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/B2G/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/B2G/braille.$O: $(SRC_TOP)Headers/async_io.h
-$(BLD_TOP)Drivers/Braille/B2G/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/B2G/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/B2G/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Drivers/Braille/B2G/braille.$O: $(SRC_TOP)Headers/brl_dots.h
@@ -138,7 +140,6 @@ $(BLD_TOP)Drivers/Braille/Baum/braille.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Drivers/Braille/Baum/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Baum/braille.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Drivers/Braille/Baum/braille.$O: $(SRC_TOP)Headers/ascii.h
-$(BLD_TOP)Drivers/Braille/Baum/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Baum/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Baum/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/Baum/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -167,7 +168,6 @@ $(BLD_TOP)Drivers/Braille/BrailComm/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/BrailComm/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/BrailComm/braille.$O: $(SRC_TOP)Headers/io_serial.h
 $(BLD_TOP)Drivers/Braille/BrailComm/braille.$O: $(SRC_TOP)Headers/serial_types.h
-$(BLD_TOP)Drivers/Braille/BrailComm/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/BrailComm/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/BrailComm/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Drivers/Braille/BrailComm/braille.$O: $(SRC_TOP)Headers/brl_dots.h
@@ -196,7 +196,6 @@ $(BLD_TOP)Drivers/Braille/BrailleLite/braille.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Braille/BrailleLite/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/BrailleLite/braille.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Drivers/Braille/BrailleLite/braille.$O: $(SRC_TOP)Headers/message.h
-$(BLD_TOP)Drivers/Braille/BrailleLite/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/BrailleLite/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/BrailleLite/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/BrailleLite/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -224,7 +223,6 @@ $(BLD_TOP)Drivers/Braille/BrailleMemo/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/BrailleMemo/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/BrailleMemo/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/BrailleMemo/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/BrailleMemo/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/BrailleMemo/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/BrailleMemo/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/BrailleMemo/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -252,7 +250,6 @@ $(BLD_TOP)Drivers/Braille/BrailleNote/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/BrailleNote/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/BrailleNote/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/BrailleNote/braille.$O: $(SRC_TOP)Headers/device.h
-$(BLD_TOP)Drivers/Braille/BrailleNote/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/BrailleNote/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/BrailleNote/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/BrailleNote/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -282,7 +279,6 @@ $(BLD_TOP)Drivers/Braille/Braudi/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/Braudi/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/Braudi/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/Braudi/braille.$O: $(SRC_TOP)Headers/ascii.h
-$(BLD_TOP)Drivers/Braille/Braudi/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Braudi/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Braudi/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Braudi/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -318,8 +314,9 @@ $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Programs/brlapi_keycodes.
 $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Programs/cmd_brlapi.h
 $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(BLD_TOP)Programs/brlapi.h
-$(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Headers/api_types.h
+$(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -337,13 +334,44 @@ $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Headers/status_types.h
 $(BLD_TOP)Drivers/Braille/BrlAPI/braille.$O: $(SRC_TOP)Headers/usb_types.h
 	cd $(@D) && $(MAKE) $(@F)
 
+# Dependencies for Drivers/Braille/Canute/braille.$O:
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Drivers/Braille/Canute/braille.c
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/crc_algorithms.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/crc_definitions.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/crc_generate.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/crc_properties.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/async.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/async_alarm.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/async_io.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/brl_base.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/brl_dots.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/brl_driver.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/brl_types.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/brl_utils.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/cmd_enqueue.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/driver.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/gio_types.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/io_generic.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/queue.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/serial_types.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/status_types.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Headers/usb_types.h
+$(BLD_TOP)Drivers/Braille/Canute/braille.$O: $(SRC_TOP)Drivers/Braille/Canute/brldefs-cn.h
+	cd $(@D) && $(MAKE) $(@F)
+
 # Dependencies for Drivers/Braille/Cebra/braille.$O:
 $(BLD_TOP)Drivers/Braille/Cebra/braille.$O: $(SRC_TOP)Drivers/Braille/Cebra/braille.c
 $(BLD_TOP)Drivers/Braille/Cebra/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/Cebra/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/Cebra/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/Cebra/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/Cebra/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Cebra/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Cebra/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Cebra/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -374,7 +402,6 @@ $(BLD_TOP)Drivers/Braille/CombiBraille/braille.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Braille/CombiBraille/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/CombiBraille/braille.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Drivers/Braille/CombiBraille/braille.$O: $(SRC_TOP)Headers/ascii.h
-$(BLD_TOP)Drivers/Braille/CombiBraille/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/CombiBraille/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/CombiBraille/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/CombiBraille/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -402,7 +429,6 @@ $(BLD_TOP)Drivers/Braille/EcoBraille/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/EcoBraille/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/EcoBraille/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/EcoBraille/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/EcoBraille/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/EcoBraille/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/EcoBraille/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/EcoBraille/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -431,7 +457,6 @@ $(BLD_TOP)Drivers/Braille/EuroBraille/eu_braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_braille.$O: $(SRC_TOP)Headers/message.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/EuroBraille/eu_braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -463,7 +488,6 @@ $(BLD_TOP)Drivers/Braille/EuroBraille/eu_clio.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_clio.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_clio.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/brldefs-eu.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_clio.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eu_protocol.h
-$(BLD_TOP)Drivers/Braille/EuroBraille/eu_clio.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_clio.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_clio.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_clio.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -488,7 +512,6 @@ $(BLD_TOP)Drivers/Braille/EuroBraille/eu_esysiris.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_esysiris.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_esysiris.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/brldefs-eu.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_esysiris.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eu_protocol.h
-$(BLD_TOP)Drivers/Braille/EuroBraille/eu_esysiris.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_esysiris.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_esysiris.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eu_esysiris.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -510,6 +533,7 @@ $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_brl.$O: $(SRC_TOP)Drivers/Braille/Eur
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_brl.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_brl.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_brl.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Braille/EuroBraille/eutp_brl.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_brl.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_brl.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_brl.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_pc.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_brl.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_tools.h
@@ -521,6 +545,7 @@ $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_convert.$O: $(SRC_TOP)Drivers/Braille
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_convert.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_convert.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_convert.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Braille/EuroBraille/eutp_convert.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_convert.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_brl.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -534,6 +559,7 @@ $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_main.$O: $(SRC_TOP)Drivers/Braille/Eu
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_main.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_main.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_main.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Braille/EuroBraille/eutp_main.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_main.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_convert.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_main.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_pc.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -544,6 +570,7 @@ $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_pc.$O: $(SRC_TOP)Drivers/Braille/Euro
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_pc.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_pc.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_pc.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Braille/EuroBraille/eutp_pc.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_pc.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_pc.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -553,6 +580,7 @@ $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_tools.$O: $(SRC_TOP)Drivers/Braille/E
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_tools.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_tools.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_tools.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Braille/EuroBraille/eutp_tools.$O: $(SRC_TOP)Programs/brlapi_param.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Drivers/Braille/EuroBraille/eutp_transfer.$O:
@@ -560,10 +588,40 @@ $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_transfer.$O: $(SRC_TOP)Drivers/Braill
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_transfer.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_transfer.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_transfer.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Braille/EuroBraille/eutp_transfer.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_transfer.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_brl.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_transfer.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_debug.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_transfer.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_tools.h
 $(BLD_TOP)Drivers/Braille/EuroBraille/eutp_transfer.$O: $(SRC_TOP)Drivers/Braille/EuroBraille/eutp_convert.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Drivers/Braille/FrankAudiodata/braille.$O:
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Drivers/Braille/FrankAudiodata/braille.c
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/async.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/async_io.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/gio_types.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/io_generic.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/serial_types.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/usb_types.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/io_usb.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/ezusb.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/ihex_types.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/brl_base.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/brl_dots.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/brl_driver.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/brl_types.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/brl_utils.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/cmd_enqueue.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/driver.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/queue.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Headers/status_types.h
+$(BLD_TOP)Drivers/Braille/FrankAudiodata/braille.$O: $(SRC_TOP)Drivers/Braille/FrankAudiodata/brldefs-fa.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Drivers/Braille/FreedomScientific/braille.$O:
@@ -576,7 +634,6 @@ $(BLD_TOP)Drivers/Braille/FreedomScientific/braille.$O: $(SRC_TOP)Headers/parse.
 $(BLD_TOP)Drivers/Braille/FreedomScientific/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/FreedomScientific/braille.$O: $(SRC_TOP)Headers/async_alarm.h
 $(BLD_TOP)Drivers/Braille/FreedomScientific/braille.$O: $(SRC_TOP)Headers/timing.h
-$(BLD_TOP)Drivers/Braille/FreedomScientific/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/FreedomScientific/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/FreedomScientific/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/FreedomScientific/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -602,7 +659,6 @@ $(BLD_TOP)Drivers/Braille/HIMS/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/HIMS/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/HIMS/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/HIMS/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/HIMS/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/HIMS/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/HIMS/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/HIMS/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -635,7 +691,6 @@ $(BLD_TOP)Drivers/Braille/HandyTech/braille.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Braille/HandyTech/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/HandyTech/braille.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Drivers/Braille/HandyTech/braille.$O: $(SRC_TOP)Headers/ascii.h
-$(BLD_TOP)Drivers/Braille/HandyTech/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/HandyTech/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/HandyTech/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/HandyTech/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -662,7 +717,6 @@ $(BLD_TOP)Drivers/Braille/Hedo/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/Hedo/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/Hedo/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/Hedo/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/Hedo/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Hedo/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Hedo/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Hedo/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -693,7 +747,6 @@ $(BLD_TOP)Drivers/Braille/HumanWare/braille.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Drivers/Braille/HumanWare/braille.$O: $(SRC_TOP)Headers/bitmask.h
 $(BLD_TOP)Drivers/Braille/HumanWare/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/HumanWare/braille.$O: $(SRC_TOP)Headers/async_wait.h
-$(BLD_TOP)Drivers/Braille/HumanWare/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/HumanWare/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/HumanWare/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/HumanWare/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -719,7 +772,6 @@ $(BLD_TOP)Drivers/Braille/Inceptor/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/Inceptor/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/Inceptor/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/Inceptor/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/Inceptor/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Inceptor/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Inceptor/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Inceptor/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -758,7 +810,6 @@ $(BLD_TOP)Drivers/Braille/Iris/braille.$O: $(SRC_TOP)Headers/async_alarm.h
 $(BLD_TOP)Drivers/Braille/Iris/braille.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Braille/Iris/braille.$O: $(SRC_TOP)Headers/ports.h
 $(BLD_TOP)Drivers/Braille/Iris/braille.$O: $(SRC_TOP)Headers/message.h
-$(BLD_TOP)Drivers/Braille/Iris/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Iris/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Iris/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/Iris/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -784,7 +835,6 @@ $(BLD_TOP)Drivers/Braille/Libbraille/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/Libbraille/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/Libbraille/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/Libbraille/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/Libbraille/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Libbraille/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Libbraille/braille.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Drivers/Braille/Libbraille/braille.$O: $(SRC_TOP)Headers/cmd.h
@@ -831,7 +881,6 @@ $(BLD_TOP)Drivers/Braille/LogText/braille.$O: $(SRC_TOP)Headers/device.h
 $(BLD_TOP)Drivers/Braille/LogText/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/LogText/braille.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Drivers/Braille/LogText/braille.$O: $(SRC_TOP)Headers/ascii.h
-$(BLD_TOP)Drivers/Braille/LogText/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/LogText/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/LogText/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/LogText/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -860,7 +909,6 @@ $(BLD_TOP)Drivers/Braille/MDV/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/MDV/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/MDV/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/MDV/braille.$O: $(SRC_TOP)Headers/ascii.h
-$(BLD_TOP)Drivers/Braille/MDV/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/MDV/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/MDV/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/MDV/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -891,7 +939,6 @@ $(BLD_TOP)Drivers/Braille/Metec/braille.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Drivers/Braille/Metec/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Metec/braille.$O: $(SRC_TOP)Headers/async_alarm.h
 $(BLD_TOP)Drivers/Braille/Metec/braille.$O: $(SRC_TOP)Headers/timing.h
-$(BLD_TOP)Drivers/Braille/Metec/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Metec/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Metec/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/Metec/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -921,7 +968,6 @@ $(BLD_TOP)Drivers/Braille/MiniBraille/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/MiniBraille/braille.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Braille/MiniBraille/braille.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Drivers/Braille/MiniBraille/braille.$O: $(SRC_TOP)Headers/message.h
-$(BLD_TOP)Drivers/Braille/MiniBraille/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/MiniBraille/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/MiniBraille/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/MiniBraille/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -952,7 +998,6 @@ $(BLD_TOP)Drivers/Braille/MultiBraille/braille.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Braille/MultiBraille/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/MultiBraille/braille.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Drivers/Braille/MultiBraille/braille.$O: $(SRC_TOP)Headers/ascii.h
-$(BLD_TOP)Drivers/Braille/MultiBraille/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/MultiBraille/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/MultiBraille/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/MultiBraille/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -980,7 +1025,6 @@ $(BLD_TOP)Drivers/Braille/NinePoint/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/NinePoint/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/NinePoint/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/NinePoint/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/NinePoint/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/NinePoint/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/NinePoint/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/NinePoint/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -1013,7 +1057,6 @@ $(BLD_TOP)Drivers/Braille/Papenmeier/braille.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Drivers/Braille/Papenmeier/braille.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Drivers/Braille/Papenmeier/braille.$O: $(SRC_TOP)Headers/ktb.h
 $(BLD_TOP)Drivers/Braille/Papenmeier/braille.$O: $(SRC_TOP)Headers/ktb_types.h
-$(BLD_TOP)Drivers/Braille/Papenmeier/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Papenmeier/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Papenmeier/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/Papenmeier/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -1039,7 +1082,6 @@ $(BLD_TOP)Drivers/Braille/Pegasus/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/Pegasus/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/Pegasus/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/Pegasus/braille.$O: $(SRC_TOP)Headers/parse.h
-$(BLD_TOP)Drivers/Braille/Pegasus/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Pegasus/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Pegasus/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Pegasus/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -1068,7 +1110,6 @@ $(BLD_TOP)Drivers/Braille/Seika/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/Seika/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/Seika/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/Seika/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/Seika/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Seika/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Seika/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Seika/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -1095,7 +1136,6 @@ $(BLD_TOP)Drivers/Braille/Skeleton/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/Skeleton/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/Skeleton/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/Skeleton/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/Skeleton/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Skeleton/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Skeleton/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Skeleton/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -1130,7 +1170,6 @@ $(BLD_TOP)Drivers/Braille/TSI/braille.$O: $(SRC_TOP)Headers/io_generic.h
 $(BLD_TOP)Drivers/Braille/TSI/braille.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Drivers/Braille/TSI/braille.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Drivers/Braille/TSI/braille.$O: $(SRC_TOP)Headers/message.h
-$(BLD_TOP)Drivers/Braille/TSI/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/TSI/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/TSI/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Drivers/Braille/TSI/braille.$O: $(SRC_TOP)Headers/brl_dots.h
@@ -1155,9 +1194,9 @@ $(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/unicode.h
 $(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/get_curses.h
-$(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/TTY/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -1185,7 +1224,6 @@ $(BLD_TOP)Drivers/Braille/TechniBraille/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/TechniBraille/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/TechniBraille/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/TechniBraille/braille.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Braille/TechniBraille/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/TechniBraille/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/TechniBraille/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/TechniBraille/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -1214,7 +1252,6 @@ $(BLD_TOP)Drivers/Braille/VideoBraille/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/VideoBraille/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/VideoBraille/braille.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Braille/VideoBraille/braille.$O: $(SRC_TOP)Headers/ports.h
-$(BLD_TOP)Drivers/Braille/VideoBraille/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/VideoBraille/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/VideoBraille/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/VideoBraille/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -1241,6 +1278,7 @@ $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/system_windows.h
+$(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/get_select.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/io_misc.h
@@ -1249,10 +1287,10 @@ $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/cmd.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/strfmth.h
-$(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/Virtual/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -1284,7 +1322,6 @@ $(BLD_TOP)Drivers/Braille/VisioBraille/braille.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/braille.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/braille.$O: $(SRC_TOP)Programs/scr.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/braille.$O: $(SRC_TOP)Headers/message.h
-$(BLD_TOP)Drivers/Braille/VisioBraille/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -1311,6 +1348,7 @@ $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_main.$O: $(SRC_TOP)Drivers/Braille/V
 $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_main.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_main.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_main.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Braille/VisioBraille/vstp_main.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_main.$O: $(SRC_TOP)Drivers/Braille/VisioBraille/vstp.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -1319,6 +1357,7 @@ $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_transfer.$O: $(SRC_TOP)Drivers/Brail
 $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_transfer.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_transfer.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_transfer.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Braille/VisioBraille/vstp_transfer.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_transfer.$O: $(SRC_TOP)Programs/brlapi_protocol.h
 $(BLD_TOP)Drivers/Braille/VisioBraille/vstp_transfer.$O: $(SRC_TOP)Drivers/Braille/VisioBraille/vstp.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -1333,7 +1372,6 @@ $(BLD_TOP)Drivers/Braille/Voyager/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/Voyager/braille.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Drivers/Braille/Voyager/braille.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Drivers/Braille/Voyager/braille.$O: $(SRC_TOP)Headers/bitfield.h
-$(BLD_TOP)Drivers/Braille/Voyager/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/Voyager/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/Voyager/braille.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Drivers/Braille/Voyager/braille.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -1362,8 +1400,8 @@ $(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/unicode.h
-$(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Braille/XWindow/braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -1394,6 +1432,7 @@ $(BLD_TOP)Drivers/BrlAPI/WindowEyes/webrloem.$O: $(SRC_TOP)Drivers/BrlAPI/Window
 $(BLD_TOP)Drivers/BrlAPI/WindowEyes/webrloem.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Drivers/BrlAPI/WindowEyes/webrloem.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Drivers/BrlAPI/WindowEyes/webrloem.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/BrlAPI/WindowEyes/webrloem.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Drivers/BrlAPI/WindowEyes/webrloem.$O: $(SRC_TOP)Drivers/BrlAPI/WindowEyes/webrloem.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -1403,7 +1442,11 @@ $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Drivers/Screen/Android/screen.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Programs/report.h
+$(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/alert.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/unicode.h
@@ -1411,14 +1454,12 @@ $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/scr_utils.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/common_java.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/system_java.h
-$(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Drivers/Screen/Android/screen.$O: $(SRC_TOP)Headers/cmd.h
@@ -1448,55 +1489,56 @@ $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Drivers/Screen/AtSpi/screen.
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(BLD_TOP)forbuild.h
-$(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/parse.h
-$(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/get_thread.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/thread.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/brl_dots.h
-$(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/lock.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Drivers/Screen/AtSpi/screen.$O: $(SRC_TOP)Headers/scr_utils.h
 	cd $(@D) && $(MAKE) $(@F)
 
-# Dependencies for Drivers/Screen/AtSpi2/screen.$O:
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Drivers/Screen/AtSpi2/screen.c
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/prologue.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(BLD_TOP)config.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(BLD_TOP)forbuild.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/timing.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/win_pthread.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/parse.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/get_pthreads.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/brl_cmds.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/brl_dots.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/lock.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/async.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/async_io.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/async_alarm.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/async_event.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/driver.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/ktb_types.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/scr_base.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/scr_main.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/scr_real.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/scr_types.h
-$(BLD_TOP)Drivers/Screen/AtSpi2/screen.$O: $(SRC_TOP)Headers/scr_utils.h
+# Dependencies for Drivers/Screen/AtSpi2/a2_screen.$O:
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Drivers/Screen/AtSpi2/a2_screen.c
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/gettime.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/win_pthread.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/xsel.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/clipboard.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Programs/report.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/parse.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/thread.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/brl_cmds.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/brl_dots.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/async.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/async_io.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/async_alarm.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/async_event.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/driver.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/scr_base.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/scr_driver.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/scr_main.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/scr_real.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/scr_types.h
+$(BLD_TOP)Drivers/Screen/AtSpi2/a2_screen.$O: $(SRC_TOP)Headers/scr_utils.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Drivers/Screen/Grub/screen.$O:
@@ -1508,7 +1550,6 @@ $(BLD_TOP)Drivers/Screen/Grub/screen.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Drivers/Screen/Grub/screen.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Screen/Grub/screen.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Drivers/Screen/Grub/screen.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Drivers/Screen/Grub/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 $(BLD_TOP)Drivers/Screen/Grub/screen.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Drivers/Screen/Grub/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/Grub/screen.$O: $(SRC_TOP)Headers/scr_types.h
@@ -1523,13 +1564,11 @@ $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/brl_dots.h
-$(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/Hurd/screen.$O: $(SRC_TOP)Headers/scr_types.h
@@ -1544,7 +1583,10 @@ $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Programs/report.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/device.h
@@ -1559,15 +1601,16 @@ $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/unicode.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/lock.h
-$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/system_linux.h
+$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/scr_base.h
-$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/scr_driver.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/scr_main.h
-$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/scr_types.h
+$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/system_linux.h
+$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/scr_driver.h
+$(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Headers/scr_utils.h
 $(BLD_TOP)Drivers/Screen/Linux/screen.$O: $(SRC_TOP)Drivers/Screen/Linux/screen.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -1582,12 +1625,12 @@ $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/kbd_keycodes.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/PcBios/screen.$O: $(SRC_TOP)Headers/scr_types.h
@@ -1605,12 +1648,12 @@ $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/hostcmd.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/Screen/screen.$O: $(SRC_TOP)Headers/scr_types.h
@@ -1627,7 +1670,6 @@ $(BLD_TOP)Drivers/Screen/Skeleton/screen.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Drivers/Screen/Skeleton/screen.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Screen/Skeleton/screen.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Drivers/Screen/Skeleton/screen.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Drivers/Screen/Skeleton/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 $(BLD_TOP)Drivers/Screen/Skeleton/screen.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Drivers/Screen/Skeleton/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/Skeleton/screen.$O: $(SRC_TOP)Headers/scr_types.h
@@ -1650,7 +1692,6 @@ $(BLD_TOP)Drivers/Screen/Windows/screen.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Drivers/Screen/Windows/screen.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Drivers/Screen/Windows/screen.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Drivers/Screen/Windows/screen.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Drivers/Screen/Windows/screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 $(BLD_TOP)Drivers/Screen/Windows/screen.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Drivers/Screen/Windows/screen.$O: $(SRC_TOP)Headers/scr_real.h
 $(BLD_TOP)Drivers/Screen/Windows/screen.$O: $(SRC_TOP)Headers/scr_types.h
@@ -1792,16 +1833,15 @@ $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/parse.h
-$(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/note_types.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/notes.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/pcm.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/dynld.h
-$(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/cmd.h
@@ -1820,6 +1860,7 @@ $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/spk_types.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Programs/brl.h
 $(BLD_TOP)Drivers/Speech/Mikropuhe/speech.$O: $(SRC_TOP)Programs/core.h
@@ -1993,9 +2034,11 @@ $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/api_control.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/api_control.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/api_control.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/driver.h
@@ -2004,7 +2047,7 @@ $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/api_server.h
-$(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/brl.h
+$(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/report.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/cmd.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/ctb.h
@@ -2018,6 +2061,7 @@ $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/spk_types.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/brl.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/core.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/profile_types.h
 $(BLD_TOP)Programs/api_control.$O: $(SRC_TOP)Programs/ses.h
@@ -2028,7 +2072,7 @@ $(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Programs/apitest.c
 $(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/apitest.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/apitest.$O: $(BLD_TOP)forbuild.h
-$(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Headers/datafile.h
 $(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Headers/options.h
@@ -2046,6 +2090,7 @@ $(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Programs/cmd_brlapi.h
 $(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Programs/apitest.$O: $(BLD_TOP)Programs/brlapi.h
+$(BLD_TOP)Programs/apitest.$O: $(SRC_TOP)Programs/brlapi_param.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/async_alarm.$O:
@@ -2067,9 +2112,9 @@ $(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/async_data.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/async_data.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/async_data.$O: $(SRC_TOP)Headers/queue.h
@@ -2128,8 +2173,8 @@ $(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Headers/async_event.h
 $(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Headers/async_signal.h
 $(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Programs/async_internal.h
-$(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Headers/get_pthreads.h
-$(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/async_signal.$O: $(SRC_TOP)Headers/async_io.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -2180,6 +2225,7 @@ $(BLD_TOP)Programs/atb_translate.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/atb_translate.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/atb_translate.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/atb_translate.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/atb_translate.$O: $(SRC_TOP)Headers/lock.h
 $(BLD_TOP)Programs/atb_translate.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/atb_translate.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/atb_translate.$O: $(SRC_TOP)Headers/atb.h
@@ -2311,7 +2357,6 @@ $(BLD_TOP)Programs/blink.$O: $(SRC_TOP)Headers/prefs.h
 $(BLD_TOP)Programs/blink.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/blink.$O: $(SRC_TOP)Headers/async_alarm.h
 $(BLD_TOP)Programs/blink.$O: $(SRC_TOP)Headers/timing.h
-$(BLD_TOP)Programs/blink.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/blink.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/blink.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/blink.$O: $(SRC_TOP)Headers/gio_types.h
@@ -2343,6 +2388,8 @@ $(BLD_TOP)Programs/bluetooth.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/bluetooth.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/bluetooth.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/bluetooth.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/bluetooth.$O: $(SRC_TOP)Headers/strfmt.h
+$(BLD_TOP)Programs/bluetooth.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/bluetooth.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/bluetooth.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/bluetooth.$O: $(SRC_TOP)Headers/async.h
@@ -2363,13 +2410,14 @@ $(BLD_TOP)Programs/bluetooth_android.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/io_bluetooth.h
+$(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Programs/bluetooth_internal.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/io_misc.h
-$(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/common_java.h
 $(BLD_TOP)Programs/bluetooth_android.$O: $(SRC_TOP)Headers/system_java.h
@@ -2386,6 +2434,7 @@ $(BLD_TOP)Programs/bluetooth_darwin.$O: $(SRC_TOP)Headers/io_misc.h
 $(BLD_TOP)Programs/bluetooth_darwin.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/bluetooth_darwin.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/bluetooth_darwin.$O: $(SRC_TOP)Headers/io_bluetooth.h
+$(BLD_TOP)Programs/bluetooth_darwin.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/bluetooth_darwin.$O: $(SRC_TOP)Programs/bluetooth_internal.h
 $(BLD_TOP)Programs/bluetooth_darwin.$O: $(SRC_TOP)Headers/system_darwin.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -2400,6 +2449,7 @@ $(BLD_TOP)Programs/bluetooth_linux.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/bluetooth_linux.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/bluetooth_linux.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/bluetooth_linux.$O: $(SRC_TOP)Headers/io_bluetooth.h
+$(BLD_TOP)Programs/bluetooth_linux.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/bluetooth_linux.$O: $(SRC_TOP)Programs/bluetooth_internal.h
 $(BLD_TOP)Programs/bluetooth_linux.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/bluetooth_linux.$O: $(SRC_TOP)Headers/io_misc.h
@@ -2422,6 +2472,7 @@ $(BLD_TOP)Programs/bluetooth_none.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/bluetooth_none.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/bluetooth_none.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/bluetooth_none.$O: $(SRC_TOP)Headers/io_bluetooth.h
+$(BLD_TOP)Programs/bluetooth_none.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/bluetooth_none.$O: $(SRC_TOP)Programs/bluetooth_internal.h
 $(BLD_TOP)Programs/bluetooth_none.$O: $(SRC_TOP)Headers/log.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -2437,6 +2488,7 @@ $(BLD_TOP)Programs/bluetooth_windows.$O: $(SRC_TOP)Headers/bitfield.h
 $(BLD_TOP)Programs/bluetooth_windows.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/bluetooth_windows.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/bluetooth_windows.$O: $(SRC_TOP)Headers/io_bluetooth.h
+$(BLD_TOP)Programs/bluetooth_windows.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/bluetooth_windows.$O: $(SRC_TOP)Programs/bluetooth_internal.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -2449,8 +2501,8 @@ $(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Headers/unicode.h
-$(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/brl.$O: $(SRC_TOP)Headers/driver.h
@@ -2470,25 +2522,28 @@ $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/brl_base.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/brl_base.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Programs/brl_base.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Programs/report.h
+$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Programs/api_control.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/async_alarm.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/timing.h
-$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/gio_types.h
-$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/brl_utils.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/brl_dots.h
-$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/prefs.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/kbd_keycodes.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/io_generic.h
+$(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/brl_base.$O: $(SRC_TOP)Headers/ktb.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -2501,7 +2556,6 @@ $(BLD_TOP)Programs/brl_driver.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/drivers.h
-$(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/gio_types.h
@@ -2510,7 +2564,6 @@ $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Programs/brl.h
-$(BLD_TOP)Programs/brl_driver.$O: $(BLD_TOP)Programs/brl.auto.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/brl_base.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -2520,6 +2573,7 @@ $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/brl_utils.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/cmd_enqueue.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/io_generic.h
 $(BLD_TOP)Programs/brl_driver.$O: $(SRC_TOP)Headers/status_types.h
+$(BLD_TOP)Programs/brl_driver.$O: $(BLD_TOP)Programs/brl.auto.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/brl_input.$O:
@@ -2532,25 +2586,28 @@ $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/embed.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/program.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Programs/parameters.h
+$(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/brl_input.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Programs/brl_input.h
-$(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/brl_utils.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/gio_types.h
-$(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/brl_dots.h
+$(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/cmd_enqueue.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/io_generic.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/brl_input.$O: $(SRC_TOP)Headers/ktb.h
@@ -2572,14 +2629,17 @@ $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/brl_utils.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/brl_utils.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/report.h
-$(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/api_types.h
+$(BLD_TOP)Programs/brl_utils.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Programs/report.h
+$(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Programs/api_control.h
 $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/brl_utils.h
 $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/gio_types.h
-$(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/brl_utils.$O: $(SRC_TOP)Headers/usb_types.h
@@ -2593,12 +2653,13 @@ $(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Programs/brlapi_client.c
 $(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(BLD_TOP)forbuild.h
-$(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Headers/win_errno.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Programs/brlapi_protocol.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(SRC_TOP)Programs/brlapi_common.h
 $(BLD_TOP)Programs/brlapi_client.$O: $(BLD_TOP)Programs/brlapi_keytab.auto.h
@@ -2619,17 +2680,17 @@ $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/system_windows.h
-$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/brlapi_protocol.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/brlapi_keyranges.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/cmd_brlapi.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/brl_dots.h
-$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/brl_utils.h
@@ -2642,6 +2703,7 @@ $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/embed.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/clipboard.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/ttb.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/cmd.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/cmd_types.h
@@ -2653,25 +2715,28 @@ $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/spk_types.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/brl.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/core.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/profile_types.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/ses.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/api_server.h
-$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/report.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/addresses.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/auth.h
+$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/async_io.h
+$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/io_generic.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/io_misc.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/scr.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/lock.h
-$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/async_event.h
+$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/async_signal.h
-$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/get_thread.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Headers/thread.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/blink.h
 $(BLD_TOP)Programs/brlapi_server.$O: $(SRC_TOP)Programs/brlapi_common.h
@@ -2693,9 +2758,9 @@ $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/get_sockets.h
+$(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Programs/cmd_queue.h
-$(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/driver.h
@@ -2709,13 +2774,16 @@ $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/brl_utils.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/ttb.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/ktb.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/message.h
-$(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Programs/learn.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Programs/scr.h
 $(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Headers/alert.h
+$(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/brltest.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brltest.$O: $(SRC_TOP)Programs/brlapi_param.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/brltty-atb.$O:
@@ -2746,8 +2814,26 @@ $(BLD_TOP)Programs/brltty-cldr.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/brltty-cldr.$O: $(SRC_TOP)Headers/variables.h
 $(BLD_TOP)Programs/brltty-cldr.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/brltty-cldr.$O: $(SRC_TOP)Headers/cldr.h
-$(BLD_TOP)Programs/brltty-cldr.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/brltty-cldr.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/brltty-cldr.$O: $(SRC_TOP)Headers/utf8.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/brltty-clip.$O:
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Programs/brltty-clip.c
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Headers/datafile.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Headers/options.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Headers/pid.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Headers/variables.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Headers/utf8.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(BLD_TOP)Programs/brlapi.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brltty-clip.$O: $(SRC_TOP)Programs/brlapi_param.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/brltty-ctb.$O:
@@ -2766,8 +2852,7 @@ $(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/parse.h
-$(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/unicode.h
 $(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Programs/brltty-ctb.$O: $(SRC_TOP)Headers/ttb.h
@@ -2794,7 +2879,6 @@ $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/dynld.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/ktb.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/ktb_keyboard.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/driver.h
@@ -2803,22 +2887,14 @@ $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/brl.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/cmd_types.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/ctb.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/ctb_types.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/prefs.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/scr_types.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/spk.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/spk_types.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/timing.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/core.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/profile_types.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/ses.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/scr.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/message.h
-$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/update.h
 $(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/alert.h
+$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/brltty-ktb.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/brltty-ktb.$O: $(SRC_TOP)Headers/message.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/brltty-lscmds.$O:
@@ -2890,8 +2966,7 @@ $(BLD_TOP)Programs/brltty-trtxt.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/brltty-trtxt.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/brltty-trtxt.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/brltty-trtxt.$O: $(SRC_TOP)Headers/unicode.h
-$(BLD_TOP)Programs/brltty-trtxt.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/brltty-trtxt.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/brltty-trtxt.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/brltty-trtxt.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/brltty-trtxt.$O: $(SRC_TOP)Headers/ttb.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -2915,6 +2990,7 @@ $(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Headers/get_select.h
 $(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Headers/ttb.h
 $(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Headers/bitmask.h
 $(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Headers/dataarea.h
@@ -2925,6 +3001,7 @@ $(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Headers/get_curses.h
 $(BLD_TOP)Programs/brltty-ttb.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Programs/brltty-ttb.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brltty-ttb.$O: $(SRC_TOP)Programs/brlapi_param.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/brltty-tune.$O:
@@ -2958,9 +3035,11 @@ $(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Headers/embed.h
 $(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Headers/program.h
 $(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/brltty.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/brltty.$O: $(SRC_TOP)Headers/cmd.h
@@ -3005,8 +3084,8 @@ $(BLD_TOP)Programs/charset.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/charset.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/charset.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/charset.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/charset.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/charset.$O: $(SRC_TOP)Programs/charset_internal.h
-$(BLD_TOP)Programs/charset.$O: $(SRC_TOP)Headers/unicode.h
 $(BLD_TOP)Programs/charset.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/charset.$O: $(SRC_TOP)Headers/program.h
 $(BLD_TOP)Programs/charset.$O: $(SRC_TOP)Headers/system_windows.h
@@ -3021,6 +3100,7 @@ $(BLD_TOP)Programs/charset_grub.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/charset_grub.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/charset_grub.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/charset_grub.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/charset_grub.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/charset_grub.$O: $(SRC_TOP)Programs/charset_internal.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -3032,6 +3112,7 @@ $(BLD_TOP)Programs/charset_iconv.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/charset_iconv.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/charset_iconv.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/charset_iconv.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/charset_iconv.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/charset_iconv.$O: $(SRC_TOP)Programs/charset_internal.h
 $(BLD_TOP)Programs/charset_iconv.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/charset_iconv.$O: $(SRC_TOP)Headers/program.h
@@ -3044,6 +3125,7 @@ $(BLD_TOP)Programs/charset_msdos.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/charset_msdos.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/charset_msdos.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/charset_msdos.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/charset_msdos.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/charset_msdos.$O: $(SRC_TOP)Programs/charset_internal.h
 $(BLD_TOP)Programs/charset_msdos.$O: $(SRC_TOP)Headers/unicode.h
 $(BLD_TOP)Programs/charset_msdos.$O: $(SRC_TOP)Headers/system_msdos.h
@@ -3056,6 +3138,7 @@ $(BLD_TOP)Programs/charset_none.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/charset_none.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/charset_none.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/charset_none.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/charset_none.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/charset_none.$O: $(SRC_TOP)Programs/charset_internal.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -3067,6 +3150,7 @@ $(BLD_TOP)Programs/charset_windows.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/charset_windows.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/charset_windows.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/charset_windows.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/charset_windows.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/charset_windows.$O: $(SRC_TOP)Programs/charset_internal.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -3079,6 +3163,25 @@ $(BLD_TOP)Programs/cldr.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/cldr.$O: $(SRC_TOP)Headers/cldr.h
 $(BLD_TOP)Programs/cldr.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/cldr.$O: $(SRC_TOP)Headers/get_sockets.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/clipboard.$O:
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Programs/clipboard.c
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/clipboard.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/clipboard.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Headers/clipboard.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Headers/utf8.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Headers/queue.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Headers/pid.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/clipboard.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/clipboard.$O: $(SRC_TOP)Programs/brlapi_param.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/cmd.$O:
@@ -3118,30 +3221,28 @@ $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/alert.h
+$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Programs/cmd_queue.h
-$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Programs/cmd_clipboard.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Programs/cmd_utils.h
+$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Programs/cmd_clipboard.h
+$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/clipboard.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Programs/scr.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Programs/routing.h
-$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/alert.h
-$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/datafile.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/variables.h
-$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/lock.h
-$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/api_types.h
+$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3149,6 +3250,7 @@ $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/ktb.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/prefs.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/cmd_clipboard.$O: $(SRC_TOP)Headers/spk_types.h
@@ -3165,6 +3267,7 @@ $(BLD_TOP)Programs/cmd_custom.$O: $(SRC_TOP)Programs/cmd_custom.c
 $(BLD_TOP)Programs/cmd_custom.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/cmd_custom.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/cmd_custom.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/cmd_custom.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_custom.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_custom.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_custom.$O: $(SRC_TOP)Programs/cmd_custom.h
@@ -3179,9 +3282,13 @@ $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/cmd_input.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/cmd_input.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Programs/cmd_input.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Programs/report.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/alert.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Programs/parameters.h
+$(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Programs/cmd_input.h
@@ -3197,10 +3304,8 @@ $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Programs/scr.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/async_alarm.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/timing.h
-$(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/cmd_input.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3225,7 +3330,11 @@ $(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/cmd_keycodes.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/cmd_keycodes.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Programs/cmd_keycodes.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Programs/report.h
+$(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_keycodes.$O: $(SRC_TOP)Programs/cmd_keycodes.h
@@ -3245,13 +3354,13 @@ $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Programs/cmd_learn.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Programs/learn.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/async_event.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/async_task.h
-$(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3261,7 +3370,6 @@ $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Programs/update.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/message.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/cmd_learn.$O: $(SRC_TOP)Headers/ktb.h
@@ -3286,6 +3394,7 @@ $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Programs/cmd_miscellaneous.h
@@ -3301,11 +3410,9 @@ $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Programs/scr_internal.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Programs/scr_special.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/message.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/alert.h
-$(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/cmd_miscellaneous.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3334,6 +3441,7 @@ $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/alert.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Programs/cmd_navigation.h
@@ -3348,11 +3456,9 @@ $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Programs/routing.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Programs/scr.h
-$(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3369,11 +3475,53 @@ $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Programs/profile_types.h
 $(BLD_TOP)Programs/cmd_navigation.$O: $(SRC_TOP)Programs/ses.h
 	cd $(@D) && $(MAKE) $(@F)
 
+# Dependencies for Programs/cmd_override.$O:
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Programs/cmd_override.c
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/cmd_override.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/cmd_override.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/alert.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/cmd_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Programs/cmd_queue.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Programs/cmd_override.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Programs/cmd_utils.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/brl_cmds.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/brl_dots.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/driver.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/scr_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Programs/scr.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/prefs.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/async.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/brl_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/cmd.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/ctb.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/ctb_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/gio_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/ktb.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/pid.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/queue.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/serial_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/spk.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/spk_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Headers/usb_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Programs/brl.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Programs/core.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Programs/profile_types.h
+$(BLD_TOP)Programs/cmd_override.$O: $(SRC_TOP)Programs/ses.h
+	cd $(@D) && $(MAKE) $(@F)
+
 # Dependencies for Programs/cmd_preferences.$O:
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Programs/cmd_preferences.c
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Programs/cmd_preferences.h
@@ -3390,11 +3538,9 @@ $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Programs/scr_internal.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Programs/scr_special.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/message.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/alert.h
-$(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/cmd_preferences.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3420,11 +3566,15 @@ $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/cmd_enqueue.h
+$(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Programs/cmd_utils.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/brl_dots.h
+$(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/cmd.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/async_alarm.h
@@ -3433,10 +3583,7 @@ $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/prefs.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Programs/scr.h
-$(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/brl_types.h
-$(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3446,7 +3593,6 @@ $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/program.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/spk_types.h
-$(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Programs/brl.h
 $(BLD_TOP)Programs/cmd_queue.$O: $(SRC_TOP)Programs/core.h
@@ -3462,10 +3608,12 @@ $(BLD_TOP)Programs/cmd_speech.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/embed.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/strfmt.h
+$(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Programs/cmd_speech.h
-$(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Programs/cmd_utils.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/brl_dots.h
@@ -3476,7 +3624,6 @@ $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/spk_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Programs/scr.h
-$(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3485,7 +3632,6 @@ $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Programs/update.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/cmd_speech.$O: $(SRC_TOP)Headers/ktb.h
@@ -3503,6 +3649,11 @@ $(BLD_TOP)Programs/cmd_toggle.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/cmd_toggle.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Programs/cmd_toggle.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -3515,15 +3666,15 @@ $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Programs/scr_internal.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Programs/scr_special.h
+$(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/menu.h
+$(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Programs/scr_menu.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/alert.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/note_types.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/tune.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/tune_types.h
-$(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/cmd_toggle.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3551,12 +3702,12 @@ $(BLD_TOP)Programs/cmd_touch.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Programs/cmd_utils.h
+$(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Programs/cmd_touch.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/brl_dots.h
-$(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/brl_utils.h
@@ -3565,7 +3716,10 @@ $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/gio_types.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/usb_types.h
-$(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Programs/cmd_touch.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Programs/report.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/bitmask.h
 $(BLD_TOP)Programs/cmd_touch.$O: $(SRC_TOP)Headers/prefs.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -3575,6 +3729,7 @@ $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Programs/cmd_utils.c
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/alert.h
@@ -3585,7 +3740,6 @@ $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Programs/scr.h
-$(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/cmd_utils.$O: $(SRC_TOP)Headers/cmd.h
@@ -3619,11 +3773,15 @@ $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/embed.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/program.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Programs/config.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Programs/report.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/pgmprivs.h
+$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/lock.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Programs/activity.h
-$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/driver.h
@@ -3673,6 +3831,7 @@ $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/dynld.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/async_alarm.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/messages.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/revision.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/service.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/options.h
@@ -3683,8 +3842,7 @@ $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/prefs.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Programs/core.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Programs/ses.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Programs/api_control.h
-$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/io_generic.h
 $(BLD_TOP)Programs/config.$O: $(SRC_TOP)Headers/io_usb.h
@@ -3702,39 +3860,40 @@ $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/embed.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/program.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/alert.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/strfmth.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/brl_cmds.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/brl_dots.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_queue.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_clipboard.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_custom.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_navigation.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_input.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_keycodes.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_touch.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_toggle.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_preferences.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_clipboard.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_speech.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_learn.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_miscellaneous.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_navigation.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_override.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_preferences.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_speech.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_toggle.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/cmd_touch.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/async_wait.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/async_alarm.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/async_event.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/async_signal.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/async_alarm.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/alert.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/async_task.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/brl_cmds.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/routing.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/scr.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/gio_types.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/queue.h
@@ -3746,13 +3905,70 @@ $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/brl.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/brl_utils.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/prefs.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/core.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/ktb.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Headers/spk_types.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/core.h
 $(BLD_TOP)Programs/core.$O: $(SRC_TOP)Programs/profile_types.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/crc_algorithms.$O:
+$(BLD_TOP)Programs/crc_algorithms.$O: $(SRC_TOP)Programs/crc_algorithms.c
+$(BLD_TOP)Programs/crc_algorithms.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/crc_algorithms.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/crc_algorithms.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/crc_algorithms.$O: $(SRC_TOP)Headers/crc_algorithms.h
+$(BLD_TOP)Programs/crc_algorithms.$O: $(SRC_TOP)Headers/crc_definitions.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/crc_generate.$O:
+$(BLD_TOP)Programs/crc_generate.$O: $(SRC_TOP)Programs/crc_generate.c
+$(BLD_TOP)Programs/crc_generate.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/crc_generate.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/crc_generate.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/crc_generate.$O: $(SRC_TOP)Headers/crc_algorithms.h
+$(BLD_TOP)Programs/crc_generate.$O: $(SRC_TOP)Headers/crc_definitions.h
+$(BLD_TOP)Programs/crc_generate.$O: $(SRC_TOP)Headers/crc_generate.h
+$(BLD_TOP)Programs/crc_generate.$O: $(SRC_TOP)Headers/crc_properties.h
+$(BLD_TOP)Programs/crc_generate.$O: $(SRC_TOP)Programs/crc_internal.h
+$(BLD_TOP)Programs/crc_generate.$O: $(SRC_TOP)Headers/log.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/crc_verify.$O:
+$(BLD_TOP)Programs/crc_verify.$O: $(SRC_TOP)Programs/crc_verify.c
+$(BLD_TOP)Programs/crc_verify.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/crc_verify.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/crc_verify.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/crc_verify.$O: $(SRC_TOP)Headers/crc_algorithms.h
+$(BLD_TOP)Programs/crc_verify.$O: $(SRC_TOP)Headers/crc_definitions.h
+$(BLD_TOP)Programs/crc_verify.$O: $(SRC_TOP)Headers/crc_generate.h
+$(BLD_TOP)Programs/crc_verify.$O: $(SRC_TOP)Headers/crc_properties.h
+$(BLD_TOP)Programs/crc_verify.$O: $(SRC_TOP)Headers/crc_verify.h
+$(BLD_TOP)Programs/crc_verify.$O: $(SRC_TOP)Programs/crc_internal.h
+$(BLD_TOP)Programs/crc_verify.$O: $(SRC_TOP)Headers/log.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/crctest.$O:
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Programs/crctest.c
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/crctest.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/crctest.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/pid.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/datafile.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/options.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/variables.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/crc.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/crc_algorithms.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/crc_definitions.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/crc_generate.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/crc_properties.h
+$(BLD_TOP)Programs/crctest.$O: $(SRC_TOP)Headers/crc_verify.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/ctb_compile.$O:
@@ -3773,8 +3989,7 @@ $(BLD_TOP)Programs/ctb_compile.$O: $(SRC_TOP)Headers/dataarea.h
 $(BLD_TOP)Programs/ctb_compile.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/ctb_compile.$O: $(SRC_TOP)Headers/cldr.h
 $(BLD_TOP)Programs/ctb_compile.$O: $(SRC_TOP)Headers/unicode.h
-$(BLD_TOP)Programs/ctb_compile.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/ctb_compile.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/ctb_compile.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/ctb_compile.$O: $(SRC_TOP)Headers/hostcmd.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -3793,8 +4008,7 @@ $(BLD_TOP)Programs/ctb_external.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/ctb_external.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/ctb_external.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/ctb_external.$O: $(SRC_TOP)Headers/parse.h
-$(BLD_TOP)Programs/ctb_external.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/ctb_external.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/ctb_external.$O: $(SRC_TOP)Headers/utf8.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/ctb_louis.$O:
@@ -3821,10 +4035,10 @@ $(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Headers/prefs.h
 $(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Programs/ctb_internal.h
 $(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Programs/ctb_translate.h
+$(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Headers/ttb.h
 $(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Headers/unicode.h
-$(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/ctb_native.$O: $(SRC_TOP)Headers/ascii.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -3834,6 +4048,7 @@ $(BLD_TOP)Programs/ctb_translate.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/ctb_translate.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/ctb_translate.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/ctb_translate.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/ctb_translate.$O: $(SRC_TOP)Headers/lock.h
 $(BLD_TOP)Programs/ctb_translate.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/ctb_translate.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/ctb_translate.$O: $(SRC_TOP)Headers/prefs.h
@@ -3865,8 +4080,7 @@ $(BLD_TOP)Programs/datafile.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/datafile.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/datafile.$O: $(SRC_TOP)Headers/datafile.h
 $(BLD_TOP)Programs/datafile.$O: $(SRC_TOP)Headers/variables.h
-$(BLD_TOP)Programs/datafile.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/datafile.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/datafile.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/datafile.$O: $(SRC_TOP)Headers/unicode.h
 $(BLD_TOP)Programs/datafile.$O: $(SRC_TOP)Headers/brl_dots.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -3963,6 +4177,44 @@ $(BLD_TOP)Programs/dynld_windows.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/dynld_windows.$O: $(SRC_TOP)Headers/dynld.h
 	cd $(@D) && $(MAKE) $(@F)
 
+# Dependencies for Programs/ezusb.$O:
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Programs/ezusb.c
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/ezusb.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/ezusb.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/async.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/async_io.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/ezusb.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/ihex_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/io_usb.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/serial_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/usb_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/ihex.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/brl_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/cmd.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/cmd_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/ctb.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/ctb_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/driver.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/gio_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/ktb.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/pid.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/prefs.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/queue.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/scr_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/spk.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/spk_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Programs/brl.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Programs/core.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Programs/profile_types.h
+$(BLD_TOP)Programs/ezusb.$O: $(SRC_TOP)Programs/ses.h
+	cd $(@D) && $(MAKE) $(@F)
+
 # Dependencies for Programs/file.$O:
 $(BLD_TOP)Programs/file.$O: $(SRC_TOP)Programs/file.c
 $(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/prologue.h
@@ -3977,8 +4229,7 @@ $(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/async_wait.h
-$(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/file.$O: $(SRC_TOP)Headers/program.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -4038,7 +4289,7 @@ $(BLD_TOP)Programs/gio_bluetooth.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/gio_bluetooth.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/gio_bluetooth.$O: $(SRC_TOP)Programs/gio_internal.h
 $(BLD_TOP)Programs/gio_bluetooth.$O: $(SRC_TOP)Headers/io_bluetooth.h
-$(BLD_TOP)Programs/gio_bluetooth.$O: $(SRC_TOP)Headers/api_types.h
+$(BLD_TOP)Programs/gio_bluetooth.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/gio_bluetooth.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/gio_bluetooth.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/gio_bluetooth.$O: $(SRC_TOP)Headers/ktb_types.h
@@ -4052,6 +4303,8 @@ $(BLD_TOP)Programs/gio_null.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/gio_null.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/gio_null.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/gio_null.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/gio_null.$O: $(SRC_TOP)Headers/strfmt.h
+$(BLD_TOP)Programs/gio_null.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/gio_null.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/gio_null.$O: $(SRC_TOP)Headers/async_io.h
 $(BLD_TOP)Programs/gio_null.$O: $(SRC_TOP)Headers/gio_types.h
@@ -4083,7 +4336,7 @@ $(BLD_TOP)Programs/gio_usb.$O: $(SRC_TOP)Programs/gio_usb.c
 $(BLD_TOP)Programs/gio_usb.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/gio_usb.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/gio_usb.$O: $(BLD_TOP)forbuild.h
-$(BLD_TOP)Programs/gio_usb.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/gio_usb.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/gio_usb.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/gio_usb.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/gio_usb.$O: $(SRC_TOP)Programs/parameters.h
@@ -4154,6 +4407,22 @@ $(BLD_TOP)Programs/hostcmd_windows.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/hostcmd_windows.$O: $(SRC_TOP)Headers/system_windows.h
 $(BLD_TOP)Programs/hostcmd_windows.$O: $(SRC_TOP)Programs/hostcmd_windows.h
 $(BLD_TOP)Programs/hostcmd_windows.$O: $(SRC_TOP)Programs/hostcmd_internal.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/ihex.$O:
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Programs/ihex.c
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/ihex.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/ihex.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/strfmt.h
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/ihex.h
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/ihex_types.h
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/file.h
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/get_sockets.h
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/datafile.h
+$(BLD_TOP)Programs/ihex.$O: $(SRC_TOP)Headers/variables.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/io_misc.$O:
@@ -4311,8 +4580,7 @@ $(BLD_TOP)Programs/ktb_list.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/ktb_list.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/ktb_list.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/ktb_list.$O: $(SRC_TOP)Headers/strfmth.h
-$(BLD_TOP)Programs/ktb_list.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/ktb_list.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/ktb_list.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/ktb_list.$O: $(SRC_TOP)Headers/cmd.h
 $(BLD_TOP)Programs/ktb_list.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/ktb_list.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -4365,7 +4633,6 @@ $(BLD_TOP)Programs/learn.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/learn.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/learn.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/learn.$O: $(SRC_TOP)Programs/cmd_queue.h
-$(BLD_TOP)Programs/learn.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/learn.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/learn.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/learn.$O: $(SRC_TOP)Headers/gio_types.h
@@ -4423,8 +4690,8 @@ $(BLD_TOP)Programs/lock.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/lock.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/lock.$O: $(SRC_TOP)Headers/lock.h
 $(BLD_TOP)Programs/lock.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/lock.$O: $(SRC_TOP)Headers/get_pthreads.h
-$(BLD_TOP)Programs/lock.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/lock.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/lock.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/lock.$O: $(SRC_TOP)Headers/win_pthread.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -4434,7 +4701,8 @@ $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/log.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/log.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/log_history.h
 $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/thread.h
 $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/timing.h
@@ -4443,6 +4711,8 @@ $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/get_sockets.h
+$(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/unicode.h
+$(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/addresses.h
 $(BLD_TOP)Programs/log.$O: $(SRC_TOP)Headers/stdiox.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -4453,7 +4723,8 @@ $(BLD_TOP)Programs/log_history.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/log_history.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/log_history.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/log_history.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/log_history.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/log_history.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/log_history.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/log_history.$O: $(SRC_TOP)Headers/log_history.h
 $(BLD_TOP)Programs/log_history.$O: $(SRC_TOP)Headers/thread.h
 $(BLD_TOP)Programs/log_history.$O: $(SRC_TOP)Headers/timing.h
@@ -4479,7 +4750,8 @@ $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/log_history.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/thread.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/timing.h
@@ -4488,6 +4760,11 @@ $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/embed.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/program.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/revision.h
+$(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/menu_prefs.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/menu.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Programs/menu_prefs.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/prefs.h
@@ -4499,14 +4776,12 @@ $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/atb.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/ctb_types.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/ktb.h
-$(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/note_types.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/tune.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/tune_types.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/bell.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/leds.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/midi.h
-$(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/menu_prefs.$O: $(SRC_TOP)Headers/cmd.h
@@ -4534,13 +4809,13 @@ $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/embed.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/program.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/log_history.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/thread.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/message.h
-$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/ctb_types.h
@@ -4557,17 +4832,19 @@ $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/async_event.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/async_task.h
-$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/brl_utils.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/brl_cmds.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/update.h
+$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/cmd_queue.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/api_control.h
+$(BLD_TOP)Programs/message.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/cmd.h
-$(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/cmd_types.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/ktb.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Headers/prefs.h
@@ -4577,6 +4854,17 @@ $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/brl.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/core.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/profile_types.h
 $(BLD_TOP)Programs/message.$O: $(SRC_TOP)Programs/ses.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/messages.$O:
+$(BLD_TOP)Programs/messages.$O: $(SRC_TOP)Programs/messages.c
+$(BLD_TOP)Programs/messages.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/messages.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/messages.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/messages.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/messages.$O: $(SRC_TOP)Headers/messages.h
+$(BLD_TOP)Programs/messages.$O: $(SRC_TOP)Headers/file.h
+$(BLD_TOP)Programs/messages.$O: $(SRC_TOP)Headers/get_sockets.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/midi.$O:
@@ -4712,8 +5000,25 @@ $(BLD_TOP)Programs/morse.$O: $(SRC_TOP)Headers/morse.h
 $(BLD_TOP)Programs/morse.$O: $(SRC_TOP)Headers/note_types.h
 $(BLD_TOP)Programs/morse.$O: $(SRC_TOP)Headers/tune.h
 $(BLD_TOP)Programs/morse.$O: $(SRC_TOP)Headers/tune_types.h
-$(BLD_TOP)Programs/morse.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/morse.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/morse.$O: $(SRC_TOP)Headers/utf8.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/msgtest.$O:
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Programs/msgtest.c
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/msgtest.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/msgtest.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/pid.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/datafile.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/options.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/variables.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/messages.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/parse.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/file.h
+$(BLD_TOP)Programs/msgtest.$O: $(SRC_TOP)Headers/get_sockets.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/notes.$O:
@@ -4791,8 +5096,7 @@ $(BLD_TOP)Programs/options.$O: $(SRC_TOP)Headers/params.h
 $(BLD_TOP)Programs/options.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/options.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/options.$O: $(SRC_TOP)Headers/get_sockets.h
-$(BLD_TOP)Programs/options.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/options.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/options.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/options.$O: $(SRC_TOP)Headers/parse.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -4949,6 +5253,30 @@ $(BLD_TOP)Programs/pgmpath_windows.$O: $(SRC_TOP)Headers/pgmpath.h
 $(BLD_TOP)Programs/pgmpath_windows.$O: $(SRC_TOP)Headers/system_windows.h
 	cd $(@D) && $(MAKE) $(@F)
 
+# Dependencies for Programs/pgmprivs_linux.$O:
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Programs/pgmprivs_linux.c
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Headers/strfmt.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Headers/strfmth.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Headers/pgmprivs.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Headers/system_linux.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Headers/file.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Headers/get_sockets.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Headers/parse.h
+$(BLD_TOP)Programs/pgmprivs_linux.$O: $(SRC_TOP)Programs/syscalls_linux.h
+	cd $(@D) && $(MAKE) $(@F)
+
+# Dependencies for Programs/pgmprivs_none.$O:
+$(BLD_TOP)Programs/pgmprivs_none.$O: $(SRC_TOP)Programs/pgmprivs_none.c
+$(BLD_TOP)Programs/pgmprivs_none.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/pgmprivs_none.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/pgmprivs_none.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/pgmprivs_none.$O: $(SRC_TOP)Headers/pgmprivs.h
+	cd $(@D) && $(MAKE) $(@F)
+
 # Dependencies for Programs/pid.$O:
 $(BLD_TOP)Programs/pid.$O: $(SRC_TOP)Programs/pid.c
 $(BLD_TOP)Programs/pid.$O: $(SRC_TOP)Headers/prologue.h
@@ -5024,15 +5352,37 @@ $(BLD_TOP)Programs/ports_windows.$O: $(SRC_TOP)Headers/system_windows.h
 $(BLD_TOP)Programs/ports_windows.$O: $(SRC_TOP)Programs/ports_x86.h
 	cd $(@D) && $(MAKE) $(@F)
 
+# Dependencies for Programs/pref_tables.$O:
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Programs/pref_tables.c
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/pref_tables.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/pref_tables.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/prefs.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Programs/pref_tables.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/status_types.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/async.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/brl_types.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/ctb_types.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/driver.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/gio_types.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/ktb_types.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/queue.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/serial_types.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/spk_types.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/tune_types.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Headers/usb_types.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Programs/defaults.h
+$(BLD_TOP)Programs/pref_tables.$O: $(SRC_TOP)Programs/parameters.h
+	cd $(@D) && $(MAKE) $(@F)
+
 # Dependencies for Programs/prefs.$O:
 $(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Programs/prefs.c
 $(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/prefs.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/prefs.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Headers/prefs.h
-$(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Programs/prefs_internal.h
+$(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Programs/pref_tables.h
 $(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Headers/status_types.h
-$(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Headers/ctb_types.h
@@ -5054,30 +5404,6 @@ $(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Headers/variables.h
 $(BLD_TOP)Programs/prefs.$O: $(SRC_TOP)Headers/parse.h
 	cd $(@D) && $(MAKE) $(@F)
 
-# Dependencies for Programs/prefs_table.$O:
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Programs/prefs_table.c
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/prologue.h
-$(BLD_TOP)Programs/prefs_table.$O: $(BLD_TOP)config.h
-$(BLD_TOP)Programs/prefs_table.$O: $(BLD_TOP)forbuild.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/prefs.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Programs/prefs_internal.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/status_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/api_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/async.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/brl_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/ctb_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/driver.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/gio_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/ktb_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/queue.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/serial_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/spk_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/tune_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Headers/usb_types.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Programs/defaults.h
-$(BLD_TOP)Programs/prefs_table.$O: $(SRC_TOP)Programs/parameters.h
-	cd $(@D) && $(MAKE) $(@F)
-
 # Dependencies for Programs/profile.$O:
 $(BLD_TOP)Programs/profile.$O: $(SRC_TOP)Programs/profile.c
 $(BLD_TOP)Programs/profile.$O: $(SRC_TOP)Headers/prologue.h
@@ -5090,8 +5416,7 @@ $(BLD_TOP)Programs/profile.$O: $(SRC_TOP)Headers/datafile.h
 $(BLD_TOP)Programs/profile.$O: $(SRC_TOP)Headers/variables.h
 $(BLD_TOP)Programs/profile.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/profile.$O: $(SRC_TOP)Headers/get_sockets.h
-$(BLD_TOP)Programs/profile.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/profile.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/profile.$O: $(SRC_TOP)Headers/utf8.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/program.$O:
@@ -5101,6 +5426,7 @@ $(BLD_TOP)Programs/program.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/program.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/program.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/program.$O: $(SRC_TOP)Headers/program.h
+$(BLD_TOP)Programs/program.$O: $(SRC_TOP)Headers/messages.h
 $(BLD_TOP)Programs/program.$O: $(SRC_TOP)Headers/pgmpath.h
 $(BLD_TOP)Programs/program.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/program.$O: $(SRC_TOP)Headers/file.h
@@ -5127,7 +5453,10 @@ $(BLD_TOP)Programs/report.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/report.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/report.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/report.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/report.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Programs/report.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/report.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/report.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/report.$O: $(SRC_TOP)Programs/report.h
 $(BLD_TOP)Programs/report.$O: $(SRC_TOP)Headers/queue.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -5149,8 +5478,7 @@ $(BLD_TOP)Programs/rgx.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/rgx.$O: $(SRC_TOP)Headers/rgx.h
 $(BLD_TOP)Programs/rgx.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/rgx.$O: $(SRC_TOP)Programs/rgx_internal.h
-$(BLD_TOP)Programs/rgx.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/rgx.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/rgx.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/rgx.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/rgx.$O: $(SRC_TOP)Headers/strfmt.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -5194,15 +5522,17 @@ $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Programs/routing.c
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/routing.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/routing.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/program.h
-$(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/async_wait.h
+$(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/routing.$O: $(SRC_TOP)Headers/scr_types.h
@@ -5216,6 +5546,7 @@ $(BLD_TOP)Programs/scr.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/scr.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/scr.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/scr.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/scr.$O: $(SRC_TOP)Headers/unicode.h
 $(BLD_TOP)Programs/scr.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/scr.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/scr.$O: $(SRC_TOP)Headers/scr_types.h
@@ -5249,15 +5580,13 @@ $(BLD_TOP)Programs/scr_driver.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/drivers.h
 $(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/ktb_types.h
-$(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/scr_types.h
-$(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Programs/scr.h
 $(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/scr_base.h
-$(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/scr_main.h
-$(BLD_TOP)Programs/scr_driver.$O: $(BLD_TOP)Programs/scr.auto.h
 $(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/scr_driver.h
-$(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/scr_gpm.h
+$(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/scr_real.h
+$(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/scr_driver.$O: $(SRC_TOP)Headers/scr_utils.h
+$(BLD_TOP)Programs/scr_driver.$O: $(BLD_TOP)Programs/scr.auto.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/scr_frozen.$O:
@@ -5322,7 +5651,6 @@ $(BLD_TOP)Programs/scr_main.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/scr_main.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/scr_main.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/scr_main.$O: $(SRC_TOP)Programs/parameters.h
-$(BLD_TOP)Programs/scr_main.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/scr_main.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/scr_main.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/scr_main.$O: $(SRC_TOP)Headers/driver.h
@@ -5343,6 +5671,7 @@ $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/scr_menu.c
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/scr_menu.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/scr_menu.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/strfmth.h
@@ -5350,33 +5679,35 @@ $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/scr.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/menu.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/scr_base.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/scr_main.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/scr_internal.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/scr_special.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/menu.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/scr_menu.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/brl_cmds.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/brl_dots.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/cmd_queue.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/alert.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/lock.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/brl_types.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/cmd.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/gio_types.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/queue.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/serial_types.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/usb_types.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/update.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/brl_cmds.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/brl_dots.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/cmd_types.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/cmd_queue.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/alert.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/utf8.h
+$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/cmd.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/ctb.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/ctb_types.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/gio_types.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/ktb.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/prefs.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/program.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/queue.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/spk_types.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/timing.h
-$(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Headers/usb_types.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/brl.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/core.h
 $(BLD_TOP)Programs/scr_menu.$O: $(SRC_TOP)Programs/profile_types.h
@@ -5413,7 +5744,6 @@ $(BLD_TOP)Programs/scr_special.$O: $(SRC_TOP)Headers/scr_base.h
 $(BLD_TOP)Programs/scr_special.$O: $(SRC_TOP)Headers/scr_main.h
 $(BLD_TOP)Programs/scr_special.$O: $(SRC_TOP)Programs/scr_internal.h
 $(BLD_TOP)Programs/scr_special.$O: $(SRC_TOP)Programs/scr_special.h
-$(BLD_TOP)Programs/scr_special.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/scr_special.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/scr_special.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/scr_special.$O: $(SRC_TOP)Headers/gio_types.h
@@ -5455,7 +5785,6 @@ $(BLD_TOP)Programs/scrtest.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/scrtest.$O: $(SRC_TOP)Headers/ktb_types.h
 $(BLD_TOP)Programs/scrtest.$O: $(SRC_TOP)Headers/scr_types.h
 $(BLD_TOP)Programs/scrtest.$O: $(SRC_TOP)Programs/scr.h
-$(BLD_TOP)Programs/scrtest.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/scrtest.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/scrtest.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/scrtest.$O: $(SRC_TOP)Headers/gio_types.h
@@ -5471,6 +5800,8 @@ $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/serial.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/serial.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/strfmt.h
+$(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/device.h
@@ -5483,11 +5814,11 @@ $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Programs/serial_msdos.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Programs/serial_termios.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Programs/serial_windows.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/async_io.h
-$(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/io_serial.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/serial.$O: $(SRC_TOP)Programs/serial_internal.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -5503,7 +5834,8 @@ $(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Programs/serial_grub.h
 $(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Programs/serial_uart.h
 $(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Headers/async_io.h
-$(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Headers/io_serial.h
 $(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/serial_grub.$O: $(SRC_TOP)Headers/thread.h
@@ -5526,7 +5858,8 @@ $(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Headers/ports.h
 $(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Programs/serial_msdos.h
 $(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Programs/serial_uart.h
 $(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Headers/async_io.h
-$(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Headers/io_serial.h
 $(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/serial_msdos.$O: $(SRC_TOP)Headers/thread.h
@@ -5542,11 +5875,11 @@ $(BLD_TOP)Programs/serial_none.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Programs/serial_none.h
 $(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/async_io.h
-$(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/io_serial.h
 $(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/serial_none.$O: $(SRC_TOP)Programs/serial_internal.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -5562,11 +5895,11 @@ $(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/io_misc.h
 $(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Programs/serial_termios.h
 $(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/async_io.h
-$(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/io_serial.h
 $(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/serial_termios.$O: $(SRC_TOP)Programs/serial_internal.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -5581,11 +5914,11 @@ $(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/ascii.h
 $(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Programs/serial_windows.h
 $(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/async_io.h
-$(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/io_serial.h
 $(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/serial_types.h
 $(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/serial_windows.$O: $(SRC_TOP)Programs/serial_internal.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -5626,7 +5959,6 @@ $(BLD_TOP)Programs/ses.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/ses.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/ses.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/ses.$O: $(SRC_TOP)Programs/ses.h
-$(BLD_TOP)Programs/ses.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/ses.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/ses.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/ses.$O: $(SRC_TOP)Headers/ctb_types.h
@@ -5655,8 +5987,7 @@ $(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/prefs.h
-$(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/spk.$O: $(SRC_TOP)Headers/spk_types.h
@@ -5685,9 +6016,9 @@ $(BLD_TOP)Programs/spk_driver.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/spk_driver.$O: $(SRC_TOP)Headers/drivers.h
 $(BLD_TOP)Programs/spk_driver.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/spk_driver.$O: $(SRC_TOP)Headers/spk_types.h
-$(BLD_TOP)Programs/spk_driver.$O: $(BLD_TOP)Programs/spk.auto.h
 $(BLD_TOP)Programs/spk_driver.$O: $(SRC_TOP)Headers/spk_base.h
 $(BLD_TOP)Programs/spk_driver.$O: $(SRC_TOP)Headers/spk_driver.h
+$(BLD_TOP)Programs/spk_driver.$O: $(BLD_TOP)Programs/spk.auto.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/spk_input.$O:
@@ -5701,7 +6032,6 @@ $(BLD_TOP)Programs/spk_input.$O: $(SRC_TOP)Headers/driver.h
 $(BLD_TOP)Programs/spk_input.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/spk_input.$O: $(SRC_TOP)Headers/spk_types.h
 $(BLD_TOP)Programs/spk_input.$O: $(SRC_TOP)Programs/pipe.h
-$(BLD_TOP)Programs/spk_input.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/spk_input.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/spk_input.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/spk_input.$O: $(SRC_TOP)Headers/cmd.h
@@ -5743,9 +6073,9 @@ $(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/spk.h
 $(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/async_event.h
-$(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/spk_thread.$O: $(SRC_TOP)Headers/queue.h
 	cd $(@D) && $(MAKE) $(@F)
@@ -5780,7 +6110,6 @@ $(BLD_TOP)Programs/status.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/status.$O: $(SRC_TOP)Headers/status_types.h
 $(BLD_TOP)Programs/status.$O: $(SRC_TOP)Programs/status.h
 $(BLD_TOP)Programs/status.$O: $(SRC_TOP)Headers/timing.h
-$(BLD_TOP)Programs/status.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/status.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/status.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/status.$O: $(SRC_TOP)Headers/driver.h
@@ -5880,13 +6209,14 @@ $(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/system_java.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/system_java.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/system.h
 $(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/common_java.h
 $(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/system_java.h
+$(BLD_TOP)Programs/system_java.$O: $(SRC_TOP)Headers/messages.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/system_linux.$O:
@@ -5895,6 +6225,7 @@ $(BLD_TOP)Programs/system_linux.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/system_linux.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/system_linux.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/system_linux.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/system_linux.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Programs/system_linux.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/system_linux.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/system_linux.$O: $(SRC_TOP)Headers/device.h
@@ -5932,9 +6263,10 @@ $(BLD_TOP)Programs/system_windows.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/system_windows.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/system_windows.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/system_windows.$O: $(SRC_TOP)Headers/log.h
-$(BLD_TOP)Programs/system_windows.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/system_windows.$O: $(SRC_TOP)Headers/system.h
 $(BLD_TOP)Programs/system_windows.$O: $(SRC_TOP)Headers/system_windows.h
+$(BLD_TOP)Programs/system_windows.$O: $(SRC_TOP)Headers/timing.h
+$(BLD_TOP)Programs/system_windows.$O: $(SRC_TOP)Headers/messages.h
 $(BLD_TOP)Programs/system_windows.$O: $(SRC_TOP)Headers/win_errno.h
 	cd $(@D) && $(MAKE) $(@F)
 
@@ -5972,9 +6304,9 @@ $(BLD_TOP)Programs/thread.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/strfmth.h
-$(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/thread.$O: $(SRC_TOP)Headers/async_signal.h
@@ -6007,6 +6339,7 @@ $(BLD_TOP)Programs/ttb_compile.$O: $(SRC_TOP)Headers/variables.h
 $(BLD_TOP)Programs/ttb_compile.$O: $(SRC_TOP)Headers/dataarea.h
 $(BLD_TOP)Programs/ttb_compile.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/ttb_compile.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/ttb_compile.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/ttb_compile.$O: $(SRC_TOP)Headers/ttb.h
 $(BLD_TOP)Programs/ttb_compile.$O: $(SRC_TOP)Headers/bitmask.h
 $(BLD_TOP)Programs/ttb_compile.$O: $(SRC_TOP)Headers/unicode.h
@@ -6067,10 +6400,11 @@ $(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/ttb_translate.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/ttb_translate.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/lock.h
 $(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/get_sockets.h
 $(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/ttb.h
 $(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/bitmask.h
 $(BLD_TOP)Programs/ttb_translate.$O: $(SRC_TOP)Headers/dataarea.h
@@ -6087,13 +6421,14 @@ $(BLD_TOP)Programs/tune.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/tune.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Programs/parameters.h
-$(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/get_pthreads.h
+$(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/get_thread.h
+$(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/gettime.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/thread.h
-$(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/win_pthread.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/async_event.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/async_alarm.h
+$(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/async_wait.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/pid.h
 $(BLD_TOP)Programs/tune.$O: $(SRC_TOP)Headers/program.h
@@ -6114,8 +6449,7 @@ $(BLD_TOP)Programs/tune_build.$O: $(SRC_TOP)Headers/tune.h
 $(BLD_TOP)Programs/tune_build.$O: $(SRC_TOP)Headers/tune_build.h
 $(BLD_TOP)Programs/tune_build.$O: $(SRC_TOP)Headers/tune_types.h
 $(BLD_TOP)Programs/tune_build.$O: $(SRC_TOP)Headers/notes.h
-$(BLD_TOP)Programs/tune_build.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/tune_build.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/tune_build.$O: $(SRC_TOP)Headers/utf8.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/tune_utils.$O:
@@ -6151,10 +6485,12 @@ $(BLD_TOP)Programs/update.$O: $(BLD_TOP)forbuild.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Programs/parameters.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/log.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/alert.h
-$(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/report.h
+$(BLD_TOP)Programs/update.$O: $(BLD_TOP)Programs/brlapi_constants.h
+$(BLD_TOP)Programs/update.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/update.$O: $(SRC_TOP)Programs/brlapi_param.h
+$(BLD_TOP)Programs/update.$O: $(SRC_TOP)Programs/report.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/strfmth.h
-$(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/api_types.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/async.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/brl_types.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/driver.h
@@ -6169,6 +6505,7 @@ $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/unicode.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/charset.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/ttb.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/atb.h
 $(BLD_TOP)Programs/update.$O: $(SRC_TOP)Headers/brl_dots.h
@@ -6213,8 +6550,7 @@ $(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/bitmask.h
 $(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/parse.h
 $(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/file.h
 $(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/get_sockets.h
-$(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/utf8.h
 $(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/device.h
 $(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/timing.h
 $(BLD_TOP)Programs/usb.$O: $(SRC_TOP)Headers/async.h
@@ -6580,6 +6916,16 @@ $(BLD_TOP)Programs/usb_solaris.$O: $(SRC_TOP)Headers/queue.h
 $(BLD_TOP)Programs/usb_solaris.$O: $(SRC_TOP)Programs/usb_internal.h
 	cd $(@D) && $(MAKE) $(@F)
 
+# Dependencies for Programs/utf8.$O:
+$(BLD_TOP)Programs/utf8.$O: $(SRC_TOP)Programs/utf8.c
+$(BLD_TOP)Programs/utf8.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/utf8.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/utf8.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/utf8.$O: $(SRC_TOP)Headers/log.h
+$(BLD_TOP)Programs/utf8.$O: $(SRC_TOP)Headers/utf8.h
+$(BLD_TOP)Programs/utf8.$O: $(SRC_TOP)Headers/unicode.h
+	cd $(@D) && $(MAKE) $(@F)
+
 # Dependencies for Programs/variables.$O:
 $(BLD_TOP)Programs/variables.$O: $(SRC_TOP)Programs/variables.c
 $(BLD_TOP)Programs/variables.$O: $(SRC_TOP)Headers/prologue.h
@@ -6590,8 +6936,7 @@ $(BLD_TOP)Programs/variables.$O: $(SRC_TOP)Headers/strfmt.h
 $(BLD_TOP)Programs/variables.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/variables.$O: $(SRC_TOP)Headers/variables.h
 $(BLD_TOP)Programs/variables.$O: $(SRC_TOP)Headers/queue.h
-$(BLD_TOP)Programs/variables.$O: $(SRC_TOP)Headers/charset.h
-$(BLD_TOP)Programs/variables.$O: $(SRC_TOP)Headers/lock.h
+$(BLD_TOP)Programs/variables.$O: $(SRC_TOP)Headers/utf8.h
 	cd $(@D) && $(MAKE) $(@F)
 
 # Dependencies for Programs/xbrlapi.$O:
@@ -6599,9 +6944,11 @@ $(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Programs/xbrlapi.c
 $(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Headers/prologue.h
 $(BLD_TOP)Programs/xbrlapi.$O: $(BLD_TOP)config.h
 $(BLD_TOP)Programs/xbrlapi.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Headers/xsel.h
 $(BLD_TOP)Programs/xbrlapi.$O: $(BLD_TOP)Programs/brlapi.h
 $(BLD_TOP)Programs/xbrlapi.$O: $(BLD_TOP)Programs/brlapi_constants.h
 $(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+$(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Programs/brlapi_param.h
 $(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Headers/datafile.h
 $(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Headers/options.h
 $(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Headers/pid.h
@@ -6610,7 +6957,17 @@ $(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Headers/strfmth.h
 $(BLD_TOP)Programs/xbrlapi.$O: $(SRC_TOP)Headers/variables.h
 	cd $(@D) && $(MAKE) $(@F)
 
+# Dependencies for Programs/xsel.$O:
+$(BLD_TOP)Programs/xsel.$O: $(SRC_TOP)Programs/xsel.c
+$(BLD_TOP)Programs/xsel.$O: $(SRC_TOP)Headers/prologue.h
+$(BLD_TOP)Programs/xsel.$O: $(BLD_TOP)config.h
+$(BLD_TOP)Programs/xsel.$O: $(BLD_TOP)forbuild.h
+$(BLD_TOP)Programs/xsel.$O: $(SRC_TOP)Headers/xsel.h
+	cd $(@D) && $(MAKE) $(@F)
+
 # Generated dependencies:
+$(BLD_TOP)Bindings/Tcl/parameters.auto.h:
+	cd $(@D) && $(MAKE) $(@F)
 $(BLD_TOP)Programs/attr.auto.h:
 	cd $(@D) && $(MAKE) $(@F)
 $(BLD_TOP)Programs/brl.auto.h:

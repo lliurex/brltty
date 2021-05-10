@@ -44,9 +44,11 @@ api_control.$O: $(SRC_TOP)Headers/prologue.h
 api_control.$O: $(BLD_TOP)config.h
 api_control.$O: $(BLD_TOP)forbuild.h
 api_control.$O: $(SRC_TOP)Headers/log.h
-api_control.$O: $(SRC_TOP)Headers/api_types.h
 api_control.$O: $(SRC_TOP)Headers/ktb_types.h
 api_control.$O: $(SRC_DIR)/api_control.h
+api_control.$O: brlapi_constants.h
+api_control.$O: $(SRC_DIR)/brlapi_keycodes.h
+api_control.$O: $(SRC_DIR)/brlapi_param.h
 api_control.$O: $(SRC_TOP)Headers/async.h
 api_control.$O: $(SRC_TOP)Headers/brl_types.h
 api_control.$O: $(SRC_TOP)Headers/driver.h
@@ -55,7 +57,7 @@ api_control.$O: $(SRC_TOP)Headers/queue.h
 api_control.$O: $(SRC_TOP)Headers/serial_types.h
 api_control.$O: $(SRC_TOP)Headers/usb_types.h
 api_control.$O: $(SRC_DIR)/api_server.h
-api_control.$O: $(SRC_DIR)/brl.h
+api_control.$O: $(SRC_DIR)/report.h
 api_control.$O: $(SRC_TOP)Headers/cmd.h
 api_control.$O: $(SRC_TOP)Headers/cmd_types.h
 api_control.$O: $(SRC_TOP)Headers/ctb.h
@@ -69,6 +71,7 @@ api_control.$O: $(SRC_TOP)Headers/spk.h
 api_control.$O: $(SRC_TOP)Headers/spk_types.h
 api_control.$O: $(SRC_TOP)Headers/strfmth.h
 api_control.$O: $(SRC_TOP)Headers/timing.h
+api_control.$O: $(SRC_DIR)/brl.h
 api_control.$O: $(SRC_DIR)/core.h
 api_control.$O: $(SRC_DIR)/profile_types.h
 api_control.$O: $(SRC_DIR)/ses.h
@@ -78,7 +81,7 @@ apitest.$O: $(SRC_DIR)/apitest.c
 apitest.$O: $(SRC_TOP)Headers/prologue.h
 apitest.$O: $(BLD_TOP)config.h
 apitest.$O: $(BLD_TOP)forbuild.h
-apitest.$O: $(SRC_TOP)Headers/timing.h
+apitest.$O: $(SRC_TOP)Headers/gettime.h
 apitest.$O: $(SRC_TOP)Headers/win_pthread.h
 apitest.$O: $(SRC_TOP)Headers/datafile.h
 apitest.$O: $(SRC_TOP)Headers/options.h
@@ -96,6 +99,7 @@ apitest.$O: $(SRC_DIR)/cmd_brlapi.h
 apitest.$O: $(SRC_TOP)Headers/async.h
 apitest.$O: $(SRC_TOP)Headers/async_wait.h
 apitest.$O: brlapi.h
+apitest.$O: $(SRC_DIR)/brlapi_param.h
 
 # Dependencies for async_alarm.$O:
 async_alarm.$O: $(SRC_DIR)/async_alarm.c
@@ -115,9 +119,9 @@ async_data.$O: $(SRC_TOP)Headers/prologue.h
 async_data.$O: $(BLD_TOP)config.h
 async_data.$O: $(BLD_TOP)forbuild.h
 async_data.$O: $(SRC_TOP)Headers/log.h
-async_data.$O: $(SRC_TOP)Headers/get_pthreads.h
+async_data.$O: $(SRC_TOP)Headers/get_thread.h
+async_data.$O: $(SRC_TOP)Headers/gettime.h
 async_data.$O: $(SRC_TOP)Headers/thread.h
-async_data.$O: $(SRC_TOP)Headers/timing.h
 async_data.$O: $(SRC_TOP)Headers/win_pthread.h
 async_data.$O: $(SRC_TOP)Headers/async.h
 async_data.$O: $(SRC_TOP)Headers/queue.h
@@ -172,8 +176,8 @@ async_signal.$O: $(SRC_TOP)Headers/async_event.h
 async_signal.$O: $(SRC_TOP)Headers/async_signal.h
 async_signal.$O: $(SRC_TOP)Headers/queue.h
 async_signal.$O: $(SRC_DIR)/async_internal.h
-async_signal.$O: $(SRC_TOP)Headers/get_pthreads.h
-async_signal.$O: $(SRC_TOP)Headers/timing.h
+async_signal.$O: $(SRC_TOP)Headers/get_thread.h
+async_signal.$O: $(SRC_TOP)Headers/gettime.h
 async_signal.$O: $(SRC_TOP)Headers/win_pthread.h
 async_signal.$O: $(SRC_TOP)Headers/async_io.h
 
@@ -220,6 +224,7 @@ atb_translate.$O: $(SRC_TOP)Headers/prologue.h
 atb_translate.$O: $(BLD_TOP)config.h
 atb_translate.$O: $(BLD_TOP)forbuild.h
 atb_translate.$O: $(SRC_TOP)Headers/log.h
+atb_translate.$O: $(SRC_TOP)Headers/lock.h
 atb_translate.$O: $(SRC_TOP)Headers/file.h
 atb_translate.$O: $(SRC_TOP)Headers/get_sockets.h
 atb_translate.$O: $(SRC_TOP)Headers/atb.h
@@ -338,7 +343,6 @@ blink.$O: $(SRC_TOP)Headers/prefs.h
 blink.$O: $(SRC_TOP)Headers/async.h
 blink.$O: $(SRC_TOP)Headers/async_alarm.h
 blink.$O: $(SRC_TOP)Headers/timing.h
-blink.$O: $(SRC_TOP)Headers/api_types.h
 blink.$O: $(SRC_TOP)Headers/brl_types.h
 blink.$O: $(SRC_TOP)Headers/driver.h
 blink.$O: $(SRC_TOP)Headers/gio_types.h
@@ -369,6 +373,8 @@ bluetooth.$O: $(SRC_TOP)Headers/prologue.h
 bluetooth.$O: $(BLD_TOP)config.h
 bluetooth.$O: $(BLD_TOP)forbuild.h
 bluetooth.$O: $(SRC_TOP)Headers/log.h
+bluetooth.$O: $(SRC_TOP)Headers/strfmt.h
+bluetooth.$O: $(SRC_TOP)Headers/strfmth.h
 bluetooth.$O: $(SRC_DIR)/parameters.h
 bluetooth.$O: $(SRC_TOP)Headers/timing.h
 bluetooth.$O: $(SRC_TOP)Headers/async.h
@@ -388,13 +394,14 @@ bluetooth_android.$O: $(BLD_TOP)forbuild.h
 bluetooth_android.$O: $(SRC_TOP)Headers/async.h
 bluetooth_android.$O: $(SRC_TOP)Headers/async_io.h
 bluetooth_android.$O: $(SRC_TOP)Headers/io_bluetooth.h
+bluetooth_android.$O: $(SRC_TOP)Headers/strfmth.h
 bluetooth_android.$O: $(SRC_DIR)/bluetooth_internal.h
 bluetooth_android.$O: $(SRC_TOP)Headers/log.h
 bluetooth_android.$O: $(SRC_TOP)Headers/get_sockets.h
 bluetooth_android.$O: $(SRC_TOP)Headers/io_misc.h
-bluetooth_android.$O: $(SRC_TOP)Headers/get_pthreads.h
+bluetooth_android.$O: $(SRC_TOP)Headers/get_thread.h
+bluetooth_android.$O: $(SRC_TOP)Headers/gettime.h
 bluetooth_android.$O: $(SRC_TOP)Headers/thread.h
-bluetooth_android.$O: $(SRC_TOP)Headers/timing.h
 bluetooth_android.$O: $(SRC_TOP)Headers/win_pthread.h
 bluetooth_android.$O: $(SRC_TOP)Headers/common_java.h
 bluetooth_android.$O: $(SRC_TOP)Headers/system_java.h
@@ -410,6 +417,7 @@ bluetooth_darwin.$O: $(SRC_TOP)Headers/io_misc.h
 bluetooth_darwin.$O: $(SRC_TOP)Headers/async.h
 bluetooth_darwin.$O: $(SRC_TOP)Headers/async_io.h
 bluetooth_darwin.$O: $(SRC_TOP)Headers/io_bluetooth.h
+bluetooth_darwin.$O: $(SRC_TOP)Headers/strfmth.h
 bluetooth_darwin.$O: $(SRC_DIR)/bluetooth_internal.h
 bluetooth_darwin.$O: $(SRC_TOP)Headers/system_darwin.h
 
@@ -423,6 +431,7 @@ bluetooth_linux.$O: $(SRC_DIR)/parameters.h
 bluetooth_linux.$O: $(SRC_TOP)Headers/async.h
 bluetooth_linux.$O: $(SRC_TOP)Headers/async_io.h
 bluetooth_linux.$O: $(SRC_TOP)Headers/io_bluetooth.h
+bluetooth_linux.$O: $(SRC_TOP)Headers/strfmth.h
 bluetooth_linux.$O: $(SRC_DIR)/bluetooth_internal.h
 bluetooth_linux.$O: $(SRC_TOP)Headers/get_sockets.h
 bluetooth_linux.$O: $(SRC_TOP)Headers/io_misc.h
@@ -443,6 +452,7 @@ bluetooth_none.$O: $(BLD_TOP)forbuild.h
 bluetooth_none.$O: $(SRC_TOP)Headers/async.h
 bluetooth_none.$O: $(SRC_TOP)Headers/async_io.h
 bluetooth_none.$O: $(SRC_TOP)Headers/io_bluetooth.h
+bluetooth_none.$O: $(SRC_TOP)Headers/strfmth.h
 bluetooth_none.$O: $(SRC_DIR)/bluetooth_internal.h
 bluetooth_none.$O: $(SRC_TOP)Headers/log.h
 
@@ -457,6 +467,7 @@ bluetooth_windows.$O: $(SRC_TOP)Headers/bitfield.h
 bluetooth_windows.$O: $(SRC_TOP)Headers/async.h
 bluetooth_windows.$O: $(SRC_TOP)Headers/async_io.h
 bluetooth_windows.$O: $(SRC_TOP)Headers/io_bluetooth.h
+bluetooth_windows.$O: $(SRC_TOP)Headers/strfmth.h
 bluetooth_windows.$O: $(SRC_DIR)/bluetooth_internal.h
 
 # Dependencies for brl.$O:
@@ -468,8 +479,8 @@ brl.$O: $(SRC_TOP)Headers/log.h
 brl.$O: $(SRC_DIR)/parameters.h
 brl.$O: $(SRC_TOP)Headers/charset.h
 brl.$O: $(SRC_TOP)Headers/lock.h
+brl.$O: $(SRC_TOP)Headers/utf8.h
 brl.$O: $(SRC_TOP)Headers/unicode.h
-brl.$O: $(SRC_TOP)Headers/api_types.h
 brl.$O: $(SRC_TOP)Headers/async.h
 brl.$O: $(SRC_TOP)Headers/brl_types.h
 brl.$O: $(SRC_TOP)Headers/driver.h
@@ -488,25 +499,28 @@ brl_base.$O: $(SRC_TOP)Headers/prologue.h
 brl_base.$O: $(BLD_TOP)config.h
 brl_base.$O: $(BLD_TOP)forbuild.h
 brl_base.$O: $(SRC_TOP)Headers/log.h
-brl_base.$O: $(SRC_TOP)Headers/report.h
+brl_base.$O: brlapi_constants.h
+brl_base.$O: $(SRC_DIR)/brlapi_keycodes.h
+brl_base.$O: $(SRC_DIR)/brlapi_param.h
+brl_base.$O: $(SRC_DIR)/report.h
+brl_base.$O: $(SRC_TOP)Headers/ktb_types.h
+brl_base.$O: $(SRC_DIR)/api_control.h
 brl_base.$O: $(SRC_TOP)Headers/queue.h
 brl_base.$O: $(SRC_TOP)Headers/async.h
 brl_base.$O: $(SRC_TOP)Headers/async_alarm.h
 brl_base.$O: $(SRC_TOP)Headers/timing.h
-brl_base.$O: $(SRC_TOP)Headers/api_types.h
 brl_base.$O: $(SRC_TOP)Headers/brl_base.h
 brl_base.$O: $(SRC_TOP)Headers/brl_types.h
 brl_base.$O: $(SRC_TOP)Headers/driver.h
 brl_base.$O: $(SRC_TOP)Headers/gio_types.h
-brl_base.$O: $(SRC_TOP)Headers/ktb_types.h
 brl_base.$O: $(SRC_TOP)Headers/serial_types.h
 brl_base.$O: $(SRC_TOP)Headers/usb_types.h
 brl_base.$O: $(SRC_TOP)Headers/brl_utils.h
 brl_base.$O: $(SRC_TOP)Headers/brl_dots.h
-brl_base.$O: $(SRC_TOP)Headers/prefs.h
 brl_base.$O: $(SRC_TOP)Headers/kbd_keycodes.h
 brl_base.$O: $(SRC_TOP)Headers/async_io.h
 brl_base.$O: $(SRC_TOP)Headers/io_generic.h
+brl_base.$O: $(SRC_TOP)Headers/cmd_types.h
 brl_base.$O: $(SRC_DIR)/cmd_queue.h
 brl_base.$O: $(SRC_TOP)Headers/ktb.h
 
@@ -518,7 +532,6 @@ brl_driver.$O: $(BLD_TOP)forbuild.h
 brl_driver.$O: $(SRC_TOP)Headers/log.h
 brl_driver.$O: $(SRC_TOP)Headers/driver.h
 brl_driver.$O: $(SRC_TOP)Headers/drivers.h
-brl_driver.$O: $(SRC_TOP)Headers/api_types.h
 brl_driver.$O: $(SRC_TOP)Headers/async.h
 brl_driver.$O: $(SRC_TOP)Headers/brl_types.h
 brl_driver.$O: $(SRC_TOP)Headers/gio_types.h
@@ -527,7 +540,6 @@ brl_driver.$O: $(SRC_TOP)Headers/queue.h
 brl_driver.$O: $(SRC_TOP)Headers/serial_types.h
 brl_driver.$O: $(SRC_TOP)Headers/usb_types.h
 brl_driver.$O: $(SRC_DIR)/brl.h
-brl_driver.$O: brl.auto.h
 brl_driver.$O: $(SRC_TOP)Headers/async_io.h
 brl_driver.$O: $(SRC_TOP)Headers/brl_base.h
 brl_driver.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -537,6 +549,7 @@ brl_driver.$O: $(SRC_TOP)Headers/brl_utils.h
 brl_driver.$O: $(SRC_TOP)Headers/cmd_enqueue.h
 brl_driver.$O: $(SRC_TOP)Headers/io_generic.h
 brl_driver.$O: $(SRC_TOP)Headers/status_types.h
+brl_driver.$O: brl.auto.h
 
 # Dependencies for brl_input.$O:
 brl_input.$O: $(SRC_DIR)/brl_input.c
@@ -548,25 +561,28 @@ brl_input.$O: $(SRC_TOP)Headers/embed.h
 brl_input.$O: $(SRC_TOP)Headers/pid.h
 brl_input.$O: $(SRC_TOP)Headers/program.h
 brl_input.$O: $(SRC_DIR)/parameters.h
+brl_input.$O: $(SRC_TOP)Headers/ktb_types.h
+brl_input.$O: $(SRC_DIR)/api_control.h
+brl_input.$O: brlapi_constants.h
+brl_input.$O: $(SRC_DIR)/brlapi_keycodes.h
+brl_input.$O: $(SRC_DIR)/brlapi_param.h
 brl_input.$O: $(SRC_DIR)/brl_input.h
-brl_input.$O: $(SRC_TOP)Headers/api_types.h
 brl_input.$O: $(SRC_TOP)Headers/async.h
 brl_input.$O: $(SRC_TOP)Headers/brl_types.h
 brl_input.$O: $(SRC_TOP)Headers/brl_utils.h
 brl_input.$O: $(SRC_TOP)Headers/driver.h
 brl_input.$O: $(SRC_TOP)Headers/gio_types.h
-brl_input.$O: $(SRC_TOP)Headers/ktb_types.h
 brl_input.$O: $(SRC_TOP)Headers/queue.h
 brl_input.$O: $(SRC_TOP)Headers/serial_types.h
 brl_input.$O: $(SRC_TOP)Headers/usb_types.h
 brl_input.$O: $(SRC_TOP)Headers/brl_cmds.h
 brl_input.$O: $(SRC_TOP)Headers/brl_dots.h
+brl_input.$O: $(SRC_TOP)Headers/cmd_types.h
 brl_input.$O: $(SRC_DIR)/cmd_queue.h
 brl_input.$O: $(SRC_TOP)Headers/cmd_enqueue.h
 brl_input.$O: $(SRC_TOP)Headers/async_io.h
 brl_input.$O: $(SRC_TOP)Headers/io_generic.h
 brl_input.$O: $(SRC_TOP)Headers/cmd.h
-brl_input.$O: $(SRC_TOP)Headers/cmd_types.h
 brl_input.$O: $(SRC_TOP)Headers/ctb.h
 brl_input.$O: $(SRC_TOP)Headers/ctb_types.h
 brl_input.$O: $(SRC_TOP)Headers/ktb.h
@@ -587,14 +603,17 @@ brl_utils.$O: $(SRC_TOP)Headers/prologue.h
 brl_utils.$O: $(BLD_TOP)config.h
 brl_utils.$O: $(BLD_TOP)forbuild.h
 brl_utils.$O: $(SRC_TOP)Headers/log.h
-brl_utils.$O: $(SRC_TOP)Headers/report.h
-brl_utils.$O: $(SRC_TOP)Headers/api_types.h
+brl_utils.$O: brlapi_constants.h
+brl_utils.$O: $(SRC_DIR)/brlapi_keycodes.h
+brl_utils.$O: $(SRC_DIR)/brlapi_param.h
+brl_utils.$O: $(SRC_DIR)/report.h
+brl_utils.$O: $(SRC_TOP)Headers/ktb_types.h
+brl_utils.$O: $(SRC_DIR)/api_control.h
 brl_utils.$O: $(SRC_TOP)Headers/async.h
 brl_utils.$O: $(SRC_TOP)Headers/brl_types.h
 brl_utils.$O: $(SRC_TOP)Headers/brl_utils.h
 brl_utils.$O: $(SRC_TOP)Headers/driver.h
 brl_utils.$O: $(SRC_TOP)Headers/gio_types.h
-brl_utils.$O: $(SRC_TOP)Headers/ktb_types.h
 brl_utils.$O: $(SRC_TOP)Headers/queue.h
 brl_utils.$O: $(SRC_TOP)Headers/serial_types.h
 brl_utils.$O: $(SRC_TOP)Headers/usb_types.h
@@ -607,12 +626,13 @@ brlapi_client.$O: $(SRC_DIR)/brlapi_client.c
 brlapi_client.$O: $(SRC_TOP)Headers/prologue.h
 brlapi_client.$O: $(BLD_TOP)config.h
 brlapi_client.$O: $(BLD_TOP)forbuild.h
-brlapi_client.$O: $(SRC_TOP)Headers/timing.h
+brlapi_client.$O: $(SRC_TOP)Headers/gettime.h
 brlapi_client.$O: $(SRC_TOP)Headers/win_pthread.h
 brlapi_client.$O: $(SRC_TOP)Headers/win_errno.h
 brlapi_client.$O: brlapi.h
 brlapi_client.$O: brlapi_constants.h
 brlapi_client.$O: $(SRC_DIR)/brlapi_keycodes.h
+brlapi_client.$O: $(SRC_DIR)/brlapi_param.h
 brlapi_client.$O: $(SRC_DIR)/brlapi_protocol.h
 brlapi_client.$O: $(SRC_DIR)/brlapi_common.h
 brlapi_client.$O: brlapi_keytab.auto.h
@@ -631,17 +651,17 @@ brlapi_server.$O: $(SRC_TOP)Headers/prologue.h
 brlapi_server.$O: $(BLD_TOP)config.h
 brlapi_server.$O: $(BLD_TOP)forbuild.h
 brlapi_server.$O: $(SRC_TOP)Headers/system_windows.h
-brlapi_server.$O: $(SRC_TOP)Headers/timing.h
+brlapi_server.$O: $(SRC_TOP)Headers/gettime.h
 brlapi_server.$O: $(SRC_TOP)Headers/win_pthread.h
 brlapi_server.$O: brlapi.h
 brlapi_server.$O: brlapi_constants.h
 brlapi_server.$O: $(SRC_DIR)/brlapi_keycodes.h
+brlapi_server.$O: $(SRC_DIR)/brlapi_param.h
 brlapi_server.$O: $(SRC_DIR)/brlapi_protocol.h
 brlapi_server.$O: $(SRC_DIR)/brlapi_keyranges.h
 brlapi_server.$O: $(SRC_DIR)/cmd_brlapi.h
 brlapi_server.$O: $(SRC_TOP)Headers/brl_cmds.h
 brlapi_server.$O: $(SRC_TOP)Headers/brl_dots.h
-brlapi_server.$O: $(SRC_TOP)Headers/api_types.h
 brlapi_server.$O: $(SRC_TOP)Headers/async.h
 brlapi_server.$O: $(SRC_TOP)Headers/brl_types.h
 brlapi_server.$O: $(SRC_TOP)Headers/brl_utils.h
@@ -654,6 +674,7 @@ brlapi_server.$O: $(SRC_TOP)Headers/usb_types.h
 brlapi_server.$O: $(SRC_TOP)Headers/embed.h
 brlapi_server.$O: $(SRC_TOP)Headers/pid.h
 brlapi_server.$O: $(SRC_TOP)Headers/program.h
+brlapi_server.$O: $(SRC_TOP)Headers/clipboard.h
 brlapi_server.$O: $(SRC_TOP)Headers/ttb.h
 brlapi_server.$O: $(SRC_TOP)Headers/cmd.h
 brlapi_server.$O: $(SRC_TOP)Headers/cmd_types.h
@@ -665,25 +686,28 @@ brlapi_server.$O: $(SRC_TOP)Headers/scr_types.h
 brlapi_server.$O: $(SRC_TOP)Headers/spk.h
 brlapi_server.$O: $(SRC_TOP)Headers/spk_types.h
 brlapi_server.$O: $(SRC_TOP)Headers/strfmth.h
+brlapi_server.$O: $(SRC_TOP)Headers/timing.h
 brlapi_server.$O: $(SRC_DIR)/brl.h
 brlapi_server.$O: $(SRC_DIR)/core.h
 brlapi_server.$O: $(SRC_DIR)/profile_types.h
 brlapi_server.$O: $(SRC_DIR)/ses.h
 brlapi_server.$O: $(SRC_DIR)/api_server.h
-brlapi_server.$O: $(SRC_TOP)Headers/report.h
+brlapi_server.$O: $(SRC_DIR)/report.h
 brlapi_server.$O: $(SRC_TOP)Headers/log.h
 brlapi_server.$O: $(SRC_TOP)Headers/addresses.h
 brlapi_server.$O: $(SRC_TOP)Headers/file.h
 brlapi_server.$O: $(SRC_TOP)Headers/get_sockets.h
 brlapi_server.$O: $(SRC_TOP)Headers/parse.h
 brlapi_server.$O: $(SRC_TOP)Headers/auth.h
+brlapi_server.$O: $(SRC_TOP)Headers/async_io.h
+brlapi_server.$O: $(SRC_TOP)Headers/io_generic.h
 brlapi_server.$O: $(SRC_TOP)Headers/io_misc.h
 brlapi_server.$O: $(SRC_DIR)/scr.h
 brlapi_server.$O: $(SRC_TOP)Headers/charset.h
 brlapi_server.$O: $(SRC_TOP)Headers/lock.h
-brlapi_server.$O: $(SRC_TOP)Headers/async_event.h
+brlapi_server.$O: $(SRC_TOP)Headers/utf8.h
 brlapi_server.$O: $(SRC_TOP)Headers/async_signal.h
-brlapi_server.$O: $(SRC_TOP)Headers/get_pthreads.h
+brlapi_server.$O: $(SRC_TOP)Headers/get_thread.h
 brlapi_server.$O: $(SRC_TOP)Headers/thread.h
 brlapi_server.$O: $(SRC_DIR)/blink.h
 brlapi_server.$O: $(SRC_DIR)/brlapi_common.h
@@ -704,9 +728,9 @@ brltest.$O: $(SRC_TOP)Headers/log.h
 brltest.$O: $(SRC_TOP)Headers/parse.h
 brltest.$O: $(SRC_TOP)Headers/file.h
 brltest.$O: $(SRC_TOP)Headers/get_sockets.h
+brltest.$O: $(SRC_TOP)Headers/cmd_types.h
 brltest.$O: $(SRC_TOP)Headers/ktb_types.h
 brltest.$O: $(SRC_DIR)/cmd_queue.h
-brltest.$O: $(SRC_TOP)Headers/api_types.h
 brltest.$O: $(SRC_TOP)Headers/async.h
 brltest.$O: $(SRC_TOP)Headers/brl_types.h
 brltest.$O: $(SRC_TOP)Headers/driver.h
@@ -720,13 +744,16 @@ brltest.$O: $(SRC_TOP)Headers/brl_utils.h
 brltest.$O: $(SRC_TOP)Headers/ttb.h
 brltest.$O: $(SRC_TOP)Headers/ktb.h
 brltest.$O: $(SRC_TOP)Headers/message.h
-brltest.$O: $(SRC_TOP)Headers/charset.h
-brltest.$O: $(SRC_TOP)Headers/lock.h
+brltest.$O: $(SRC_TOP)Headers/utf8.h
 brltest.$O: $(SRC_TOP)Headers/async_wait.h
 brltest.$O: $(SRC_DIR)/learn.h
 brltest.$O: $(SRC_TOP)Headers/scr_types.h
 brltest.$O: $(SRC_DIR)/scr.h
 brltest.$O: $(SRC_TOP)Headers/alert.h
+brltest.$O: $(SRC_DIR)/api_control.h
+brltest.$O: brlapi_constants.h
+brltest.$O: $(SRC_DIR)/brlapi_keycodes.h
+brltest.$O: $(SRC_DIR)/brlapi_param.h
 
 # Dependencies for brltty-atb.$O:
 brltty-atb.$O: $(SRC_DIR)/brltty-atb.c
@@ -755,8 +782,25 @@ brltty-cldr.$O: $(SRC_TOP)Headers/strfmth.h
 brltty-cldr.$O: $(SRC_TOP)Headers/variables.h
 brltty-cldr.$O: $(SRC_TOP)Headers/log.h
 brltty-cldr.$O: $(SRC_TOP)Headers/cldr.h
-brltty-cldr.$O: $(SRC_TOP)Headers/charset.h
-brltty-cldr.$O: $(SRC_TOP)Headers/lock.h
+brltty-cldr.$O: $(SRC_TOP)Headers/utf8.h
+
+# Dependencies for brltty-clip.$O:
+brltty-clip.$O: $(SRC_DIR)/brltty-clip.c
+brltty-clip.$O: $(SRC_TOP)Headers/prologue.h
+brltty-clip.$O: $(BLD_TOP)config.h
+brltty-clip.$O: $(BLD_TOP)forbuild.h
+brltty-clip.$O: $(SRC_TOP)Headers/log.h
+brltty-clip.$O: $(SRC_TOP)Headers/datafile.h
+brltty-clip.$O: $(SRC_TOP)Headers/options.h
+brltty-clip.$O: $(SRC_TOP)Headers/pid.h
+brltty-clip.$O: $(SRC_TOP)Headers/program.h
+brltty-clip.$O: $(SRC_TOP)Headers/strfmth.h
+brltty-clip.$O: $(SRC_TOP)Headers/variables.h
+brltty-clip.$O: $(SRC_TOP)Headers/utf8.h
+brltty-clip.$O: brlapi.h
+brltty-clip.$O: brlapi_constants.h
+brltty-clip.$O: $(SRC_DIR)/brlapi_keycodes.h
+brltty-clip.$O: $(SRC_DIR)/brlapi_param.h
 
 # Dependencies for brltty-ctb.$O:
 brltty-ctb.$O: $(SRC_DIR)/brltty-ctb.c
@@ -774,8 +818,7 @@ brltty-ctb.$O: $(SRC_TOP)Headers/log.h
 brltty-ctb.$O: $(SRC_TOP)Headers/file.h
 brltty-ctb.$O: $(SRC_TOP)Headers/get_sockets.h
 brltty-ctb.$O: $(SRC_TOP)Headers/parse.h
-brltty-ctb.$O: $(SRC_TOP)Headers/charset.h
-brltty-ctb.$O: $(SRC_TOP)Headers/lock.h
+brltty-ctb.$O: $(SRC_TOP)Headers/utf8.h
 brltty-ctb.$O: $(SRC_TOP)Headers/unicode.h
 brltty-ctb.$O: $(SRC_TOP)Headers/ascii.h
 brltty-ctb.$O: $(SRC_TOP)Headers/ttb.h
@@ -801,7 +844,6 @@ brltty-ktb.$O: $(SRC_TOP)Headers/dynld.h
 brltty-ktb.$O: $(SRC_TOP)Headers/ktb.h
 brltty-ktb.$O: $(SRC_TOP)Headers/ktb_types.h
 brltty-ktb.$O: $(SRC_DIR)/ktb_keyboard.h
-brltty-ktb.$O: $(SRC_TOP)Headers/api_types.h
 brltty-ktb.$O: $(SRC_TOP)Headers/async.h
 brltty-ktb.$O: $(SRC_TOP)Headers/brl_types.h
 brltty-ktb.$O: $(SRC_TOP)Headers/driver.h
@@ -810,22 +852,14 @@ brltty-ktb.$O: $(SRC_TOP)Headers/queue.h
 brltty-ktb.$O: $(SRC_TOP)Headers/serial_types.h
 brltty-ktb.$O: $(SRC_TOP)Headers/usb_types.h
 brltty-ktb.$O: $(SRC_DIR)/brl.h
-brltty-ktb.$O: $(SRC_TOP)Headers/cmd.h
-brltty-ktb.$O: $(SRC_TOP)Headers/cmd_types.h
-brltty-ktb.$O: $(SRC_TOP)Headers/ctb.h
-brltty-ktb.$O: $(SRC_TOP)Headers/ctb_types.h
-brltty-ktb.$O: $(SRC_TOP)Headers/prefs.h
 brltty-ktb.$O: $(SRC_TOP)Headers/scr_types.h
-brltty-ktb.$O: $(SRC_TOP)Headers/spk.h
-brltty-ktb.$O: $(SRC_TOP)Headers/spk_types.h
-brltty-ktb.$O: $(SRC_TOP)Headers/timing.h
-brltty-ktb.$O: $(SRC_DIR)/core.h
-brltty-ktb.$O: $(SRC_DIR)/profile_types.h
-brltty-ktb.$O: $(SRC_DIR)/ses.h
 brltty-ktb.$O: $(SRC_DIR)/scr.h
-brltty-ktb.$O: $(SRC_TOP)Headers/message.h
-brltty-ktb.$O: $(SRC_DIR)/update.h
 brltty-ktb.$O: $(SRC_TOP)Headers/alert.h
+brltty-ktb.$O: $(SRC_DIR)/api_control.h
+brltty-ktb.$O: brlapi_constants.h
+brltty-ktb.$O: $(SRC_DIR)/brlapi_keycodes.h
+brltty-ktb.$O: $(SRC_DIR)/brlapi_param.h
+brltty-ktb.$O: $(SRC_TOP)Headers/message.h
 
 # Dependencies for brltty-lscmds.$O:
 brltty-lscmds.$O: $(SRC_DIR)/brltty-lscmds.c
@@ -893,8 +927,7 @@ brltty-trtxt.$O: $(SRC_TOP)Headers/log.h
 brltty-trtxt.$O: $(SRC_TOP)Headers/file.h
 brltty-trtxt.$O: $(SRC_TOP)Headers/get_sockets.h
 brltty-trtxt.$O: $(SRC_TOP)Headers/unicode.h
-brltty-trtxt.$O: $(SRC_TOP)Headers/charset.h
-brltty-trtxt.$O: $(SRC_TOP)Headers/lock.h
+brltty-trtxt.$O: $(SRC_TOP)Headers/utf8.h
 brltty-trtxt.$O: $(SRC_TOP)Headers/brl_dots.h
 brltty-trtxt.$O: $(SRC_TOP)Headers/ttb.h
 
@@ -917,6 +950,7 @@ brltty-ttb.$O: $(SRC_TOP)Headers/get_select.h
 brltty-ttb.$O: $(SRC_TOP)Headers/brl_dots.h
 brltty-ttb.$O: $(SRC_TOP)Headers/charset.h
 brltty-ttb.$O: $(SRC_TOP)Headers/lock.h
+brltty-ttb.$O: $(SRC_TOP)Headers/utf8.h
 brltty-ttb.$O: $(SRC_TOP)Headers/ttb.h
 brltty-ttb.$O: $(SRC_TOP)Headers/bitmask.h
 brltty-ttb.$O: $(SRC_TOP)Headers/dataarea.h
@@ -927,6 +961,7 @@ brltty-ttb.$O: $(SRC_TOP)Headers/get_curses.h
 brltty-ttb.$O: brlapi.h
 brltty-ttb.$O: brlapi_constants.h
 brltty-ttb.$O: $(SRC_DIR)/brlapi_keycodes.h
+brltty-ttb.$O: $(SRC_DIR)/brlapi_param.h
 
 # Dependencies for brltty-tune.$O:
 brltty-tune.$O: $(SRC_DIR)/brltty-tune.c
@@ -958,9 +993,11 @@ brltty.$O: $(SRC_TOP)Headers/embed.h
 brltty.$O: $(SRC_TOP)Headers/pid.h
 brltty.$O: $(SRC_TOP)Headers/program.h
 brltty.$O: $(SRC_TOP)Headers/log.h
-brltty.$O: $(SRC_TOP)Headers/api_types.h
 brltty.$O: $(SRC_TOP)Headers/ktb_types.h
 brltty.$O: $(SRC_DIR)/api_control.h
+brltty.$O: brlapi_constants.h
+brltty.$O: $(SRC_DIR)/brlapi_keycodes.h
+brltty.$O: $(SRC_DIR)/brlapi_param.h
 brltty.$O: $(SRC_TOP)Headers/async.h
 brltty.$O: $(SRC_TOP)Headers/brl_types.h
 brltty.$O: $(SRC_TOP)Headers/cmd.h
@@ -1003,8 +1040,8 @@ charset.$O: $(BLD_TOP)forbuild.h
 charset.$O: $(SRC_TOP)Headers/log.h
 charset.$O: $(SRC_TOP)Headers/charset.h
 charset.$O: $(SRC_TOP)Headers/lock.h
+charset.$O: $(SRC_TOP)Headers/utf8.h
 charset.$O: $(SRC_DIR)/charset_internal.h
-charset.$O: $(SRC_TOP)Headers/unicode.h
 charset.$O: $(SRC_TOP)Headers/pid.h
 charset.$O: $(SRC_TOP)Headers/program.h
 charset.$O: $(SRC_TOP)Headers/system_windows.h
@@ -1018,6 +1055,7 @@ charset_grub.$O: $(BLD_TOP)config.h
 charset_grub.$O: $(BLD_TOP)forbuild.h
 charset_grub.$O: $(SRC_TOP)Headers/charset.h
 charset_grub.$O: $(SRC_TOP)Headers/lock.h
+charset_grub.$O: $(SRC_TOP)Headers/utf8.h
 charset_grub.$O: $(SRC_DIR)/charset_internal.h
 
 # Dependencies for charset_iconv.$O:
@@ -1028,6 +1066,7 @@ charset_iconv.$O: $(BLD_TOP)forbuild.h
 charset_iconv.$O: $(SRC_TOP)Headers/log.h
 charset_iconv.$O: $(SRC_TOP)Headers/charset.h
 charset_iconv.$O: $(SRC_TOP)Headers/lock.h
+charset_iconv.$O: $(SRC_TOP)Headers/utf8.h
 charset_iconv.$O: $(SRC_DIR)/charset_internal.h
 charset_iconv.$O: $(SRC_TOP)Headers/pid.h
 charset_iconv.$O: $(SRC_TOP)Headers/program.h
@@ -1039,6 +1078,7 @@ charset_msdos.$O: $(BLD_TOP)config.h
 charset_msdos.$O: $(BLD_TOP)forbuild.h
 charset_msdos.$O: $(SRC_TOP)Headers/charset.h
 charset_msdos.$O: $(SRC_TOP)Headers/lock.h
+charset_msdos.$O: $(SRC_TOP)Headers/utf8.h
 charset_msdos.$O: $(SRC_DIR)/charset_internal.h
 charset_msdos.$O: $(SRC_TOP)Headers/unicode.h
 charset_msdos.$O: $(SRC_TOP)Headers/system_msdos.h
@@ -1050,6 +1090,7 @@ charset_none.$O: $(BLD_TOP)config.h
 charset_none.$O: $(BLD_TOP)forbuild.h
 charset_none.$O: $(SRC_TOP)Headers/charset.h
 charset_none.$O: $(SRC_TOP)Headers/lock.h
+charset_none.$O: $(SRC_TOP)Headers/utf8.h
 charset_none.$O: $(SRC_DIR)/charset_internal.h
 
 # Dependencies for charset_windows.$O:
@@ -1060,6 +1101,7 @@ charset_windows.$O: $(BLD_TOP)forbuild.h
 charset_windows.$O: $(SRC_TOP)Headers/log.h
 charset_windows.$O: $(SRC_TOP)Headers/charset.h
 charset_windows.$O: $(SRC_TOP)Headers/lock.h
+charset_windows.$O: $(SRC_TOP)Headers/utf8.h
 charset_windows.$O: $(SRC_DIR)/charset_internal.h
 
 # Dependencies for cldr.$O:
@@ -1071,6 +1113,24 @@ cldr.$O: $(SRC_TOP)Headers/log.h
 cldr.$O: $(SRC_TOP)Headers/cldr.h
 cldr.$O: $(SRC_TOP)Headers/file.h
 cldr.$O: $(SRC_TOP)Headers/get_sockets.h
+
+# Dependencies for clipboard.$O:
+clipboard.$O: $(SRC_DIR)/clipboard.c
+clipboard.$O: $(SRC_TOP)Headers/prologue.h
+clipboard.$O: $(BLD_TOP)config.h
+clipboard.$O: $(BLD_TOP)forbuild.h
+clipboard.$O: $(SRC_TOP)Headers/log.h
+clipboard.$O: $(SRC_TOP)Headers/clipboard.h
+clipboard.$O: $(SRC_TOP)Headers/utf8.h
+clipboard.$O: $(SRC_TOP)Headers/queue.h
+clipboard.$O: $(SRC_TOP)Headers/lock.h
+clipboard.$O: $(SRC_TOP)Headers/pid.h
+clipboard.$O: $(SRC_TOP)Headers/program.h
+clipboard.$O: $(SRC_TOP)Headers/ktb_types.h
+clipboard.$O: $(SRC_DIR)/api_control.h
+clipboard.$O: brlapi_constants.h
+clipboard.$O: $(SRC_DIR)/brlapi_keycodes.h
+clipboard.$O: $(SRC_DIR)/brlapi_param.h
 
 # Dependencies for cmd.$O:
 cmd.$O: $(SRC_DIR)/cmd.c
@@ -1107,30 +1167,28 @@ cmd_clipboard.$O: $(SRC_TOP)Headers/prologue.h
 cmd_clipboard.$O: $(BLD_TOP)config.h
 cmd_clipboard.$O: $(BLD_TOP)forbuild.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/log.h
+cmd_clipboard.$O: $(SRC_TOP)Headers/alert.h
+cmd_clipboard.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_clipboard.$O: $(SRC_DIR)/cmd_queue.h
-cmd_clipboard.$O: $(SRC_DIR)/cmd_clipboard.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/strfmth.h
 cmd_clipboard.$O: $(SRC_DIR)/cmd_utils.h
+cmd_clipboard.$O: $(SRC_DIR)/cmd_clipboard.h
+cmd_clipboard.$O: $(SRC_TOP)Headers/clipboard.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/brl_cmds.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/brl_dots.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/driver.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/scr_types.h
 cmd_clipboard.$O: $(SRC_DIR)/scr.h
 cmd_clipboard.$O: $(SRC_DIR)/routing.h
-cmd_clipboard.$O: $(SRC_TOP)Headers/alert.h
-cmd_clipboard.$O: $(SRC_TOP)Headers/queue.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/file.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/get_sockets.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/datafile.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/variables.h
-cmd_clipboard.$O: $(SRC_TOP)Headers/charset.h
-cmd_clipboard.$O: $(SRC_TOP)Headers/lock.h
-cmd_clipboard.$O: $(SRC_TOP)Headers/api_types.h
+cmd_clipboard.$O: $(SRC_TOP)Headers/utf8.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/async.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/cmd.h
-cmd_clipboard.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/ctb.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/ctb_types.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/gio_types.h
@@ -1138,6 +1196,7 @@ cmd_clipboard.$O: $(SRC_TOP)Headers/ktb.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/pid.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/prefs.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/program.h
+cmd_clipboard.$O: $(SRC_TOP)Headers/queue.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/serial_types.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/spk.h
 cmd_clipboard.$O: $(SRC_TOP)Headers/spk_types.h
@@ -1153,6 +1212,7 @@ cmd_custom.$O: $(SRC_DIR)/cmd_custom.c
 cmd_custom.$O: $(SRC_TOP)Headers/prologue.h
 cmd_custom.$O: $(BLD_TOP)config.h
 cmd_custom.$O: $(BLD_TOP)forbuild.h
+cmd_custom.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_custom.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_custom.$O: $(SRC_DIR)/cmd_queue.h
 cmd_custom.$O: $(SRC_DIR)/cmd_custom.h
@@ -1166,9 +1226,13 @@ cmd_input.$O: $(SRC_TOP)Headers/prologue.h
 cmd_input.$O: $(BLD_TOP)config.h
 cmd_input.$O: $(BLD_TOP)forbuild.h
 cmd_input.$O: $(SRC_TOP)Headers/log.h
-cmd_input.$O: $(SRC_TOP)Headers/report.h
+cmd_input.$O: brlapi_constants.h
+cmd_input.$O: $(SRC_DIR)/brlapi_keycodes.h
+cmd_input.$O: $(SRC_DIR)/brlapi_param.h
+cmd_input.$O: $(SRC_DIR)/report.h
 cmd_input.$O: $(SRC_TOP)Headers/alert.h
 cmd_input.$O: $(SRC_DIR)/parameters.h
+cmd_input.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_input.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_input.$O: $(SRC_DIR)/cmd_queue.h
 cmd_input.$O: $(SRC_DIR)/cmd_input.h
@@ -1184,10 +1248,8 @@ cmd_input.$O: $(SRC_DIR)/scr.h
 cmd_input.$O: $(SRC_TOP)Headers/async.h
 cmd_input.$O: $(SRC_TOP)Headers/async_alarm.h
 cmd_input.$O: $(SRC_TOP)Headers/timing.h
-cmd_input.$O: $(SRC_TOP)Headers/api_types.h
 cmd_input.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_input.$O: $(SRC_TOP)Headers/cmd.h
-cmd_input.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_input.$O: $(SRC_TOP)Headers/ctb.h
 cmd_input.$O: $(SRC_TOP)Headers/ctb_types.h
 cmd_input.$O: $(SRC_TOP)Headers/gio_types.h
@@ -1211,7 +1273,11 @@ cmd_keycodes.$O: $(SRC_TOP)Headers/prologue.h
 cmd_keycodes.$O: $(BLD_TOP)config.h
 cmd_keycodes.$O: $(BLD_TOP)forbuild.h
 cmd_keycodes.$O: $(SRC_TOP)Headers/log.h
-cmd_keycodes.$O: $(SRC_TOP)Headers/report.h
+cmd_keycodes.$O: brlapi_constants.h
+cmd_keycodes.$O: $(SRC_DIR)/brlapi_keycodes.h
+cmd_keycodes.$O: $(SRC_DIR)/brlapi_param.h
+cmd_keycodes.$O: $(SRC_DIR)/report.h
+cmd_keycodes.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_keycodes.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_keycodes.$O: $(SRC_DIR)/cmd_queue.h
 cmd_keycodes.$O: $(SRC_DIR)/cmd_keycodes.h
@@ -1230,13 +1296,13 @@ cmd_learn.$O: $(SRC_DIR)/parameters.h
 cmd_learn.$O: $(SRC_TOP)Headers/brl_cmds.h
 cmd_learn.$O: $(SRC_TOP)Headers/brl_dots.h
 cmd_learn.$O: $(SRC_TOP)Headers/ktb_types.h
+cmd_learn.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_learn.$O: $(SRC_DIR)/cmd_queue.h
 cmd_learn.$O: $(SRC_DIR)/cmd_learn.h
 cmd_learn.$O: $(SRC_DIR)/learn.h
 cmd_learn.$O: $(SRC_TOP)Headers/async.h
 cmd_learn.$O: $(SRC_TOP)Headers/async_event.h
 cmd_learn.$O: $(SRC_TOP)Headers/async_task.h
-cmd_learn.$O: $(SRC_TOP)Headers/api_types.h
 cmd_learn.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_learn.$O: $(SRC_TOP)Headers/driver.h
 cmd_learn.$O: $(SRC_TOP)Headers/gio_types.h
@@ -1246,7 +1312,6 @@ cmd_learn.$O: $(SRC_TOP)Headers/usb_types.h
 cmd_learn.$O: $(SRC_DIR)/update.h
 cmd_learn.$O: $(SRC_TOP)Headers/message.h
 cmd_learn.$O: $(SRC_TOP)Headers/cmd.h
-cmd_learn.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_learn.$O: $(SRC_TOP)Headers/ctb.h
 cmd_learn.$O: $(SRC_TOP)Headers/ctb_types.h
 cmd_learn.$O: $(SRC_TOP)Headers/ktb.h
@@ -1270,6 +1335,7 @@ cmd_miscellaneous.$O: $(BLD_TOP)config.h
 cmd_miscellaneous.$O: $(BLD_TOP)forbuild.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/strfmt.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/strfmth.h
+cmd_miscellaneous.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_miscellaneous.$O: $(SRC_DIR)/cmd_queue.h
 cmd_miscellaneous.$O: $(SRC_DIR)/cmd_miscellaneous.h
@@ -1285,11 +1351,9 @@ cmd_miscellaneous.$O: $(SRC_DIR)/scr_internal.h
 cmd_miscellaneous.$O: $(SRC_DIR)/scr_special.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/message.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/alert.h
-cmd_miscellaneous.$O: $(SRC_TOP)Headers/api_types.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/async.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/cmd.h
-cmd_miscellaneous.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/ctb.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/ctb_types.h
 cmd_miscellaneous.$O: $(SRC_TOP)Headers/gio_types.h
@@ -1317,6 +1381,7 @@ cmd_navigation.$O: $(SRC_TOP)Headers/alert.h
 cmd_navigation.$O: $(SRC_DIR)/parameters.h
 cmd_navigation.$O: $(SRC_TOP)Headers/pid.h
 cmd_navigation.$O: $(SRC_TOP)Headers/program.h
+cmd_navigation.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_navigation.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_navigation.$O: $(SRC_DIR)/cmd_queue.h
 cmd_navigation.$O: $(SRC_DIR)/cmd_navigation.h
@@ -1331,11 +1396,9 @@ cmd_navigation.$O: $(SRC_DIR)/routing.h
 cmd_navigation.$O: $(SRC_TOP)Headers/driver.h
 cmd_navigation.$O: $(SRC_TOP)Headers/scr_types.h
 cmd_navigation.$O: $(SRC_DIR)/scr.h
-cmd_navigation.$O: $(SRC_TOP)Headers/api_types.h
 cmd_navigation.$O: $(SRC_TOP)Headers/async.h
 cmd_navigation.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_navigation.$O: $(SRC_TOP)Headers/cmd.h
-cmd_navigation.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_navigation.$O: $(SRC_TOP)Headers/ctb.h
 cmd_navigation.$O: $(SRC_TOP)Headers/ctb_types.h
 cmd_navigation.$O: $(SRC_TOP)Headers/gio_types.h
@@ -1351,11 +1414,52 @@ cmd_navigation.$O: $(SRC_DIR)/core.h
 cmd_navigation.$O: $(SRC_DIR)/profile_types.h
 cmd_navigation.$O: $(SRC_DIR)/ses.h
 
+# Dependencies for cmd_override.$O:
+cmd_override.$O: $(SRC_DIR)/cmd_override.c
+cmd_override.$O: $(SRC_TOP)Headers/prologue.h
+cmd_override.$O: $(BLD_TOP)config.h
+cmd_override.$O: $(BLD_TOP)forbuild.h
+cmd_override.$O: $(SRC_TOP)Headers/log.h
+cmd_override.$O: $(SRC_TOP)Headers/alert.h
+cmd_override.$O: $(SRC_TOP)Headers/cmd_types.h
+cmd_override.$O: $(SRC_TOP)Headers/ktb_types.h
+cmd_override.$O: $(SRC_DIR)/cmd_queue.h
+cmd_override.$O: $(SRC_DIR)/cmd_override.h
+cmd_override.$O: $(SRC_TOP)Headers/strfmth.h
+cmd_override.$O: $(SRC_DIR)/cmd_utils.h
+cmd_override.$O: $(SRC_TOP)Headers/brl_cmds.h
+cmd_override.$O: $(SRC_TOP)Headers/brl_dots.h
+cmd_override.$O: $(SRC_TOP)Headers/driver.h
+cmd_override.$O: $(SRC_TOP)Headers/scr_types.h
+cmd_override.$O: $(SRC_DIR)/scr.h
+cmd_override.$O: $(SRC_TOP)Headers/prefs.h
+cmd_override.$O: $(SRC_TOP)Headers/async.h
+cmd_override.$O: $(SRC_TOP)Headers/brl_types.h
+cmd_override.$O: $(SRC_TOP)Headers/cmd.h
+cmd_override.$O: $(SRC_TOP)Headers/ctb.h
+cmd_override.$O: $(SRC_TOP)Headers/ctb_types.h
+cmd_override.$O: $(SRC_TOP)Headers/gio_types.h
+cmd_override.$O: $(SRC_TOP)Headers/ktb.h
+cmd_override.$O: $(SRC_TOP)Headers/pid.h
+cmd_override.$O: $(SRC_TOP)Headers/program.h
+cmd_override.$O: $(SRC_TOP)Headers/queue.h
+cmd_override.$O: $(SRC_TOP)Headers/serial_types.h
+cmd_override.$O: $(SRC_TOP)Headers/spk.h
+cmd_override.$O: $(SRC_TOP)Headers/spk_types.h
+cmd_override.$O: $(SRC_TOP)Headers/timing.h
+cmd_override.$O: $(SRC_TOP)Headers/usb_types.h
+cmd_override.$O: $(SRC_DIR)/brl.h
+cmd_override.$O: $(SRC_DIR)/core.h
+cmd_override.$O: $(SRC_DIR)/profile_types.h
+cmd_override.$O: $(SRC_DIR)/ses.h
+
 # Dependencies for cmd_preferences.$O:
 cmd_preferences.$O: $(SRC_DIR)/cmd_preferences.c
 cmd_preferences.$O: $(SRC_TOP)Headers/prologue.h
 cmd_preferences.$O: $(BLD_TOP)config.h
 cmd_preferences.$O: $(BLD_TOP)forbuild.h
+cmd_preferences.$O: $(SRC_TOP)Headers/log.h
+cmd_preferences.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_preferences.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_preferences.$O: $(SRC_DIR)/cmd_queue.h
 cmd_preferences.$O: $(SRC_DIR)/cmd_preferences.h
@@ -1372,11 +1476,9 @@ cmd_preferences.$O: $(SRC_DIR)/scr_internal.h
 cmd_preferences.$O: $(SRC_DIR)/scr_special.h
 cmd_preferences.$O: $(SRC_TOP)Headers/message.h
 cmd_preferences.$O: $(SRC_TOP)Headers/alert.h
-cmd_preferences.$O: $(SRC_TOP)Headers/api_types.h
 cmd_preferences.$O: $(SRC_TOP)Headers/async.h
 cmd_preferences.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_preferences.$O: $(SRC_TOP)Headers/cmd.h
-cmd_preferences.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_preferences.$O: $(SRC_TOP)Headers/ctb.h
 cmd_preferences.$O: $(SRC_TOP)Headers/ctb_types.h
 cmd_preferences.$O: $(SRC_TOP)Headers/gio_types.h
@@ -1401,11 +1503,15 @@ cmd_queue.$O: $(SRC_TOP)Headers/prologue.h
 cmd_queue.$O: $(BLD_TOP)config.h
 cmd_queue.$O: $(BLD_TOP)forbuild.h
 cmd_queue.$O: $(SRC_TOP)Headers/log.h
+cmd_queue.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_queue.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_queue.$O: $(SRC_DIR)/cmd_queue.h
 cmd_queue.$O: $(SRC_TOP)Headers/cmd_enqueue.h
+cmd_queue.$O: $(SRC_TOP)Headers/strfmth.h
+cmd_queue.$O: $(SRC_DIR)/cmd_utils.h
 cmd_queue.$O: $(SRC_TOP)Headers/brl_cmds.h
 cmd_queue.$O: $(SRC_TOP)Headers/brl_dots.h
+cmd_queue.$O: $(SRC_TOP)Headers/cmd.h
 cmd_queue.$O: $(SRC_TOP)Headers/queue.h
 cmd_queue.$O: $(SRC_TOP)Headers/async.h
 cmd_queue.$O: $(SRC_TOP)Headers/async_alarm.h
@@ -1414,10 +1520,7 @@ cmd_queue.$O: $(SRC_TOP)Headers/prefs.h
 cmd_queue.$O: $(SRC_TOP)Headers/driver.h
 cmd_queue.$O: $(SRC_TOP)Headers/scr_types.h
 cmd_queue.$O: $(SRC_DIR)/scr.h
-cmd_queue.$O: $(SRC_TOP)Headers/api_types.h
 cmd_queue.$O: $(SRC_TOP)Headers/brl_types.h
-cmd_queue.$O: $(SRC_TOP)Headers/cmd.h
-cmd_queue.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_queue.$O: $(SRC_TOP)Headers/ctb.h
 cmd_queue.$O: $(SRC_TOP)Headers/ctb_types.h
 cmd_queue.$O: $(SRC_TOP)Headers/gio_types.h
@@ -1427,7 +1530,6 @@ cmd_queue.$O: $(SRC_TOP)Headers/program.h
 cmd_queue.$O: $(SRC_TOP)Headers/serial_types.h
 cmd_queue.$O: $(SRC_TOP)Headers/spk.h
 cmd_queue.$O: $(SRC_TOP)Headers/spk_types.h
-cmd_queue.$O: $(SRC_TOP)Headers/strfmth.h
 cmd_queue.$O: $(SRC_TOP)Headers/usb_types.h
 cmd_queue.$O: $(SRC_DIR)/brl.h
 cmd_queue.$O: $(SRC_DIR)/core.h
@@ -1442,10 +1544,12 @@ cmd_speech.$O: $(BLD_TOP)forbuild.h
 cmd_speech.$O: $(SRC_TOP)Headers/embed.h
 cmd_speech.$O: $(SRC_TOP)Headers/pid.h
 cmd_speech.$O: $(SRC_TOP)Headers/program.h
+cmd_speech.$O: $(SRC_TOP)Headers/strfmt.h
+cmd_speech.$O: $(SRC_TOP)Headers/strfmth.h
+cmd_speech.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_speech.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_speech.$O: $(SRC_DIR)/cmd_queue.h
 cmd_speech.$O: $(SRC_DIR)/cmd_speech.h
-cmd_speech.$O: $(SRC_TOP)Headers/strfmth.h
 cmd_speech.$O: $(SRC_DIR)/cmd_utils.h
 cmd_speech.$O: $(SRC_TOP)Headers/brl_cmds.h
 cmd_speech.$O: $(SRC_TOP)Headers/brl_dots.h
@@ -1456,7 +1560,6 @@ cmd_speech.$O: $(SRC_TOP)Headers/spk.h
 cmd_speech.$O: $(SRC_TOP)Headers/spk_types.h
 cmd_speech.$O: $(SRC_TOP)Headers/scr_types.h
 cmd_speech.$O: $(SRC_DIR)/scr.h
-cmd_speech.$O: $(SRC_TOP)Headers/api_types.h
 cmd_speech.$O: $(SRC_TOP)Headers/async.h
 cmd_speech.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_speech.$O: $(SRC_TOP)Headers/gio_types.h
@@ -1465,7 +1568,6 @@ cmd_speech.$O: $(SRC_TOP)Headers/serial_types.h
 cmd_speech.$O: $(SRC_TOP)Headers/usb_types.h
 cmd_speech.$O: $(SRC_DIR)/update.h
 cmd_speech.$O: $(SRC_TOP)Headers/cmd.h
-cmd_speech.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_speech.$O: $(SRC_TOP)Headers/ctb.h
 cmd_speech.$O: $(SRC_TOP)Headers/ctb_types.h
 cmd_speech.$O: $(SRC_TOP)Headers/ktb.h
@@ -1482,6 +1584,11 @@ cmd_toggle.$O: $(BLD_TOP)config.h
 cmd_toggle.$O: $(BLD_TOP)forbuild.h
 cmd_toggle.$O: $(SRC_DIR)/parameters.h
 cmd_toggle.$O: $(SRC_TOP)Headers/ktb_types.h
+cmd_toggle.$O: $(SRC_DIR)/api_control.h
+cmd_toggle.$O: brlapi_constants.h
+cmd_toggle.$O: $(SRC_DIR)/brlapi_keycodes.h
+cmd_toggle.$O: $(SRC_DIR)/brlapi_param.h
+cmd_toggle.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_toggle.$O: $(SRC_DIR)/cmd_queue.h
 cmd_toggle.$O: $(SRC_DIR)/cmd_toggle.h
 cmd_toggle.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -1494,15 +1601,15 @@ cmd_toggle.$O: $(SRC_TOP)Headers/scr_base.h
 cmd_toggle.$O: $(SRC_TOP)Headers/scr_main.h
 cmd_toggle.$O: $(SRC_DIR)/scr_internal.h
 cmd_toggle.$O: $(SRC_DIR)/scr_special.h
+cmd_toggle.$O: $(SRC_TOP)Headers/menu.h
+cmd_toggle.$O: $(SRC_DIR)/scr_menu.h
 cmd_toggle.$O: $(SRC_TOP)Headers/alert.h
 cmd_toggle.$O: $(SRC_TOP)Headers/note_types.h
 cmd_toggle.$O: $(SRC_TOP)Headers/tune.h
 cmd_toggle.$O: $(SRC_TOP)Headers/tune_types.h
-cmd_toggle.$O: $(SRC_TOP)Headers/api_types.h
 cmd_toggle.$O: $(SRC_TOP)Headers/async.h
 cmd_toggle.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_toggle.$O: $(SRC_TOP)Headers/cmd.h
-cmd_toggle.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_toggle.$O: $(SRC_TOP)Headers/ctb.h
 cmd_toggle.$O: $(SRC_TOP)Headers/ctb_types.h
 cmd_toggle.$O: $(SRC_TOP)Headers/gio_types.h
@@ -1529,12 +1636,12 @@ cmd_touch.$O: $(BLD_TOP)forbuild.h
 cmd_touch.$O: $(SRC_TOP)Headers/log.h
 cmd_touch.$O: $(SRC_TOP)Headers/strfmth.h
 cmd_touch.$O: $(SRC_DIR)/cmd_utils.h
+cmd_touch.$O: $(SRC_TOP)Headers/cmd_types.h
 cmd_touch.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_touch.$O: $(SRC_DIR)/cmd_queue.h
 cmd_touch.$O: $(SRC_DIR)/cmd_touch.h
 cmd_touch.$O: $(SRC_TOP)Headers/brl_cmds.h
 cmd_touch.$O: $(SRC_TOP)Headers/brl_dots.h
-cmd_touch.$O: $(SRC_TOP)Headers/api_types.h
 cmd_touch.$O: $(SRC_TOP)Headers/async.h
 cmd_touch.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_touch.$O: $(SRC_TOP)Headers/brl_utils.h
@@ -1543,7 +1650,10 @@ cmd_touch.$O: $(SRC_TOP)Headers/gio_types.h
 cmd_touch.$O: $(SRC_TOP)Headers/queue.h
 cmd_touch.$O: $(SRC_TOP)Headers/serial_types.h
 cmd_touch.$O: $(SRC_TOP)Headers/usb_types.h
-cmd_touch.$O: $(SRC_TOP)Headers/report.h
+cmd_touch.$O: brlapi_constants.h
+cmd_touch.$O: $(SRC_DIR)/brlapi_keycodes.h
+cmd_touch.$O: $(SRC_DIR)/brlapi_param.h
+cmd_touch.$O: $(SRC_DIR)/report.h
 cmd_touch.$O: $(SRC_TOP)Headers/bitmask.h
 cmd_touch.$O: $(SRC_TOP)Headers/prefs.h
 
@@ -1552,6 +1662,7 @@ cmd_utils.$O: $(SRC_DIR)/cmd_utils.c
 cmd_utils.$O: $(SRC_TOP)Headers/prologue.h
 cmd_utils.$O: $(BLD_TOP)config.h
 cmd_utils.$O: $(BLD_TOP)forbuild.h
+cmd_utils.$O: $(SRC_TOP)Headers/log.h
 cmd_utils.$O: $(SRC_TOP)Headers/strfmt.h
 cmd_utils.$O: $(SRC_TOP)Headers/strfmth.h
 cmd_utils.$O: $(SRC_TOP)Headers/alert.h
@@ -1562,7 +1673,6 @@ cmd_utils.$O: $(SRC_TOP)Headers/driver.h
 cmd_utils.$O: $(SRC_TOP)Headers/ktb_types.h
 cmd_utils.$O: $(SRC_TOP)Headers/scr_types.h
 cmd_utils.$O: $(SRC_DIR)/scr.h
-cmd_utils.$O: $(SRC_TOP)Headers/api_types.h
 cmd_utils.$O: $(SRC_TOP)Headers/async.h
 cmd_utils.$O: $(SRC_TOP)Headers/brl_types.h
 cmd_utils.$O: $(SRC_TOP)Headers/cmd.h
@@ -1595,11 +1705,15 @@ config.$O: $(SRC_TOP)Headers/embed.h
 config.$O: $(SRC_TOP)Headers/pid.h
 config.$O: $(SRC_TOP)Headers/program.h
 config.$O: $(SRC_TOP)Headers/log.h
-config.$O: $(SRC_TOP)Headers/report.h
+config.$O: brlapi_constants.h
+config.$O: $(SRC_DIR)/brlapi_keycodes.h
+config.$O: $(SRC_DIR)/brlapi_param.h
+config.$O: $(SRC_DIR)/report.h
 config.$O: $(SRC_TOP)Headers/strfmt.h
 config.$O: $(SRC_TOP)Headers/strfmth.h
+config.$O: $(SRC_TOP)Headers/pgmprivs.h
+config.$O: $(SRC_TOP)Headers/lock.h
 config.$O: $(SRC_DIR)/activity.h
-config.$O: $(SRC_TOP)Headers/api_types.h
 config.$O: $(SRC_TOP)Headers/async.h
 config.$O: $(SRC_TOP)Headers/brl_types.h
 config.$O: $(SRC_TOP)Headers/driver.h
@@ -1649,6 +1763,7 @@ config.$O: $(SRC_TOP)Headers/parse.h
 config.$O: $(SRC_TOP)Headers/dynld.h
 config.$O: $(SRC_TOP)Headers/async_alarm.h
 config.$O: $(SRC_TOP)Headers/timing.h
+config.$O: $(SRC_TOP)Headers/messages.h
 config.$O: $(SRC_TOP)Headers/revision.h
 config.$O: $(SRC_TOP)Headers/service.h
 config.$O: $(SRC_TOP)Headers/options.h
@@ -1659,8 +1774,7 @@ config.$O: $(SRC_TOP)Headers/prefs.h
 config.$O: $(SRC_DIR)/core.h
 config.$O: $(SRC_DIR)/ses.h
 config.$O: $(SRC_DIR)/api_control.h
-config.$O: $(SRC_TOP)Headers/charset.h
-config.$O: $(SRC_TOP)Headers/lock.h
+config.$O: $(SRC_TOP)Headers/utf8.h
 config.$O: $(SRC_TOP)Headers/async_io.h
 config.$O: $(SRC_TOP)Headers/io_generic.h
 config.$O: $(SRC_TOP)Headers/io_usb.h
@@ -1677,39 +1791,40 @@ core.$O: $(SRC_TOP)Headers/embed.h
 core.$O: $(SRC_TOP)Headers/pid.h
 core.$O: $(SRC_TOP)Headers/program.h
 core.$O: $(SRC_TOP)Headers/log.h
+core.$O: $(SRC_TOP)Headers/alert.h
 core.$O: $(SRC_TOP)Headers/strfmt.h
 core.$O: $(SRC_TOP)Headers/strfmth.h
-core.$O: $(SRC_TOP)Headers/brl_cmds.h
-core.$O: $(SRC_TOP)Headers/brl_dots.h
+core.$O: $(SRC_TOP)Headers/cmd_types.h
 core.$O: $(SRC_TOP)Headers/ktb_types.h
 core.$O: $(SRC_DIR)/cmd_queue.h
+core.$O: $(SRC_DIR)/cmd_clipboard.h
 core.$O: $(SRC_DIR)/cmd_custom.h
-core.$O: $(SRC_DIR)/cmd_navigation.h
 core.$O: $(SRC_DIR)/cmd_input.h
 core.$O: $(SRC_DIR)/cmd_keycodes.h
-core.$O: $(SRC_DIR)/cmd_touch.h
-core.$O: $(SRC_DIR)/cmd_toggle.h
-core.$O: $(SRC_DIR)/cmd_preferences.h
-core.$O: $(SRC_DIR)/cmd_clipboard.h
-core.$O: $(SRC_DIR)/cmd_speech.h
 core.$O: $(SRC_DIR)/cmd_learn.h
 core.$O: $(SRC_DIR)/cmd_miscellaneous.h
-core.$O: $(SRC_TOP)Headers/timing.h
+core.$O: $(SRC_DIR)/cmd_navigation.h
+core.$O: $(SRC_DIR)/cmd_override.h
+core.$O: $(SRC_DIR)/cmd_preferences.h
+core.$O: $(SRC_DIR)/cmd_speech.h
+core.$O: $(SRC_DIR)/cmd_toggle.h
+core.$O: $(SRC_DIR)/cmd_touch.h
 core.$O: $(SRC_TOP)Headers/async.h
 core.$O: $(SRC_TOP)Headers/async_wait.h
+core.$O: $(SRC_TOP)Headers/async_alarm.h
+core.$O: $(SRC_TOP)Headers/timing.h
 core.$O: $(SRC_TOP)Headers/async_event.h
 core.$O: $(SRC_TOP)Headers/async_signal.h
-core.$O: $(SRC_TOP)Headers/async_alarm.h
-core.$O: $(SRC_TOP)Headers/alert.h
+core.$O: $(SRC_TOP)Headers/async_task.h
+core.$O: $(SRC_TOP)Headers/brl_cmds.h
+core.$O: $(SRC_TOP)Headers/brl_dots.h
 core.$O: $(SRC_TOP)Headers/ctb.h
 core.$O: $(SRC_TOP)Headers/ctb_types.h
 core.$O: $(SRC_DIR)/routing.h
-core.$O: $(SRC_TOP)Headers/charset.h
-core.$O: $(SRC_TOP)Headers/lock.h
+core.$O: $(SRC_TOP)Headers/utf8.h
 core.$O: $(SRC_TOP)Headers/driver.h
 core.$O: $(SRC_TOP)Headers/scr_types.h
 core.$O: $(SRC_DIR)/scr.h
-core.$O: $(SRC_TOP)Headers/api_types.h
 core.$O: $(SRC_TOP)Headers/brl_types.h
 core.$O: $(SRC_TOP)Headers/gio_types.h
 core.$O: $(SRC_TOP)Headers/queue.h
@@ -1721,13 +1836,66 @@ core.$O: $(SRC_DIR)/brl.h
 core.$O: $(SRC_TOP)Headers/brl_utils.h
 core.$O: $(SRC_TOP)Headers/prefs.h
 core.$O: $(SRC_DIR)/api_control.h
+core.$O: brlapi_constants.h
+core.$O: $(SRC_DIR)/brlapi_keycodes.h
+core.$O: $(SRC_DIR)/brlapi_param.h
 core.$O: $(SRC_TOP)Headers/cmd.h
-core.$O: $(SRC_TOP)Headers/cmd_types.h
 core.$O: $(SRC_TOP)Headers/ktb.h
 core.$O: $(SRC_TOP)Headers/spk.h
 core.$O: $(SRC_TOP)Headers/spk_types.h
 core.$O: $(SRC_DIR)/core.h
 core.$O: $(SRC_DIR)/profile_types.h
+
+# Dependencies for crc_algorithms.$O:
+crc_algorithms.$O: $(SRC_DIR)/crc_algorithms.c
+crc_algorithms.$O: $(SRC_TOP)Headers/prologue.h
+crc_algorithms.$O: $(BLD_TOP)config.h
+crc_algorithms.$O: $(BLD_TOP)forbuild.h
+crc_algorithms.$O: $(SRC_TOP)Headers/crc_algorithms.h
+crc_algorithms.$O: $(SRC_TOP)Headers/crc_definitions.h
+
+# Dependencies for crc_generate.$O:
+crc_generate.$O: $(SRC_DIR)/crc_generate.c
+crc_generate.$O: $(SRC_TOP)Headers/prologue.h
+crc_generate.$O: $(BLD_TOP)config.h
+crc_generate.$O: $(BLD_TOP)forbuild.h
+crc_generate.$O: $(SRC_TOP)Headers/crc_algorithms.h
+crc_generate.$O: $(SRC_TOP)Headers/crc_definitions.h
+crc_generate.$O: $(SRC_TOP)Headers/crc_generate.h
+crc_generate.$O: $(SRC_TOP)Headers/crc_properties.h
+crc_generate.$O: $(SRC_DIR)/crc_internal.h
+crc_generate.$O: $(SRC_TOP)Headers/log.h
+
+# Dependencies for crc_verify.$O:
+crc_verify.$O: $(SRC_DIR)/crc_verify.c
+crc_verify.$O: $(SRC_TOP)Headers/prologue.h
+crc_verify.$O: $(BLD_TOP)config.h
+crc_verify.$O: $(BLD_TOP)forbuild.h
+crc_verify.$O: $(SRC_TOP)Headers/crc_algorithms.h
+crc_verify.$O: $(SRC_TOP)Headers/crc_definitions.h
+crc_verify.$O: $(SRC_TOP)Headers/crc_generate.h
+crc_verify.$O: $(SRC_TOP)Headers/crc_properties.h
+crc_verify.$O: $(SRC_TOP)Headers/crc_verify.h
+crc_verify.$O: $(SRC_DIR)/crc_internal.h
+crc_verify.$O: $(SRC_TOP)Headers/log.h
+
+# Dependencies for crctest.$O:
+crctest.$O: $(SRC_DIR)/crctest.c
+crctest.$O: $(SRC_TOP)Headers/prologue.h
+crctest.$O: $(BLD_TOP)config.h
+crctest.$O: $(BLD_TOP)forbuild.h
+crctest.$O: $(SRC_TOP)Headers/pid.h
+crctest.$O: $(SRC_TOP)Headers/program.h
+crctest.$O: $(SRC_TOP)Headers/datafile.h
+crctest.$O: $(SRC_TOP)Headers/options.h
+crctest.$O: $(SRC_TOP)Headers/strfmth.h
+crctest.$O: $(SRC_TOP)Headers/variables.h
+crctest.$O: $(SRC_TOP)Headers/crc.h
+crctest.$O: $(SRC_TOP)Headers/crc_algorithms.h
+crctest.$O: $(SRC_TOP)Headers/crc_definitions.h
+crctest.$O: $(SRC_TOP)Headers/crc_generate.h
+crctest.$O: $(SRC_TOP)Headers/crc_properties.h
+crctest.$O: $(SRC_TOP)Headers/crc_verify.h
 
 # Dependencies for ctb_compile.$O:
 ctb_compile.$O: $(SRC_DIR)/ctb_compile.c
@@ -1747,8 +1915,7 @@ ctb_compile.$O: $(SRC_TOP)Headers/dataarea.h
 ctb_compile.$O: $(SRC_TOP)Headers/brl_dots.h
 ctb_compile.$O: $(SRC_TOP)Headers/cldr.h
 ctb_compile.$O: $(SRC_TOP)Headers/unicode.h
-ctb_compile.$O: $(SRC_TOP)Headers/charset.h
-ctb_compile.$O: $(SRC_TOP)Headers/lock.h
+ctb_compile.$O: $(SRC_TOP)Headers/utf8.h
 ctb_compile.$O: $(SRC_TOP)Headers/hostcmd.h
 
 # Dependencies for ctb_external.$O:
@@ -1766,8 +1933,7 @@ ctb_external.$O: $(SRC_TOP)Headers/brl_dots.h
 ctb_external.$O: $(SRC_TOP)Headers/file.h
 ctb_external.$O: $(SRC_TOP)Headers/get_sockets.h
 ctb_external.$O: $(SRC_TOP)Headers/parse.h
-ctb_external.$O: $(SRC_TOP)Headers/charset.h
-ctb_external.$O: $(SRC_TOP)Headers/lock.h
+ctb_external.$O: $(SRC_TOP)Headers/utf8.h
 
 # Dependencies for ctb_louis.$O:
 ctb_louis.$O: $(SRC_DIR)/ctb_louis.c
@@ -1792,10 +1958,10 @@ ctb_native.$O: $(SRC_TOP)Headers/ctb_types.h
 ctb_native.$O: $(SRC_TOP)Headers/prefs.h
 ctb_native.$O: $(SRC_DIR)/ctb_internal.h
 ctb_native.$O: $(SRC_DIR)/ctb_translate.h
+ctb_native.$O: $(SRC_TOP)Headers/ttb.h
 ctb_native.$O: $(SRC_TOP)Headers/brl_dots.h
 ctb_native.$O: $(SRC_TOP)Headers/unicode.h
-ctb_native.$O: $(SRC_TOP)Headers/charset.h
-ctb_native.$O: $(SRC_TOP)Headers/lock.h
+ctb_native.$O: $(SRC_TOP)Headers/utf8.h
 ctb_native.$O: $(SRC_TOP)Headers/ascii.h
 
 # Dependencies for ctb_translate.$O:
@@ -1804,6 +1970,7 @@ ctb_translate.$O: $(SRC_TOP)Headers/prologue.h
 ctb_translate.$O: $(BLD_TOP)config.h
 ctb_translate.$O: $(BLD_TOP)forbuild.h
 ctb_translate.$O: $(SRC_TOP)Headers/log.h
+ctb_translate.$O: $(SRC_TOP)Headers/lock.h
 ctb_translate.$O: $(SRC_TOP)Headers/ctb.h
 ctb_translate.$O: $(SRC_TOP)Headers/ctb_types.h
 ctb_translate.$O: $(SRC_TOP)Headers/prefs.h
@@ -1833,8 +2000,7 @@ datafile.$O: $(SRC_TOP)Headers/get_sockets.h
 datafile.$O: $(SRC_TOP)Headers/queue.h
 datafile.$O: $(SRC_TOP)Headers/datafile.h
 datafile.$O: $(SRC_TOP)Headers/variables.h
-datafile.$O: $(SRC_TOP)Headers/charset.h
-datafile.$O: $(SRC_TOP)Headers/lock.h
+datafile.$O: $(SRC_TOP)Headers/utf8.h
 datafile.$O: $(SRC_TOP)Headers/unicode.h
 datafile.$O: $(SRC_TOP)Headers/brl_dots.h
 
@@ -1921,6 +2087,43 @@ dynld_windows.$O: $(BLD_TOP)forbuild.h
 dynld_windows.$O: $(SRC_TOP)Headers/log.h
 dynld_windows.$O: $(SRC_TOP)Headers/dynld.h
 
+# Dependencies for ezusb.$O:
+ezusb.$O: $(SRC_DIR)/ezusb.c
+ezusb.$O: $(SRC_TOP)Headers/prologue.h
+ezusb.$O: $(BLD_TOP)config.h
+ezusb.$O: $(BLD_TOP)forbuild.h
+ezusb.$O: $(SRC_TOP)Headers/log.h
+ezusb.$O: $(SRC_TOP)Headers/async.h
+ezusb.$O: $(SRC_TOP)Headers/async_io.h
+ezusb.$O: $(SRC_TOP)Headers/ezusb.h
+ezusb.$O: $(SRC_TOP)Headers/ihex_types.h
+ezusb.$O: $(SRC_TOP)Headers/io_usb.h
+ezusb.$O: $(SRC_TOP)Headers/serial_types.h
+ezusb.$O: $(SRC_TOP)Headers/usb_types.h
+ezusb.$O: $(SRC_TOP)Headers/ihex.h
+ezusb.$O: $(SRC_TOP)Headers/timing.h
+ezusb.$O: $(SRC_TOP)Headers/brl_types.h
+ezusb.$O: $(SRC_TOP)Headers/cmd.h
+ezusb.$O: $(SRC_TOP)Headers/cmd_types.h
+ezusb.$O: $(SRC_TOP)Headers/ctb.h
+ezusb.$O: $(SRC_TOP)Headers/ctb_types.h
+ezusb.$O: $(SRC_TOP)Headers/driver.h
+ezusb.$O: $(SRC_TOP)Headers/gio_types.h
+ezusb.$O: $(SRC_TOP)Headers/ktb.h
+ezusb.$O: $(SRC_TOP)Headers/ktb_types.h
+ezusb.$O: $(SRC_TOP)Headers/pid.h
+ezusb.$O: $(SRC_TOP)Headers/prefs.h
+ezusb.$O: $(SRC_TOP)Headers/program.h
+ezusb.$O: $(SRC_TOP)Headers/queue.h
+ezusb.$O: $(SRC_TOP)Headers/scr_types.h
+ezusb.$O: $(SRC_TOP)Headers/spk.h
+ezusb.$O: $(SRC_TOP)Headers/spk_types.h
+ezusb.$O: $(SRC_TOP)Headers/strfmth.h
+ezusb.$O: $(SRC_DIR)/brl.h
+ezusb.$O: $(SRC_DIR)/core.h
+ezusb.$O: $(SRC_DIR)/profile_types.h
+ezusb.$O: $(SRC_DIR)/ses.h
+
 # Dependencies for file.$O:
 file.$O: $(SRC_DIR)/file.c
 file.$O: $(SRC_TOP)Headers/prologue.h
@@ -1935,8 +2138,7 @@ file.$O: $(SRC_TOP)Headers/get_sockets.h
 file.$O: $(SRC_TOP)Headers/parse.h
 file.$O: $(SRC_TOP)Headers/async.h
 file.$O: $(SRC_TOP)Headers/async_wait.h
-file.$O: $(SRC_TOP)Headers/charset.h
-file.$O: $(SRC_TOP)Headers/lock.h
+file.$O: $(SRC_TOP)Headers/utf8.h
 file.$O: $(SRC_TOP)Headers/pid.h
 file.$O: $(SRC_TOP)Headers/program.h
 
@@ -1992,7 +2194,7 @@ gio_bluetooth.$O: $(SRC_TOP)Headers/serial_types.h
 gio_bluetooth.$O: $(SRC_TOP)Headers/usb_types.h
 gio_bluetooth.$O: $(SRC_DIR)/gio_internal.h
 gio_bluetooth.$O: $(SRC_TOP)Headers/io_bluetooth.h
-gio_bluetooth.$O: $(SRC_TOP)Headers/api_types.h
+gio_bluetooth.$O: $(SRC_TOP)Headers/strfmth.h
 gio_bluetooth.$O: $(SRC_TOP)Headers/brl_types.h
 gio_bluetooth.$O: $(SRC_TOP)Headers/driver.h
 gio_bluetooth.$O: $(SRC_TOP)Headers/ktb_types.h
@@ -2005,6 +2207,8 @@ gio_null.$O: $(SRC_TOP)Headers/prologue.h
 gio_null.$O: $(BLD_TOP)config.h
 gio_null.$O: $(BLD_TOP)forbuild.h
 gio_null.$O: $(SRC_TOP)Headers/log.h
+gio_null.$O: $(SRC_TOP)Headers/strfmt.h
+gio_null.$O: $(SRC_TOP)Headers/strfmth.h
 gio_null.$O: $(SRC_TOP)Headers/async.h
 gio_null.$O: $(SRC_TOP)Headers/async_io.h
 gio_null.$O: $(SRC_TOP)Headers/gio_types.h
@@ -2034,7 +2238,7 @@ gio_usb.$O: $(SRC_DIR)/gio_usb.c
 gio_usb.$O: $(SRC_TOP)Headers/prologue.h
 gio_usb.$O: $(BLD_TOP)config.h
 gio_usb.$O: $(BLD_TOP)forbuild.h
-gio_usb.$O: $(SRC_TOP)Headers/timing.h
+gio_usb.$O: $(SRC_TOP)Headers/gettime.h
 gio_usb.$O: $(SRC_TOP)Headers/win_pthread.h
 gio_usb.$O: $(SRC_TOP)Headers/log.h
 gio_usb.$O: $(SRC_DIR)/parameters.h
@@ -2100,6 +2304,21 @@ hostcmd_windows.$O: $(SRC_TOP)Headers/log.h
 hostcmd_windows.$O: $(SRC_TOP)Headers/system_windows.h
 hostcmd_windows.$O: $(SRC_DIR)/hostcmd_windows.h
 hostcmd_windows.$O: $(SRC_DIR)/hostcmd_internal.h
+
+# Dependencies for ihex.$O:
+ihex.$O: $(SRC_DIR)/ihex.c
+ihex.$O: $(SRC_TOP)Headers/prologue.h
+ihex.$O: $(BLD_TOP)config.h
+ihex.$O: $(BLD_TOP)forbuild.h
+ihex.$O: $(SRC_TOP)Headers/log.h
+ihex.$O: $(SRC_TOP)Headers/strfmt.h
+ihex.$O: $(SRC_TOP)Headers/strfmth.h
+ihex.$O: $(SRC_TOP)Headers/ihex.h
+ihex.$O: $(SRC_TOP)Headers/ihex_types.h
+ihex.$O: $(SRC_TOP)Headers/file.h
+ihex.$O: $(SRC_TOP)Headers/get_sockets.h
+ihex.$O: $(SRC_TOP)Headers/datafile.h
+ihex.$O: $(SRC_TOP)Headers/variables.h
 
 # Dependencies for io_misc.$O:
 io_misc.$O: $(SRC_DIR)/io_misc.c
@@ -2246,8 +2465,7 @@ ktb_list.$O: $(BLD_TOP)forbuild.h
 ktb_list.$O: $(SRC_TOP)Headers/log.h
 ktb_list.$O: $(SRC_TOP)Headers/strfmt.h
 ktb_list.$O: $(SRC_TOP)Headers/strfmth.h
-ktb_list.$O: $(SRC_TOP)Headers/charset.h
-ktb_list.$O: $(SRC_TOP)Headers/lock.h
+ktb_list.$O: $(SRC_TOP)Headers/utf8.h
 ktb_list.$O: $(SRC_TOP)Headers/cmd.h
 ktb_list.$O: $(SRC_TOP)Headers/cmd_types.h
 ktb_list.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -2298,7 +2516,6 @@ learn.$O: $(SRC_TOP)Headers/cmd_types.h
 learn.$O: $(SRC_TOP)Headers/strfmth.h
 learn.$O: $(SRC_TOP)Headers/ktb_types.h
 learn.$O: $(SRC_DIR)/cmd_queue.h
-learn.$O: $(SRC_TOP)Headers/api_types.h
 learn.$O: $(SRC_TOP)Headers/brl_types.h
 learn.$O: $(SRC_TOP)Headers/driver.h
 learn.$O: $(SRC_TOP)Headers/gio_types.h
@@ -2352,8 +2569,8 @@ lock.$O: $(BLD_TOP)config.h
 lock.$O: $(BLD_TOP)forbuild.h
 lock.$O: $(SRC_TOP)Headers/lock.h
 lock.$O: $(SRC_TOP)Headers/log.h
-lock.$O: $(SRC_TOP)Headers/get_pthreads.h
-lock.$O: $(SRC_TOP)Headers/timing.h
+lock.$O: $(SRC_TOP)Headers/get_thread.h
+lock.$O: $(SRC_TOP)Headers/gettime.h
 lock.$O: $(SRC_TOP)Headers/win_pthread.h
 
 # Dependencies for log.$O:
@@ -2362,7 +2579,8 @@ log.$O: $(SRC_TOP)Headers/prologue.h
 log.$O: $(BLD_TOP)config.h
 log.$O: $(BLD_TOP)forbuild.h
 log.$O: $(SRC_TOP)Headers/log.h
-log.$O: $(SRC_TOP)Headers/get_pthreads.h
+log.$O: $(SRC_TOP)Headers/get_thread.h
+log.$O: $(SRC_TOP)Headers/gettime.h
 log.$O: $(SRC_TOP)Headers/log_history.h
 log.$O: $(SRC_TOP)Headers/thread.h
 log.$O: $(SRC_TOP)Headers/timing.h
@@ -2371,6 +2589,8 @@ log.$O: $(SRC_TOP)Headers/strfmt.h
 log.$O: $(SRC_TOP)Headers/strfmth.h
 log.$O: $(SRC_TOP)Headers/file.h
 log.$O: $(SRC_TOP)Headers/get_sockets.h
+log.$O: $(SRC_TOP)Headers/unicode.h
+log.$O: $(SRC_TOP)Headers/utf8.h
 log.$O: $(SRC_TOP)Headers/addresses.h
 log.$O: $(SRC_TOP)Headers/stdiox.h
 
@@ -2380,7 +2600,8 @@ log_history.$O: $(SRC_TOP)Headers/prologue.h
 log_history.$O: $(BLD_TOP)config.h
 log_history.$O: $(BLD_TOP)forbuild.h
 log_history.$O: $(SRC_TOP)Headers/log.h
-log_history.$O: $(SRC_TOP)Headers/get_pthreads.h
+log_history.$O: $(SRC_TOP)Headers/get_thread.h
+log_history.$O: $(SRC_TOP)Headers/gettime.h
 log_history.$O: $(SRC_TOP)Headers/log_history.h
 log_history.$O: $(SRC_TOP)Headers/thread.h
 log_history.$O: $(SRC_TOP)Headers/timing.h
@@ -2404,7 +2625,8 @@ menu_prefs.$O: $(SRC_TOP)Headers/prologue.h
 menu_prefs.$O: $(BLD_TOP)config.h
 menu_prefs.$O: $(BLD_TOP)forbuild.h
 menu_prefs.$O: $(SRC_TOP)Headers/log.h
-menu_prefs.$O: $(SRC_TOP)Headers/get_pthreads.h
+menu_prefs.$O: $(SRC_TOP)Headers/get_thread.h
+menu_prefs.$O: $(SRC_TOP)Headers/gettime.h
 menu_prefs.$O: $(SRC_TOP)Headers/log_history.h
 menu_prefs.$O: $(SRC_TOP)Headers/thread.h
 menu_prefs.$O: $(SRC_TOP)Headers/timing.h
@@ -2413,6 +2635,11 @@ menu_prefs.$O: $(SRC_TOP)Headers/embed.h
 menu_prefs.$O: $(SRC_TOP)Headers/pid.h
 menu_prefs.$O: $(SRC_TOP)Headers/program.h
 menu_prefs.$O: $(SRC_TOP)Headers/revision.h
+menu_prefs.$O: $(SRC_TOP)Headers/ktb_types.h
+menu_prefs.$O: $(SRC_DIR)/api_control.h
+menu_prefs.$O: brlapi_constants.h
+menu_prefs.$O: $(SRC_DIR)/brlapi_keycodes.h
+menu_prefs.$O: $(SRC_DIR)/brlapi_param.h
 menu_prefs.$O: $(SRC_TOP)Headers/menu.h
 menu_prefs.$O: $(SRC_DIR)/menu_prefs.h
 menu_prefs.$O: $(SRC_TOP)Headers/prefs.h
@@ -2424,14 +2651,12 @@ menu_prefs.$O: $(SRC_TOP)Headers/atb.h
 menu_prefs.$O: $(SRC_TOP)Headers/ctb.h
 menu_prefs.$O: $(SRC_TOP)Headers/ctb_types.h
 menu_prefs.$O: $(SRC_TOP)Headers/ktb.h
-menu_prefs.$O: $(SRC_TOP)Headers/ktb_types.h
 menu_prefs.$O: $(SRC_TOP)Headers/note_types.h
 menu_prefs.$O: $(SRC_TOP)Headers/tune.h
 menu_prefs.$O: $(SRC_TOP)Headers/tune_types.h
 menu_prefs.$O: $(SRC_TOP)Headers/bell.h
 menu_prefs.$O: $(SRC_TOP)Headers/leds.h
 menu_prefs.$O: $(SRC_TOP)Headers/midi.h
-menu_prefs.$O: $(SRC_TOP)Headers/api_types.h
 menu_prefs.$O: $(SRC_TOP)Headers/async.h
 menu_prefs.$O: $(SRC_TOP)Headers/brl_types.h
 menu_prefs.$O: $(SRC_TOP)Headers/cmd.h
@@ -2458,13 +2683,13 @@ message.$O: $(SRC_TOP)Headers/embed.h
 message.$O: $(SRC_TOP)Headers/pid.h
 message.$O: $(SRC_TOP)Headers/program.h
 message.$O: $(SRC_TOP)Headers/log.h
-message.$O: $(SRC_TOP)Headers/get_pthreads.h
+message.$O: $(SRC_TOP)Headers/get_thread.h
+message.$O: $(SRC_TOP)Headers/gettime.h
 message.$O: $(SRC_TOP)Headers/log_history.h
 message.$O: $(SRC_TOP)Headers/thread.h
 message.$O: $(SRC_TOP)Headers/timing.h
 message.$O: $(SRC_TOP)Headers/win_pthread.h
 message.$O: $(SRC_TOP)Headers/message.h
-message.$O: $(SRC_TOP)Headers/api_types.h
 message.$O: $(SRC_TOP)Headers/async.h
 message.$O: $(SRC_TOP)Headers/brl_types.h
 message.$O: $(SRC_TOP)Headers/ctb_types.h
@@ -2481,17 +2706,19 @@ message.$O: $(SRC_DIR)/parameters.h
 message.$O: $(SRC_TOP)Headers/async_wait.h
 message.$O: $(SRC_TOP)Headers/async_event.h
 message.$O: $(SRC_TOP)Headers/async_task.h
-message.$O: $(SRC_TOP)Headers/charset.h
-message.$O: $(SRC_TOP)Headers/lock.h
+message.$O: $(SRC_TOP)Headers/utf8.h
 message.$O: $(SRC_TOP)Headers/brl_utils.h
 message.$O: $(SRC_TOP)Headers/brl_cmds.h
 message.$O: $(SRC_TOP)Headers/brl_dots.h
 message.$O: $(SRC_TOP)Headers/spk.h
 message.$O: $(SRC_DIR)/update.h
+message.$O: $(SRC_TOP)Headers/cmd_types.h
 message.$O: $(SRC_DIR)/cmd_queue.h
 message.$O: $(SRC_DIR)/api_control.h
+message.$O: brlapi_constants.h
+message.$O: $(SRC_DIR)/brlapi_keycodes.h
+message.$O: $(SRC_DIR)/brlapi_param.h
 message.$O: $(SRC_TOP)Headers/cmd.h
-message.$O: $(SRC_TOP)Headers/cmd_types.h
 message.$O: $(SRC_TOP)Headers/ctb.h
 message.$O: $(SRC_TOP)Headers/ktb.h
 message.$O: $(SRC_TOP)Headers/prefs.h
@@ -2501,6 +2728,16 @@ message.$O: $(SRC_DIR)/brl.h
 message.$O: $(SRC_DIR)/core.h
 message.$O: $(SRC_DIR)/profile_types.h
 message.$O: $(SRC_DIR)/ses.h
+
+# Dependencies for messages.$O:
+messages.$O: $(SRC_DIR)/messages.c
+messages.$O: $(SRC_TOP)Headers/prologue.h
+messages.$O: $(BLD_TOP)config.h
+messages.$O: $(BLD_TOP)forbuild.h
+messages.$O: $(SRC_TOP)Headers/log.h
+messages.$O: $(SRC_TOP)Headers/messages.h
+messages.$O: $(SRC_TOP)Headers/file.h
+messages.$O: $(SRC_TOP)Headers/get_sockets.h
 
 # Dependencies for midi.$O:
 midi.$O: $(SRC_DIR)/midi.c
@@ -2623,8 +2860,24 @@ morse.$O: $(SRC_TOP)Headers/morse.h
 morse.$O: $(SRC_TOP)Headers/note_types.h
 morse.$O: $(SRC_TOP)Headers/tune.h
 morse.$O: $(SRC_TOP)Headers/tune_types.h
-morse.$O: $(SRC_TOP)Headers/charset.h
-morse.$O: $(SRC_TOP)Headers/lock.h
+morse.$O: $(SRC_TOP)Headers/utf8.h
+
+# Dependencies for msgtest.$O:
+msgtest.$O: $(SRC_DIR)/msgtest.c
+msgtest.$O: $(SRC_TOP)Headers/prologue.h
+msgtest.$O: $(BLD_TOP)config.h
+msgtest.$O: $(BLD_TOP)forbuild.h
+msgtest.$O: $(SRC_TOP)Headers/log.h
+msgtest.$O: $(SRC_TOP)Headers/pid.h
+msgtest.$O: $(SRC_TOP)Headers/program.h
+msgtest.$O: $(SRC_TOP)Headers/datafile.h
+msgtest.$O: $(SRC_TOP)Headers/options.h
+msgtest.$O: $(SRC_TOP)Headers/strfmth.h
+msgtest.$O: $(SRC_TOP)Headers/variables.h
+msgtest.$O: $(SRC_TOP)Headers/messages.h
+msgtest.$O: $(SRC_TOP)Headers/parse.h
+msgtest.$O: $(SRC_TOP)Headers/file.h
+msgtest.$O: $(SRC_TOP)Headers/get_sockets.h
 
 # Dependencies for notes.$O:
 notes.$O: $(SRC_DIR)/notes.c
@@ -2696,8 +2949,7 @@ options.$O: $(SRC_TOP)Headers/params.h
 options.$O: $(SRC_TOP)Headers/log.h
 options.$O: $(SRC_TOP)Headers/file.h
 options.$O: $(SRC_TOP)Headers/get_sockets.h
-options.$O: $(SRC_TOP)Headers/charset.h
-options.$O: $(SRC_TOP)Headers/lock.h
+options.$O: $(SRC_TOP)Headers/utf8.h
 options.$O: $(SRC_TOP)Headers/parse.h
 
 # Dependencies for params_linux.$O:
@@ -2837,6 +3089,28 @@ pgmpath_windows.$O: $(SRC_TOP)Headers/log.h
 pgmpath_windows.$O: $(SRC_TOP)Headers/pgmpath.h
 pgmpath_windows.$O: $(SRC_TOP)Headers/system_windows.h
 
+# Dependencies for pgmprivs_linux.$O:
+pgmprivs_linux.$O: $(SRC_DIR)/pgmprivs_linux.c
+pgmprivs_linux.$O: $(SRC_TOP)Headers/prologue.h
+pgmprivs_linux.$O: $(BLD_TOP)config.h
+pgmprivs_linux.$O: $(BLD_TOP)forbuild.h
+pgmprivs_linux.$O: $(SRC_TOP)Headers/log.h
+pgmprivs_linux.$O: $(SRC_TOP)Headers/strfmt.h
+pgmprivs_linux.$O: $(SRC_TOP)Headers/strfmth.h
+pgmprivs_linux.$O: $(SRC_TOP)Headers/pgmprivs.h
+pgmprivs_linux.$O: $(SRC_TOP)Headers/system_linux.h
+pgmprivs_linux.$O: $(SRC_TOP)Headers/file.h
+pgmprivs_linux.$O: $(SRC_TOP)Headers/get_sockets.h
+pgmprivs_linux.$O: $(SRC_TOP)Headers/parse.h
+pgmprivs_linux.$O: $(SRC_DIR)/syscalls_linux.h
+
+# Dependencies for pgmprivs_none.$O:
+pgmprivs_none.$O: $(SRC_DIR)/pgmprivs_none.c
+pgmprivs_none.$O: $(SRC_TOP)Headers/prologue.h
+pgmprivs_none.$O: $(BLD_TOP)config.h
+pgmprivs_none.$O: $(BLD_TOP)forbuild.h
+pgmprivs_none.$O: $(SRC_TOP)Headers/pgmprivs.h
+
 # Dependencies for pid.$O:
 pid.$O: $(SRC_DIR)/pid.c
 pid.$O: $(SRC_TOP)Headers/prologue.h
@@ -2904,15 +3178,36 @@ ports_windows.$O: $(SRC_TOP)Headers/ports.h
 ports_windows.$O: $(SRC_TOP)Headers/system_windows.h
 ports_windows.$O: $(SRC_DIR)/ports_x86.h
 
+# Dependencies for pref_tables.$O:
+pref_tables.$O: $(SRC_DIR)/pref_tables.c
+pref_tables.$O: $(SRC_TOP)Headers/prologue.h
+pref_tables.$O: $(BLD_TOP)config.h
+pref_tables.$O: $(BLD_TOP)forbuild.h
+pref_tables.$O: $(SRC_TOP)Headers/prefs.h
+pref_tables.$O: $(SRC_DIR)/pref_tables.h
+pref_tables.$O: $(SRC_TOP)Headers/status_types.h
+pref_tables.$O: $(SRC_TOP)Headers/async.h
+pref_tables.$O: $(SRC_TOP)Headers/brl_types.h
+pref_tables.$O: $(SRC_TOP)Headers/ctb_types.h
+pref_tables.$O: $(SRC_TOP)Headers/driver.h
+pref_tables.$O: $(SRC_TOP)Headers/gio_types.h
+pref_tables.$O: $(SRC_TOP)Headers/ktb_types.h
+pref_tables.$O: $(SRC_TOP)Headers/queue.h
+pref_tables.$O: $(SRC_TOP)Headers/serial_types.h
+pref_tables.$O: $(SRC_TOP)Headers/spk_types.h
+pref_tables.$O: $(SRC_TOP)Headers/tune_types.h
+pref_tables.$O: $(SRC_TOP)Headers/usb_types.h
+pref_tables.$O: $(SRC_DIR)/defaults.h
+pref_tables.$O: $(SRC_DIR)/parameters.h
+
 # Dependencies for prefs.$O:
 prefs.$O: $(SRC_DIR)/prefs.c
 prefs.$O: $(SRC_TOP)Headers/prologue.h
 prefs.$O: $(BLD_TOP)config.h
 prefs.$O: $(BLD_TOP)forbuild.h
 prefs.$O: $(SRC_TOP)Headers/prefs.h
-prefs.$O: $(SRC_DIR)/prefs_internal.h
+prefs.$O: $(SRC_DIR)/pref_tables.h
 prefs.$O: $(SRC_TOP)Headers/status_types.h
-prefs.$O: $(SRC_TOP)Headers/api_types.h
 prefs.$O: $(SRC_TOP)Headers/async.h
 prefs.$O: $(SRC_TOP)Headers/brl_types.h
 prefs.$O: $(SRC_TOP)Headers/ctb_types.h
@@ -2933,29 +3228,6 @@ prefs.$O: $(SRC_TOP)Headers/datafile.h
 prefs.$O: $(SRC_TOP)Headers/variables.h
 prefs.$O: $(SRC_TOP)Headers/parse.h
 
-# Dependencies for prefs_table.$O:
-prefs_table.$O: $(SRC_DIR)/prefs_table.c
-prefs_table.$O: $(SRC_TOP)Headers/prologue.h
-prefs_table.$O: $(BLD_TOP)config.h
-prefs_table.$O: $(BLD_TOP)forbuild.h
-prefs_table.$O: $(SRC_TOP)Headers/prefs.h
-prefs_table.$O: $(SRC_DIR)/prefs_internal.h
-prefs_table.$O: $(SRC_TOP)Headers/status_types.h
-prefs_table.$O: $(SRC_TOP)Headers/api_types.h
-prefs_table.$O: $(SRC_TOP)Headers/async.h
-prefs_table.$O: $(SRC_TOP)Headers/brl_types.h
-prefs_table.$O: $(SRC_TOP)Headers/ctb_types.h
-prefs_table.$O: $(SRC_TOP)Headers/driver.h
-prefs_table.$O: $(SRC_TOP)Headers/gio_types.h
-prefs_table.$O: $(SRC_TOP)Headers/ktb_types.h
-prefs_table.$O: $(SRC_TOP)Headers/queue.h
-prefs_table.$O: $(SRC_TOP)Headers/serial_types.h
-prefs_table.$O: $(SRC_TOP)Headers/spk_types.h
-prefs_table.$O: $(SRC_TOP)Headers/tune_types.h
-prefs_table.$O: $(SRC_TOP)Headers/usb_types.h
-prefs_table.$O: $(SRC_DIR)/defaults.h
-prefs_table.$O: $(SRC_DIR)/parameters.h
-
 # Dependencies for profile.$O:
 profile.$O: $(SRC_DIR)/profile.c
 profile.$O: $(SRC_TOP)Headers/prologue.h
@@ -2968,8 +3240,7 @@ profile.$O: $(SRC_TOP)Headers/datafile.h
 profile.$O: $(SRC_TOP)Headers/variables.h
 profile.$O: $(SRC_TOP)Headers/file.h
 profile.$O: $(SRC_TOP)Headers/get_sockets.h
-profile.$O: $(SRC_TOP)Headers/charset.h
-profile.$O: $(SRC_TOP)Headers/lock.h
+profile.$O: $(SRC_TOP)Headers/utf8.h
 
 # Dependencies for program.$O:
 program.$O: $(SRC_DIR)/program.c
@@ -2978,6 +3249,7 @@ program.$O: $(BLD_TOP)config.h
 program.$O: $(BLD_TOP)forbuild.h
 program.$O: $(SRC_TOP)Headers/pid.h
 program.$O: $(SRC_TOP)Headers/program.h
+program.$O: $(SRC_TOP)Headers/messages.h
 program.$O: $(SRC_TOP)Headers/pgmpath.h
 program.$O: $(SRC_TOP)Headers/log.h
 program.$O: $(SRC_TOP)Headers/file.h
@@ -3002,7 +3274,10 @@ report.$O: $(SRC_TOP)Headers/prologue.h
 report.$O: $(BLD_TOP)config.h
 report.$O: $(BLD_TOP)forbuild.h
 report.$O: $(SRC_TOP)Headers/log.h
-report.$O: $(SRC_TOP)Headers/report.h
+report.$O: brlapi_constants.h
+report.$O: $(SRC_DIR)/brlapi_keycodes.h
+report.$O: $(SRC_DIR)/brlapi_param.h
+report.$O: $(SRC_DIR)/report.h
 report.$O: $(SRC_TOP)Headers/queue.h
 
 # Dependencies for revision.$O:
@@ -3022,8 +3297,7 @@ rgx.$O: $(SRC_TOP)Headers/log.h
 rgx.$O: $(SRC_TOP)Headers/rgx.h
 rgx.$O: $(SRC_TOP)Headers/strfmth.h
 rgx.$O: $(SRC_DIR)/rgx_internal.h
-rgx.$O: $(SRC_TOP)Headers/charset.h
-rgx.$O: $(SRC_TOP)Headers/lock.h
+rgx.$O: $(SRC_TOP)Headers/utf8.h
 rgx.$O: $(SRC_TOP)Headers/queue.h
 rgx.$O: $(SRC_TOP)Headers/strfmt.h
 
@@ -3063,15 +3337,17 @@ routing.$O: $(SRC_DIR)/routing.c
 routing.$O: $(SRC_TOP)Headers/prologue.h
 routing.$O: $(BLD_TOP)config.h
 routing.$O: $(BLD_TOP)forbuild.h
+routing.$O: $(SRC_DIR)/parameters.h
 routing.$O: $(SRC_TOP)Headers/log.h
 routing.$O: $(SRC_TOP)Headers/pid.h
 routing.$O: $(SRC_TOP)Headers/program.h
-routing.$O: $(SRC_TOP)Headers/get_pthreads.h
+routing.$O: $(SRC_TOP)Headers/get_thread.h
+routing.$O: $(SRC_TOP)Headers/gettime.h
 routing.$O: $(SRC_TOP)Headers/thread.h
-routing.$O: $(SRC_TOP)Headers/timing.h
 routing.$O: $(SRC_TOP)Headers/win_pthread.h
 routing.$O: $(SRC_TOP)Headers/async.h
 routing.$O: $(SRC_TOP)Headers/async_wait.h
+routing.$O: $(SRC_TOP)Headers/timing.h
 routing.$O: $(SRC_TOP)Headers/driver.h
 routing.$O: $(SRC_TOP)Headers/ktb_types.h
 routing.$O: $(SRC_TOP)Headers/scr_types.h
@@ -3084,6 +3360,7 @@ scr.$O: $(SRC_TOP)Headers/prologue.h
 scr.$O: $(BLD_TOP)config.h
 scr.$O: $(BLD_TOP)forbuild.h
 scr.$O: $(SRC_TOP)Headers/log.h
+scr.$O: $(SRC_TOP)Headers/unicode.h
 scr.$O: $(SRC_TOP)Headers/driver.h
 scr.$O: $(SRC_TOP)Headers/ktb_types.h
 scr.$O: $(SRC_TOP)Headers/scr_types.h
@@ -3115,15 +3392,13 @@ scr_driver.$O: $(BLD_TOP)forbuild.h
 scr_driver.$O: $(SRC_TOP)Headers/driver.h
 scr_driver.$O: $(SRC_TOP)Headers/drivers.h
 scr_driver.$O: $(SRC_TOP)Headers/ktb_types.h
-scr_driver.$O: $(SRC_TOP)Headers/scr_types.h
-scr_driver.$O: $(SRC_DIR)/scr.h
 scr_driver.$O: $(SRC_TOP)Headers/scr_base.h
-scr_driver.$O: $(SRC_TOP)Headers/scr_main.h
-scr_driver.$O: scr.auto.h
 scr_driver.$O: $(SRC_TOP)Headers/scr_driver.h
-scr_driver.$O: $(SRC_TOP)Headers/scr_gpm.h
+scr_driver.$O: $(SRC_TOP)Headers/scr_main.h
 scr_driver.$O: $(SRC_TOP)Headers/scr_real.h
+scr_driver.$O: $(SRC_TOP)Headers/scr_types.h
 scr_driver.$O: $(SRC_TOP)Headers/scr_utils.h
+scr_driver.$O: scr.auto.h
 
 # Dependencies for scr_frozen.$O:
 scr_frozen.$O: $(SRC_DIR)/scr_frozen.c
@@ -3184,7 +3459,6 @@ scr_main.$O: $(SRC_TOP)Headers/prologue.h
 scr_main.$O: $(BLD_TOP)config.h
 scr_main.$O: $(BLD_TOP)forbuild.h
 scr_main.$O: $(SRC_DIR)/parameters.h
-scr_main.$O: $(SRC_TOP)Headers/api_types.h
 scr_main.$O: $(SRC_TOP)Headers/async.h
 scr_main.$O: $(SRC_TOP)Headers/brl_types.h
 scr_main.$O: $(SRC_TOP)Headers/driver.h
@@ -3204,6 +3478,7 @@ scr_menu.$O: $(SRC_DIR)/scr_menu.c
 scr_menu.$O: $(SRC_TOP)Headers/prologue.h
 scr_menu.$O: $(BLD_TOP)config.h
 scr_menu.$O: $(BLD_TOP)forbuild.h
+scr_menu.$O: $(SRC_DIR)/parameters.h
 scr_menu.$O: $(SRC_TOP)Headers/log.h
 scr_menu.$O: $(SRC_TOP)Headers/strfmt.h
 scr_menu.$O: $(SRC_TOP)Headers/strfmth.h
@@ -3211,33 +3486,35 @@ scr_menu.$O: $(SRC_TOP)Headers/driver.h
 scr_menu.$O: $(SRC_TOP)Headers/ktb_types.h
 scr_menu.$O: $(SRC_TOP)Headers/scr_types.h
 scr_menu.$O: $(SRC_DIR)/scr.h
-scr_menu.$O: $(SRC_TOP)Headers/menu.h
 scr_menu.$O: $(SRC_TOP)Headers/scr_base.h
+scr_menu.$O: $(SRC_TOP)Headers/scr_main.h
+scr_menu.$O: $(SRC_DIR)/scr_internal.h
+scr_menu.$O: $(SRC_DIR)/scr_special.h
+scr_menu.$O: $(SRC_TOP)Headers/menu.h
 scr_menu.$O: $(SRC_DIR)/scr_menu.h
-scr_menu.$O: $(SRC_TOP)Headers/brl_cmds.h
-scr_menu.$O: $(SRC_TOP)Headers/brl_dots.h
-scr_menu.$O: $(SRC_DIR)/cmd_queue.h
-scr_menu.$O: $(SRC_TOP)Headers/alert.h
-scr_menu.$O: $(SRC_TOP)Headers/charset.h
-scr_menu.$O: $(SRC_TOP)Headers/lock.h
-scr_menu.$O: $(SRC_TOP)Headers/api_types.h
 scr_menu.$O: $(SRC_TOP)Headers/async.h
 scr_menu.$O: $(SRC_TOP)Headers/brl_types.h
-scr_menu.$O: $(SRC_TOP)Headers/cmd.h
+scr_menu.$O: $(SRC_TOP)Headers/gio_types.h
+scr_menu.$O: $(SRC_TOP)Headers/queue.h
+scr_menu.$O: $(SRC_TOP)Headers/serial_types.h
+scr_menu.$O: $(SRC_TOP)Headers/usb_types.h
+scr_menu.$O: $(SRC_DIR)/update.h
+scr_menu.$O: $(SRC_TOP)Headers/brl_cmds.h
+scr_menu.$O: $(SRC_TOP)Headers/brl_dots.h
 scr_menu.$O: $(SRC_TOP)Headers/cmd_types.h
+scr_menu.$O: $(SRC_DIR)/cmd_queue.h
+scr_menu.$O: $(SRC_TOP)Headers/alert.h
+scr_menu.$O: $(SRC_TOP)Headers/utf8.h
+scr_menu.$O: $(SRC_TOP)Headers/cmd.h
 scr_menu.$O: $(SRC_TOP)Headers/ctb.h
 scr_menu.$O: $(SRC_TOP)Headers/ctb_types.h
-scr_menu.$O: $(SRC_TOP)Headers/gio_types.h
 scr_menu.$O: $(SRC_TOP)Headers/ktb.h
 scr_menu.$O: $(SRC_TOP)Headers/pid.h
 scr_menu.$O: $(SRC_TOP)Headers/prefs.h
 scr_menu.$O: $(SRC_TOP)Headers/program.h
-scr_menu.$O: $(SRC_TOP)Headers/queue.h
-scr_menu.$O: $(SRC_TOP)Headers/serial_types.h
 scr_menu.$O: $(SRC_TOP)Headers/spk.h
 scr_menu.$O: $(SRC_TOP)Headers/spk_types.h
 scr_menu.$O: $(SRC_TOP)Headers/timing.h
-scr_menu.$O: $(SRC_TOP)Headers/usb_types.h
 scr_menu.$O: $(SRC_DIR)/brl.h
 scr_menu.$O: $(SRC_DIR)/core.h
 scr_menu.$O: $(SRC_DIR)/profile_types.h
@@ -3272,7 +3549,6 @@ scr_special.$O: $(SRC_TOP)Headers/scr_base.h
 scr_special.$O: $(SRC_TOP)Headers/scr_main.h
 scr_special.$O: $(SRC_DIR)/scr_internal.h
 scr_special.$O: $(SRC_DIR)/scr_special.h
-scr_special.$O: $(SRC_TOP)Headers/api_types.h
 scr_special.$O: $(SRC_TOP)Headers/async.h
 scr_special.$O: $(SRC_TOP)Headers/brl_types.h
 scr_special.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3312,7 +3588,6 @@ scrtest.$O: $(SRC_TOP)Headers/driver.h
 scrtest.$O: $(SRC_TOP)Headers/ktb_types.h
 scrtest.$O: $(SRC_TOP)Headers/scr_types.h
 scrtest.$O: $(SRC_DIR)/scr.h
-scrtest.$O: $(SRC_TOP)Headers/api_types.h
 scrtest.$O: $(SRC_TOP)Headers/async.h
 scrtest.$O: $(SRC_TOP)Headers/brl_types.h
 scrtest.$O: $(SRC_TOP)Headers/gio_types.h
@@ -3327,6 +3602,8 @@ serial.$O: $(SRC_TOP)Headers/prologue.h
 serial.$O: $(BLD_TOP)config.h
 serial.$O: $(BLD_TOP)forbuild.h
 serial.$O: $(SRC_TOP)Headers/log.h
+serial.$O: $(SRC_TOP)Headers/strfmt.h
+serial.$O: $(SRC_TOP)Headers/strfmth.h
 serial.$O: $(SRC_DIR)/parameters.h
 serial.$O: $(SRC_TOP)Headers/parse.h
 serial.$O: $(SRC_TOP)Headers/device.h
@@ -3339,11 +3616,11 @@ serial.$O: $(SRC_DIR)/serial_msdos.h
 serial.$O: $(SRC_DIR)/serial_termios.h
 serial.$O: $(SRC_DIR)/serial_windows.h
 serial.$O: $(SRC_TOP)Headers/async_io.h
-serial.$O: $(SRC_TOP)Headers/get_pthreads.h
+serial.$O: $(SRC_TOP)Headers/get_thread.h
+serial.$O: $(SRC_TOP)Headers/gettime.h
 serial.$O: $(SRC_TOP)Headers/io_serial.h
 serial.$O: $(SRC_TOP)Headers/serial_types.h
 serial.$O: $(SRC_TOP)Headers/thread.h
-serial.$O: $(SRC_TOP)Headers/timing.h
 serial.$O: $(SRC_TOP)Headers/win_pthread.h
 serial.$O: $(SRC_DIR)/serial_internal.h
 
@@ -3358,7 +3635,8 @@ serial_grub.$O: $(SRC_DIR)/serial_grub.h
 serial_grub.$O: $(SRC_DIR)/serial_uart.h
 serial_grub.$O: $(SRC_TOP)Headers/async.h
 serial_grub.$O: $(SRC_TOP)Headers/async_io.h
-serial_grub.$O: $(SRC_TOP)Headers/get_pthreads.h
+serial_grub.$O: $(SRC_TOP)Headers/get_thread.h
+serial_grub.$O: $(SRC_TOP)Headers/gettime.h
 serial_grub.$O: $(SRC_TOP)Headers/io_serial.h
 serial_grub.$O: $(SRC_TOP)Headers/serial_types.h
 serial_grub.$O: $(SRC_TOP)Headers/thread.h
@@ -3380,7 +3658,8 @@ serial_msdos.$O: $(SRC_TOP)Headers/ports.h
 serial_msdos.$O: $(SRC_DIR)/serial_msdos.h
 serial_msdos.$O: $(SRC_DIR)/serial_uart.h
 serial_msdos.$O: $(SRC_TOP)Headers/async_io.h
-serial_msdos.$O: $(SRC_TOP)Headers/get_pthreads.h
+serial_msdos.$O: $(SRC_TOP)Headers/get_thread.h
+serial_msdos.$O: $(SRC_TOP)Headers/gettime.h
 serial_msdos.$O: $(SRC_TOP)Headers/io_serial.h
 serial_msdos.$O: $(SRC_TOP)Headers/serial_types.h
 serial_msdos.$O: $(SRC_TOP)Headers/thread.h
@@ -3395,11 +3674,11 @@ serial_none.$O: $(BLD_TOP)forbuild.h
 serial_none.$O: $(SRC_DIR)/serial_none.h
 serial_none.$O: $(SRC_TOP)Headers/async.h
 serial_none.$O: $(SRC_TOP)Headers/async_io.h
-serial_none.$O: $(SRC_TOP)Headers/get_pthreads.h
+serial_none.$O: $(SRC_TOP)Headers/get_thread.h
+serial_none.$O: $(SRC_TOP)Headers/gettime.h
 serial_none.$O: $(SRC_TOP)Headers/io_serial.h
 serial_none.$O: $(SRC_TOP)Headers/serial_types.h
 serial_none.$O: $(SRC_TOP)Headers/thread.h
-serial_none.$O: $(SRC_TOP)Headers/timing.h
 serial_none.$O: $(SRC_TOP)Headers/win_pthread.h
 serial_none.$O: $(SRC_DIR)/serial_internal.h
 
@@ -3414,11 +3693,11 @@ serial_termios.$O: $(SRC_TOP)Headers/io_misc.h
 serial_termios.$O: $(SRC_TOP)Headers/async.h
 serial_termios.$O: $(SRC_DIR)/serial_termios.h
 serial_termios.$O: $(SRC_TOP)Headers/async_io.h
-serial_termios.$O: $(SRC_TOP)Headers/get_pthreads.h
+serial_termios.$O: $(SRC_TOP)Headers/get_thread.h
+serial_termios.$O: $(SRC_TOP)Headers/gettime.h
 serial_termios.$O: $(SRC_TOP)Headers/io_serial.h
 serial_termios.$O: $(SRC_TOP)Headers/serial_types.h
 serial_termios.$O: $(SRC_TOP)Headers/thread.h
-serial_termios.$O: $(SRC_TOP)Headers/timing.h
 serial_termios.$O: $(SRC_TOP)Headers/win_pthread.h
 serial_termios.$O: $(SRC_DIR)/serial_internal.h
 
@@ -3432,11 +3711,11 @@ serial_windows.$O: $(SRC_TOP)Headers/ascii.h
 serial_windows.$O: $(SRC_DIR)/serial_windows.h
 serial_windows.$O: $(SRC_TOP)Headers/async.h
 serial_windows.$O: $(SRC_TOP)Headers/async_io.h
-serial_windows.$O: $(SRC_TOP)Headers/get_pthreads.h
+serial_windows.$O: $(SRC_TOP)Headers/get_thread.h
+serial_windows.$O: $(SRC_TOP)Headers/gettime.h
 serial_windows.$O: $(SRC_TOP)Headers/io_serial.h
 serial_windows.$O: $(SRC_TOP)Headers/serial_types.h
 serial_windows.$O: $(SRC_TOP)Headers/thread.h
-serial_windows.$O: $(SRC_TOP)Headers/timing.h
 serial_windows.$O: $(SRC_TOP)Headers/win_pthread.h
 serial_windows.$O: $(SRC_DIR)/serial_internal.h
 
@@ -3473,7 +3752,6 @@ ses.$O: $(BLD_TOP)config.h
 ses.$O: $(BLD_TOP)forbuild.h
 ses.$O: $(SRC_TOP)Headers/log.h
 ses.$O: $(SRC_DIR)/ses.h
-ses.$O: $(SRC_TOP)Headers/api_types.h
 ses.$O: $(SRC_TOP)Headers/async.h
 ses.$O: $(SRC_TOP)Headers/brl_types.h
 ses.$O: $(SRC_TOP)Headers/ctb_types.h
@@ -3501,8 +3779,7 @@ spk.$O: $(SRC_TOP)Headers/file.h
 spk.$O: $(SRC_TOP)Headers/get_sockets.h
 spk.$O: $(SRC_TOP)Headers/parse.h
 spk.$O: $(SRC_TOP)Headers/prefs.h
-spk.$O: $(SRC_TOP)Headers/charset.h
-spk.$O: $(SRC_TOP)Headers/lock.h
+spk.$O: $(SRC_TOP)Headers/utf8.h
 spk.$O: $(SRC_TOP)Headers/driver.h
 spk.$O: $(SRC_TOP)Headers/spk.h
 spk.$O: $(SRC_TOP)Headers/spk_types.h
@@ -3529,9 +3806,9 @@ spk_driver.$O: $(SRC_TOP)Headers/driver.h
 spk_driver.$O: $(SRC_TOP)Headers/drivers.h
 spk_driver.$O: $(SRC_TOP)Headers/spk.h
 spk_driver.$O: $(SRC_TOP)Headers/spk_types.h
-spk_driver.$O: spk.auto.h
 spk_driver.$O: $(SRC_TOP)Headers/spk_base.h
 spk_driver.$O: $(SRC_TOP)Headers/spk_driver.h
+spk_driver.$O: spk.auto.h
 
 # Dependencies for spk_input.$O:
 spk_input.$O: $(SRC_DIR)/spk_input.c
@@ -3544,7 +3821,6 @@ spk_input.$O: $(SRC_TOP)Headers/driver.h
 spk_input.$O: $(SRC_TOP)Headers/spk.h
 spk_input.$O: $(SRC_TOP)Headers/spk_types.h
 spk_input.$O: $(SRC_DIR)/pipe.h
-spk_input.$O: $(SRC_TOP)Headers/api_types.h
 spk_input.$O: $(SRC_TOP)Headers/async.h
 spk_input.$O: $(SRC_TOP)Headers/brl_types.h
 spk_input.$O: $(SRC_TOP)Headers/cmd.h
@@ -3585,9 +3861,9 @@ spk_thread.$O: $(SRC_TOP)Headers/spk.h
 spk_thread.$O: $(SRC_TOP)Headers/async.h
 spk_thread.$O: $(SRC_TOP)Headers/async_wait.h
 spk_thread.$O: $(SRC_TOP)Headers/async_event.h
-spk_thread.$O: $(SRC_TOP)Headers/get_pthreads.h
+spk_thread.$O: $(SRC_TOP)Headers/get_thread.h
+spk_thread.$O: $(SRC_TOP)Headers/gettime.h
 spk_thread.$O: $(SRC_TOP)Headers/thread.h
-spk_thread.$O: $(SRC_TOP)Headers/timing.h
 spk_thread.$O: $(SRC_TOP)Headers/win_pthread.h
 spk_thread.$O: $(SRC_TOP)Headers/queue.h
 
@@ -3620,7 +3896,6 @@ status.$O: $(BLD_TOP)forbuild.h
 status.$O: $(SRC_TOP)Headers/status_types.h
 status.$O: $(SRC_DIR)/status.h
 status.$O: $(SRC_TOP)Headers/timing.h
-status.$O: $(SRC_TOP)Headers/api_types.h
 status.$O: $(SRC_TOP)Headers/async.h
 status.$O: $(SRC_TOP)Headers/brl_types.h
 status.$O: $(SRC_TOP)Headers/driver.h
@@ -3712,13 +3987,14 @@ system_java.$O: $(SRC_TOP)Headers/prologue.h
 system_java.$O: $(BLD_TOP)config.h
 system_java.$O: $(BLD_TOP)forbuild.h
 system_java.$O: $(SRC_TOP)Headers/log.h
-system_java.$O: $(SRC_TOP)Headers/get_pthreads.h
+system_java.$O: $(SRC_TOP)Headers/get_thread.h
+system_java.$O: $(SRC_TOP)Headers/gettime.h
 system_java.$O: $(SRC_TOP)Headers/thread.h
-system_java.$O: $(SRC_TOP)Headers/timing.h
 system_java.$O: $(SRC_TOP)Headers/win_pthread.h
 system_java.$O: $(SRC_TOP)Headers/system.h
 system_java.$O: $(SRC_TOP)Headers/common_java.h
 system_java.$O: $(SRC_TOP)Headers/system_java.h
+system_java.$O: $(SRC_TOP)Headers/messages.h
 
 # Dependencies for system_linux.$O:
 system_linux.$O: $(SRC_DIR)/system_linux.c
@@ -3726,6 +4002,7 @@ system_linux.$O: $(SRC_TOP)Headers/prologue.h
 system_linux.$O: $(BLD_TOP)config.h
 system_linux.$O: $(BLD_TOP)forbuild.h
 system_linux.$O: $(SRC_TOP)Headers/log.h
+system_linux.$O: $(SRC_TOP)Headers/parse.h
 system_linux.$O: $(SRC_TOP)Headers/file.h
 system_linux.$O: $(SRC_TOP)Headers/get_sockets.h
 system_linux.$O: $(SRC_TOP)Headers/device.h
@@ -3760,9 +4037,10 @@ system_windows.$O: $(SRC_TOP)Headers/prologue.h
 system_windows.$O: $(BLD_TOP)config.h
 system_windows.$O: $(BLD_TOP)forbuild.h
 system_windows.$O: $(SRC_TOP)Headers/log.h
-system_windows.$O: $(SRC_TOP)Headers/timing.h
 system_windows.$O: $(SRC_TOP)Headers/system.h
 system_windows.$O: $(SRC_TOP)Headers/system_windows.h
+system_windows.$O: $(SRC_TOP)Headers/timing.h
+system_windows.$O: $(SRC_TOP)Headers/messages.h
 system_windows.$O: $(SRC_TOP)Headers/win_errno.h
 
 # Dependencies for tbl2hex.$O:
@@ -3798,9 +4076,9 @@ thread.$O: $(BLD_TOP)forbuild.h
 thread.$O: $(SRC_TOP)Headers/log.h
 thread.$O: $(SRC_TOP)Headers/strfmt.h
 thread.$O: $(SRC_TOP)Headers/strfmth.h
-thread.$O: $(SRC_TOP)Headers/get_pthreads.h
+thread.$O: $(SRC_TOP)Headers/get_thread.h
+thread.$O: $(SRC_TOP)Headers/gettime.h
 thread.$O: $(SRC_TOP)Headers/thread.h
-thread.$O: $(SRC_TOP)Headers/timing.h
 thread.$O: $(SRC_TOP)Headers/win_pthread.h
 thread.$O: $(SRC_TOP)Headers/async.h
 thread.$O: $(SRC_TOP)Headers/async_signal.h
@@ -3831,6 +4109,7 @@ ttb_compile.$O: $(SRC_TOP)Headers/variables.h
 ttb_compile.$O: $(SRC_TOP)Headers/dataarea.h
 ttb_compile.$O: $(SRC_TOP)Headers/charset.h
 ttb_compile.$O: $(SRC_TOP)Headers/lock.h
+ttb_compile.$O: $(SRC_TOP)Headers/utf8.h
 ttb_compile.$O: $(SRC_TOP)Headers/ttb.h
 ttb_compile.$O: $(SRC_TOP)Headers/bitmask.h
 ttb_compile.$O: $(SRC_TOP)Headers/unicode.h
@@ -3887,10 +4166,11 @@ ttb_translate.$O: $(SRC_TOP)Headers/prologue.h
 ttb_translate.$O: $(BLD_TOP)config.h
 ttb_translate.$O: $(BLD_TOP)forbuild.h
 ttb_translate.$O: $(SRC_TOP)Headers/log.h
+ttb_translate.$O: $(SRC_TOP)Headers/lock.h
 ttb_translate.$O: $(SRC_TOP)Headers/file.h
 ttb_translate.$O: $(SRC_TOP)Headers/get_sockets.h
 ttb_translate.$O: $(SRC_TOP)Headers/charset.h
-ttb_translate.$O: $(SRC_TOP)Headers/lock.h
+ttb_translate.$O: $(SRC_TOP)Headers/utf8.h
 ttb_translate.$O: $(SRC_TOP)Headers/ttb.h
 ttb_translate.$O: $(SRC_TOP)Headers/bitmask.h
 ttb_translate.$O: $(SRC_TOP)Headers/dataarea.h
@@ -3906,13 +4186,14 @@ tune.$O: $(BLD_TOP)config.h
 tune.$O: $(BLD_TOP)forbuild.h
 tune.$O: $(SRC_TOP)Headers/log.h
 tune.$O: $(SRC_DIR)/parameters.h
-tune.$O: $(SRC_TOP)Headers/get_pthreads.h
+tune.$O: $(SRC_TOP)Headers/get_thread.h
+tune.$O: $(SRC_TOP)Headers/gettime.h
 tune.$O: $(SRC_TOP)Headers/thread.h
-tune.$O: $(SRC_TOP)Headers/timing.h
 tune.$O: $(SRC_TOP)Headers/win_pthread.h
 tune.$O: $(SRC_TOP)Headers/async.h
 tune.$O: $(SRC_TOP)Headers/async_event.h
 tune.$O: $(SRC_TOP)Headers/async_alarm.h
+tune.$O: $(SRC_TOP)Headers/timing.h
 tune.$O: $(SRC_TOP)Headers/async_wait.h
 tune.$O: $(SRC_TOP)Headers/pid.h
 tune.$O: $(SRC_TOP)Headers/program.h
@@ -3932,8 +4213,7 @@ tune_build.$O: $(SRC_TOP)Headers/tune.h
 tune_build.$O: $(SRC_TOP)Headers/tune_build.h
 tune_build.$O: $(SRC_TOP)Headers/tune_types.h
 tune_build.$O: $(SRC_TOP)Headers/notes.h
-tune_build.$O: $(SRC_TOP)Headers/charset.h
-tune_build.$O: $(SRC_TOP)Headers/lock.h
+tune_build.$O: $(SRC_TOP)Headers/utf8.h
 
 # Dependencies for tune_utils.$O:
 tune_utils.$O: $(SRC_DIR)/tune_utils.c
@@ -3966,10 +4246,12 @@ update.$O: $(BLD_TOP)forbuild.h
 update.$O: $(SRC_DIR)/parameters.h
 update.$O: $(SRC_TOP)Headers/log.h
 update.$O: $(SRC_TOP)Headers/alert.h
-update.$O: $(SRC_TOP)Headers/report.h
+update.$O: brlapi_constants.h
+update.$O: $(SRC_DIR)/brlapi_keycodes.h
+update.$O: $(SRC_DIR)/brlapi_param.h
+update.$O: $(SRC_DIR)/report.h
 update.$O: $(SRC_TOP)Headers/strfmt.h
 update.$O: $(SRC_TOP)Headers/strfmth.h
-update.$O: $(SRC_TOP)Headers/api_types.h
 update.$O: $(SRC_TOP)Headers/async.h
 update.$O: $(SRC_TOP)Headers/brl_types.h
 update.$O: $(SRC_TOP)Headers/driver.h
@@ -3984,6 +4266,7 @@ update.$O: $(SRC_TOP)Headers/timing.h
 update.$O: $(SRC_TOP)Headers/unicode.h
 update.$O: $(SRC_TOP)Headers/charset.h
 update.$O: $(SRC_TOP)Headers/lock.h
+update.$O: $(SRC_TOP)Headers/utf8.h
 update.$O: $(SRC_TOP)Headers/ttb.h
 update.$O: $(SRC_TOP)Headers/atb.h
 update.$O: $(SRC_TOP)Headers/brl_dots.h
@@ -4027,8 +4310,7 @@ usb.$O: $(SRC_TOP)Headers/bitmask.h
 usb.$O: $(SRC_TOP)Headers/parse.h
 usb.$O: $(SRC_TOP)Headers/file.h
 usb.$O: $(SRC_TOP)Headers/get_sockets.h
-usb.$O: $(SRC_TOP)Headers/charset.h
-usb.$O: $(SRC_TOP)Headers/lock.h
+usb.$O: $(SRC_TOP)Headers/utf8.h
 usb.$O: $(SRC_TOP)Headers/device.h
 usb.$O: $(SRC_TOP)Headers/timing.h
 usb.$O: $(SRC_TOP)Headers/async.h
@@ -4372,6 +4654,15 @@ usb_solaris.$O: $(SRC_TOP)Headers/bitfield.h
 usb_solaris.$O: $(SRC_TOP)Headers/queue.h
 usb_solaris.$O: $(SRC_DIR)/usb_internal.h
 
+# Dependencies for utf8.$O:
+utf8.$O: $(SRC_DIR)/utf8.c
+utf8.$O: $(SRC_TOP)Headers/prologue.h
+utf8.$O: $(BLD_TOP)config.h
+utf8.$O: $(BLD_TOP)forbuild.h
+utf8.$O: $(SRC_TOP)Headers/log.h
+utf8.$O: $(SRC_TOP)Headers/utf8.h
+utf8.$O: $(SRC_TOP)Headers/unicode.h
+
 # Dependencies for variables.$O:
 variables.$O: $(SRC_DIR)/variables.c
 variables.$O: $(SRC_TOP)Headers/prologue.h
@@ -4382,21 +4673,29 @@ variables.$O: $(SRC_TOP)Headers/strfmt.h
 variables.$O: $(SRC_TOP)Headers/strfmth.h
 variables.$O: $(SRC_TOP)Headers/variables.h
 variables.$O: $(SRC_TOP)Headers/queue.h
-variables.$O: $(SRC_TOP)Headers/charset.h
-variables.$O: $(SRC_TOP)Headers/lock.h
+variables.$O: $(SRC_TOP)Headers/utf8.h
 
 # Dependencies for xbrlapi.$O:
 xbrlapi.$O: $(SRC_DIR)/xbrlapi.c
 xbrlapi.$O: $(SRC_TOP)Headers/prologue.h
 xbrlapi.$O: $(BLD_TOP)config.h
 xbrlapi.$O: $(BLD_TOP)forbuild.h
+xbrlapi.$O: $(SRC_TOP)Headers/xsel.h
 xbrlapi.$O: brlapi.h
 xbrlapi.$O: brlapi_constants.h
 xbrlapi.$O: $(SRC_DIR)/brlapi_keycodes.h
+xbrlapi.$O: $(SRC_DIR)/brlapi_param.h
 xbrlapi.$O: $(SRC_TOP)Headers/datafile.h
 xbrlapi.$O: $(SRC_TOP)Headers/options.h
 xbrlapi.$O: $(SRC_TOP)Headers/pid.h
 xbrlapi.$O: $(SRC_TOP)Headers/program.h
 xbrlapi.$O: $(SRC_TOP)Headers/strfmth.h
 xbrlapi.$O: $(SRC_TOP)Headers/variables.h
+
+# Dependencies for xsel.$O:
+xsel.$O: $(SRC_DIR)/xsel.c
+xsel.$O: $(SRC_TOP)Headers/prologue.h
+xsel.$O: $(BLD_TOP)config.h
+xsel.$O: $(BLD_TOP)forbuild.h
+xsel.$O: $(SRC_TOP)Headers/xsel.h
 

@@ -5,7 +5,6 @@ eu_braille.$O: $(BLD_TOP)config.h
 eu_braille.$O: $(BLD_TOP)forbuild.h
 eu_braille.$O: $(SRC_TOP)Headers/message.h
 eu_braille.$O: $(SRC_TOP)Headers/log.h
-eu_braille.$O: $(SRC_TOP)Headers/api_types.h
 eu_braille.$O: $(SRC_TOP)Headers/async.h
 eu_braille.$O: $(SRC_TOP)Headers/async_io.h
 eu_braille.$O: $(SRC_TOP)Headers/brl_base.h
@@ -36,7 +35,6 @@ eu_clio.$O: $(SRC_TOP)Headers/timing.h
 eu_clio.$O: $(SRC_TOP)Headers/ascii.h
 eu_clio.$O: $(SRC_DIR)/brldefs-eu.h
 eu_clio.$O: $(SRC_DIR)/eu_protocol.h
-eu_clio.$O: $(SRC_TOP)Headers/api_types.h
 eu_clio.$O: $(SRC_TOP)Headers/async.h
 eu_clio.$O: $(SRC_TOP)Headers/brl_base.h
 eu_clio.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -60,7 +58,6 @@ eu_esysiris.$O: $(SRC_TOP)Headers/log.h
 eu_esysiris.$O: $(SRC_TOP)Headers/ascii.h
 eu_esysiris.$O: $(SRC_DIR)/brldefs-eu.h
 eu_esysiris.$O: $(SRC_DIR)/eu_protocol.h
-eu_esysiris.$O: $(SRC_TOP)Headers/api_types.h
 eu_esysiris.$O: $(SRC_TOP)Headers/async.h
 eu_esysiris.$O: $(SRC_TOP)Headers/brl_base.h
 eu_esysiris.$O: $(SRC_TOP)Headers/brl_cmds.h
@@ -81,6 +78,7 @@ eutp_brl.$O: $(SRC_DIR)/eutp_brl.c
 eutp_brl.$O: $(BLD_TOP)Programs/brlapi.h
 eutp_brl.$O: $(BLD_TOP)Programs/brlapi_constants.h
 eutp_brl.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+eutp_brl.$O: $(SRC_TOP)Programs/brlapi_param.h
 eutp_brl.$O: $(SRC_DIR)/eutp_brl.h
 eutp_brl.$O: $(SRC_DIR)/eutp_pc.h
 eutp_brl.$O: $(SRC_DIR)/eutp_tools.h
@@ -91,6 +89,7 @@ eutp_convert.$O: $(SRC_DIR)/eutp_convert.c
 eutp_convert.$O: $(BLD_TOP)Programs/brlapi.h
 eutp_convert.$O: $(BLD_TOP)Programs/brlapi_constants.h
 eutp_convert.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+eutp_convert.$O: $(SRC_TOP)Programs/brlapi_param.h
 eutp_convert.$O: $(SRC_DIR)/eutp_brl.h
 
 # Dependencies for eutp_debug.$O:
@@ -102,6 +101,7 @@ eutp_main.$O: $(SRC_DIR)/eutp_brl.h
 eutp_main.$O: $(BLD_TOP)Programs/brlapi.h
 eutp_main.$O: $(BLD_TOP)Programs/brlapi_constants.h
 eutp_main.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+eutp_main.$O: $(SRC_TOP)Programs/brlapi_param.h
 eutp_main.$O: $(SRC_DIR)/eutp_convert.h
 eutp_main.$O: $(SRC_DIR)/eutp_pc.h
 
@@ -111,6 +111,7 @@ eutp_pc.$O: $(SRC_DIR)/eutp_brl.h
 eutp_pc.$O: $(BLD_TOP)Programs/brlapi.h
 eutp_pc.$O: $(BLD_TOP)Programs/brlapi_constants.h
 eutp_pc.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+eutp_pc.$O: $(SRC_TOP)Programs/brlapi_param.h
 eutp_pc.$O: $(SRC_DIR)/eutp_pc.h
 
 # Dependencies for eutp_tools.$O:
@@ -119,12 +120,14 @@ eutp_tools.$O: $(SRC_DIR)/eutp_brl.h
 eutp_tools.$O: $(BLD_TOP)Programs/brlapi.h
 eutp_tools.$O: $(BLD_TOP)Programs/brlapi_constants.h
 eutp_tools.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+eutp_tools.$O: $(SRC_TOP)Programs/brlapi_param.h
 
 # Dependencies for eutp_transfer.$O:
 eutp_transfer.$O: $(SRC_DIR)/eutp_transfer.c
 eutp_transfer.$O: $(BLD_TOP)Programs/brlapi.h
 eutp_transfer.$O: $(BLD_TOP)Programs/brlapi_constants.h
 eutp_transfer.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
+eutp_transfer.$O: $(SRC_TOP)Programs/brlapi_param.h
 eutp_transfer.$O: $(SRC_DIR)/eutp_brl.h
 eutp_transfer.$O: $(SRC_DIR)/eutp_debug.h
 eutp_transfer.$O: $(SRC_DIR)/eutp_tools.h

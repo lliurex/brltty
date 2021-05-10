@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -76,8 +76,6 @@ extern unsigned char translateInputCell (unsigned char cell);
   makeOutputTable(dots); \
 }
 
-extern void applyBrailleDisplayOrientation (unsigned char *cells, size_t count);
-
 extern int awaitBrailleInput (BrailleDisplay *brl, int timeout);
 
 typedef int BrailleSessionInitializer (BrailleDisplay *brl);
@@ -99,12 +97,13 @@ extern void disconnectBrailleResource (
 typedef enum {
   BRL_PVR_INVALID,
   BRL_PVR_INCLUDE,
-  BRL_PVR_EXCLUDE
+  BRL_PVR_EXCLUDE,
+  BRL_PVR_IGNORE
 } BraillePacketVerifierResult;
 
 typedef BraillePacketVerifierResult BraillePacketVerifier (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 );
 
@@ -159,6 +158,42 @@ extern void releaseBrailleKeys (BrailleDisplay *brl);
 
 typedef uint32_t KeyNumberSet;
 #define KEY_NUMBER_BIT(number) (UINT32_C(1) << (number))
+
+static inline int
+isKeyNumberIncluded (KeyNumberSet set, KeyNumber number) {
+  return !!(set & KEY_NUMBER_BIT(number));
+}
+
+static inline void
+setKeyNumberIncluded (KeyNumberSet *set, KeyNumber number, int yes) {
+  KeyNumberSet bit = KEY_NUMBER_BIT(number);
+
+  if (yes) {
+    *set |= bit;
+  } else {
+    *set &= ~bit;
+  }
+}
+
+typedef struct {
+  KeyNumber from;
+  KeyNumber to;
+} KeyNumberMapEntry;
+
+extern KeyNumberSet mapKeyNumbers (KeyNumberSet fromKeys, const KeyNumberMapEntry *map, size_t count);
+extern void remapKeyNumbers (KeyNumberSet *keys, const KeyNumberMapEntry *map, size_t count);
+
+typedef struct {
+  KeyNumberSet from;
+  KeyNumberSet to;
+} KeyNumberSetMapEntry;
+
+typedef struct KeyNumberSetMapStruct KeyNumberSetMap;
+extern KeyNumberSetMap *newKeyNumberSetMap (const KeyNumberSetMapEntry *entries, size_t count);
+extern void destroyKeyNumberSetMap (KeyNumberSetMap *map);
+extern KeyNumberSet mapKeyNumberSet (KeyNumberSet keys, const KeyNumberSetMap *map);
+extern void remapKeyNumberSet (KeyNumberSet *keys, const KeyNumberSetMap *map);
+
 extern KeyNumberSet makeKeyNumberSet (KEY_NAME_TABLES_REFERENCE keys, KeyGroup group);
 
 extern int enqueueKeyEvent (

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -27,7 +27,7 @@
 #include "kbd_internal.h"
 
 const KeyboardProperties anyKeyboard = {
-  .type = KBD_TYPE_Any,
+  .type = KBD_TYPE_ANY,
   .vendor = 0,
   .product = 0
 };
@@ -48,8 +48,11 @@ parseKeyboardProperties (KeyboardProperties *properties, const char *string) {
   *properties = anyKeyboard;
 
   if (*parameters[KBD_PARM_TYPE]) {
-    static const KeyboardType types[] = {KBD_TYPE_Any, KBD_TYPE_PS2, KBD_TYPE_USB, KBD_TYPE_Bluetooth};
-    static const char *choices[] = {"any", "ps2", "usb", "bluetooth", NULL};
+    static const KeyboardType types[] = {
+      KBD_TYPE_ANY, KBD_TYPE_PS2, KBD_TYPE_USB, KBD_TYPE_BLUETOOTH, KBD_TYPE_INTERNAL
+    };
+
+    static const char *choices[] = {"any", "ps2", "usb", "bluetooth", "internal", NULL};
     unsigned int choice;
 
     if (validateChoice(&choice, parameters[KBD_PARM_TYPE], choices)) {
@@ -95,7 +98,7 @@ checkKeyboardProperties (const KeyboardProperties *actual, const KeyboardPropert
   if (!required) return 1;
   if (!actual)  actual = &anyKeyboard;
 
-  if (required->type != KBD_TYPE_Any) {
+  if (required->type != KBD_TYPE_ANY) {
     if (required->type != actual->type) return 0;
   }
 
@@ -311,7 +314,7 @@ handleKeyEvent (KeyboardInstanceObject *kio, int code, int press) {
     switch (action) {
       case WKA_ALL:
         flushKeyEvents(kio);
-
+        /* fall through */
       case WKA_CURRENT:
         logKeyEvent("forwarding", code, press);
         forwardKeyEvent(kio, code, press);

@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2006-2019 by Dave Mielke <dave@mielke.cc>
+ * Copyright (C) 2006-2021 by Dave Mielke <dave@mielke.cc>
  *
  * libbrlapi comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,8 +31,8 @@
 
 #define TEST_TCL_OK(expression) \
 do { \
-  int result = (expression); \
-  if (result != TCL_OK) return result; \
+  int tclResult = (expression); \
+  if (tclResult != TCL_OK) return tclResult; \
 } while (0)
 
 static int
@@ -237,15 +237,25 @@ typedef struct {
 static int
 processOptions (
   Tcl_Interp *interp, void *data,
-  Tcl_Obj *const objv[], int objc, int start,
+  Tcl_Obj *const objv[], int objc,
+  int start, int *consumed,
   const OptionEntry *options
 ) {
+  *consumed = objc;
   objv += start;
   objc -= start;
 
   while (objc > 0) {
+    Tcl_Obj *name = objv[0];
+
+    {
+      const char *string = Tcl_GetString(name);
+      if (!string) return TCL_ERROR;
+      if (*string != '-') break;
+    }
+
     int index;
-    TEST_TCL_OK(Tcl_GetIndexFromObjStruct(interp, objv[0], options, sizeof(*options), "option", 0, &index));
+    TEST_TCL_OK(Tcl_GetIndexFromObjStruct(interp, name, options, sizeof(*options), "option", 0, &index));
     const OptionEntry *option = &options[index];
 
     int count = option->operands;
@@ -257,13 +267,19 @@ processOptions (
     objc -= count;
   }
 
+  *consumed -= objc;
   return TCL_OK;
 }
 
 #define BEGIN_OPTIONS { static const OptionEntry optionTable[] = {
-#define END_OPTIONS(start) \
-  , {.name = NULL} }; \
-  TEST_TCL_OK(processOptions(interp, &options, objv, objc, (start), optionTable)); \
+#define END_OPTIONS(start,required,optional,syntax) \
+  , {.name = NULL} \
+  }; \
+  int consumed; \
+  TEST_TCL_OK(processOptions(interp, &options, objv, objc, (start), &consumed, optionTable)); \
+  objv += consumed; \
+  objc -= consumed; \
+  TEST_ARGUMENT_COUNT(0, (required), (optional), (syntax)); \
 }
 #define OPTION(command,function,option) \
   .name = "-" #option, .handler = OPTION_HANDLER_NAME(command, function, option)
@@ -314,15 +330,15 @@ typedef struct {
   const char *driver;
 } EnterTtyModeOptions;
 
-OPTION_HANDLER(session, enterTtyMode, events) {
-  EnterTtyModeOptions *options = data;
-  return (options->driver = Tcl_GetString(objv[1]))? TCL_OK: TCL_ERROR;
-}
-
-OPTION_HANDLER(session, enterTtyMode, keyCodes) {
+OPTION_HANDLER(session, enterTtyMode, commands) {
   EnterTtyModeOptions *options = data;
   options->driver = NULL;
   return TCL_OK;
+}
+
+OPTION_HANDLER(session, enterTtyMode, keys) {
+  EnterTtyModeOptions *options = data;
+  return (options->driver = Tcl_GetString(objv[1]))? TCL_OK: TCL_ERROR;
 }
 
 OPTION_HANDLER(session, enterTtyMode, tty) {
@@ -350,18 +366,18 @@ FUNCTION_HANDLER(session, enterTtyMode) {
   };
 
   BEGIN_OPTIONS
-    { OPTION(session, enterTtyMode, events),
-      OPERANDS(1, "<driver>")
+    { OPTION(session, enterTtyMode, commands),
+      OPERANDS(0, "")
     },
 
-    { OPTION(session, enterTtyMode, keyCodes),
-      OPERANDS(0, "")
+    { OPTION(session, enterTtyMode, keys),
+      OPERANDS(1, "<driver>")
     },
 
     { OPTION(session, enterTtyMode, tty),
       OPERANDS(1, "{default | <number>}")
     }
-  END_OPTIONS(2)
+  END_OPTIONS(2, 0, 0, "")
 
   {
     int result = brlapi__enterTtyMode(session->handle, options.tty, options.driver);
@@ -377,15 +393,15 @@ typedef struct {
   const char *driver;
 } EnterTtyModeWithPathOptions;
 
-OPTION_HANDLER(session, enterTtyModeWithPath, events) {
-  EnterTtyModeWithPathOptions *options = data;
-  return (options->driver = Tcl_GetString(objv[1]))? TCL_OK: TCL_ERROR;
-}
-
-OPTION_HANDLER(session, enterTtyModeWithPath, keyCodes) {
+OPTION_HANDLER(session, enterTtyModeWithPath, commands) {
   EnterTtyModeWithPathOptions *options = data;
   options->driver = NULL;
   return TCL_OK;
+}
+
+OPTION_HANDLER(session, enterTtyModeWithPath, keys) {
+  EnterTtyModeWithPathOptions *options = data;
+  return (options->driver = Tcl_GetString(objv[1]))? TCL_OK: TCL_ERROR;
 }
 
 OPTION_HANDLER(session, enterTtyModeWithPath, path) {
@@ -403,18 +419,18 @@ FUNCTION_HANDLER(session, enterTtyModeWithPath) {
   };
 
   BEGIN_OPTIONS
-    { OPTION(session, enterTtyModeWithPath, events),
-      OPERANDS(1, "<driver>")
+    { OPTION(session, enterTtyModeWithPath, commands),
+      OPERANDS(0, "")
     },
 
-    { OPTION(session, enterTtyModeWithPath, keyCodes),
-      OPERANDS(0, "")
+    { OPTION(session, enterTtyModeWithPath, keys),
+      OPERANDS(1, "<driver>")
     },
 
     { OPTION(session, enterTtyModeWithPath, path),
       OPERANDS(1, "<list>")
     }
-  END_OPTIONS(2)
+  END_OPTIONS(2, 0, 0, "")
 
   Tcl_Obj **elements;
   int count;
@@ -509,6 +525,314 @@ FUNCTION_HANDLER(session, leaveTtyMode) {
   TEST_FUNCTION_NO_ARGUMENTS();
 
   TEST_BRLAPI_OK(brlapi__leaveTtyMode(session->handle));
+  return TCL_OK;
+}
+
+typedef struct {
+  Tcl_Obj *value;
+  brlapi_param_flags_t flags;
+} ParameterOptions;
+
+OPTION_HANDLER(session, parameter, echo) {
+  ParameterOptions *options = data;
+  brlapi_param_flags_t flag = BRLAPI_PARAMF_SELF;
+
+  int echo;
+  TEST_TCL_OK(Tcl_GetBooleanFromObj(interp, objv[1], &echo));
+
+  if (echo) {
+    options->flags |= flag;
+  } else {
+    options->flags &= ~flag;
+  }
+
+  return TCL_OK;
+}
+
+OPTION_HANDLER(session, parameter, global) {
+  ParameterOptions *options = data;
+  brlapi_param_flags_t flag = BRLAPI_PARAMF_GLOBAL;
+
+  int global;
+  TEST_TCL_OK(Tcl_GetBooleanFromObj(interp, objv[1], &global));
+
+  if (global) {
+    options->flags |= flag;
+  } else {
+    options->flags &= ~flag;
+  }
+
+  return TCL_OK;
+}
+
+OPTION_HANDLER(session, parameter, set) {
+  ParameterOptions *options = data;
+  options->value = objv[1];
+  return TCL_OK;
+}
+
+static int
+parseParameterName (Tcl_Interp *interp, Tcl_Obj *name, brlapi_param_t *parameter) {
+  typedef struct {
+    const char *name;
+    brlapi_param_t value;
+  } ParameterEntry;
+
+  static const ParameterEntry parameters[] = {
+    #include "parameters.auto.h"
+    { .name=NULL }
+  };
+
+  int index;
+  TEST_TCL_OK(Tcl_GetIndexFromObjStruct(interp, name, parameters, sizeof(*parameters), "parameter name", 0, &index));
+
+  *parameter = parameters[index].value;
+  return TCL_OK;
+}
+
+FUNCTION_HANDLER(session, parameter) {
+  BrlapiSession *session = data;
+
+  ParameterOptions options = {
+    .value = NULL,
+    .flags = 0
+  };
+
+  BEGIN_OPTIONS
+    { OPTION(session, parameter, echo),
+      OPERANDS(1, "<boolean>")
+    },
+
+    { OPTION(session, parameter, global),
+      OPERANDS(1, "<boolean>")
+    },
+
+    { OPTION(session, parameter, set),
+      OPERANDS(1, "<value>")
+    }
+  END_OPTIONS(2, 1, 1, "<name> [<subparam>]")
+
+  Tcl_Obj *name = objv[0];
+  brlapi_param_t parameter;
+  TEST_TCL_OK(parseParameterName(interp, name, &parameter));
+
+  const brlapi_param_properties_t *properties = brlapi_getParameterProperties(parameter);
+  if (!properties) {
+    setStringsResult(interp, "bad parameter name", Tcl_GetString(name), NULL);
+    return TCL_ERROR;
+  }
+
+  int haveSubparam = objc > 1;
+  brlapi_param_subparam_t subparam;
+
+  if (properties->hasSubparam) {
+    if (!haveSubparam) {
+      setStringsResult(interp, "subparam not specified for \"", Tcl_GetString(name), "\"", NULL);
+      return TCL_ERROR;
+    }
+
+    Tcl_WideInt value;
+    TEST_TCL_OK(Tcl_GetWideIntFromObj(interp, objv[1], &value));
+    subparam = value;
+  } else {
+    if (haveSubparam) {
+      setStringsResult(interp, "subparam specified for \"", Tcl_GetString(name), "\"", NULL);
+      return TCL_ERROR;
+    }
+
+    subparam = 0;
+  }
+
+  if (options.value) {
+    Tcl_Obj *value = options.value;
+
+    switch (properties->type) {
+      case BRLAPI_PARAM_TYPE_STRING: {
+        const char *string = Tcl_GetString(value);
+	TEST_BRLAPI_OK(brlapi__setParameter(session->handle, parameter, subparam, options.flags, string, strlen(string)));
+        break;
+      }
+
+      default: {
+        Tcl_Obj **elements;
+        int count;
+        TEST_TCL_OK(Tcl_ListObjGetElements(interp, value, &count, &elements));
+
+        if (count) {
+          switch (properties->type) {
+            case BRLAPI_PARAM_TYPE_BOOLEAN: {
+              brlapi_param_bool_t buffer[count];
+
+              for (int index=0; index<count; index+=1) {
+                int boolean;
+                TEST_TCL_OK(Tcl_GetBooleanFromObj(interp, elements[index], &boolean));
+                buffer[index] = !!boolean;
+              }
+
+	      TEST_BRLAPI_OK(brlapi__setParameter(session->handle, parameter, subparam, options.flags, buffer, sizeof(buffer)));
+              break;
+            }
+
+            case BRLAPI_PARAM_TYPE_UINT8: {
+              uint8_t buffer[count];
+
+              for (int index=0; index<count; index+=1) {
+                int integer;
+                TEST_TCL_OK(Tcl_GetIntFromObj(interp, elements[index], &integer));
+                buffer[index] = integer;
+              }
+
+	      TEST_BRLAPI_OK(brlapi__setParameter(session->handle, parameter, subparam, options.flags, buffer, sizeof(buffer)));
+              break;
+            }
+
+            case BRLAPI_PARAM_TYPE_UINT16: {
+              uint16_t buffer[count];
+
+              for (int index=0; index<count; index+=1) {
+                int integer;
+                TEST_TCL_OK(Tcl_GetIntFromObj(interp, elements[index], &integer));
+                buffer[index] = integer;
+              }
+
+	      TEST_BRLAPI_OK(brlapi__setParameter(session->handle, parameter, subparam, options.flags, buffer, sizeof(buffer)));
+              break;
+            }
+
+            case BRLAPI_PARAM_TYPE_UINT32: {
+              uint32_t buffer[count];
+
+              for (int index=0; index<count; index+=1) {
+                int integer;
+                TEST_TCL_OK(Tcl_GetIntFromObj(interp, elements[index], &integer));
+                buffer[index] = integer;
+              }
+
+	      TEST_BRLAPI_OK(brlapi__setParameter(session->handle, parameter, subparam, options.flags, buffer, sizeof(buffer)));
+              break;
+            }
+
+            case BRLAPI_PARAM_TYPE_UINT64: {
+              uint64_t buffer[count];
+
+              for (int index=0; index<count; index+=1) {
+                long integer;
+                TEST_TCL_OK(Tcl_GetLongFromObj(interp, elements[index], &integer));
+                buffer[index] = integer;
+              }
+
+	      TEST_BRLAPI_OK(brlapi__setParameter(session->handle, parameter, subparam, options.flags, buffer, sizeof(buffer)));
+              break;
+            }
+
+            default:
+              break;
+          }
+        } else {
+	  TEST_BRLAPI_OK(brlapi__setParameter(session->handle, parameter, subparam, options.flags, NULL, 0));
+        }
+
+        break;
+      }
+    }
+  } else {
+    size_t length;
+    void *value = brlapi__getParameterAlloc(session->handle, parameter, subparam, options.flags, &length);
+
+    if (!value) {
+      setBrlapiError(interp);
+      return TCL_ERROR;
+    }
+
+    Tcl_Obj *result = Tcl_GetObjResult(interp);
+
+    switch (properties->type) {
+      case BRLAPI_PARAM_TYPE_STRING: {
+        Tcl_SetStringObj(result, value, -1);
+        break;
+      }
+
+      default: {
+        Tcl_SetListObj(result, 0, NULL);
+        const void *end = value + length;
+
+        switch (properties->type) {
+          case BRLAPI_PARAM_TYPE_BOOLEAN: {
+            const brlapi_param_bool_t *boolean = value;
+
+            while (boolean < (const brlapi_param_bool_t *)end) {
+              Tcl_Obj *element = Tcl_NewBooleanObj(*boolean);
+              if (!element) return TCL_ERROR;
+              TEST_TCL_OK(Tcl_ListObjAppendElement(interp, result, element));
+              boolean += 1;
+            }
+
+            break;
+          }
+
+          case BRLAPI_PARAM_TYPE_UINT8: {
+            const uint8_t *integer = value;
+
+            while (integer < (const uint8_t *)end) {
+              Tcl_Obj *element = Tcl_NewIntObj(*integer);
+              if (!element) return TCL_ERROR;
+              TEST_TCL_OK(Tcl_ListObjAppendElement(interp, result, element));
+              integer += 1;
+            }
+
+            break;
+          }
+
+          case BRLAPI_PARAM_TYPE_UINT16: {
+            const uint16_t *integer = value;
+
+            while (integer < (const uint16_t *)end) {
+              Tcl_Obj *element = Tcl_NewIntObj(*integer);
+              if (!element) return TCL_ERROR;
+              TEST_TCL_OK(Tcl_ListObjAppendElement(interp, result, element));
+              integer += 1;
+            }
+
+            break;
+          }
+
+          case BRLAPI_PARAM_TYPE_UINT32: {
+            const uint32_t *integer = value;
+
+            while (integer < (const uint32_t *)end) {
+              Tcl_Obj *element = Tcl_NewIntObj(*integer);
+              if (!element) return TCL_ERROR;
+              TEST_TCL_OK(Tcl_ListObjAppendElement(interp, result, element));
+              integer += 1;
+            }
+
+            break;
+          }
+
+          case BRLAPI_PARAM_TYPE_UINT64: {
+            const uint64_t *integer = value;
+
+            while (integer < (const uint64_t *)end) {
+              Tcl_Obj *element = Tcl_NewWideIntObj(*integer);
+              if (!element) return TCL_ERROR;
+              TEST_TCL_OK(Tcl_ListObjAppendElement(interp, result, element));
+              integer += 1;
+            }
+
+            break;
+          }
+
+          default:
+            break;
+        }
+
+        break;
+      }
+    }
+
+    free(value);
+  }
+
   return TCL_OK;
 }
 
@@ -746,7 +1070,7 @@ FUNCTION_HANDLER(session, write) {
     { OPTION(session, write, text),
       OPERANDS(1, "<string>")
     }
-  END_OPTIONS(2)
+  END_OPTIONS(2, 0, 0, "")
 
   if (options.numericDisplay) {
     if (options.arguments.displayNumber < 0) {
@@ -827,6 +1151,9 @@ FUNCTION_HANDLER(session, write) {
     }
 
     cellCount = size;
+  } else {
+    options.arguments.regionBegin = 1;
+    options.arguments.regionSize = cellCount;
   }
 
   unsigned char andMask[cellCount];
@@ -1106,6 +1433,7 @@ brlapiSessionCommand (ClientData data, Tcl_Interp *interp, int objc, Tcl_Obj *co
     FUNCTION(session, ignoreKeys),
     FUNCTION(session, leaveRawMode),
     FUNCTION(session, leaveTtyMode),
+    FUNCTION(session, parameter),
     FUNCTION(session, readKey),
     FUNCTION(session, readKeyWithTimeout),
     FUNCTION(session, recvRaw),
@@ -1279,7 +1607,7 @@ FUNCTION_HANDLER(general, openConnection) {
     { OPTION(general, openConnection, host),
       OPERANDS(1, "[<host>][:<port>]")
     }
-  END_OPTIONS(2)
+  END_OPTIONS(2, 0, 0, "")
 
   BrlapiSession *session = allocateMemory(sizeof(*session));
   if (session) {

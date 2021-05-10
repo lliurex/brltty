@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "log.h"
+#include "strfmt.h"
 #include "io_generic.h"
 #include "gio_internal.h"
 #include "parse.h"
@@ -33,6 +34,14 @@ static int
 disconnectNullResource (GioHandle *handle) {
   free(handle);
   return 1;
+}
+
+static const char *
+makeNullResourceIdentifier (GioHandle *handle, char *buffer, size_t size) {
+  STR_BEGIN(buffer, size);
+  STR_PRINTF("%s%c", "null", PARAMETER_QUALIFIER_CHARACTER);
+  STR_END;
+  return buffer;
 }
 
 static int
@@ -55,6 +64,8 @@ monitorNullInput (GioHandle *handle, AsyncMonitorCallback *callback, void *data)
 
 static const GioMethods gioNullMethods = {
   .disconnectResource = disconnectNullResource,
+
+  .makeResourceIdentifier = makeNullResourceIdentifier,
 
   .awaitInput = awaitNullInput,
   .readData = readNullData,

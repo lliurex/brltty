@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,7 +22,7 @@
 #include "profile.h"
 #include "datafile.h"
 #include "file.h"
-#include "charset.h"
+#include "utf8.h"
 
 typedef struct {
   const ProfileDescriptor *profile;
@@ -68,7 +68,7 @@ static DATA_OPERANDS_PROCESSOR(processPropertyOperands) {
     DataString value;
 
     if (getDataString(file, &value, 0, "property value")) {
-      char *v = makeUtf8FromWchars(value.characters, value.length, NULL);
+      char *v = getUtf8FromWchars(value.characters, value.length, NULL);
 
       if (v) {
         if (!processPropertyAssignment(file, &name, &v, pad)) ok = 0;

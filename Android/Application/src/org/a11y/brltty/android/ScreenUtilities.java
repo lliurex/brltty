@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,10 +22,13 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import android.os.Bundle;
+
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
 import android.graphics.Rect;
+import android.webkit.WebView;
 
 public abstract class ScreenUtilities {
   private ScreenUtilities () {
@@ -47,7 +50,7 @@ public abstract class ScreenUtilities {
 
   public static AccessibilityNodeInfo getRefreshedNode (AccessibilityNodeInfo node) {
     if (node != null) {
-      if (ApplicationUtilities.haveJellyBeanMR2) {
+      if (APITests.haveJellyBeanMR2) {
         node = AccessibilityNodeInfo.obtain(node);
 
         if (!node.refresh()) {
@@ -113,13 +116,13 @@ public abstract class ScreenUtilities {
   }
 
   public static boolean isVisible (AccessibilityNodeInfo node) {
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       return node.isVisibleToUser();
     }
 
     Rect location = new Rect();
     node.getBoundsInScreen(location);
-    return ScreenDriver.getWindow().contains(location);
+    return ScreenDriver.getCurrentScreenWindow().contains(location);
   }
 
   public static boolean isSubclassOf (AccessibilityNodeInfo node, Class type) {
@@ -137,7 +140,7 @@ public abstract class ScreenUtilities {
   }
 
   public static int getSelectionMode (AccessibilityNodeInfo node) {
-    if (ApplicationUtilities.haveLollipop) {
+    if (APITests.haveLollipop) {
       if (node.getCollectionItemInfo() != null) {
         AccessibilityNodeInfo parent = node.getParent();
 
@@ -171,7 +174,7 @@ public abstract class ScreenUtilities {
   }
 
   public static boolean isEditable (AccessibilityNodeInfo node) {
-    if (ApplicationUtilities.haveJellyBeanMR2) {
+    if (APITests.haveJellyBeanMR2) {
       return node.isEditable();
     } else {
       return isSubclassOf(node, android.widget.EditText.class);
@@ -212,29 +215,57 @@ public abstract class ScreenUtilities {
   }
 
   public static AccessibilityNodeInfo getRootNode () {
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       return BrailleService.getBrailleService().getRootInActiveWindow();
     }
 
     return null;
   }
 
-  public static AccessibilityNodeInfo findRootNode (AccessibilityNodeInfo node) {
-    if (node != null) {
-      AccessibilityNodeInfo child = AccessibilityNodeInfo.obtain(node);
+  public static AccessibilityNodeInfo findContainingNode (AccessibilityNodeInfo node, NodeTester tester) {
+    if (node == null) return null;
+    node = AccessibilityNodeInfo.obtain(node);
+    boolean haveTester = tester != null;
 
-      while (true) {
-        AccessibilityNodeInfo parent = child.getParent();
-        if (parent == null) break;
+    while (true) {
+      if (haveTester && tester.testNode(node)) return node;
 
-        child.recycle();
-        child = parent;
-      }
+      AccessibilityNodeInfo parent = node.getParent();
+      boolean atRoot = parent == null;
 
-      node = child;
+      if (atRoot && !haveTester) return node;
+      node.recycle();
+      if (atRoot) return null;
+
+      node = parent;
+      parent = null;
     }
+  }
 
-    return node;
+  public static AccessibilityNodeInfo findRootNode (AccessibilityNodeInfo node) {
+    return findContainingNode(node, null);
+  }
+
+  public static AccessibilityNodeInfo findContainingWebView (AccessibilityNodeInfo node) {
+    NodeTester tester = new NodeTester() {
+      @Override
+      public boolean testNode (AccessibilityNodeInfo node) {
+        return isSubclassOf(node, WebView.class);
+      }
+    };
+
+    return findContainingNode(node, tester);
+  }
+
+  public static AccessibilityNodeInfo findContainingAccessibilityFocus (AccessibilityNodeInfo node) {
+    NodeTester tester = new NodeTester() {
+      @Override
+      public boolean testNode (AccessibilityNodeInfo node) {
+        return node.isAccessibilityFocused();
+      }
+    };
+
+    return findContainingNode(node, tester);
   }
 
   public static AccessibilityNodeInfo findNode (AccessibilityNodeInfo root, NodeTester tester) {
@@ -325,47 +356,32 @@ public abstract class ScreenUtilities {
     return findNode(root, tester);
   }
 
-  public static AccessibilityNodeInfo findActionableNode (AccessibilityNodeInfo node, NodeTester tester) {
-    node = AccessibilityNodeInfo.obtain(node);
-
-    while (true) {
-      if (node.isEnabled()) {
-        if (tester.testNode(node)) {
-          return node;
-        }
-      }
-
-      AccessibilityNodeInfo parent = node.getParent();
-      node.recycle();
-      node = null;
-
-      if (parent == null) return null;
-      node = parent;
-      parent = null;
-    }
-  }
-
   public static AccessibilityNodeInfo findActionableNode (AccessibilityNodeInfo node, final int actions) {
     NodeTester tester = new NodeTester() {
       @Override
       public boolean testNode (AccessibilityNodeInfo node) {
+        if (!node.isEnabled()) return false;
         return (node.getActions() & actions) != 0;
       }
     };
 
-    return findActionableNode(node, tester);
+    return findContainingNode(node, tester);
   }
 
-  public static boolean performAction (AccessibilityNodeInfo node, int action) {
+  public static boolean performAction (AccessibilityNodeInfo node, int action, Bundle arguments) {
     node = findActionableNode(node, action);
     if (node == null) return false;
 
     try {
-      return node.performAction(action);
+      return node.performAction(action, arguments);
     } finally {
       node.recycle();
       node = null;
     }
+  }
+
+  public static boolean performAction (AccessibilityNodeInfo node, int action) {
+    return performAction(node, action, null);
   }
 
   public static boolean performClick (AccessibilityNodeInfo node) {
@@ -405,6 +421,8 @@ public abstract class ScreenUtilities {
     NodeTester tester = new NodeTester() {
       @Override
       public boolean testNode (AccessibilityNodeInfo node) {
+        if (!node.isEnabled()) return false;
+
         for (AccessibilityNodeInfo.AccessibilityAction action : node.getActionList()) {
           if (Arrays.binarySearch(array, 0, array.length, action, comparator) >= 0) return true;
         }
@@ -413,7 +431,7 @@ public abstract class ScreenUtilities {
       }
     };
 
-    return findActionableNode(node, tester);
+    return findContainingNode(node, tester);
   }
 
   public static boolean performAction (
@@ -468,7 +486,7 @@ public abstract class ScreenUtilities {
   }
 
   public static String getSelectionModeLabel (AccessibilityNodeInfo.CollectionInfo collection) {
-    if (ApplicationUtilities.haveLollipop) {
+    if (APITests.haveLollipop) {
       switch (collection.getSelectionMode()) {
         case AccessibilityNodeInfo.CollectionInfo.SELECTION_MODE_NONE:
           return "none";
@@ -482,5 +500,21 @@ public abstract class ScreenUtilities {
     }
 
     return null;
+  }
+
+  public static Bundle getExtras (AccessibilityNodeInfo node) {
+    if (node != null) {
+      if (APITests.haveKitkat) {
+        return node.getExtras();
+      }
+    }
+
+    return null;
+  }
+
+  public static String getStringExtra (AccessibilityNodeInfo node, String extra) {
+    Bundle extras = getExtras(node);
+    if (extras == null) return null;
+    return extras.getString(extra);
   }
 }

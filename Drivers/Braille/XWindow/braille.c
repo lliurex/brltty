@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -210,7 +210,7 @@ typedef enum {
 #define WHOLESIZE (MAXLINES * MAXCOLS)
 static int cols,lines;
 static int input;
-static char *model = "simple";
+static const char *model = "simple";
 static const char *fontname = "-*-clearlyu-*-*-*-*-*-*-*-*-*-*-iso10646-1,-*-fixed-*-*-*-*-*-*-*-*-*-*-iso10646-1,-*-unifont-*-*-*-*-*-*-*-*-*-*-iso10646-1,-*-fixed-*-*-*-*-*-*-*-*-*-*-iso8859-1";
 static int xtArgc = 1;
 static char *xtDefArgv[]= { "brltty", NULL };
@@ -409,7 +409,14 @@ static void route(Widget w, XEvent *event, String *params, Cardinal *num_params)
 {
   int index = atoi(params[0]);
   logMessage(LOG_DEBUG,"route(%u)", index);
-  enqueueCommand(BRL_CMD_BLK(ROUTE) | (index&BRL_MSK_ARG));
+
+  if (event->xbutton.state & ControlMask) {
+    enqueueCommand(BRL_CMD_BLK(CLIP_NEW) | (index&BRL_MSK_ARG));
+  } else if (event->xbutton.state & Mod1Mask) {
+    enqueueCommand(BRL_CMD_BLK(COPY_LINE) | (index&BRL_MSK_ARG));
+  } else {
+    enqueueCommand(BRL_CMD_BLK(ROUTE) | (index&BRL_MSK_ARG));
+  }
 }
 
 static void quit(Widget w, XEvent *event, String *params, Cardinal *num_params)
@@ -454,12 +461,12 @@ struct button {
 };
 
 struct model {
-  char *name;
+  const char *name;
   struct button *buttons;
   int width,height;
 };
 
-static struct model *keyModel;
+static const struct model *keyModel;
 
 static struct button buttons_simple[] = {
   { "Dot1",   BRL_CMD_BLK(PASSDOTS)  | BRL_DOT1  , 0, 0, 0 },
@@ -472,6 +479,7 @@ static struct button buttons_simple[] = {
   { "Dot8",   BRL_CMD_BLK(PASSDOTS)  | BRL_DOT8  , 0, 1, 3 },
   { "`",      BRL_CMD_TOP_LEFT, 0, 3, 0 },
   { "^",      BRL_CMD_LNUP,   1, 4, 0 },
+  { "Paste",  BRL_CMD_PASTE,  0, 5, 0 },
   { "<",      BRL_CMD_FWINLT, 1, 3, 1 },
   { "Home",   BRL_CMD_HOME,   0, 4, 1 },
   { ">",      BRL_CMD_FWINRT, 1, 5, 1 },
@@ -484,8 +492,9 @@ static struct button buttons_simple[] = {
   { "A",      BRL_CMD_BLK(PASSCHAR)                        | 'A', 0, 6, 3 },
   { "Alt-F1", BRL_FLG_INPUT_META | BRL_KEY_FUNCTION | BRL_CMD_BLK(PASSKEY) , 0, 7, 3 },
   { "Frez",   BRL_CMD_FREEZE,   0, 6, 0 },
+  { "Bksp",   BRL_CMD_KEY(BACKSPACE),   0, 6, 1 },
   { "Help",   BRL_CMD_HELP,     0, 7, 0 },
-  { "Pref",   BRL_CMD_PREFMENU, 0, 6, 1 },
+  { "Pref",   BRL_CMD_PREFMENU, 0, 7, 1 },
   { "PL",     BRL_CMD_PREFLOAD, 0, 6, 2 },
   { "PS",     BRL_CMD_PREFSAVE, 0, 7, 2 },
   { NULL,     0,                0, 0, 0},
@@ -530,7 +539,7 @@ static struct button buttons_vs[] = {
   { NULL,   0,                  0, 0, 0},
 };
 
-static struct model models[] = {
+static const struct model models[] = {
   { "normal",	buttons_simple,	4, 4 },
   { "vs",	buttons_vs,	9, 5 },
 };
@@ -552,11 +561,11 @@ static void createKeyButtons(struct button *buttons) {
 }
 
 struct radioInt {
-  char *name;
+  const char *name;
   int value;
 };
 
-static struct radioInt colsRadio [] = {
+static const struct radioInt colsRadio [] = {
   { "80", 80 },
   { "60", 60 },
   { "40", 40 },
@@ -752,8 +761,8 @@ static int generateToplevel(void)
 #ifdef USE_WINDOWS
   UINT cb = 0;
 #endif /* USE_WINDOWS */
-  struct radioInt *radioInt;
-  struct model *radioModel;
+  const struct radioInt *radioInt;
+  const struct model *radioModel;
   int y,x;
 
 #if defined(USE_XT)

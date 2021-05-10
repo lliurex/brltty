@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,12 +22,15 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/sysmacros.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
+#include <dirent.h>
+#include <sys/sysmacros.h>
 #include <linux/major.h>
 
 #include "log.h"
+#include "parse.h"
 #include "file.h"
 #include "device.h"
 #include "async_wait.h"
@@ -37,8 +40,182 @@
 #include "system.h"
 #include "system_linux.h"
 
+typedef struct {
+  PathProcessor *processor;
+  const PathProcessorParameters *parameters;
+} PathProcessingData;
+
+static int
+processDirectoryEntry (const char *name, const PathProcessingData *ppd) {
+  const PathProcessorParameters *parameters = ppd->parameters;
+
+  const char *directory = parameters->path;
+  char path[strlen(directory) + 1 + strlen(name) + 1];
+
+  snprintf(
+    path, sizeof(path), "%s%c%s",
+    directory, PATH_SEPARATOR_CHARACTER, name
+  );
+
+  return processPathTree(path, ppd->processor, parameters->data);
+}
+
+int
+processPathTree (const char *path, PathProcessor *processPath, void *data) {
+  PathProcessorParameters parameters = {
+    .path = path,
+    .data = data
+  };
+
+  PathProcessingData ppd = {
+    .processor = processPath,
+    .parameters = &parameters
+  };
+
+  int stop = 0;
+  DIR *directory;
+
+  if ((directory = opendir(path))) {
+    if (processPath(&parameters)) {
+      struct dirent *entry;
+
+      while ((entry = readdir(directory))) {
+        const char *name = entry->d_name;
+
+        if (strcmp(name, CURRENT_DIRECTORY_NAME) == 0) continue;
+        if (strcmp(name, PARENT_DIRECTORY_NAME) == 0) continue;
+
+        if (!processDirectoryEntry(name, &ppd)) {
+          stop = 1;
+          break;
+        }
+      }
+    } else {
+      stop = 1;
+    }
+
+    closedir(directory);
+  } else if (errno == ENOTDIR) {
+    if (!processPath(&parameters)) stop = 1;
+  } else {
+    logMessage(LOG_WARNING, "can't access path: %s: %s", path, strerror(errno));
+  }
+
+  return !stop;
+}
+
+int
+compareGroups (gid_t group1, gid_t group2) {
+  if (group1 < group2) return -1;
+  if (group1 > group2) return 1;
+  return 0;
+}
+
+static int
+groupSorter (const void *element1,const void *element2) {
+  const gid_t *group1 = element1;
+  const gid_t *group2 = element2;
+  return compareGroups(*group1, *group2);
+}
+
+void
+sortGroups (gid_t *groups, size_t count) {
+  qsort(groups, count, sizeof(*groups), groupSorter);
+}
+
+void
+removeDuplicateGroups (gid_t *groups, size_t *count) {
+  if (*count > 1) {
+    sortGroups(groups, *count);
+
+    gid_t *to = groups;
+    const gid_t *from = to + 1;
+    const gid_t *end = to + *count;
+
+    while (from < end) {
+      if (*from != *to) {
+        if (++to != from) {
+          *to = *from;
+        }
+      }
+
+      from += 1;
+    }
+
+    *count = ++to - groups;
+  }
+}
+
+void
+processSupplementaryGroups (GroupsProcessor *processGroups, void *data) {
+  ssize_t size = getgroups(0, NULL);
+
+  if (size != -1) {
+    gid_t groups[size];
+    ssize_t result = getgroups(size, groups);
+
+    if (result != -1) {
+      size_t count = result;
+      removeDuplicateGroups(groups, &count);
+      processGroups(groups, count, data);
+    } else {
+      logSystemError("getgroups");
+    }
+  } else {
+    logSystemError("getgroups");
+  }
+}
+
+typedef struct {
+  const gid_t *groups;
+  size_t count;
+  unsigned char have:1;
+} HaveGroupsData;
+
+static void
+haveGroups (const gid_t *groups, size_t count, void *data) {
+  HaveGroupsData *hgd = data;
+
+  const gid_t *need = hgd->groups;
+  const gid_t *needEnd = need + hgd->count;
+
+  const gid_t *have = groups;
+  const gid_t *haveEnd = have + count;
+
+  while (have < haveEnd) {
+    if (*have > *need) break;
+    if (*have++ < *need) continue;
+
+    if (++need == needEnd) {
+      hgd->have = 1;
+      return;
+    }
+  }
+
+  hgd->have = 0;
+}
+
+int
+haveSupplementaryGroups (const gid_t *groups, size_t count) {
+  HaveGroupsData hgd = {
+    .groups = groups,
+    .count = count
+  };
+
+  processSupplementaryGroups(haveGroups, &hgd);
+  return hgd.have;
+}
+
 #ifdef HAVE_LINUX_INPUT_H
 #include <linux/input.h>
+
+#ifndef input_event_sec
+#define input_event_sec time.tv_sec
+#endif /* input_event_sec */
+
+#ifndef input_event_usec
+#define input_event_usec time.tv_usec
+#endif /* input_event_usec */
 
 #include "kbd_keycodes.h"
 
@@ -757,6 +934,23 @@ installKernelModule (const char *name, unsigned char *status) {
   return 1;
 }
 
+int
+installSpeakerModule (void) {
+  static unsigned char status = 0;
+  return installKernelModule("pcspkr", &status);
+}
+
+int
+installUinputModule (void) {
+  static unsigned char status = 0;
+  int wait = !status;
+  int installed = installKernelModule("uinput", &status);
+
+  if (!installed) wait = 0;
+  if (wait) asyncWait(500);
+  return installed;
+}
+
 static int
 openDevice (const char *path, mode_t flags, int allowModeSubset) {
   int descriptor;
@@ -791,6 +985,65 @@ opened:
   return descriptor;
 }
 
+static int
+canContainDevices (const char *directory) {
+  struct statvfs vfs;
+
+  if (statvfs(directory, &vfs) == -1) {
+    logSystemError("statvfs");
+  } else if (vfs.f_flag & ST_NODEV) {
+    logMessage(LOG_WARNING, "cannot contain device files: %s", directory);
+    errno = EPERM;
+  } else {
+    return 1;
+  }
+
+  return 0;
+}
+
+static int
+canCreateDevice (const char *path) {
+  int yes = 0;
+  char *directory;
+
+  if ((directory = getPathDirectory(path))) {
+    if (canContainDevices(directory)) yes = 1;
+    free(directory);
+  }
+
+  return yes;
+}
+
+static int
+createCharacterDevice (const char *path, int flags, int major, int minor) {
+  int descriptor = -1;
+
+  if (canCreateDevice(path)) {
+    descriptor = openDevice(path, flags, 0);
+  }
+
+  if (descriptor == -1) {
+    if (errno == ENOENT) {
+      mode_t mode = S_IFCHR | S_IRUSR | S_IWUSR;
+
+      if (mknod(path, mode, makedev(major, minor)) == -1) {
+        logMessage(LOG_DEBUG,
+          "cannot create device: %s: %s", path, strerror(errno)
+        );
+      } else {
+        logMessage(LOG_DEBUG,
+          "device created: %s mode=%06o major=%d minor=%d",
+          path, mode, major, minor
+        );
+
+        descriptor = openDevice(path, flags, 0);
+      }
+    }
+  }
+
+  return descriptor;
+}
+
 int
 openCharacterDevice (const char *name, int flags, int major, int minor) {
   char *path = getDevicePath(name);
@@ -799,24 +1052,11 @@ openCharacterDevice (const char *name, int flags, int major, int minor) {
   if (!path) {
     descriptor = -1;
   } else if ((descriptor = openDevice(path, flags, 1)) == -1) {
-    if (errno == ENOENT) {
+    if ((errno == ENOENT) || (errno == EACCES)) {
       free(path);
 
       if ((path = makeWritablePath(locatePathName(name)))) {
-        if ((descriptor = openDevice(path, flags, 0)) == -1) {
-          if (errno == ENOENT) {
-            mode_t mode = S_IFCHR | S_IRUSR | S_IWUSR;
-
-            if (mknod(path, mode, makedev(major, minor)) == -1) {
-              logMessage(LOG_DEBUG, "cannot create device: %s: %s", path, strerror(errno));
-            } else {
-              logMessage(LOG_DEBUG, "device created: %s mode=%06o major=%d minor=%d",
-                         path, mode, major, minor);
-
-              descriptor = openDevice(path, flags, 0);
-            }
-          }
-        }
+        descriptor = createCharacterDevice(path, flags, major, minor);
       }
     }
   }
@@ -852,19 +1092,12 @@ newUinputObject (const char *name) {
 
   if ((uinput = malloc(sizeof(*uinput)))) {
     memset(uinput, 0, sizeof(*uinput));
-
-    {
-      static unsigned char status = 0;
-      int wait = !status;
-
-      if (!installKernelModule("uinput", &status)) wait = 0;
-      if (wait) asyncWait(500);
-    }
+    installUinputModule();
 
     const char *device;
     {
       static const char *const names[] = {"uinput", "input/uinput", NULL};
-      device = resolveDeviceName(names, "uinput");
+      device = resolveDeviceName(names, 0, "uinput");
     }
 
     if (device) {
@@ -956,13 +1189,17 @@ enableUinputEventType (UinputObject *uinput, int type) {
 int
 writeInputEvent (UinputObject *uinput, uint16_t type, uint16_t code, int32_t value) {
 #ifdef HAVE_LINUX_UINPUT_H
-  struct input_event event;
+  struct timeval now;
+  gettimeofday(&now, NULL);
 
-  memset(&event, 0, sizeof(event));
-  gettimeofday(&event.time, NULL);
-  event.type = type;
-  event.code = code;
-  event.value = value;
+  struct input_event event = {
+    .input_event_sec = now.tv_sec,
+    .input_event_usec = now.tv_usec,
+
+    .type = type,
+    .code = code,
+    .value = value,
+  };
 
   if (write(uinput->fileDescriptor, &event, sizeof(event)) != -1) return 1;
   logSystemError("write(struct input_event)");

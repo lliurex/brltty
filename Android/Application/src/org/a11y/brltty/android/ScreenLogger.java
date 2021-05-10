@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -18,6 +18,7 @@
 
 package org.a11y.brltty.android;
 
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -29,11 +30,13 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
 import android.graphics.Rect;
+import android.text.Spanned;
 
-public abstract class ScreenLogger {
-  private static final String LOG_TAG = ScreenLogger.class.getName();
+public abstract class ScreenLogger extends Logger {
+  private final static String LOG_TAG = ScreenLogger.class.getName();
 
   private ScreenLogger () {
+    super();
   }
 
   private static String getText (AccessibilityNodeInfo node) {
@@ -42,49 +45,43 @@ public abstract class ScreenLogger {
     return ScreenUtilities.getDescription(node);
   }
 
-  private static String shrinkText (String text) {
-    final int threshold = 50;
-    final char delimiter = '\n';
+  private static void addText (StringBuilder sb, CharSequence text, String label, char begin, char end) {
+    if (text == null) return;
+    if (text.length() == 0) return;
 
-    int length = text.length();
-    int to = text.lastIndexOf(delimiter);
-    int from = (to == -1)? length: text.indexOf(delimiter);
-    to += 1;
-
-    from = Math.min(from, threshold);
-    to = Math.max(to, (length - threshold));
-
-    if (from < to) {
-      text = text.substring(0, from) + "[...]" + text.substring(to);
-    }
-
-    return text;
+    if (sb.length() > 0) sb.append(' ');
+    if (label != null) sb.append(label).append(':');
+    sb.append(begin).append(text).append(end);
   }
 
-  private static final void add (StringBuilder sb, String value) {
+  private static void addText (StringBuilder sb, CharSequence text, String label) {
+    addText(sb, text, label, '"', '"');
+  }
+
+  private final static void add (StringBuilder sb, String value) {
     if (value != null) {
       if (sb.length() > 0) sb.append(' ');
       sb.append(value);
     }
   }
 
-  private static final void add (StringBuilder sb, boolean condition, String trueValue, String falseValue) {
+  private final static void add (StringBuilder sb, boolean condition, String trueValue, String falseValue) {
     add(sb, (condition? trueValue: falseValue));
   }
 
-  private static final void add (StringBuilder sb, boolean condition, String trueValue) {
+  private final static void add (StringBuilder sb, boolean condition, String trueValue) {
     add(sb, condition, trueValue, null);
   }
 
-  private static final void add (StringBuilder sb, String label, CharSequence value) {
+  private final static void add (StringBuilder sb, String label, CharSequence value) {
     if (value != null) add(sb, String.format("%s=%s", label, value));
   }
 
-  private static final void add (StringBuilder sb, String label, int value) {
+  private final static void add (StringBuilder sb, String label, int value) {
     add(sb, label, Integer.toString(value));
   }
 
-  private static final void add (StringBuilder sb, String label, int value, Map<Integer, String> names) {
+  private final static void add (StringBuilder sb, String label, int value, Map<Integer, String> names) {
     String name = names.get(value);
 
     if (name != null) {
@@ -119,10 +116,10 @@ public abstract class ScreenLogger {
       put("lck", AccessibilityNodeInfo.ACTION_LONG_CLICK);
       put("scf", AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
       put("scb", AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD);
-      put("mvn", AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY);
-      put("mvp", AccessibilityNodeInfo.ACTION_PREVIOUS_AT_MOVEMENT_GRANULARITY);
-      put("mhn", AccessibilityNodeInfo.ACTION_NEXT_HTML_ELEMENT);
-      put("mhp", AccessibilityNodeInfo.ACTION_PREVIOUS_HTML_ELEMENT);
+      put("mgp", AccessibilityNodeInfo.ACTION_PREVIOUS_AT_MOVEMENT_GRANULARITY);
+      put("mgn", AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY);
+      put("mep", AccessibilityNodeInfo.ACTION_PREVIOUS_HTML_ELEMENT);
+      put("men", AccessibilityNodeInfo.ACTION_NEXT_HTML_ELEMENT);
       put("sls", AccessibilityNodeInfo.ACTION_SELECT);
       put("slc", AccessibilityNodeInfo.ACTION_CLEAR_SELECTION);
       put("ifs", AccessibilityNodeInfo.ACTION_FOCUS);
@@ -138,7 +135,7 @@ public abstract class ScreenLogger {
       put("xpnd", AccessibilityNodeInfo.ACTION_EXPAND);
       put("txs", AccessibilityNodeInfo.ACTION_SET_TEXT);
 
-      if (ApplicationUtilities.haveMarshmallow) {
+      if (APITests.haveMarshmallow) {
         put("cck", AccessibilityNodeInfo.AccessibilityAction.ACTION_CONTEXT_CLICK);
       }
     }
@@ -148,26 +145,23 @@ public abstract class ScreenLogger {
     StringBuilder sb = new StringBuilder();
     add(sb, ScreenUtilities.getClassName(node));
 
-    {
-      String text = ScreenUtilities.getText(node);
+    addText(sb, shrinkText(ScreenUtilities.getText(node)), null);
+    addText(sb, shrinkText(ScreenUtilities.getDescription(node)), null, '(', ')');
 
-      if (text != null) {
-        sb.append(' ');
-        sb.append('"');
-        sb.append(shrinkText(text));
-        sb.append('"');
-      }
+    if (APITests.haveOreo) {
+      addText(sb, node.getHintText(), "hint");
     }
 
-    {
-      String description = ScreenUtilities.getDescription(node);
+    if (APITests.havePie) {
+      addText(sb, node.getTooltipText(), "tip");
+    }
 
-      if (description != null) {
-        sb.append(' ');
-        sb.append('(');
-        sb.append(shrinkText(description));
-        sb.append(')');
-      }
+    if (APITests.havePie) {
+      addText(sb, node.getPaneTitle(), "pane");
+    }
+
+    if (APITests.haveLollipop) {
+      addText(sb, node.getError(), "error");
     }
 
     {
@@ -186,7 +180,7 @@ public abstract class ScreenLogger {
       if (count > 0) add(sb, "cld", count);
     }
 
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       add(sb, !node.isVisibleToUser(), "inv");
     }
 
@@ -196,14 +190,14 @@ public abstract class ScreenLogger {
     add(sb, node.isFocusable(), "ifb");
     add(sb, node.isFocused(), "ifd");
 
-    if (ApplicationUtilities.haveJellyBean) {
+    if (APITests.haveJellyBean) {
       add(sb, node.isAccessibilityFocused(), "afd");
     }
 
     add(sb, node.isClickable(), "clb");
     add(sb, node.isLongClickable(), "lcb");
 
-    if (ApplicationUtilities.haveMarshmallow) {
+    if (APITests.haveMarshmallow) {
       add(sb, node.isContextClickable(), "ccb");
     }
        
@@ -211,7 +205,7 @@ public abstract class ScreenLogger {
     add(sb, node.isChecked(), "ckd");
     add(sb, node.isPassword(), "pwd");
 
-    if (ApplicationUtilities.haveJellyBeanMR2) {
+    if (APITests.haveJellyBeanMR2) {
       add(sb, ScreenUtilities.isEditable(node), "edt");
 
       {
@@ -233,7 +227,7 @@ public abstract class ScreenLogger {
       }
     }
 
-    if (ApplicationUtilities.haveKitkat) {
+    if (APITests.haveKitkat) {
       {
         AccessibilityNodeInfo.RangeInfo range = node.getRangeInfo();
 
@@ -298,7 +292,7 @@ public abstract class ScreenLogger {
             sb.append("hdg");
           }
 
-          if (ApplicationUtilities.haveLollipop) {
+          if (APITests.haveLollipop) {
             if (item.isSelected()) {
               sb.append(',');
               sb.append("sel");
@@ -310,7 +304,7 @@ public abstract class ScreenLogger {
       }
     }
 
-    if (ApplicationUtilities.haveLollipop) {
+    if (APITests.haveLollipop) {
       for (AccessibilityNodeInfo.AccessibilityAction action : node.getActionList()) {
         String label = actionLabels.get(action.getId());
         if (label != null) add(sb, label);
@@ -325,23 +319,29 @@ public abstract class ScreenLogger {
       }
     }
 
-    if (ApplicationUtilities.haveJellyBeanMR1) {
+    if (APITests.haveJellyBeanMR1) {
       AccessibilityNodeInfo subnode = node.getLabelFor();
 
       if (subnode != null) {
-        add(sb, "lbf", getText(subnode));
-        subnode.recycle();
-        subnode = null;
+        try {
+          add(sb, "lbf", getText(subnode));
+        } finally {
+          subnode.recycle();
+          subnode = null;
+        }
       }
     }
 
-    if (ApplicationUtilities.haveJellyBeanMR1) {
+    if (APITests.haveJellyBeanMR1) {
       AccessibilityNodeInfo subnode = node.getLabeledBy();
 
       if (subnode != null) {
-        add(sb, "lbd", getText(subnode));
-        subnode.recycle();
-        subnode = null;
+        try {
+          add(sb, "lbd", getText(subnode));
+        } finally {
+          subnode.recycle();
+          subnode = null;
+        }
       }
     }
 
@@ -355,17 +355,73 @@ public abstract class ScreenLogger {
     add(sb, "pkg", node.getPackageName());
     add(sb, "win", node.getWindowId());
 
-    if (ApplicationUtilities.haveJellyBeanMR2) {
+    if (APITests.haveJellyBeanMR2) {
       add(sb, "vrn", node.getViewIdResourceName());
     }
 
-    if (ApplicationUtilities.haveKitkat) {
+    {
+      CharSequence text = node.getText();
+
+      if (text instanceof Spanned) {
+        Spanned spanned = (Spanned)text;
+        Object[] spans = spanned.getSpans(0, spanned.length(), Object.class);
+
+        if (spans != null) {
+          boolean first = true;
+
+          for (Object span : spans) {
+            if (first) {
+              first = false;
+              sb.append("spans:[");
+            } else {
+              sb.append(", ");
+            }
+
+            sb.append(span.getClass().getSimpleName())
+              .append('(')
+              .append(spanned.getSpanStart(span))
+              .append("..")
+              .append(spanned.getSpanEnd(span))
+              .append(')')
+              ;
+          }
+
+          if (!first) sb.append(']');
+        }
+      }
+    }
+
+    if (APITests.haveKitkat) {
       Bundle extras = node.getExtras();
 
       if (extras != null) {
         if (extras.size() > 0) {
           add(sb, "extras: ");
           sb.append(extras.toString());
+        }
+      }
+    }
+
+    if (APITests.haveLollipop) {
+      List<AccessibilityNodeInfo.AccessibilityAction> actions = node.getActionList();
+
+      if (actions != null) {
+        boolean first = true;
+
+        for (AccessibilityNodeInfo.AccessibilityAction action : actions) {
+          CharSequence label = action.getLabel();
+          if (label == null) continue;
+          if (label.length() == 0) continue;
+
+          if (first) {
+            first = false;
+            add(sb, "actions:");
+          } else {
+            sb.append(',');
+          }
+
+          sb.append(' ');
+          sb.append(label);
         }
       }
     }
@@ -397,7 +453,7 @@ public abstract class ScreenLogger {
     log("end node tree");
   }
 
-  private static final Map<Integer, String> windowTypeNames =
+  private final static Map<Integer, String> windowTypeNames =
                new HashMap<Integer, String>()
   {
     {
@@ -413,17 +469,8 @@ public abstract class ScreenLogger {
     StringBuilder sb = new StringBuilder();
     add(sb, "id", window.getId());
 
-    if (ApplicationUtilities.haveNougat) {
-      CharSequence title = window.getTitle();
-
-      if (title != null) {
-        if (title.length() > 0) {
-          sb.append(' ');
-          sb.append('"');
-          sb.append(title);
-          sb.append('"');
-        }
-      }
+    if (APITests.haveNougat) {
+      addText(sb, window.getTitle(), null);
     }
 
     {
@@ -448,7 +495,7 @@ public abstract class ScreenLogger {
     add(sb, window.isFocused(), "ifd");
     add(sb, window.isAccessibilityFocused(), "afd");
 
-    if (ApplicationUtilities.haveOreo) {
+    if (APITests.haveOreo) {
       add(sb, window.isInPictureInPictureMode(), "pip");
     }
 
@@ -468,9 +515,12 @@ public abstract class ScreenLogger {
       AccessibilityNodeInfo root = window.getRoot();
 
       if (root != null) {
-        log(root);
-        root.recycle();
-        root = null;
+        try {
+          log(root);
+        } finally {
+          root.recycle();
+          root = null;
+        }
       }
     }
 
@@ -492,20 +542,23 @@ public abstract class ScreenLogger {
   public static void log () {
     log("begin screen log");
 
-    if (ApplicationUtilities.haveLollipop) {
+    if (APITests.haveLollipop) {
       int index = 0;
 
       for (AccessibilityWindowInfo window : ScreenUtilities.getWindows()) {
         log(window, ("window." + index), true, true);
         index += 1;
       }
-    } else if (ApplicationUtilities.haveJellyBean) {
+    } else if (APITests.haveJellyBean) {
       AccessibilityNodeInfo root = ScreenUtilities.getRootNode();
 
       if (root != null) {
-        log(root);
-        root.recycle();
-        root = null;
+        try {
+          log(root);
+        } finally {
+          root.recycle();
+          root = null;
+        }
       }
     }
 

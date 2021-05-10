@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -32,6 +32,9 @@ extern void setScreenKeyModifiers (ScreenKey *key, ScreenKey which);
 typedef struct {
   const char * (*getTitle) (void);
 
+  void (*onForeground) (void);
+  void (*onBackground) (void);
+
   int (*poll) (void);
   int (*refresh) (void);
   void (*describe) (ScreenDescription *);
@@ -43,6 +46,9 @@ typedef struct {
   int (*highlightRegion) (int left, int right, int top, int bottom);
   int (*unhighlightRegion) (void);
   int (*getPointer) (int *column, int *row);
+
+  int (*clearSelection) (void);
+  int (*setSelection) (int startColumn, int startRow, int endColumn, int endRow);
 
   int (*currentVirtualTerminal) (void);
   int (*selectVirtualTerminal) (int vt);

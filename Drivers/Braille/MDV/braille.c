@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -201,7 +201,7 @@ writePacket (BrailleDisplay *brl, unsigned char code, const void *data, unsigned
 static BraillePacketVerifierResult
 verifyPacket (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   unsigned char byte = bytes[size-1];
@@ -295,7 +295,7 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
 }
 
 static int
-writeIdentityRequest (BrailleDisplay *brl) {
+writeIdentifyRequest (BrailleDisplay *brl) {
   return writePacket(brl, MD_CODE_IDENTIFY, NULL, 0);
 }
 
@@ -312,7 +312,7 @@ isIdentityResponse (BrailleDisplay *brl, const void *packet, size_t size) {
 static int
 probeDevice (BrailleDisplay *brl, MD_Packet *response) {
   return probeBrailleDisplay(
-    brl, PROBE_RETRY_LIMIT, NULL, PROBE_INPUT_TIMEOUT, writeIdentityRequest,
+    brl, PROBE_RETRY_LIMIT, NULL, PROBE_INPUT_TIMEOUT, writeIdentifyRequest,
     readBytes, response, sizeof(*response), isIdentityResponse
   );
 }

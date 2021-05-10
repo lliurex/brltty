@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,6 +25,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+extern const char standardStreamArgument[];
+extern const char standardInputName[];
+extern const char standardOutputName[];
+extern const char standardErrorName[];
+
 typedef enum {
   PROG_EXIT_SUCCESS  = 0,
   PROG_EXIT_FORCE    = 1,
@@ -35,11 +40,6 @@ typedef enum {
 
 extern const char *programPath;
 extern const char *programName;
-
-extern const char standardStreamArgument[];
-extern const char standardInputName[];
-extern const char standardOutputName[];
-extern const char standardErrorName[];
 
 extern void beginProgram (int argumentCount, char **argumentVector);
 extern void endProgram (void);

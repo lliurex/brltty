@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,7 +23,25 @@
 extern "C" {
 #endif /* __cplusplus */
 
+typedef struct {
+  const char *path;
+  void *data;
+} PathProcessorParameters;
+
+typedef int PathProcessor (const PathProcessorParameters *parameters);
+extern int processPathTree (const char *path, PathProcessor *processPath, void *data);
+
+extern int compareGroups (gid_t group1, gid_t group2);
+extern void sortGroups (gid_t *groups, size_t count);
+extern void removeDuplicateGroups (gid_t *groups, size_t *count);
+
+typedef void GroupsProcessor (const gid_t *groups, size_t count, void *data);
+extern void processSupplementaryGroups (GroupsProcessor *processGroups, void *data);
+extern int haveSupplementaryGroups (const gid_t *groups, size_t count);
+
 extern int installKernelModule (const char *name, unsigned char *status);
+extern int installSpeakerModule (void);
+extern int installUinputModule (void);
 
 extern int openCharacterDevice (const char *name, int flags, int major, int minor);
 

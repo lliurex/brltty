@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -215,7 +215,7 @@ prepareActivity (ActivityObject *activity) {
 static int
 scheduleActivity (ActivityObject *activity) {
   if (asyncNewRelativeAlarm(&activity->startAlarm, 0, handleActivityStartAlarm, activity)) {
-    if (asyncResetAlarmEvery(activity->startAlarm, activity->methods->retryInterval)) {
+    if (asyncResetAlarmInterval(activity->startAlarm, activity->methods->retryInterval)) {
       setActivityState(activity, ACT_SCHEDULED);
       return 1;
     }

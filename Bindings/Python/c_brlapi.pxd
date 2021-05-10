@@ -1,7 +1,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2005-2019 by
+# Copyright (C) 2005-2021 by
 #   Alexis Robert <alexissoft@free.fr>
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #
@@ -19,8 +19,16 @@
 
 # File binding C functions
 
+from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
+
+from cpython.ref cimport PyObject
+
 cdef extern from "sys/types.h":
 	ctypedef Py_ssize_t size_t
+	ctypedef Py_ssize_t ssize_t
+
+cdef extern from "Programs/brlapi_protocol.h":
+	int BRLAPI_MAXPACKETSIZE
 
 cdef extern from "Programs/brlapi.h":
 	ctypedef struct brlapi_connectionSettings_t:
@@ -105,6 +113,25 @@ cdef extern from "Programs/brlapi.h":
 	int brlapi__recvRaw(brlapi_handle_t *, void*, int)
 	int brlapi__sendRaw(brlapi_handle_t *, void*, int)
 
+	ctypedef int brlapi_param_t
+	ctypedef uint64_t brlapi_param_subparam_t
+	ctypedef uint32_t brlapi_param_flags_t
+	ctypedef void *brlapi_paramCallbackDescriptor_t
+
+	ctypedef int brlapi_param_type_t
+	ctypedef struct brlapi_param_properties_t:
+		brlapi_param_type_t type
+		uint16_t count
+		uint8_t isArray
+		uint8_t hasSubparam
+
+	void *brlapi__getParameterAlloc(brlapi_handle_t *, brlapi_param_t, unsigned long long, brlapi_param_flags_t, size_t *) nogil
+	int brlapi__setParameter(brlapi_handle_t *, brlapi_param_t, unsigned long long, brlapi_param_flags_t, void*, size_t) nogil
+	const brlapi_param_properties_t *brlapi_getParameterProperties(brlapi_param_t parameter) nogil
+	brlapi_paramCallbackDescriptor_t brlapi__watchParameter(brlapi_handle_t *, brlapi_param_t, uint64_t, brlapi_param_flags_t, brlapi_paramCallback_t, void *, void*, size_t);
+	int brlapi__unwatchParameter(brlapi_handle_t *,
+	brlapi_paramCallbackDescriptor_t)
+
 	brlapi_error_t* brlapi_error_location()
 	char* brlapi_strerror(brlapi_error_t*)
 	brlapi_keyCode_t BRLAPI_KEY_MAX
@@ -119,6 +146,20 @@ cdef extern from "bindings.h":
 	char *brlapi_protocolException()
 	void brlapi_protocolExceptionInit(brlapi_handle_t *)
 
+	ctypedef struct brlapi_python_paramCallbackDescriptor_t:
+		brlapi_paramCallbackDescriptor_t brlapi_descr
+		PyObject *callback
+
+	ctypedef struct brlapi_python_callbackData_t:
+		brlapi_param_t parameter
+		brlapi_param_subparam_t subparam
+		brlapi_param_flags_t flags
+		const void *data
+		size_t len
+
+	brlapi_python_paramCallbackDescriptor_t *brlapi_python_watchParameter(brlapi_handle_t *, brlapi_param_t, uint64_t, int, object) except NULL
+	int brlapi_python_unwatchParameter(brlapi_handle_t *, brlapi_python_paramCallbackDescriptor_t *)
+
 cdef extern from "stdlib.h":
 	void *malloc(size_t)
 	void free(void*)
@@ -126,4 +167,3 @@ cdef extern from "stdlib.h":
 
 cdef extern from "string.h":
 	void *memcpy(void *, void *, size_t)
-

@@ -3,7 +3,7 @@
 .\" BRLTTY - A background process providing access to the console screen (when in
 .\"          text mode) for a blind person using a refreshable braille display.
 .\"
-.\" Copyright (C) 1995-2019 by The BRLTTY Developers.
+.\" Copyright (C) 1995-2021 by The BRLTTY Developers.
 .\"
 .\" BRLTTY comes with ABSOLUTELY NO WARRANTY.
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" This software is maintained by Dave Mielke <dave@mielke.cc>.
 .\"
-.TH "BRLTTY" "1" "2019-02-22" "brltty 6.0" "BRLTTY User's Manual"
+.TH "BRLTTY" "1" "January 2021" "@PACKAGE_TARNAME@ @PACKAGE_VERSION@" "@PACKAGE_NAME@ User's Manual"
 .SH NAME
 brltty \- refreshable braille display driver for Linux/Unix
 .SH SYNOPSIS
@@ -217,6 +217,13 @@ the first available MIDI output port
 .TP
 \fB\-n\fR (\fB\-\-no\-daemon\fR)
 Remain in the foreground (useful for debugging).
+.TP
+\fB\-o \fIname\fB=\fIvalue\fB,\fR... (\fB\-\-override\-preference=\fR)
+Override a preference setting.
+For the location of the preferences file, see the
+.B \-F
+.RB "(" "\-\-preferences\-file" ")"
+option.
 .TP
 \fB\-p \fIdevice\fR (\fB\-\-pcm\-device=\fR)
 The device to use for digital audio.
@@ -722,6 +729,12 @@ BrailleNote
 .B cb
 CombiBraille
 .TP 4
+.B ce
+Cebra
+.TP 4
+.B cn
+Canute
+.TP 4
 .B ec
 EcoBraille
 .TP 4
@@ -733,6 +746,9 @@ eSpeak
 .TP 4
 .B eu
 EuroBraille
+.TP 4
+.B fa
+FrankAudiodata
 .TP 4
 .B fl
 FestivalLite

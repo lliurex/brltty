@@ -9,13 +9,24 @@
   <string name="application_version_label">Version</string>
   <string name="application_copyright_label">Droits d\'auteur</string>
 
-  <string name="input_service_name">Service d\'entrée BRLTTY</string>
-  <string name="input_service_type">Claviers des périphériques brailles</string>
-  <string name="input_service_not_enabled">Dispositif de saisie non activé</string>
-  <string name="input_service_not_selected">Dispositif de saisie non sélectionné</string>
-  <string name="input_service_not_started">Dispositif de saisie non démarré</string>
-  <string name="input_service_not_connected">Dispositif de saisie non connecté</string>
+  <string name="inputService_name">Service d\'entrée BRLTTY</string>
+  <string name="inputService_type">Claviers des périphériques brailles</string>
+  <string name="inputService_not_enabled">Dispositif de saisie non activé</string>
+  <string name="inputService_not_selected">Dispositif de saisie non sélectionné</string>
+  <string name="inputService_not_started">Dispositif de saisie non démarré</string>
+  <string name="inputService_not_connected">Dispositif de saisie non connecté</string>
 
+  <string name="updateApplication_problem_failed">Application non mise à jour</string>
+   
+  <string name="packageInstaller_problem_failed">Paquet non installé</string>
+  <string name="packageInstaller_problem_same">Version identique</string>
+  <string name="packageInstaller_problem_downgrade">Rétrogradation non permise</string>
+   
+  <string name="fileDownloader_title">Téléchargeur du fichier de BRLTTY</string>
+  <string name="fileDownloader_problem_failed">Fichier non téléchargé</string>
+  <string name="fileDownloader_state_connecting">Connexion</string>
+  <string name="fileDownloader_state_downloading">Téléchargement</string>
+   
   <string name="checkbox_state_unchecked">Non</string>
   <string name="checkbox_state_checked">Oui</string>
 
@@ -38,7 +49,10 @@
   <string name="GLOBAL_BUTTON_BROWSE_COMMUNITY_MESSAGES">Parcourir les messages de la communauté</string>
   <string name="GLOBAL_BUTTON_POST_COMMUNITY_MESSAGE">oster un message à la communauté</string>
   <string name="GLOBAL_BUTTON_MANAGE_COMMUNITY_MEMBERSHIP">Gérer le statut de membre de la communauté</string>
+
   <string name="GLOBAL_BUTTON_UPDATE_APPLICATION">Mettre à jour l\'application</string>
+
+  <string name="CHOOSER_TITLE_ACCESSIBILITY_ACTIONS">Actions d\'accessibilité</string>
 
   <string name="SETTINGS_SCREEN_MAIN">Paramètres de BRLTTY</string>
   <string name="SETTINGS_SCREEN_GENERAL">Paramètres généraux</string>
@@ -223,16 +237,16 @@
 
   <string name="CONTRACTION_TABLE_LABEL_af">Afrikaans (abrégé)</string>
   <string name="CONTRACTION_TABLE_LABEL_am">Amharic (désabrégé)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_basis">Allemand (désabrégé)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift">Allemand (abrégé - standard 1998)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_1998">Allemand (abrégé - standard 1998)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_2015">Allemand (abrégé - standard 2015)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_vollschrift">Allemand (abréviations de base)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g0">Allemand (désabrégé)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g1">Allemand (abréviations de base)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g2">Allemand (abrégé - standard 1998)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_1998">Allemand (abrégé - standard 1998)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_2015">Allemand (abrégé - standard 2015)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_ueb_g2">Anglais (Braille anglais unifié, 2ème degré)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_us_g2">Anglais (EU, 2ème degré)</string>
   <string name="CONTRACTION_TABLE_LABEL_es">Espagnol (2ème deghé)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_abrege">Français (abrégé)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_integral">Français (désabrégé)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g1">Français (désabrégé)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g2">Français (abrégé)</string>
   <string name="CONTRACTION_TABLE_LABEL_ha">Hausa (abrégé)</string>
   <string name="CONTRACTION_TABLE_LABEL_id">Indonésien (abrégé)</string>
   <string name="CONTRACTION_TABLE_LABEL_ipa">Alphabet Phonétique international</string>
@@ -250,7 +264,6 @@
   <string name="CONTRACTION_TABLE_LABEL_sw">Swahili (abrégé)</string>
   <string name="CONTRACTION_TABLE_LABEL_th">Thaïlandais (abrégé)</string>
   <string name="CONTRACTION_TABLE_LABEL_zh_tw">Chinois (Taiwan, désabrégé)</string>
-  <string name="CONTRACTION_TABLE_LABEL_zh_tw_ucb">Chinois (Taiwan, Braille chinois Unique)</string>
   <string name="CONTRACTION_TABLE_LABEL_zu">Zoulou (abrégé)</string>
 
   <string name="KEYBOARD_TABLE_LABEL_braille">associations pour les claviers brailles</string>

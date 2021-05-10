@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -427,7 +427,7 @@ writeBytes (BrailleDisplay *brl, const void *data, size_t size) {
 static BraillePacketVerifierResult
 verifyPacket (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   InputPacket *packet = data;
@@ -530,7 +530,7 @@ getIdentity (BrailleDisplay *brl, InputPacket *reply) {
 }
 
 static int
-setAutorepeat (BrailleDisplay *brl, int on, int delay, int interval) {
+setAutorepeatProperties (BrailleDisplay *brl, int on, int delay, int interval) {
   const unsigned char request[] = {
     0XFF, 0XFF, 0X0D,
     on? ((delay + 9) / 10) /* 10ms */: 0XFF /* long delay */,
@@ -742,7 +742,7 @@ brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
       makeOutputTable(dotsTable_ISO11548_1);
 
       brl->textColumns = brl->data->cellCount;		/* initialise size of display */
-      brl->setAutorepeat = setAutorepeat;
+      brl->setAutorepeatProperties = setAutorepeatProperties;
 
       memset(brl->data->routingKeys, 0, sizeof(brl->data->routingKeys));
       brl->data->forceWrite = 1;

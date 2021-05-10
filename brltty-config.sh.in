@@ -1,0 +1,131 @@
+#!/bin/sh
+# @configure_input@
+###############################################################################
+# BRLTTY - A background process providing access to the console screen (when in
+#          text mode) for a blind person using a refreshable braille display.
+#
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
+#
+# BRLTTY comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+brlttyConfig_assignVariable() {
+   eval "${1}"'="${2}"'
+}
+
+brlttyConfig_defineVariable() {
+   local name="${1}"
+   local value="${2}"
+
+   while true
+   do
+      eval local 'new="'${value}'"'
+      [ "${new}" != "${value}" ] || break
+      value="${new}"
+   done
+
+   brlttyConfig_assignVariable "${name}" "${value}"
+}
+
+brlttyConfig_defineVariables() {
+   local prefix='@prefix@'
+   local sysconfdir='@sysconfdir@'
+   local datarootdir='@datarootdir@'
+   local datadir='@datadir@'
+   local sharedstatedir='@sharedstatedir@'
+   local localstatedir='@localstatedir@'
+   local includedir='@includedir@'
+   local oldincludedir='@oldincludedir@'
+
+   local exec_prefix='@exec_prefix@'
+   local bindir='@bindir@'
+   local sbindir='@sbindir@'
+   local libdir='@libdir@'
+   local libexecdir='@libexecdir@'
+
+   local localedir='@localedir@'
+   local mandir='@mandir@'
+   local docdir='@docdir@'
+   local infodir='@infodir@'
+   local htmldir='@htmldir@'
+   local pdfdir='@pdfdir@'
+   local psdir='@psdir@'
+   local dvidir='@dvidir@'
+
+   local PACKAGE_TARNAME='@PACKAGE_TARNAME@'
+   local PACKAGE_NAME='@PACKAGE_NAME@'
+   local PACKAGE_VERSION='@PACKAGE_VERSION@'
+   local PACKAGE_URL='@PACKAGE_URL@'
+   local PACKAGE_BUGREPORT='@PACKAGE_BUGREPORT@'
+
+   local execute_root='@execute_root@'
+   local program_directory='@program_directory@'
+   local drivers_directory='@drivers_directory@'
+   local tables_directory='@tables_directory@'
+   local updatable_directory='@updatable_directory@'
+   local writable_directory='@writable_directory@'
+   local manpage_directory='@manpage_directory@'
+   local include_directory='@include_directory@'
+
+   local privilege_parameters='@privilege_parameters@'
+
+   local api_version='@api_version@'
+   local api_release='@api_release@'
+   local api_authkeyfile='@api_authkeyfile@'
+
+   brlttyConfig_defineVariable BRLTTY_PREFIX "${prefix}"
+   brlttyConfig_defineVariable BRLTTY_SYSCONFDIR "${sysconfdir}"
+   brlttyConfig_defineVariable BRLTTY_DATAROOTDIR "${datarootdir}"
+   brlttyConfig_defineVariable BRLTTY_DATADIR "${datadir}"
+   brlttyConfig_defineVariable BRLTTY_SHAREDSTATEDIR "${sharedstatedir}"
+   brlttyConfig_defineVariable BRLTTY_LOCALSTATEDIR "${localstatedir}"
+   brlttyConfig_defineVariable BRLTTY_INCLUDEDIR "${includedir}"
+   brlttyConfig_defineVariable BRLTTY_OLDINCLUDEDIR "${oldincludedir}"
+
+   brlttyConfig_defineVariable BRLTTY_EXEC_PREFIX "${exec_prefix}"
+   brlttyConfig_defineVariable BRLTTY_BINDIR "${bindir}"
+   brlttyConfig_defineVariable BRLTTY_SBINDIR "${sbindir}"
+   brlttyConfig_defineVariable BRLTTY_LIBDIR "${libdir}"
+   brlttyConfig_defineVariable BRLTTY_LIBEXECDIR "${libexecdir}"
+
+   brlttyConfig_defineVariable BRLTTY_LOCALEDIR "${localedir}"
+   brlttyConfig_defineVariable BRLTTY_MANDIR "${mandir}"
+   brlttyConfig_defineVariable BRLTTY_INFODIR "${infodir}"
+   brlttyConfig_defineVariable BRLTTY_DOCDIR "${docdir}"
+   brlttyConfig_defineVariable BRLTTY_HTMLDIR "${htmldir}"
+   brlttyConfig_defineVariable BRLTTY_PDFDIR "${pdfdir}"
+   brlttyConfig_defineVariable BRLTTY_PSDIR "${psdir}"
+   brlttyConfig_defineVariable BRLTTY_DVIDIR "${dvidir}"
+
+   brlttyConfig_defineVariable BRLTTY_TARNAME "${PACKAGE_TARNAME}"
+   brlttyConfig_defineVariable BRLTTY_NAME "${PACKAGE_NAME}"
+   brlttyConfig_defineVariable BRLTTY_VERSION "${PACKAGE_VERSION}"
+   brlttyConfig_defineVariable BRLTTY_URL "${PACKAGE_URL}"
+   brlttyConfig_defineVariable BRLTTY_BUGREPORT "${PACKAGE_BUGREPORT}"
+
+   brlttyConfig_defineVariable BRLTTY_ROOT "${execute_root}"
+   brlttyConfig_defineVariable BRLTTY_PROGRAMS_DIRECTORY "${program_directory}"
+   brlttyConfig_defineVariable BRLTTY_DRIVERS_DIRECTORY "${drivers_directory}"
+   brlttyConfig_defineVariable BRLTTY_TABLES_DIRECTORY "${tables_directory}"
+   brlttyConfig_defineVariable BRLTTY_UPDATABLE_DIRECTORY "${updatable_directory}"
+   brlttyConfig_defineVariable BRLTTY_WRITABLE_DIRECTORY "${writable_directory}"
+   brlttyConfig_defineVariable BRLTTY_MANPAGE_DIRECTORY "${manpage_directory}"
+   brlttyConfig_defineVariable BRLTTY_INCLUDE_DIRECTORY "${include_directory}"
+
+   brlttyConfig_defineVariable BRLTTY_PRIVILEGE_PARAMETERS "${privilege_parameters}"
+
+   brlttyConfig_defineVariable BRLAPI_VERSION "${api_version}"
+   brlttyConfig_defineVariable BRLAPI_RELEASE "${api_release}"
+   brlttyConfig_defineVariable BRLAPI_KEY_FILE "${sysconfdir}/${api_authkeyfile}"
+}
+
+brlttyConfig_defineVariables

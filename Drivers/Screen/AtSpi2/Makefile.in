@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -24,6 +24,16 @@ DRIVER_DEVELOPERS =
 SCR_OBJS = @screen_libraries_a2@
 include $(SRC_TOP)screen.mk
 
-screen.$O:
-	$(CC) $(SCR_CFLAGS) $(DBUS_INCLUDES) $(ATSPI2_INCLUDES) $(GLIB2_INCLUDES) -c $(SRC_DIR)/screen.c
+SRC_FILES = a2_screen.c
+
+OBJ_FILES = $(SRC_FILES:.c=.$O) $(XSEL_OBJECT)
+
+screen.$O: $(OBJ_FILES)
+	$(MKREL) $@ $(OBJ_FILES)
+
+xsel.$O: $(SRC_TOP)$(PGM_DIR)/xsel.c
+	$(CC) $(SCR_CFLAGS) -c $<
+
+%.$O: $(SRC_DIR)/%.c
+	$(CC) $(SCR_CFLAGS) $(DBUS_INCLUDES) $(ATSPI2_INCLUDES) $(GLIB2_INCLUDES) -c $<
 

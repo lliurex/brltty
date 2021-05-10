@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2006-2019 by
+ * Copyright (C) 2006-2021 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -19,8 +19,10 @@
 
 package org.a11y.brlapi;
 
-public class Connection extends BasicConnection {
-  public Connection (ConnectionSettings settings) {
+import java.io.InterruptedIOException;
+
+public class Connection extends ConnectionBase {
+  public Connection (ConnectionSettings settings) throws ConnectException {
     super(settings);
   }
 
@@ -41,48 +43,67 @@ public class Connection extends BasicConnection {
     return enterTtyMode(null);
   }
 
-  public void enterTtyModeWithPath (int[] ttys) {
-    enterTtyModeWithPath(ttys, null);
+  public void enterTtyModeWithPath (int[] ttys, String driver) {
+    enterTtyModeWithPath(driver, ttys);
   }
 
-  public void writeDots (byte[] dots) {
+  public void enterTtyModeWithPath (int... ttys) {
+    enterTtyModeWithPath(null, ttys);
+  }
+
+  public final long readKey () throws InterruptedIOException {
+    return readKey(true);
+  }
+
+  public void write (byte[] dots) {
     int count = getCellCount();
 
     if (dots.length != count) {
-      byte[] d = new byte[count];
-      while (count > dots.length) d[--count] = 0;
-      System.arraycopy(dots, 0, d, 0, count);
-      dots = d;
+      byte[] newDots = new byte[count];
+      while (count > dots.length) newDots[--count] = 0;
+      System.arraycopy(dots, 0, newDots, 0, count);
+      dots = newDots;
     }
 
-    super.writeDots(dots);
+    writeDots(dots);
   }
 
-  public void writeText (int cursor, String text) {
+  public void write (int cursor, String text) {
     if (text != null) {
       int count = getCellCount();
 
       {
-        StringBuilder sb = new StringBuilder(text);
-        while (sb.length() < count) sb.append(' ');
-        text = sb.toString();
+        StringBuilder newText = new StringBuilder(text);
+        while (newText.length() < count) newText.append(' ');
+        text = newText.toString();
       }
 
-      text = text.substring(0, count);
+      if (text.length() > count) text = text.substring(0, count);
     }
 
-    super.writeText(cursor, text);
-  }
-
-  public void writeText (String text, int cursor) {
     writeText(cursor, text);
   }
 
-  public void writeText (int cursor) {
-    writeText(cursor, null);
+  public void write (String text, int cursor) {
+    write(cursor, text);
   }
 
-  public void writeText (String text) {
-    writeText(Constants.CURSOR_OFF, text);
+  public void write (int cursor) {
+    write(cursor, null);
+  }
+
+  public void write (String text) {
+    write(Constants.CURSOR_LEAVE, text);
+  }
+
+  private Parameters connectionParameters = null;
+  public Parameters getParameters () {
+    synchronized (this) {
+      if (connectionParameters == null) {
+        connectionParameters = new Parameters(this);
+      }
+    }
+
+    return connectionParameters;
   }
 }

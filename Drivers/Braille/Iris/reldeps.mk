@@ -16,7 +16,6 @@ braille.$O: $(SRC_TOP)Headers/async_alarm.h
 braille.$O: $(SRC_TOP)Headers/timing.h
 braille.$O: $(SRC_TOP)Headers/ports.h
 braille.$O: $(SRC_TOP)Headers/message.h
-braille.$O: $(SRC_TOP)Headers/api_types.h
 braille.$O: $(SRC_TOP)Headers/async_io.h
 braille.$O: $(SRC_TOP)Headers/brl_base.h
 braille.$O: $(SRC_TOP)Headers/brl_cmds.h

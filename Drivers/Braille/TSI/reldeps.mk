@@ -12,7 +12,6 @@ braille.$O: $(SRC_TOP)Headers/io_generic.h
 braille.$O: $(SRC_TOP)Headers/serial_types.h
 braille.$O: $(SRC_TOP)Headers/usb_types.h
 braille.$O: $(SRC_TOP)Headers/message.h
-braille.$O: $(SRC_TOP)Headers/api_types.h
 braille.$O: $(SRC_TOP)Headers/brl_base.h
 braille.$O: $(SRC_TOP)Headers/brl_cmds.h
 braille.$O: $(SRC_TOP)Headers/brl_dots.h

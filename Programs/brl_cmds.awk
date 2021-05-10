@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -29,12 +29,12 @@ BEGIN {
   brlBlockDeprecations["CLIP_APPEND"] = "APNDCHARS"
 }
 
-/^ *BRL_CMD_/ {
+/^[[:space:]]*BRL_CMD_/ {
   brlCommand(substr($1, 9), $1, brlCommandValue++, getComment($0))
   next
 }
 
-/^ *BRL_BLK_/ {
+/^[[:space:]]*BRL_BLK_/ {
   prefix = substr($1, 1, 8)
   name = substr($1, 9)
   value = brlBlockValue++
@@ -52,7 +52,7 @@ BEGIN {
   next
 }
 
-/^ *BRL_KEY_/ {
+/^[[:space:]]*BRL_KEY_/ {
   gsub(",", "", $1)
   key = tolower(substr($1, 9))
   gsub("_", "-", key)
@@ -60,12 +60,12 @@ BEGIN {
   next
 }
 
-/#define[ \t]*BRL_FLG_/ {
+/#define[[:space:]]+BRL_FLG_/ {
   brlFlag(substr($2, 9), $2, getDefineValue(), getComment($0))
   next
 }
 
-/#define[ \t]*BRL_DOT/ {
+/#define[[:space:]]+BRL_DOT/ {
   value = getDefineValue()
   sub("^.*\\(", "", value)
   sub("\\).*$", "", value)
@@ -124,15 +124,33 @@ function writeMacroDefinition(name, definition, help) {
   print statement
 }
 
-function getComment(line) {
-  if (!match(line, "/\\*.*\\*/")) return ""
-  line = substr(line, RSTART+2, RLENGTH-4)
+function getComment(line,     comment, last) {
+  comment = ""
 
-  match(line, "^\\** *")
-  line = substr(line, RLENGTH+1)
+  if (match(line, "/\\*")) {
+    line = substr(line, RSTART+2)
+    gsub("^\\**<? *", "", line)
 
-  match(line, " *$")
-  return substr(line, 1, RSTART-1)
+    while (1) {
+      last = gsub("\\*/.*$", "", line)
+      gsub(" *$", "", line)
+
+      if (length(comment) > 0) comment = comment " "
+      comment = comment line
+      if (last) break
+
+      getline line
+      gsub("^[[:space:]]*\\**[[:space:]]*", "", line)
+    }
+  } else if (match(line, "//")) {
+    comment = substr(line, RSTART+2);
+    gsub("^ *", "", comment)
+
+    gsub("\\*/.*$", "", comment)
+    gsub(" *$", "", comment)
+  }
+
+  return comment
 }
 
 function getDefineValue() {

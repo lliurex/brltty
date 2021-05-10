@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,9 +21,6 @@
 #include <string.h>
 
 #include "drivers.h"
-#include "scr.h"
-#include "scr_main.h"
-#include "scr.auto.h"
 
 typedef enum {
   PARM_MESSAGE
@@ -37,6 +34,7 @@ typedef enum {
 #define DRIVER_VERSION ""
 #define DRIVER_DEVELOPERS ""
 #include "scr_driver.h"
+#include "scr.auto.h"
 
 static const char defaultMessage[] = strtext("no screen");
 static const char *messageParameter = NULL;
@@ -73,8 +71,13 @@ static void
 describe_NoScreen (ScreenDescription *description) {
   {
     const char *message = noDriverReason;
-    if (!message) message = messageParameter;
-    if (!message) message = gettext(defaultMessage);
+
+    if (!message) {
+      message = messageParameter;
+      if (!message) message = defaultMessage;
+      message = gettext(message);
+    }
+
     screenMessage = message;
   }
 

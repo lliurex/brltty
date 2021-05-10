@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -29,7 +29,7 @@
 #endif /* PTHREAD_STACK_MIN */
 
 #define RELEASE "BrlAPI Server: release " BRLAPI_RELEASE
-#define COPYRIGHT "   Copyright (C) 2002-2019 by Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>, \
+#define COPYRIGHT "   Copyright (C) 2002-2021 by Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>, \
 Samuel Thibault <samuel.thibault@ens-lyon.org>"
 
 #include "prologue.h"
@@ -41,10 +41,15 @@ Samuel Thibault <samuel.thibault@ens-lyon.org>"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <locale.h>
 
 #ifdef HAVE_ICONV_H
 #include <iconv.h>
 #endif /* HAVE_ICONV_H */
+
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif /* HAVE_ALLOCA_H */
 
 #ifdef __MINGW32__
 #include "system_windows.h"
@@ -82,6 +87,7 @@ Samuel Thibault <samuel.thibault@ens-lyon.org>"
 #include "brl_cmds.h"
 #include "brl_utils.h"
 #include "embed.h"
+#include "clipboard.h"
 #include "ttb.h"
 #include "core.h"
 #include "api_server.h"
@@ -93,10 +99,10 @@ Samuel Thibault <samuel.thibault@ens-lyon.org>"
 #include "parse.h"
 #include "timing.h"
 #include "auth.h"
+#include "io_generic.h"
 #include "io_misc.h"
 #include "scr.h"
 #include "charset.h"
-#include "async_event.h"
 #include "async_signal.h"
 #include "thread.h"
 #include "blink.h"
@@ -117,32 +123,31 @@ typedef enum {
   PARM_STACKSIZE
 } Parameters;
 
-const char *const api_parameters[] = { "auth", "host", "stacksize", NULL };
+const char *const api_serverParameters[] = { "auth", "host", "stacksize", NULL };
 
 static size_t stackSize;
-static AsyncEvent *flushEvent;
 
 #define WERR(x, y, ...) do { \
   logMessage(LOG_ERR, "writing error %d to %"PRIfd, y, x); \
   logMessage(LOG_ERR, __VA_ARGS__); \
   writeError(x, y); \
 } while(0)
-#define WEXC(x, y, type, packet, size, ...) do { \
-  logMessage(LOG_ERR, "writing exception %d to %"PRIfd, y, x); \
+#define WEXC(fd, err, type, packet, size, ...) do { \
+  logMessage(LOG_ERR, "writing exception %d to fd %"PRIfd, err, fd); \
   logMessage(LOG_ERR, __VA_ARGS__); \
-  writeException(x, y, type, packet, size); \
+  writeException(fd, err, type, packet, size); \
 } while(0)
 
 /* These CHECK* macros check whether a condition is true, and, if not, */
 /* send back either a non-fatal error, or an exception */
-#define CHECKERR(condition, error, msg) \
+#define CHECKERR(condition, error, msg, ...) \
 if (!( condition )) { \
-  WERR(c->fd, error, "%s not met: " msg, #condition); \
+  WERR(c->fd, error, "%s not met: " msg, #condition, ## __VA_ARGS__); \
   return 0; \
 } else { }
-#define CHECKEXC(condition, error, msg) \
+#define CHECKEXC(condition, error, msg, ...) \
 if (!( condition )) { \
-  WEXC(c->fd, error, type, packet, size, "%s not met: " msg, #condition); \
+  WEXC(c->fd, error, type, packet, size, "%s not met: " msg, #condition, ## __VA_ARGS__); \
   return 0; \
 } else { }
 
@@ -177,13 +182,23 @@ typedef struct {
 
 typedef enum { TODISPLAY, EMPTY } BrlBufState;
 
+typedef struct Subscription {
+  brlapi_param_t parameter;
+  brlapi_param_subparam_t subparam;
+  brlapi_param_flags_t flags;
+  struct Subscription *prev, *next;
+} Subscription;
+
 typedef struct Connection {
+  uint32_t clientVersion;
   struct Connection *prev, *next;
   FileDescriptor fd;
   int auth;
   struct Tty *tty;
+  brlapi_param_clientPriority_t client_priority;
   int raw, suspend;
   unsigned int how; /* how keys must be delivered to clients */
+  uint8_t retainDots; /* whether client wants dots instead of translating to chars */
   BrailleWindow brailleWindow;
   BrlBufState brlbufstate;
   pthread_mutex_t brailleWindowMutex;
@@ -191,6 +206,7 @@ typedef struct Connection {
   pthread_mutex_t acceptedKeysMutex;
   time_t upTime;
   Packet packet;
+  struct Subscription subscriptions;
 } Connection;
 
 typedef struct Tty {
@@ -201,6 +217,13 @@ typedef struct Tty {
   struct Tty **prevnext,*next; /* siblings */
   struct Tty *subttys; /* children */
 } Tty;
+
+typedef struct {
+  unsigned local_subscriptions;
+  unsigned global_subscriptions;
+} ParamState;
+
+static ParamState paramState[BRLAPI_PARAM_COUNT];
 
 /* Pointer to the connection accepter thread */
 static pthread_t serverThread; /* server */
@@ -219,7 +242,7 @@ static struct socketInfo {
 
 static int serverSocketCount; /* number of sockets */
 static int serverSocketsPending; /* number of sockets not opened yet */
-pthread_mutex_t serverSocketsMutex;
+pthread_mutex_t apiSocketsMutex;
 
 /* Protects from connection addition / remove from the server thread */
 pthread_mutex_t apiConnectionsMutex;
@@ -227,16 +250,21 @@ pthread_mutex_t apiConnectionsMutex;
 /* Protects the real driver's functions */
 pthread_mutex_t apiDriverMutex;
 
-/* Which connection currently has raw mode */
+/* Which connection currently has raw mode or requested device suspension */
 pthread_mutex_t apiRawMutex;
 static Connection *rawConnection = NULL;
 static Connection *suspendConnection = NULL;
 
+pthread_mutex_t apiParamMutex;
+/* Which connection is currently modifying a parameter */
+static Connection *paramUpdateConnection;
+
 /* mutex lock order is as follows:
- * 1. apiConnectionsMutex
- * 2. apiRawMutex
- * 3. acceptedKeysMutex or brailleWindowMutex
- * 4. apiDriverMutex
+ * 1. apiParamMutex
+ * 2. apiConnectionsMutex
+ * 3. apiRawMutex
+ * 4. acceptedKeysMutex or brailleWindowMutex
+ * 5. apiDriverMutex
 */
 
 static Tty notty;
@@ -311,6 +339,7 @@ static unsigned char cursorOverlay = 0;
 extern void processParameters(char ***values, const char *const *names, const char *description, char *optionParameters, char *configuredParameters, const char *environmentVariable);
 static int initializeAcceptedKeys(Connection *c, int how);
 static void brlResize(BrailleDisplay *brl);
+static void handleParamUpdate(Connection *source, Connection *dest, brlapi_param_t param, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, const void *data, size_t size);
 
 /****************************************************************************/
 /** DRIVER CAPABILITIES                                                    **/
@@ -329,14 +358,14 @@ static int isKeyCapable(const BrailleDriver *brl)
 {
   int ret;
   lockMutex(&apiDriverMutex);
-  ret = ((brl->readKey!=NULL) && (brl->keyToCommand!=NULL)) || (disp && disp->keyNames!=NULL);
+  ret = (disp && (disp->keyNames != NULL));
   unlockMutex(&apiDriverMutex);
   return ret;
 }
 
-/* Function : suspendDriver */
-/* Close driver */
-static void suspendDriver(BrailleDisplay *brl) {
+/* Function : suspendBrailleDriver */
+/* Really suspend the braille driver. Assumes that apiDriverMutex is locked */
+static void suspendBrailleDriver(void) {
   if (trueBraille == &noBraille) return; /* core unlinked api */
   logMessage(LOG_CATEGORY(SERVER_EVENTS), "driver suspended");
   lockMutex(&apiSuspendMutex);
@@ -345,20 +374,121 @@ static void suspendDriver(BrailleDisplay *brl) {
   unlockMutex(&apiSuspendMutex);
 }
 
-/* Function : resumeDriver */
-/* Re-open driver */
-static int resumeDriver(BrailleDisplay *brl) {
+
+CORE_TASK_CALLBACK(apiCoreTask_destructBrailleDriver) {
+  lockMutex(&apiDriverMutex);
+  if (driverConstructed) {
+    suspendBrailleDriver();
+  }
+  unlockMutex(&apiDriverMutex);
+}
+
+/* Function : suspendDriver */
+/* Requests suspending the driver */
+static void suspendDriver(void) {
+  runCoreTask(apiCoreTask_destructBrailleDriver, NULL, 1);
+}
+
+/* Function : resumeBrailleDriver */
+/* Really resume the braille driver. Assumes that apiDriverMutex is locked */
+static int resumeBrailleDriver(BrailleDisplay *brl) {
   if (trueBraille == &noBraille) return 0; /* core unlinked api */
   driverConstructing = 1;
   lockMutex(&apiSuspendMutex);
   driverConstructed = constructBrailleDriver();
   if (driverConstructed) {
-    logMessage(LOG_CATEGORY(SERVER_EVENTS), "driver resumed");
-    brlResize(brl);
+    disp = brl;
   }
   unlockMutex(&apiSuspendMutex);
+  if (driverConstructed) {
+    logMessage(LOG_CATEGORY(SERVER_EVENTS), "driver resumed");
+    handleParamUpdate(NULL, NULL, BRLAPI_PARAM_DRIVER_NAME, 0, BRLAPI_PARAMF_GLOBAL, braille->definition.name, strlen(braille->definition.name));
+    handleParamUpdate(NULL, NULL, BRLAPI_PARAM_DRIVER_CODE, 0, BRLAPI_PARAMF_GLOBAL, braille->definition.code, strlen(braille->definition.code));
+    handleParamUpdate(NULL, NULL, BRLAPI_PARAM_DRIVER_VERSION, 0, BRLAPI_PARAMF_GLOBAL, braille->definition.version, strlen(braille->definition.version));
+    handleParamUpdate(NULL, NULL, BRLAPI_PARAM_DEVICE_MODEL, 0, BRLAPI_PARAMF_GLOBAL, disp->keyBindings, strlen(disp->keyBindings));
+    brlResize(brl);
+  }
   driverConstructing = 0;
   return driverConstructed;
+}
+
+typedef struct {
+  unsigned resumed:1;
+} CoreTaskData_resumeBrailleDriver;
+
+CORE_TASK_CALLBACK(apiCoreTask_resumeBrailleDriver) {
+  CoreTaskData_resumeBrailleDriver *rbd = data;
+  lockMutex(&apiDriverMutex);
+  if (!disp) {
+    rbd->resumed = 0;
+  } else if (driverConstructed || driverConstructing) {
+    rbd->resumed = 1;
+  } else {
+    rbd->resumed = resumeBrailleDriver(disp);
+  }
+  unlockMutex(&apiDriverMutex);
+}
+
+/* Function : resumeDriver */
+/* Requests resuming the driver */
+static int resumeDriver(void) {
+  CoreTaskData_resumeBrailleDriver rbd = {
+    .resumed = 0
+  };
+
+  runCoreTask(apiCoreTask_resumeBrailleDriver, &rbd, 1);
+  return rbd.resumed;
+}
+
+/* Function : resetBrailleDriver */
+/* Really reset the braille driver. Assumes that apiDriverMutex is locked */
+static void resetBrailleDevice(void) {
+  logMessage(LOG_WARNING, "trying to reset the braille device");
+
+  if (!trueBraille->reset || !disp || !trueBraille->reset(disp)) {
+    if (trueBraille->reset) {
+      logMessage(LOG_WARNING, "reset failed - restarting the braille driver");
+    }
+
+    restartBrailleDriver();
+  }
+}
+
+CORE_TASK_CALLBACK(apiCoreTask_resetBrailleDevice) {
+  lockMutex(&apiDriverMutex);
+  resetBrailleDevice();
+  unlockMutex(&apiDriverMutex);
+}
+
+/* Function : resetDriver */
+/* Requests resetting the driver */
+static void resetDevice(void) {
+  runCoreTask(apiCoreTask_resetBrailleDevice, NULL, 1);
+}
+
+static int flushBrailleOutput(BrailleDisplay *brl) {
+  int flushed = api_flushOutput(brl);
+  if (!flushed) brl->hasFailed = 1;
+  resetAllBlinkDescriptors();
+  return flushed;
+}
+
+typedef struct {
+  unsigned flushed:1;
+} CoreTaskData_flushBrailleOutput;
+
+CORE_TASK_CALLBACK(apiCoreTask_flushBrailleOutput) {
+  CoreTaskData_flushBrailleOutput *fbo = data;
+  fbo->flushed = flushBrailleOutput(&brl);
+}
+
+static int flushOutput(void) {
+  CoreTaskData_flushBrailleOutput fbo = {
+    .flushed = 0
+  };
+
+  runCoreTask(apiCoreTask_flushBrailleOutput, &fbo, 1);
+  return fbo.flushed;
 }
 
 /****************************************************************************/
@@ -422,6 +552,8 @@ typedef struct { /* packet handlers */
   PacketHandler packet;
   PacketHandler suspendDriver;
   PacketHandler resumeDriver;
+  PacketHandler parameterValue;
+  PacketHandler parameterRequest;
 } PacketHandlers;
 
 /****************************************************************************/
@@ -494,12 +626,6 @@ static void getDots(const BrailleWindow *brailleWindow, unsigned char *buf)
   }
 }
 
-static void handleResize(BrailleDisplay *brl)
-{
-  /* TODO: handle resize */
-  logMessage(LOG_INFO,"BrlAPI resize");
-}
-
 /****************************************************************************/
 /** CONNECTIONS MANAGING                                                   **/
 /****************************************************************************/
@@ -514,6 +640,7 @@ static Connection *createConnection(FileDescriptor fd, time_t currentTime)
   c->auth = -1;
   c->fd = fd;
   c->tty = NULL;
+  c->client_priority = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT;
   c->raw = 0;
   c->suspend = 0;
   c->brlbufstate = EMPTY;
@@ -532,6 +659,7 @@ static Connection *createConnection(FileDescriptor fd, time_t currentTime)
   }
 
   c->how = 0;
+  c->retainDots = 1;
   c->acceptedKeys = NULL;
   c->upTime = currentTime;
   c->brailleWindow.text = NULL;
@@ -539,6 +667,8 @@ static Connection *createConnection(FileDescriptor fd, time_t currentTime)
   c->brailleWindow.orAttr = NULL;
   if (brlapi_initializePacket(&c->packet))
     goto outmalloc;
+  c->subscriptions.next = &c->subscriptions;
+  c->subscriptions.prev = &c->subscriptions;
   return c;
 
 outmalloc:
@@ -555,7 +685,20 @@ out:
 /* Frees all resources associated to a connection */
 static void freeConnection(Connection *c)
 {
+  struct Subscription *s, *next;
+
   if (c->fd != INVALID_FILE_DESCRIPTOR) {
+    lockMutex(&apiParamMutex);
+    for (s=c->subscriptions.next; s!=&c->subscriptions; s=next) {
+      if (s->flags & BRLAPI_PARAMF_GLOBAL)
+	paramState[s->parameter].global_subscriptions--;
+      else
+	paramState[s->parameter].local_subscriptions--;
+      next = s->next;
+      free(s);
+    }
+    unlockMutex(&apiParamMutex);
+
     if (c->auth != 1) unauthConnections--;
     closeFileDescriptor(c->fd);
   }
@@ -579,6 +722,13 @@ static void __addConnection(Connection *c, Connection *connections)
   c->prev = connections;
   connections->next->prev = c;
   connections->next = c;
+}
+static void __addConnectionSorted(Connection *c, Connection *head)
+{
+  Connection *cur = head;
+  while (cur->next != head && cur->next->client_priority > c->client_priority)
+    cur = cur->next;
+  __addConnection(c, cur);
 }
 static void addConnection(Connection *c, Connection *connections)
 {
@@ -799,7 +949,7 @@ static int handleEnterTtyMode(Connection *c, brlapi_packetType_t type, brlapi_pa
   c->tty = tty;
   c->how = how;
   __removeConnection(c);
-  __addConnection(c,tty->connections);
+  __addConnectionSorted(c,tty->connections);
   unlockMutex(&apiConnectionsMutex);
   writeAck(c->fd);
   logMessage(LOG_CATEGORY(SERVER_EVENTS), "fd %"PRIfd" taking control of tty %#010x (how=%d)",c->fd,tty->number,how);
@@ -813,7 +963,7 @@ static int handleSetFocus(Connection *c, brlapi_packetType_t type, brlapi_packet
   CHECKEXC(c->tty,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed out of tty mode");
   c->tty->focus = ntohl(ints[0]);
   logMessage(LOG_CATEGORY(SERVER_EVENTS), "focus on window %#010x from fd%"PRIfd,c->tty->focus,c->fd);
-  asyncSignalEvent(flushEvent, NULL);
+  flushOutput();
   return 0;
 }
 
@@ -852,8 +1002,8 @@ static int handleKeyRanges(Connection *c, brlapi_packetType_t type, brlapi_packe
   CHECKERR(!(size%(2*sizeof(brlapi_keyCode_t))),BRLAPI_ERROR_INVALID_PACKET,"wrong packet size");
   lockMutex(&c->acceptedKeysMutex);
   for (i=0; i<size/(2*sizeof(brlapi_keyCode_t)); i++) {
-    x = ((brlapi_keyCode_t)ntohl(ints[i][0]) << 32) | ntohl(ints[i][1]);
-    y = ((brlapi_keyCode_t)ntohl(ints[i][2]) << 32) | ntohl(ints[i][3]);
+    x = brlapiserver_packetToKeyCode(&ints[i][0]);
+    y = brlapiserver_packetToKeyCode(&ints[i][2]);
     logMessage(LOG_CATEGORY(SERVER_EVENTS), "fd %"PRIfd" range: [%016"BRLAPI_PRIxKEYCODE"..%016"BRLAPI_PRIxKEYCODE"]",c->fd,x,y);
     if (type==BRLAPI_PACKET_IGNOREKEYRANGES) res = removeKeyrange(x,y,&c->acceptedKeys);
     else res = addKeyrange(x,y,&c->acceptedKeys);
@@ -868,6 +1018,48 @@ static int handleKeyRanges(Connection *c, brlapi_packetType_t type, brlapi_packe
   return 0;
 }
 
+static void
+logConversionDecision (Connection *connection, const char *charset, const char *decision) {
+  logMessage(LOG_CATEGORY(SERVER_EVENTS),
+    "fd %"PRIfd" charset %s %s",
+    connection->fd, charset, decision
+  );
+}
+
+static void
+logConversionResult (Connection *connection, unsigned int chars, unsigned int bytes) {
+  logMessage(LOG_CATEGORY(SERVER_EVENTS),
+    "fd %"PRIfd" wrote %d characters %d bytes",
+    connection->fd, chars, bytes
+  );
+}
+
+static void
+convertFromLatin1 (Connection *c, unsigned int rbeg, unsigned int rsiz, const unsigned char *text, unsigned int textLen) {
+  for (int i=0; i<rsiz; i+=1) {
+    c->brailleWindow.text[rbeg-1+i] = text[i];
+  }
+
+  logConversionResult(c, rsiz, rsiz);
+}
+
+static int
+convertFromUTF8 (Connection *c, wchar_t *outBuff, size_t *outLeft, const char *inBuff, size_t *inLeft) {
+  wchar_t *out = outBuff;
+  const char *in = inBuff;
+
+  while ((*outLeft > 0) && (*inLeft > 0)) {
+    wint_t wc = convertUtf8ToWchar(&in, inLeft);
+    if (wc == WEOF) return 0;
+
+    *out++ = wc;
+    *outLeft -= 1;
+  }
+
+  logConversionResult(c, (out - outBuff), (in - inBuff));
+  return 1;
+}
+
 static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t *packet, size_t size)
 {
   brlapi_writeArgumentsPacket_t *wa = &packet->writeArguments;
@@ -878,9 +1070,6 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
   int remaining = size;
   char *charset = NULL;
   unsigned int charsetLen = 0;
-#ifdef HAVE_ICONV_H
-  char *coreCharset = NULL;
-#endif /* HAVE_ICONV_H */
   CHECKEXC(remaining>=sizeof(wa->flags), BRLAPI_ERROR_INVALID_PACKET, "packet too small for flags");
   CHECKERR(!c->raw,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed in raw mode");
   CHECKERR(c->tty,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed out of tty mode");
@@ -953,57 +1142,125 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
   }
   CHECKEXC(remaining==0, BRLAPI_ERROR_INVALID_PACKET, "packet too big");
   /* Here the whole packet has been checked */
+
   if (text) {
+    int isUTF8 = 0;
+    int isLatin1 = 0;
+
+#ifndef HAVE_ALLOCA_H
+    char charsetBuffer[0X20];
+#endif /* HAVE_ALLOCA_H */
+
     if (charset) {
       charset[charsetLen] = 0; /* we have room for this */
-#ifndef HAVE_ICONV_H
-      CHECKEXC(!strcasecmp(charset, "iso-8859-1"), BRLAPI_ERROR_OPNOTSUPP, "charset conversion not supported (enable iconv?)");
-#endif /* !HAVE_ICONV_H */
-    }
-#ifdef HAVE_ICONV_H
-    else {
+    } else {
       lockCharset(0);
-      charset = coreCharset = (char *) getCharset();
-      if (!coreCharset) {
-        unlockCharset();
+      const char *name = getCharset();
+
+      if (name) {
+        size_t length = strlen(name);
+
+#ifdef HAVE_ALLOCA_H
+        size_t size = length + 1;
+        charset = alloca(size);
+        strcpy(charset, name);
+#else /* HAVE_ALLOCA_H */
+        if (length < sizeof(charsetBuffer)) {
+          strcpy(charsetBuffer, name);
+          charset = charsetBuffer;
+        }
+#endif /* HAVE_ALLOCA_H */
+
+        if (charset) charsetLen = length;
+      }
+
+      unlockCharset();
+    }
+
+    if (charset) {
+      if (isCharsetUTF8(charset)) {
+        isUTF8 = 1;
+      } else if (isCharsetLatin1(charset)) {
+        isLatin1 = 1;
+      } else {
+#ifndef HAVE_ICONV_H
+        CHECKEXC(0, BRLAPI_ERROR_OPNOTSUPP, "charset conversion not supported (enable iconv?)");
+#endif /* !HAVE_ICONV_H */
       }
     }
-    if (charset) {
-      iconv_t conv;
+
+    if (isUTF8) {
+      logConversionDecision(c, "UTF-8", "internal conversion");
+
+      size_t outLeft = rsiz;
+      wchar_t outBuff[outLeft];
+
+      size_t inLeft = textLen;
+      const char *inBuff = (char *)text;
+
+      CHECKEXC(
+        convertFromUTF8(c, outBuff, &outLeft, inBuff, &inLeft),
+        BRLAPI_ERROR_INVALID_PACKET, "invalid charset conversion"
+      );
+
+      CHECKEXC(!inLeft, BRLAPI_ERROR_INVALID_PACKET, "text too big");
+      CHECKEXC(!outLeft, BRLAPI_ERROR_INVALID_PACKET, "text too small");
+
+      lockMutex(&c->brailleWindowMutex);
+      wmemcpy(c->brailleWindow.text+rbeg-1, outBuff, rsiz);
+    } else if (isLatin1) {
+      logConversionDecision(c, "ISO_8859-1", "internal conversion");
+      lockMutex(&c->brailleWindowMutex);
+      convertFromLatin1(c, rbeg, rsiz, text, textLen);
+    }
+
+#ifdef HAVE_ICONV_H
+    else if (charset) {
+      logConversionDecision(c, charset, "iconv conversion");
+
       wchar_t textBuf[rsiz];
       char *in = (char *) text, *out = (char *) textBuf;
-      size_t sin = textLen, sout = sizeof(textBuf), res;
-      logMessage(LOG_CATEGORY(SERVER_EVENTS), "fd %"PRIfd" charset %s",c->fd,charset);
-      CHECKEXC((conv = iconv_open(getWcharCharset(),charset)) != (iconv_t)(-1), BRLAPI_ERROR_INVALID_PACKET, "invalid charset");
-      res = iconv(conv,&in,&sin,&out,&sout);
+      size_t sin = textLen, sout = sizeof(textBuf);
+
+      iconv_t conv = iconv_open(getWcharCharset(), charset);
+      CHECKEXC((conv != (iconv_t)(-1)), BRLAPI_ERROR_INVALID_PACKET, "invalid charset");
+      size_t res = iconv(conv,&in,&sin,&out,&sout);
       iconv_close(conv);
-      CHECKEXC(res != (size_t) -1, BRLAPI_ERROR_INVALID_PACKET, "invalid charset conversion");
+
+      CHECKEXC((res != (size_t)-1), BRLAPI_ERROR_INVALID_PACKET, "invalid charset conversion");
       CHECKEXC(!sin, BRLAPI_ERROR_INVALID_PACKET, "text too big");
       CHECKEXC(!sout, BRLAPI_ERROR_INVALID_PACKET, "text too small");
-      if (coreCharset) unlockCharset();
+      logConversionResult(c, rsiz, textLen);
+
       lockMutex(&c->brailleWindowMutex);
-      memcpy(c->brailleWindow.text+rbeg-1,textBuf,rsiz*sizeof(wchar_t));
-      logMessage(LOG_CATEGORY(SERVER_EVENTS), "fd %"PRIfd" wrote %d characters %d bytes",c->fd,rsiz,textLen);
-    } else
-#endif /* HAVE_ICONV_H */
-    {
-      int i;
-      lockMutex(&c->brailleWindowMutex);
-      for (i=0; i<rsiz; i++) {
-	/* assume latin1 */
-        c->brailleWindow.text[rbeg-1+i] = text[i];
-      }
-      logMessage(LOG_CATEGORY(SERVER_EVENTS), "fd %"PRIfd" wrote %d characters %d bytes",c->fd,rsiz,rsiz);
+      wmemcpy(c->brailleWindow.text+rbeg-1, textBuf, rsiz);
     }
+#endif /* HAVE_ICONV_H */
+
+    else {
+      logConversionDecision(c, "ISO_8859-1", "assumed");
+      lockMutex(&c->brailleWindowMutex);
+      convertFromLatin1(c, rbeg, rsiz, text, textLen);
+    }
+
+    // Forget the charset in case it's pointing to a local buffer.
+    // This occurs when getCharset() is saved and alloca() isn't available.
+    charset = NULL;
+    charsetLen = 0;
+
     if (!andAttr) memset(c->brailleWindow.andAttr+rbeg-1,0xFF,rsiz);
     if (!orAttr)  memset(c->brailleWindow.orAttr+rbeg-1,0x00,rsiz);
-  } else lockMutex(&c->brailleWindowMutex);
+  } else {
+    lockMutex(&c->brailleWindowMutex);
+  }
+
   if (andAttr) memcpy(c->brailleWindow.andAttr+rbeg-1,andAttr,rsiz);
   if (orAttr) memcpy(c->brailleWindow.orAttr+rbeg-1,orAttr,rsiz);
-  if (cursor>=0) c->brailleWindow.cursor = cursor;
+  if (cursor >= 0) c->brailleWindow.cursor = cursor;
+
   c->brlbufstate = TODISPLAY;
   unlockMutex(&c->brailleWindowMutex);
-  asyncSignalEvent(flushEvent, NULL);
+  flushOutput();
   return 0;
 }
 
@@ -1032,17 +1289,13 @@ static int handleEnterRawMode(Connection *c, brlapi_packetType_t type, brlapi_pa
     unlockMutex(&apiRawMutex);
     return 0;
   }
-  lockMutex(&apiDriverMutex);
-  if (!driverConstructed && !driverConstructing && (!disp || !resumeDriver(disp))) {
-    WERR(c->fd, BRLAPI_ERROR_DRIVERERROR,"driver resume error");
-    unlockMutex(&apiDriverMutex);
-    unlockMutex(&apiRawMutex);
-    return 0;
-  }
-  unlockMutex(&apiDriverMutex);
-  c->raw = 1;
   rawConnection = c;
   unlockMutex(&apiRawMutex);
+  if (!resumeDriver()) {
+    WERR(c->fd, BRLAPI_ERROR_DRIVERERROR,"driver resume error");
+    return 0;
+  }
+  c->raw = 1;
   writeAck(c->fd);
   return 0;
 }
@@ -1051,8 +1304,8 @@ static int handleLeaveRawMode(Connection *c, brlapi_packetType_t type, brlapi_pa
 {
   CHECKERR(c->raw,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed out of raw mode");
   logMessage(LOG_CATEGORY(SERVER_EVENTS), "fd %"PRIfd" going out of raw mode",c->fd);
-  lockMutex(&apiRawMutex);
   c->raw = 0;
+  lockMutex(&apiRawMutex);
   rawConnection = NULL;
   unlockMutex(&apiRawMutex);
   writeAck(c->fd);
@@ -1078,12 +1331,10 @@ static int handleSuspendDriver(Connection *c, brlapi_packetType_t type, brlapi_p
     unlockMutex(&apiRawMutex);
     return 0;
   }
-  c->suspend = 1;
   suspendConnection = c;
   unlockMutex(&apiRawMutex);
-  lockMutex(&apiDriverMutex);
-  if (driverConstructed) suspendDriver(disp);
-  unlockMutex(&apiDriverMutex);
+  c->suspend = 1;
+  suspendDriver();
   writeAck(c->fd);
   return 0;
 }
@@ -1091,14 +1342,1142 @@ static int handleSuspendDriver(Connection *c, brlapi_packetType_t type, brlapi_p
 static int handleResumeDriver(Connection *c, brlapi_packetType_t type, brlapi_packet_t *packet, size_t size)
 {
   CHECKERR(c->suspend,BRLAPI_ERROR_ILLEGAL_INSTRUCTION, "not allowed out of suspend mode");
-  lockMutex(&apiRawMutex);
   c->suspend = 0;
+  lockMutex(&apiRawMutex);
   suspendConnection = NULL;
   unlockMutex(&apiRawMutex);
-  lockMutex(&apiDriverMutex);
-  if (!driverConstructed && !driverConstructing) resumeDriver(disp);
-  unlockMutex(&apiDriverMutex);
+  resumeDriver();
   writeAck(c->fd);
+  return 0;
+}
+
+static brlapi_keyCode_t makeDriverKeyCode (KeyGroup group, KeyNumber number, int press)
+{
+  brlapi_keyCode_t code =
+    ((group << BRLAPI_DRV_KEY_GROUP_SHIFT) & BRLAPI_DRV_KEY_GROUP_MASK) |
+    ((number << BRLAPI_DRV_KEY_NUMBER_SHIFT) & BRLAPI_DRV_KEY_NUMBER_MASK);
+
+  if (press) code |= BRLAPI_DRV_KEY_PRESS;
+  return code;
+}
+
+/* On success, this should fill 'data', adjust 'size', and return NULL.
+ * On failure, this should return a non-allocated error message string. */
+#define PARAM_READER_DECLARATION(name) const char *name (Connection *c, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, void *data, size_t *size)
+typedef PARAM_READER_DECLARATION(ParamReader);
+#define PARAM_READER(name) static PARAM_READER_DECLARATION(param_ ## name ## _read)
+
+/* On success, this should return NULL.
+ * On failure, this should return a non-allocated error message string. */
+#define PARAM_WRITER_DECLARATION(name) const char *name (Connection *c, brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, const void *data, size_t size)
+typedef PARAM_WRITER_DECLARATION(ParamWriter);
+#define PARAM_WRITER(name) static PARAM_WRITER_DECLARATION(param_ ## name ## _write)
+
+#define PARAM_ASSERT(condition) \
+do { \
+  if (!(condition)) return "assertion failed: " #condition; \
+} while (0)
+
+#define PARAM_ASSERT_SIZE(pointer) PARAM_ASSERT(size == sizeof(*pointer))
+
+static void param_readString(const char *string, void *data, size_t *size)
+{
+  if (!string) string = "";
+  size_t length = strlen(string);
+  if (length < *size) *size = length;
+  memcpy(data, string, *size);
+}
+
+static const char *param_writeString(int (*handler) (const char *string), const void *data, size_t size)
+{
+  char string[size + 1];
+  memcpy(string, data, size);
+  string[size] = 0;
+
+  if (handler(string)) return NULL;
+  return "set string parameter failed";
+}
+
+/* BRLAPI_PARAM_SERVER_VERSION */
+PARAM_READER(serverVersion)
+{
+  brlapi_param_serverVersion_t *serverVersion = data;
+  *size = sizeof(*serverVersion);
+  *serverVersion = BRLAPI_PROTOCOL_VERSION;
+  return NULL;
+}
+
+/* BRLAPI_PARAM_CLIENT_PRIORITY */
+PARAM_READER(clientPriority)
+{
+  brlapi_param_clientPriority_t *clientPriority = data;
+  *size = sizeof(*clientPriority);
+  *clientPriority = c->client_priority;
+  return NULL;
+}
+
+PARAM_WRITER(clientPriority)
+{
+  const brlapi_param_clientPriority_t *clientPriority = data;
+  PARAM_ASSERT_SIZE(clientPriority);
+
+  lockMutex(&apiConnectionsMutex);
+    c->client_priority = *clientPriority;
+
+    if (c->tty) {
+      __removeConnection(c);
+      __addConnectionSorted(c,c->tty->connections);
+    }
+  unlockMutex(&apiConnectionsMutex);
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DRIVER_NAME */
+PARAM_READER(driverName)
+{
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      param_readString(braille->definition.name, data, size);
+    } else {
+      *size = 0;
+    }
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DRIVER_CODE */
+PARAM_READER(driverCode)
+{
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      param_readString(braille->definition.code, data, size);
+    } else {
+      *size = 0;
+    }
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DRIVER_VERSION */
+PARAM_READER(driverVersion)
+{
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      param_readString(braille->definition.version, data, size);
+    } else {
+      *size = 0;
+    }
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DEVICE_MODEL */
+PARAM_READER(deviceModel)
+{
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      const char *deviceModel = brl.keyBindings;
+
+      if (deviceModel) {
+        param_readString(deviceModel, data, size);
+        goto unlock;
+      }
+    }
+
+    *size = 0;
+unlock:
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DEVICE_CELL_SIZE */
+PARAM_READER(deviceCellSize)
+{
+  brlapi_param_deviceCellSize_t *deviceCellSize = data;
+  *size = sizeof(*deviceCellSize);
+
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      *deviceCellSize = brl.cellSize;
+    } else {
+      *deviceCellSize = 0;
+    }
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DISPLAY_SIZE */
+PARAM_READER(displaySize)
+{
+  brlapi_param_displaySize_t *displaySize = data;
+  *size = sizeof(*displaySize);
+
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      displaySize->columns = brl.textColumns;
+      displaySize->rows = brl.textRows;
+    } else {
+      displaySize->columns = 0;
+      displaySize->rows = 0;
+    }
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DEVICE_IDENTIFIER */
+PARAM_READER(deviceIdentifier)
+{
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      GioEndpoint *endpoint = brl.gioEndpoint;
+
+      if (endpoint) {
+        gioMakeResourceIdentifier(endpoint, data, *size);
+        *size = strlen(data);
+        goto unlock;
+      }
+    }
+
+    *size = 0;
+unlock:
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DEVICE_SPEED */
+PARAM_READER(deviceSpeed)
+{
+  brlapi_param_deviceSpeed_t *deviceSpeed = data;
+  *size = sizeof(*deviceSpeed);
+  *deviceSpeed = 0;
+
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      GioEndpoint *endpoint = brl.gioEndpoint;
+
+      if (endpoint) {
+        *deviceSpeed = gioGetBytesPerSecond(endpoint);
+      }
+    }
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DEVICE_ONLINE */
+PARAM_READER(deviceOnline)
+{
+  brlapi_param_deviceOnline_t *deviceOnline = data;
+  *size = sizeof(*deviceOnline);
+
+  lockBrailleDriver();
+    *deviceOnline = isBrailleOnline();
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_RETAIN_DOTS */
+PARAM_READER(retainDots)
+{
+  brlapi_param_retainDots_t *retainDots = data;
+  *size = sizeof(*retainDots);
+  *retainDots = c->retainDots;
+  return NULL;
+}
+
+PARAM_WRITER(retainDots)
+{
+  const brlapi_param_retainDots_t *retainDots = data;
+  PARAM_ASSERT_SIZE(retainDots);
+  c->retainDots = *retainDots;
+  return NULL;
+}
+
+/* BRLAPI_PARAM_COMPUTER_BRAILLE_CELL_SIZE */
+PARAM_READER(computerBrailleCellSize)
+{
+  brlapi_param_computerBrailleCellSize_t *computerBrailleCellSize = data;
+  *size = sizeof(*computerBrailleCellSize);
+  *computerBrailleCellSize = isSixDotBraille()? 6: 8;
+  return NULL;
+}
+
+PARAM_WRITER(computerBrailleCellSize)
+{
+  const brlapi_param_computerBrailleCellSize_t *computerBrailleCellSize = data;
+  PARAM_ASSERT_SIZE(computerBrailleCellSize);
+
+  setSixDotBraille(*computerBrailleCellSize <= 6);
+  return NULL;
+}
+
+/* BRLAPI_PARAM_LITERARY_BRAILLE */
+PARAM_READER(literaryBraille)
+{
+  brlapi_param_literaryBraille_t *literaryBraille = data;
+  *size = sizeof(*literaryBraille);
+  *literaryBraille = isContractedBraille();
+  return NULL;
+}
+
+PARAM_WRITER(literaryBraille)
+{
+  const brlapi_param_literaryBraille_t *literaryBraille = data;
+  PARAM_ASSERT_SIZE(literaryBraille);
+  setContractedBraille(*literaryBraille);
+  return NULL;
+}
+
+/* BRLAPI_PARAM_CURSOR_DOTS */
+PARAM_READER(cursorDots)
+{
+  brlapi_param_cursorDots_t *cursorDots = data;
+  *size = sizeof(*cursorDots);
+  *cursorDots = getScreenCursorDots();
+  return NULL;
+}
+
+PARAM_WRITER(cursorDots)
+{
+  const brlapi_param_cursorDots_t *cursorDots = data;
+  PARAM_ASSERT_SIZE(cursorDots);
+  if (!setScreenCursorDots(*cursorDots)) return "unsupported cursor style";
+  return NULL;
+}
+
+/* BRLAPI_PARAM_CURSOR_BLINK_PERIOD */
+PARAM_READER(cursorBlinkPeriod)
+{
+  brlapi_param_cursorBlinkPeriod_t *cursorBlinkPeriod = data;
+  *size = sizeof(*cursorBlinkPeriod);
+  *cursorBlinkPeriod = getBlinkPeriod(&screenCursorBlinkDescriptor);
+  return NULL;
+}
+
+PARAM_WRITER(cursorBlinkPeriod)
+{
+  const brlapi_param_cursorBlinkPeriod_t *cursorBlinkPeriod = data;
+  PARAM_ASSERT_SIZE(cursorBlinkPeriod);
+  if (!setBlinkPeriod(&screenCursorBlinkDescriptor, *cursorBlinkPeriod)) return "unsupported cursor blink period";
+  return NULL;
+}
+
+/* BRLAPI_PARAM_CURSOR_BLINK_PERCENTAGE */
+PARAM_READER(cursorBlinkPercentage)
+{
+  brlapi_param_cursorBlinkPercentage_t *cursorBlinkPercentage = data;
+  *size = sizeof(*cursorBlinkPercentage);
+  *cursorBlinkPercentage = getBlinkPercentage(&screenCursorBlinkDescriptor);
+  return NULL;
+}
+
+PARAM_WRITER(cursorBlinkPercentage)
+{
+  const brlapi_param_cursorBlinkPercentage_t *cursorBlinkPercentage = data;
+  PARAM_ASSERT_SIZE(cursorBlinkPercentage);
+  if (!setBlinkPercentage(&screenCursorBlinkDescriptor, *cursorBlinkPercentage)) return "unsupported cursor blink percentage";
+  return NULL;
+}
+
+/* BRLAPI_PARAM_RENDERED_CELLS */
+PARAM_READER(renderedCells)
+{
+  lockMutex(&apiDriverMutex);
+    if (disp) {
+      unsigned char buffer[displaySize];
+      getDots(&c->brailleWindow, buffer);
+
+      if (displaySize < *size) *size = displaySize;
+      memcpy(data, buffer, *size);
+    } else {
+      *size = 0;
+    }
+  unlockMutex(&apiDriverMutex);
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_SKIP_IDENTICAL_LINES */
+PARAM_READER(skipIdenticalLines)
+{
+  brlapi_param_skipIdenticalLines_t *skipIdenticalLines = data;
+  *size = sizeof(*skipIdenticalLines);
+  *skipIdenticalLines = !!prefs.skipIdenticalLines;
+  return NULL;
+}
+
+PARAM_WRITER(skipIdenticalLines)
+{
+  const brlapi_param_skipIdenticalLines_t *skipIdenticalLines = data;
+  PARAM_ASSERT_SIZE(skipIdenticalLines);
+  prefs.skipIdenticalLines = !!*skipIdenticalLines;
+  api_updateParameter(BRLAPI_PARAM_SKIP_IDENTICAL_LINES, 0);
+  return NULL;
+}
+
+/* BRLAPI_PARAM_AUDIBLE_ALERTS */
+PARAM_READER(audibleAlerts)
+{
+  brlapi_param_audibleAlerts_t *audibleAlerts = data;
+  *size = sizeof(*audibleAlerts);
+  *audibleAlerts = !!prefs.alertTunes;
+  return NULL;
+}
+
+PARAM_WRITER(audibleAlerts)
+{
+  const brlapi_param_audibleAlerts_t *audibleAlerts = data;
+  PARAM_ASSERT_SIZE(audibleAlerts);
+  prefs.alertTunes = !!*audibleAlerts;
+  api_updateParameter(BRLAPI_PARAM_AUDIBLE_ALERTS, 0);
+  return NULL;
+}
+
+/* BRLAPI_PARAM_CLIPBOARD_CONTENT */
+PARAM_READER(clipboardContent)
+{
+  char *content = getMainClipboardContent();
+  if (!content) return "no memory";
+
+  param_readString(content, data, size);
+  free(content);
+  return NULL;
+}
+
+PARAM_WRITER(clipboardContent)
+{
+  return param_writeString(setMainClipboardContent, data, size);
+}
+
+/* BRLAPI_PARAM_BOUND_COMMAND_KEYCODES */
+PARAM_READER(boundCommandKeycodes)
+{
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      KeyTable *table = brl.keyTable;
+
+      if (table) {
+        unsigned int count;
+        int *commands = getBoundCommands(table, &count);
+
+        if (commands) {
+          *size /= sizeof(brlapi_param_commandKeycode_t);
+          *size *= sizeof(brlapi_param_commandKeycode_t);
+
+          void *next = data;
+          const void *end = next + *size;
+
+          for (unsigned int i=0; i<count; i+=1) {
+            if (next == end) break;
+            brlapi_keyCode_t keyCode;
+
+            if (cmdBrlttyToBrlapi(&keyCode, commands[i], c->retainDots)) {
+              brlapi_param_commandKeycode_t *commandCode = next;
+              *commandCode = keyCode;
+              next += sizeof(*commandCode);
+            }
+          }
+
+          *size = next - data;
+          free(commands);
+          goto unlock;
+        }
+      }
+    }
+
+    *size = 0;
+unlock:
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_COMMAND_KEYCODE_NAME */
+PARAM_READER(commandKeycodeName)
+{
+  int command = cmdBrlapiToBrltty(subparam);
+
+  if (command == EOF) {
+    *size = 0;
+  } else {
+    describeCommand(data, *size, command, CDO_IncludeName);
+    char *colon = strchr(data, ':');
+    if (colon) *colon = 0;
+    *size = strlen(data);
+  }
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_COMMAND_KEYCODE_SUMMARY */
+PARAM_READER(commandKeycodeSummary)
+{
+  int command = cmdBrlapiToBrltty(subparam);
+
+  if (command == EOF) {
+    *size = 0;
+  } else {
+    describeCommand(data, *size, command, 0);
+    *size = strlen(data);
+  }
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DEFINED_DRIVER_KEYCODES */
+typedef struct {
+  void *next;
+  const void *end;
+} param_addKeyCode_t;
+
+static int param_addKeyCode (const KeyNameEntry *kne, void *data)
+{
+  if (kne) {
+    param_addKeyCode_t *akc = data;
+
+    if (akc->next < akc->end) {
+      brlapi_param_driverKeycode_t *key = akc->next;
+      *key = makeDriverKeyCode(kne->value.group, kne->value.number, 0);
+      akc->next += sizeof(*key);
+    }
+  }
+
+  return 1;
+}
+
+PARAM_READER(definedDriverKeycodes)
+{
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      KEY_NAME_TABLES_REFERENCE keys = brl.keyNames;
+
+      if (keys) {
+        *size /= sizeof(brlapi_param_driverKeycode_t);
+        *size *= sizeof(brlapi_param_driverKeycode_t);
+
+        param_addKeyCode_t akc = {
+          .next = data,
+          .end = data + *size
+        };
+
+        forEachKeyName(keys, param_addKeyCode, &akc);
+        *size = akc.next - data;
+        goto unlock;
+      }
+    }
+
+    *size = 0;
+unlock:
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DRIVER_KEYCODE_NAME */
+PARAM_READER(driverKeycodeName)
+{
+  lockBrailleDriver();
+    if (isBrailleDriverConstructed()) {
+      KeyTable *table = brl.keyTable;
+
+      if (table) {
+        if (subparam <= UINT16_MAX) {
+          const KeyValue keyValue = {
+            .group = subparam >> 8,
+            .number = subparam & 0XFF
+          };
+
+          const KeyNameEntry *kne = findKeyNameEntry(table, &keyValue);
+          if (kne) {
+            param_readString(kne->name, data, size);
+            goto unlock;
+          }
+        }
+      }
+    }
+
+    *size = 0;
+unlock:
+  unlockBrailleDriver();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_DRIVER_KEYCODE_SUMMARY */
+PARAM_READER(driverKeycodeSummary)
+{
+  *size = 0;
+  return NULL;
+}
+
+/* BRLAPI_PARAM_COMPUTER_BRAILLE_ROWS_MASK */
+PARAM_READER(computerBrailleRowsMask)
+{
+  lockTextTable();
+    *size = getTextTableRowsMask(textTable, data, *size);
+  unlockTextTable();
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_COMPUTER_BRAILLE_ROW_CELLS */
+PARAM_READER(computerBrailleRowCells)
+{
+  brlapi_param_computerBrailleRowCells_t *computerBrailleRowCells = data;
+  int rowDefined;
+
+  lockTextTable();
+    rowDefined = getTextTableRowCells(
+      textTable, subparam,
+      computerBrailleRowCells->cells,
+      computerBrailleRowCells->defined
+    );
+  unlockTextTable();
+
+  if (rowDefined) {
+    *size = sizeof(*computerBrailleRowCells);
+  } else {
+    *size = 0;
+  }
+
+  return NULL;
+}
+
+/* BRLAPI_PARAM_COMPUTER_BRAILLE_TABLE */
+PARAM_READER(computerBrailleTable)
+{
+  param_readString(opt_textTable, data, size);
+  return NULL;
+}
+
+PARAM_WRITER(computerBrailleTable)
+{
+  return param_writeString(changeTextTable, data, size);
+}
+
+#ifdef ENABLE_CONTRACTED_BRAILLE
+/* BRLAPI_PARAM_LITERARY_BRAILLE_TABLE */
+PARAM_READER(literaryBrailleTable)
+{
+  param_readString(opt_contractionTable, data, size);
+  return NULL;
+}
+
+PARAM_WRITER(literaryBrailleTable)
+{
+  return param_writeString(changeContractionTable, data, size);
+}
+#endif /* ENABLE_CONTRACTED_BRAILLE */
+
+/* BRLAPI_PARAM_MESSAGE_LOCALE */
+PARAM_READER(messageLocale)
+{
+  param_readString(setlocale(LC_ALL, NULL), data, size);
+  return NULL;
+}
+
+PARAM_WRITER(messageLocale)
+{
+  return param_writeString(changeMessageLocale, data, size);
+}
+
+typedef struct {
+  unsigned local:1;
+  unsigned global:1;
+  brlapi_param_t rootParameter;
+  ParamReader *read;
+  ParamWriter *write;
+} ParamDispatch;
+
+static const ParamDispatch paramDispatch[BRLAPI_PARAM_COUNT] = {
+//Connection Parameters
+  [BRLAPI_PARAM_SERVER_VERSION] = {
+    .global = 1,
+    .read = param_serverVersion_read,
+  },
+
+  [BRLAPI_PARAM_CLIENT_PRIORITY] = {
+    .local = 1,
+    .read = param_clientPriority_read,
+    .write = param_clientPriority_write,
+  },
+
+//Device Parameters
+  [BRLAPI_PARAM_DRIVER_NAME] = {
+    .global = 1,
+    .read = param_driverName_read,
+  },
+
+  [BRLAPI_PARAM_DRIVER_CODE] = {
+    .global = 1,
+    .read = param_driverCode_read,
+  },
+
+  [BRLAPI_PARAM_DRIVER_VERSION] = {
+    .global = 1,
+    .read = param_driverVersion_read,
+  },
+
+  [BRLAPI_PARAM_DEVICE_MODEL] = {
+    .global = 1,
+    .read = param_deviceModel_read,
+  },
+
+  [BRLAPI_PARAM_DEVICE_CELL_SIZE] = {
+    .global = 1,
+    .read = param_deviceCellSize_read,
+  },
+
+  [BRLAPI_PARAM_DISPLAY_SIZE] = {
+    .global = 1,
+    .read = param_displaySize_read,
+  },
+
+  [BRLAPI_PARAM_DEVICE_IDENTIFIER] = {
+    .global = 1,
+    .read = param_deviceIdentifier_read,
+  },
+
+  [BRLAPI_PARAM_DEVICE_SPEED] = {
+    .global = 1,
+    .read = param_deviceSpeed_read,
+  },
+
+  [BRLAPI_PARAM_DEVICE_ONLINE] = {
+    .global = 1,
+    .read = param_deviceOnline_read,
+  },
+
+//Input Parameters
+  [BRLAPI_PARAM_RETAIN_DOTS] = {
+    .local = 1,
+    .read = param_retainDots_read,
+    .write = param_retainDots_write,
+  },
+
+//Braille Rendering Parameters
+  [BRLAPI_PARAM_COMPUTER_BRAILLE_CELL_SIZE] = {
+    .global = 1,
+    .read = param_computerBrailleCellSize_read,
+    .write = param_computerBrailleCellSize_write,
+  },
+
+  [BRLAPI_PARAM_LITERARY_BRAILLE] = {
+    .global = 1,
+    .read = param_literaryBraille_read,
+    .write = param_literaryBraille_write,
+  },
+
+  [BRLAPI_PARAM_CURSOR_DOTS] = {
+    .global = 1,
+    .read = param_cursorDots_read,
+    .write = param_cursorDots_write,
+  },
+
+  [BRLAPI_PARAM_CURSOR_BLINK_PERIOD] = {
+    .global = 1,
+    .read = param_cursorBlinkPeriod_read,
+    .write = param_cursorBlinkPeriod_write,
+  },
+
+  [BRLAPI_PARAM_CURSOR_BLINK_PERCENTAGE] = {
+    .global = 1,
+    .read = param_cursorBlinkPercentage_read,
+    .write = param_cursorBlinkPercentage_write,
+  },
+
+  [BRLAPI_PARAM_RENDERED_CELLS] = {
+    .local = 1,
+    .read = param_renderedCells_read,
+  },
+
+//Navigation Parameters
+  [BRLAPI_PARAM_SKIP_IDENTICAL_LINES] = {
+    .global = 1,
+    .read = param_skipIdenticalLines_read,
+    .write = param_skipIdenticalLines_write,
+  },
+
+  [BRLAPI_PARAM_AUDIBLE_ALERTS] = {
+    .global = 1,
+    .read = param_audibleAlerts_read,
+    .write = param_audibleAlerts_write,
+  },
+
+//Clipboard Parameters
+  [BRLAPI_PARAM_CLIPBOARD_CONTENT] = {
+    .global = 1,
+    .read = param_clipboardContent_read,
+    .write = param_clipboardContent_write,
+  },
+
+//TTY Mode Parameters
+  [BRLAPI_PARAM_BOUND_COMMAND_KEYCODES] = {
+    .global = 1,
+    .read = param_boundCommandKeycodes_read,
+  },
+
+  [BRLAPI_PARAM_COMMAND_KEYCODE_NAME] = {
+    .global = 1,
+    .rootParameter = BRLAPI_PARAM_BOUND_COMMAND_KEYCODES,
+    .read = param_commandKeycodeName_read,
+  },
+
+  [BRLAPI_PARAM_COMMAND_KEYCODE_SUMMARY] = {
+    .global = 1,
+    .rootParameter = BRLAPI_PARAM_BOUND_COMMAND_KEYCODES,
+    .read = param_commandKeycodeSummary_read,
+  },
+
+  [BRLAPI_PARAM_DEFINED_DRIVER_KEYCODES] = {
+    .global = 1,
+    .read = param_definedDriverKeycodes_read,
+  },
+
+  [BRLAPI_PARAM_DRIVER_KEYCODE_NAME] = {
+    .global = 1,
+    .rootParameter = BRLAPI_PARAM_DEFINED_DRIVER_KEYCODES,
+    .read = param_driverKeycodeName_read,
+  },
+
+  [BRLAPI_PARAM_DRIVER_KEYCODE_SUMMARY] = {
+    .global = 1,
+    .rootParameter = BRLAPI_PARAM_DEFINED_DRIVER_KEYCODES,
+    .read = param_driverKeycodeSummary_read,
+  },
+
+//Braille Translation Parameters
+  [BRLAPI_PARAM_COMPUTER_BRAILLE_ROWS_MASK] = {
+    .global = 1,
+    .rootParameter = BRLAPI_PARAM_COMPUTER_BRAILLE_TABLE,
+    .read = param_computerBrailleRowsMask_read,
+  },
+
+  [BRLAPI_PARAM_COMPUTER_BRAILLE_ROW_CELLS] = {
+    .global = 1,
+    .rootParameter = BRLAPI_PARAM_COMPUTER_BRAILLE_TABLE,
+    .read = param_computerBrailleRowCells_read,
+  },
+
+  [BRLAPI_PARAM_COMPUTER_BRAILLE_TABLE] = {
+    .global = 1,
+    .read = param_computerBrailleTable_read,
+    .write = param_computerBrailleTable_write,
+  },
+
+#ifdef ENABLE_CONTRACTED_BRAILLE
+  [BRLAPI_PARAM_LITERARY_BRAILLE_TABLE] = {
+    .global = 1,
+    .read = param_literaryBrailleTable_read,
+    .write = param_literaryBrailleTable_write,
+  },
+#endif /* ENABLE_CONTRACTED_BRAILLE */
+
+  [BRLAPI_PARAM_MESSAGE_LOCALE] = {
+    .global = 1,
+    .read = param_messageLocale_read,
+    .write = param_messageLocale_write,
+  },
+};
+
+static inline const ParamDispatch *param_getDispatch(brlapi_param_t parameter)
+{
+  if (parameter >= ARRAY_COUNT(paramDispatch)) return NULL;
+  return &paramDispatch[parameter];
+}
+
+static int checkParamLocalGlobal(Connection *c, brlapi_param_t param, brlapi_param_flags_t flags)
+{
+  if (flags & BRLAPI_PARAMF_GLOBAL) {
+    if (!paramDispatch[param].global) {
+      WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "parameter %u does not make sense globally", param);
+      return 0;
+    }
+  } else {
+    if (!paramDispatch[param].local) {
+      WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "parameter %u does not make sense locally", param);
+      return 0;
+    }
+  }
+  return 1;
+}
+
+static int handleParamValue(Connection *c, brlapi_packetType_t type, brlapi_packet_t *packet, size_t size)
+{
+  brlapi_paramValuePacket_t *paramValue = &packet->paramValue;
+  brlapi_param_t param;
+  brlapi_param_subparam_t subparam;
+  brlapi_param_flags_t flags;
+
+  CHECKERR( (size >= sizeof(flags) + sizeof(param) + sizeof(subparam)), BRLAPI_ERROR_INVALID_PACKET, "wrong size for paramValue packet");
+  flags = ntohl(paramValue->flags);
+  param = ntohl(paramValue->param);
+
+  if (param >= sizeof(paramDispatch) / sizeof(*paramDispatch)) {
+    WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "unknown parameter %u", param);
+    return 0;
+  }
+
+  ParamWriter *writeHandler = paramDispatch[param].write;
+  /* Check against read-only parameters */
+  if (!writeHandler) {
+    WERR(c->fd, BRLAPI_ERROR_READONLY_PARAMETER, "parameter %u not available for writing", param);
+    return 0;
+  }
+
+  if (!checkParamLocalGlobal(c, param, flags))
+    return 0;
+
+  subparam = ((brlapi_param_subparam_t)ntohl(paramValue->subparam_hi) << 32) || ntohl(paramValue->subparam_lo);
+  size -= sizeof(flags) + sizeof(param) + sizeof(subparam);
+  _brlapi_ntohParameter(param, paramValue, size);
+
+  {
+    const char *error;
+
+    lockMutex(&apiParamMutex);
+    paramUpdateConnection = c;
+    error = writeHandler(c, param, subparam, flags, paramValue->data, size);
+    paramUpdateConnection = NULL;
+    unlockMutex(&apiParamMutex);
+
+    if (error) {
+      WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "parameter %u write error: %s", param, error);
+      return 0;
+    }
+  }
+
+  if (!(flags & BRLAPI_PARAMF_GLOBAL)) {
+    handleParamUpdate(c, c, param, subparam, flags, paramValue->data, size);
+  }
+  writeAck(c->fd);
+  return 0;
+}
+
+
+/* sendConnectionParamUpdate: Send the parameter update to a connection */
+static void sendConnectionParamUpdate(Connection *c, brlapi_param_t param, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, brlapi_paramValuePacket_t *paramValue, size_t size)
+{
+  struct Subscription *s;
+
+  for (s=c->subscriptions.next; s!=&c->subscriptions; s=s->next) {
+    if (s->parameter == param
+	&& s->subparam == subparam
+	&& (s->flags & BRLAPI_PARAMF_GLOBAL) == (flags & BRLAPI_PARAMF_GLOBAL)
+	&& ((s->flags & BRLAPI_PARAMF_SELF) || (paramUpdateConnection != c)))
+    {
+      logMessage(LOG_CATEGORY(SERVER_EVENTS), "writing parameter %"PRIx32" update to fd %"PRIfd,param,c->fd);
+      brlapiserver_writePacket(c->fd,BRLAPI_PACKET_PARAM_UPDATE,paramValue,size);
+      break;
+    }
+  }
+}
+
+/* sendParamUpdate: Send the parameter update to connections bound to a given tree of ttys */
+static void sendParamUpdate(Tty *tty, brlapi_param_t param, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, brlapi_paramValuePacket_t *paramValue, size_t size)
+{
+  Connection *c;
+  Tty *t;
+
+  for (c = tty->connections->next; c!=tty->connections; c = c->next)
+    sendConnectionParamUpdate(c, param, subparam, flags, paramValue, size);
+  for (t = tty->subttys; t; t = t->next)
+    sendParamUpdate(t, param, subparam, flags, paramValue, size);
+}
+
+/* handleParamUpdate: Prepare and send the parameter update to all connections */
+static void __handleParamUpdate(Connection *dest, brlapi_param_t param, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, const void *data, size_t size)
+{
+  brlapi_packet_t response;
+  brlapi_paramValuePacket_t *paramValue = &response.paramValue;
+  unsigned char *p = paramValue->data;
+  paramValue->flags = htonl(flags);
+  paramValue->param = htonl(param);
+  paramValue->subparam_hi = htonl(subparam >> 32);
+  paramValue->subparam_lo = htonl(subparam & 0xfffffffful);
+  memcpy(p, data, size);
+  _brlapi_htonParameter(param, paramValue, size);
+  size += sizeof(flags) + sizeof(param) + sizeof(subparam);
+  if (!(flags & BRLAPI_PARAMF_GLOBAL)) {
+    sendConnectionParamUpdate(dest,param,subparam,flags,paramValue,size);
+  } else {
+    lockMutex(&apiConnectionsMutex);
+    sendParamUpdate(&ttys,param,subparam,flags,paramValue,size);
+    sendParamUpdate(&notty,param,subparam,flags,paramValue,size);
+    unlockMutex(&apiConnectionsMutex);
+  }
+}
+
+static void handleParamUpdate(Connection *source, Connection *dest, brlapi_param_t param, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, const void *data, size_t size)
+{
+  lockMutex(&apiParamMutex);
+  paramUpdateConnection = source;
+  if (((flags & BRLAPI_PARAMF_GLOBAL) && paramState[param].global_subscriptions)
+  || (!(flags & BRLAPI_PARAMF_GLOBAL) && paramState[param].local_subscriptions))
+    __handleParamUpdate(dest, param, subparam, flags, data, size);
+  paramUpdateConnection = NULL;
+  unlockMutex(&apiParamMutex);
+}
+
+void api_updateParameter(brlapi_param_t parameter, brlapi_param_subparam_t subparam)
+{
+  const ParamDispatch *pd = param_getDispatch(parameter);
+
+  if (pd) {
+    if (pd->global) {
+      ParamReader *readHandler = pd->read;
+
+      if (readHandler) {
+        lockMutex(&apiParamMutex);
+        {
+          if (paramState[parameter].global_subscriptions) {
+            unsigned char data[BRLAPI_MAXPARAMSIZE];
+            size_t size = sizeof(data);
+            const char *error = readHandler(NULL, parameter, subparam, BRLAPI_PARAMF_GLOBAL, data, &size);
+
+            if (error) {
+              logMessage(LOG_CATEGORY(SERVER_EVENTS), "parameter %u read error: %s", parameter, error);
+            } else {
+              __handleParamUpdate(NULL, parameter, subparam, BRLAPI_PARAMF_GLOBAL, data, size);
+            }
+          }
+        }
+        unlockMutex(&apiParamMutex);
+
+        reportParameterUpdated(parameter, subparam);
+      } else {
+        logMessage(LOG_CATEGORY(SERVER_EVENTS), "parameter %u is not readable", parameter);
+      }
+    } else {
+      logMessage(LOG_CATEGORY(SERVER_EVENTS), "parameter %u is not global", parameter);
+    }
+  } else {
+    logMessage(LOG_CATEGORY(SERVER_EVENTS), "parameter %u is out of range", parameter);
+  }
+}
+
+static int handleParamRequest(Connection *c, brlapi_packetType_t type, brlapi_packet_t *packet, size_t size)
+{
+  brlapi_paramRequestPacket_t *paramRequest = &packet->paramRequest;
+  brlapi_param_t param;
+  brlapi_param_subparam_t subparam;
+  brlapi_param_flags_t flags;
+
+  CHECKERR( (size == sizeof(brlapi_paramRequestPacket_t)), BRLAPI_ERROR_INVALID_PACKET, "wrong size for paramRequest packet: %lu vs %lu", (unsigned long) size, (unsigned long) sizeof(brlapi_paramRequestPacket_t));
+  flags = ntohl(paramRequest->flags);
+  param = ntohl(paramRequest->param);
+
+  if (param >= sizeof(paramDispatch) / sizeof(*paramDispatch)) {
+    WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "unknown parameter %u", param);
+    return 0;
+  }
+
+  ParamReader *readHandler = paramDispatch[param].read;
+  /* Check against non-readable parameters */
+  if (!readHandler) {
+    WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "parameter %u not available for reading", param);
+    return 0;
+  }
+
+  if (!checkParamLocalGlobal(c, param, flags))
+    return 0;
+
+  subparam = (brlapi_param_subparam_t)ntohl(paramRequest->subparam_hi) << 32 | ntohl(paramRequest->subparam_lo);
+  if ((flags & BRLAPI_PARAMF_SUBSCRIBE) &&
+      (flags & BRLAPI_PARAMF_UNSUBSCRIBE)) {
+    WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "subscribe and unsubscribe flags both set");
+    return 0;
+  }
+  lockMutex(&apiParamMutex);
+  if (flags & BRLAPI_PARAMF_SUBSCRIBE) {
+    /* subscribe to parameter updates */
+
+    if (param == BRLAPI_PARAM_SERVER_VERSION) {
+      WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "parameter %u not available for watching - it won't change", param);
+      unlockMutex(&apiParamMutex);
+      return 0;
+    }
+
+    {
+      brlapi_param_t root = paramDispatch[param].rootParameter;
+
+      if (root) {
+        WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "parameter %u not available for watching - %u should be watched instead", param, root);
+        unlockMutex(&apiParamMutex);
+        return 0;
+      }
+    }
+
+    struct Subscription *s;
+    lockMutex(&apiConnectionsMutex);
+    if (flags & BRLAPI_PARAMF_GLOBAL)
+      paramState[param].global_subscriptions++;
+    else
+      paramState[param].local_subscriptions++;
+    s = malloc(sizeof(*s));
+    s->parameter = param;
+    s->subparam = subparam;
+    s->flags = flags;
+    s->next = c->subscriptions.next;
+    s->prev = &c->subscriptions;
+    s->next->prev = s;
+    s->prev->next = s;
+    unlockMutex(&apiConnectionsMutex);
+  } else if (flags & BRLAPI_PARAMF_UNSUBSCRIBE) {
+    /* unsubscribe from parameter updates */
+    struct Subscription *s;
+    lockMutex(&apiConnectionsMutex);
+    for (s = c->subscriptions.next; s!=&c->subscriptions; s=s->next) {
+      if (s->parameter == param
+	  && (s->flags & BRLAPI_PARAMF_GLOBAL) == (flags & BRLAPI_PARAMF_GLOBAL))
+	break;
+    }
+    if (s) {
+      if (flags & BRLAPI_PARAMF_GLOBAL)
+        paramState[param].global_subscriptions--;
+      else
+        paramState[param].local_subscriptions--;
+      s->next->prev = s->prev;
+      s->prev->next = s->next;
+      free(s);
+    } else {
+      WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "was not subscribed");
+      unlockMutex(&apiParamMutex);
+      unlockMutex(&apiConnectionsMutex);
+      return 0;
+    }
+    unlockMutex(&apiConnectionsMutex);
+  }
+  if (flags & BRLAPI_PARAMF_GET) { /* Ack by sending parameter value */
+    brlapi_packet_t response;
+    brlapi_paramValuePacket_t *paramValue = &response.paramValue;
+    paramValue->flags = htonl(flags & BRLAPI_PARAMF_GLOBAL);
+    paramValue->param = paramRequest->param;
+    paramValue->subparam_hi = paramRequest->subparam_hi;
+    paramValue->subparam_lo = paramRequest->subparam_lo;
+    size = sizeof(paramValue->data);
+    const char *error = readHandler(c, param, subparam, flags, paramValue->data, &size);
+
+    if (error) {
+      WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "parameter %u read error: %s", param, error);
+    } else {
+      _brlapi_htonParameter(param, paramValue, size);
+      size += sizeof(flags) + sizeof(param) + sizeof(subparam);
+      brlapiserver_writePacket(c->fd,BRLAPI_PACKET_PARAM_VALUE,paramValue,size);
+    }
+  } else { /* Ack with ack */
+    writeAck(c->fd);
+  }
+  unlockMutex(&apiParamMutex);
   return 0;
 }
 
@@ -1108,6 +2487,7 @@ static PacketHandlers packetHandlers = {
   handleKeyRanges, handleKeyRanges, handleWrite,
   handleEnterRawMode, handleLeaveRawMode, handlePacket,
   handleSuspendDriver, handleResumeDriver,
+  handleParamValue, handleParamRequest,
 };
 
 static void handleNewConnection(Connection *c)
@@ -1146,8 +2526,15 @@ static int handleUnauthorizedConnection(Connection *c, brlapi_packetType_t type,
       brlapi_authServerPacket_t *authPacket = &serverPacket.authServer;
       int nbmethods = 0;
 
-      if (size<sizeof(*versionPacket) || ntohl(versionPacket->protocolVersion)!=BRLAPI_PROTOCOL_VERSION) {
+      if (size<sizeof(*versionPacket)) {
 	WERR(c->fd, BRLAPI_ERROR_PROTOCOL_VERSION, "wrong protocol version");
+	return 1;
+      }
+
+      c->clientVersion = ntohl(versionPacket->protocolVersion);
+      if (c->clientVersion < 8) {
+	/* We only provide compatibility with version 8 and later. */
+	WERR(c->fd, BRLAPI_ERROR_PROTOCOL_VERSION, "protocol version %"PRIu32" < 8 is not supported", c->clientVersion);
 	return 1;
       }
 
@@ -1241,39 +2628,26 @@ static int processRequest(Connection *c, PacketHandlers *handlers)
   res = brlapi__readPacket(&c->packet, c->fd);
   if (res==0) return 0; /* No packet ready */
   if (res<0) {
-    if (res==-1) logMessage(LOG_WARNING,"read : %s (connection on fd %"PRIfd")",strerror(errno),c->fd);
-    else {
+    if (res==-1) {
+      logMessage(LOG_WARNING,"read : %s (connection on fd %"PRIfd")",strerror(errno),c->fd);
+    } else {
       logMessage(LOG_CATEGORY(SERVER_EVENTS), "closing connection on fd %"PRIfd,c->fd);
     }
     if (c->raw) {
-      lockMutex(&apiRawMutex);
       c->raw = 0;
-      rawConnection = NULL;
-      logMessage(LOG_WARNING,"Client on fd %"PRIfd" did not give up raw mode properly",c->fd);
-      lockMutex(&apiDriverMutex);
-      logMessage(LOG_WARNING,"Trying to reset braille terminal");
-      if (!trueBraille->reset || !disp || !trueBraille->reset(disp)) {
-	if (trueBraille->reset)
-          logMessage(LOG_WARNING,"Reset failed. Restarting braille driver");
-        restartBrailleDriver();
-      }
-      unlockMutex(&apiDriverMutex);
-      unlockMutex(&apiRawMutex);
-    } else if (c->suspend) {
       lockMutex(&apiRawMutex);
-      c->suspend = 0;
-      suspendConnection = NULL;
-      logMessage(LOG_WARNING,"Client on fd %"PRIfd" did not give up suspended mode properly",c->fd);
-      lockMutex(&apiDriverMutex);
-      if (!driverConstructed && !driverConstructing && (!disp || !resumeDriver(disp)))
-	logMessage(LOG_WARNING,"Couldn't resume braille driver");
-      if (driverConstructed && trueBraille->reset) {
-        logMessage(LOG_CATEGORY(SERVER_EVENTS), "trying to reset braille terminal");
-	if (!trueBraille->reset(disp))
-	  logMessage(LOG_WARNING,"Resetting braille terminal failed, hoping it's ok");
-      }
-      unlockMutex(&apiDriverMutex);
+      rawConnection = NULL;
       unlockMutex(&apiRawMutex);
+      logMessage(LOG_WARNING,"Client on fd %"PRIfd" did not give up raw mode properly",c->fd);
+      resetDevice();
+    } else if (c->suspend) {
+      c->suspend = 0;
+      lockMutex(&apiRawMutex);
+      suspendConnection = NULL;
+      unlockMutex(&apiRawMutex);
+      logMessage(LOG_WARNING,"Client on fd %"PRIfd" did not give up suspended mode properly",c->fd);
+      if (!resumeDriver())
+	logMessage(LOG_WARNING,"Couldn't resume braille driver");
     }
     if (c->tty) {
       logMessage(LOG_CATEGORY(SERVER_EVENTS), "client on fd %"PRIfd" did not give up control of tty %#010x properly",c->fd,c->tty->number);
@@ -1305,11 +2679,15 @@ static int processRequest(Connection *c, PacketHandlers *handlers)
     case BRLAPI_PACKET_PACKET: p = handlers->packet; break;
     case BRLAPI_PACKET_SUSPENDDRIVER: p = handlers->suspendDriver; break;
     case BRLAPI_PACKET_RESUMEDRIVER: p = handlers->resumeDriver; break;
+    case BRLAPI_PACKET_PARAM_VALUE: p = handlers->parameterValue; break;
+    case BRLAPI_PACKET_PARAM_REQUEST: p = handlers->parameterRequest; break;
   }
   if (p!=NULL) {
     logRequest(type, c->fd);
     p(c, type, packet, size);
-  } else WEXC(c->fd,BRLAPI_ERROR_UNKNOWN_INSTRUCTION, type, packet, size, "unknown packet type");
+  } else {
+    WEXC(c->fd,BRLAPI_ERROR_UNKNOWN_INSTRUCTION, type, packet, size, "unknown packet type %x", type);
+  }
   return 0;
 }
 
@@ -1616,7 +2994,25 @@ static int readPid(char *path)
 
 static int
 adjustPermissions (const char *path) {
-  if (!getegid()) {
+  int adjust = !geteuid();
+
+  if (!adjust) {
+    char *directory = getPathDirectory(path);
+
+    if (directory) {
+      struct stat status;
+
+      if (stat(directory, &status) == -1) {
+        logSystemError("stat");
+      } else if (status.st_uid == geteuid()) {
+        adjust = 1;
+      }
+
+      free(directory);
+    }
+  }
+
+  if (adjust) {
     struct stat status;
 
     if (stat(path, &status) == -1) {
@@ -1661,7 +3057,10 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
   if ((fd = CreateNamedPipe(path,
 	  PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
 	  PIPE_TYPE_BYTE | PIPE_READMODE_BYTE,
-	  PIPE_UNLIMITED_INSTANCES, 0, 0, 0, NULL)) == INVALID_HANDLE_VALUE) {
+	  PIPE_UNLIMITED_INSTANCES,
+	  BRLAPI_MAXPACKETSIZE + sizeof(brlapi_header_t),
+	  BRLAPI_MAXPACKETSIZE + sizeof(brlapi_header_t),
+	  0, NULL)) == INVALID_HANDLE_VALUE) {
     if (GetLastError() != ERROR_CALL_NOT_IMPLEMENTED)
       logWindowsSystemError("CreateNamedPipe");
     goto out;
@@ -1828,21 +3227,19 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
 
   if (loopBind(fd, (struct sockaddr *) &sa, sizeof(sa)) == -1) {
     logMessage(LOG_WARNING, "bind: %s", strerror(errno));
-    goto outlock;
+    goto outfd;
   }
 
   if (!adjustPermissions(sa.sun_path)) {
-    goto outlock;
+    goto outfd;
   }
 
   if (listen(fd,1)<0) {
     logSystemError("listen");
-    goto outlock;
+    goto outfd;
   }
   return fd;
 
-outlock:
-  unlink(lockpath);
 outtmp:
   unlink(tmppath);
 outlockfd:
@@ -2057,9 +3454,9 @@ THREAD_FUNCTION(createServerSocket) {
     createSocket(num);
   }
 
-  lockMutex(&serverSocketsMutex);
+  lockMutex(&apiSocketsMutex);
     serverSocketsPending -= 1;
-  unlockMutex(&serverSocketsMutex);
+  unlockMutex(&apiSocketsMutex);
 
   logMessage(LOG_CATEGORY(SERVER_EVENTS), "socket creation finished: %"PRIdPTR, num);
   return NULL;
@@ -2134,7 +3531,7 @@ THREAD_FUNCTION(runServer) {
   {
     pthread_mutexattr_t attributes;
     pthread_mutexattr_init(&attributes);
-    pthread_mutex_init(&serverSocketsMutex, &attributes);
+    pthread_mutex_init(&apiSocketsMutex, &attributes);
     serverSocketsPending = serverSocketCount;
   }
 
@@ -2226,7 +3623,7 @@ THREAD_FUNCTION(runServer) {
     {
       struct timeval tv, *timeout;
 
-      lockMutex(&serverSocketsMutex);
+      lockMutex(&apiSocketsMutex);
 	for (i=0;i<serverSocketCount;i++) {
 	  if (socketInfo[i].fd>=0) {
 	    FD_SET(socketInfo[i].fd, &sockset);
@@ -2244,7 +3641,7 @@ THREAD_FUNCTION(runServer) {
         } else {
           timeout = NULL;
         }
-      unlockMutex(&serverSocketsMutex);
+      unlockMutex(&apiSocketsMutex);
 
       if (select(fdmax+1, &sockset, NULL, NULL, timeout) < 0) {
         if (fdmax==0) continue; /* still no server socket */
@@ -2291,11 +3688,24 @@ THREAD_FUNCTION(runServer) {
             continue;
           }
 
+#ifndef __MINGW32__
+          if (resfd >= FD_SETSIZE) {
+            /* Will not be able to call select() on this */
+            setErrno(EMFILE);
+            logMessage(LOG_WARNING,"accept(%"PRIfd"): %s",socketInfo[i].fd,strerror(errno));
+            continue;
+          }
+
+#endif /* !__MINGW32__ */
+
           formatAddress(source, sizeof(source), &addr, addrlen);
 #ifdef __MINGW32__
         }
 #endif /* __MINGW32__ */
-        logMessage(LOG_NOTICE, "BrlAPI connection fd=%"PRIfd" accepted: %s", resfd, source);
+
+        logMessage(LOG_CATEGORY(SERVER_EVENTS),
+          "BrlAPI connection fd=%"PRIfd" accepted: %s", resfd, source
+        );
 
         if (unauthConnections >= UNAUTH_LIMIT) {
           writeError(resfd, BRLAPI_ERROR_CONNREFUSED);
@@ -2522,11 +3932,6 @@ static void ttyTerminationHandler(Tty *tty)
       t = t->next;
     }
   }
-
-  if (flushEvent) {
-    asyncDiscardEvent(flushEvent);
-    flushEvent = NULL;
-  }
 }
 /* Function : terminationHandler */
 /* Terminates driver */
@@ -2611,14 +4016,15 @@ static int api_writeWindow(BrailleDisplay *brl, const wchar_t *text)
 
 /* Function: whoGetsKey */
 /* Returns the connection which gets that key */
-static Connection *whoGetsKey(Tty *tty, brlapi_keyCode_t code, unsigned int how)
+static Connection *whoGetsKey(Tty *tty, brlapi_keyCode_t code, unsigned int how, unsigned int retainDots)
 {
   Connection *c;
   Tty *t;
   int passKey;
   for (c=tty->connections->next; c!=tty->connections; c = c->next) {
     lockMutex(&c->acceptedKeysMutex);
-    passKey = (c->how==how) && (inKeyrangeList(c->acceptedKeys,code) != NULL);
+    passKey = (c->how==how) && (inKeyrangeList(c->acceptedKeys,code) != NULL)
+      && (how != BRL_COMMANDS || (!retainDots || c->retainDots));
     unlockMutex(&c->acceptedKeysMutex);
     if (passKey) goto found;
   }
@@ -2626,7 +4032,7 @@ static Connection *whoGetsKey(Tty *tty, brlapi_keyCode_t code, unsigned int how)
 found:
   for (t = tty->subttys; t; t = t->next)
     if (tty->focus==SCR_NO_VT || t->number == tty->focus) {
-      Connection *recur_c = whoGetsKey(t, code, how);
+      Connection *recur_c = whoGetsKey(t, code, how, retainDots);
       return recur_c ? recur_c : c;
     }
   return c;
@@ -2656,7 +4062,7 @@ static int api__handleKeyEvent(brlapi_keyCode_t clientCode) {
     offline = 0;
   }
   /* somebody gets the raw code */
-  if ((c = whoGetsKey(&ttys,clientCode,BRL_KEYCODES))) {
+  if ((c = whoGetsKey(&ttys, clientCode, BRL_KEYCODES, 0))) {
     logMessage(LOG_CATEGORY(SERVER_EVENTS), "transmitting accepted key %016"BRLAPI_PRIxKEYCODE" to fd %"PRIfd,clientCode,c->fd);
     writeKey(c->fd,clientCode);
     return 1;
@@ -2665,11 +4071,10 @@ static int api__handleKeyEvent(brlapi_keyCode_t clientCode) {
 }
 
 int api_handleKeyEvent(KeyGroup group, KeyNumber number, int press) {
-  int ret;
-  brlapi_keyCode_t clientCode;
-  clientCode = ((brlapi_keyCode_t)group << 8) | number | ((brlapi_keyCode_t)press << 63);
+  brlapi_keyCode_t clientCode = makeDriverKeyCode(group, number, press);
   logMessage(LOG_CATEGORY(SERVER_EVENTS), "API got key %02x %02x (press %d), thus client code %016"BRLAPI_PRIxKEYCODE, group, number, press, clientCode);
 
+  int ret;
   lockMutex(&apiConnectionsMutex);
   ret = api__handleKeyEvent(clientCode);
   unlockMutex(&apiConnectionsMutex);
@@ -2697,22 +4102,20 @@ static int api__handleCommand(int command) {
     Connection *c = NULL;
     brlapi_keyCode_t code;
     if (!cmdBrlttyToBrlapi(&code, command, 1)) {
-      logMessage(LOG_CATEGORY(SERVER_EVENTS), "command %08x could not be converted to BrlAPI with retaindots", command);
+      logMessage(LOG_CATEGORY(SERVER_EVENTS), "command %08x could not be converted to BrlAPI with retainDots", command);
     } else {
       logMessage(LOG_CATEGORY(SERVER_EVENTS), "command %08x -> client code %016"BRLAPI_PRIxKEYCODE, command, code);
-      c = whoGetsKey(&ttys, code, BRL_COMMANDS);
+      c = whoGetsKey(&ttys, code, BRL_COMMANDS, 1);
     }
 
     if (!c) {
       brlapi_keyCode_t alternate;
       if (!cmdBrlttyToBrlapi(&alternate, command, 0)) {
-	logMessage(LOG_CATEGORY(SERVER_EVENTS), "command %08x could not be converted to BrlAPI without retaindots", command);
+	logMessage(LOG_CATEGORY(SERVER_EVENTS), "command %08x could not be converted to BrlAPI without retainDots", command);
       } else {
-	if (alternate != code) {
-	  logMessage(LOG_CATEGORY(SERVER_EVENTS), "command %08x -> client code %016"BRLAPI_PRIxKEYCODE, command, alternate);
-	  c = whoGetsKey(&ttys, alternate, BRL_COMMANDS);
-	  if (c) code = alternate;
-	}
+	logMessage(LOG_CATEGORY(SERVER_EVENTS), "command %08x -> client code %016"BRLAPI_PRIxKEYCODE, command, alternate);
+	c = whoGetsKey(&ttys, alternate, BRL_COMMANDS, 0);
+	if (c) code = alternate;
       }
     }
 
@@ -2767,7 +4170,7 @@ static int api_readCommand(BrailleDisplay *brl, KeyTableCommandContext context) 
   res = trueBraille->readCommand(brl,context);
   unlockMutex(&apiDriverMutex);
   if (brl->resizeRequired)
-    handleResize(brl);
+    brlResize(brl);
   command = res;
   /* some client may get raw mode only from now */
   unlockMutex(&apiRawMutex);
@@ -2776,16 +4179,17 @@ out:
   return command;
 }
 
-/* Function : api_flush
+/* Function : api_flushOutput
  * Flush writes to the braille device.
  */
-int api_flush(BrailleDisplay *brl) {
+int api_flushOutput(BrailleDisplay *brl) {
   Connection *c;
   static Connection *displayed_last;
   int ok = 1;
   int drain = 0;
   int update = 0;
 
+  lockMutex(&apiParamMutex);
   lockMutex(&apiConnectionsMutex);
   lockMutex(&apiRawMutex);
   if (suspendConnection) {
@@ -2798,7 +4202,7 @@ int api_flush(BrailleDisplay *brl) {
     lockMutex(&c->brailleWindowMutex);
     lockMutex(&apiDriverMutex);
     if (!driverConstructed && !driverConstructing) {
-      if (!resumeDriver(brl)) {
+      if (!resumeBrailleDriver(brl)) {
 	unlockMutex(&apiDriverMutex);
 	unlockMutex(&c->brailleWindowMutex);
         unlockMutex(&apiRawMutex);
@@ -2820,7 +4224,11 @@ int api_flush(BrailleDisplay *brl) {
       disp->buffer = buf;
       getDots(&c->brailleWindow, buf);
       brl->cursor = c->brailleWindow.cursor-1;
-      ok = trueBraille->writeWindow(brl, c->brailleWindow.text);
+      if (!trueBraille->writeWindow(brl, c->brailleWindow.text)) ok = 0;
+      /* FIXME: the client should have gotten the notification when the write
+       * was received, rather than only when it eventually gets displayed
+       * (possibly only because of focus change) */
+      if (ok) handleParamUpdate(c, c, BRLAPI_PARAM_RENDERED_CELLS, 0, 0, disp->buffer, displaySize);
       drain = 1;
       disp->buffer = oldbuf;
       displayed_last = c;
@@ -2836,9 +4244,9 @@ int api_flush(BrailleDisplay *brl) {
 	unsigned char *oldbuf = disp->buffer;
 	disp->buffer = coreWindowDots;
 	brl->cursor = coreWindowCursor;
-	trueBraille->writeWindow(brl, coreWindowText);
+	if (!trueBraille->writeWindow(brl, coreWindowText)) ok = 0;
 	disp->buffer = oldbuf;
-	suspendDriver(brl);
+	suspendBrailleDriver();
       }
       unlockMutex(&apiDriverMutex);
       unlockMutex(&apiRawMutex);
@@ -2855,22 +4263,17 @@ int api_flush(BrailleDisplay *brl) {
   unlockMutex(&apiRawMutex);
 out:
   unlockMutex(&apiConnectionsMutex);
+  unlockMutex(&apiParamMutex);
   return ok;
 }
 
-ASYNC_EVENT_CALLBACK(handleServerFlushEvent) {
-  BrailleDisplay *brl = parameters->eventData;
-  api_flush(brl);
-  resetAllBlinkDescriptors();
-}
-
-int api_resume(BrailleDisplay *brl) {
+int api_resumeDriver(BrailleDisplay *brl) {
   /* core is resuming or opening the device for the first time, let's try to go
    * to normal state */
   lockMutex(&apiRawMutex);
   lockMutex(&apiDriverMutex);
   if (!suspendConnection && !driverConstructed)
-    resumeDriver(brl);
+    resumeBrailleDriver(brl);
   unlockMutex(&apiDriverMutex);
   unlockMutex(&apiRawMutex);
   return (coreActive = driverConstructed);
@@ -2882,7 +4285,6 @@ int api_claimDriver (BrailleDisplay *brl)
   int ret;
   lockMutex(&apiSuspendMutex);
   ret = driverConstructed;
-  unlockMutex(&apiSuspendMutex);
   return ret;
 }
 
@@ -2891,63 +4293,60 @@ void api_releaseDriver(BrailleDisplay *brl)
   unlockMutex(&apiSuspendMutex);
 }
 
-void api_suspend(BrailleDisplay *brl) {
+void api_suspendDriver(BrailleDisplay *brl) {
   /* core is suspending, going to core suspend state */
   coreActive = 0;
-  asyncSignalEvent(flushEvent, NULL);
+  flushBrailleOutput(brl);
 }
 
 static void brlResize(BrailleDisplay *brl)
 {
-  /* TODO: handle clients' resize */
   displayDimensions[0] = htonl(brl->textColumns);
   displayDimensions[1] = htonl(brl->textRows);
   displaySize = brl->textColumns * brl->textRows;
   coreWindowText = realloc(coreWindowText, displaySize * sizeof(*coreWindowText));
   coreWindowDots = realloc(coreWindowDots, displaySize * sizeof(*coreWindowDots));
   coreWindowCursor = 0;
-  disp = brl;
+  handleParamUpdate(NULL, NULL, BRLAPI_PARAM_DISPLAY_SIZE, 0, BRLAPI_PARAMF_GLOBAL, displayDimensions, sizeof(displayDimensions));
 }
 
 REPORT_LISTENER(brlapi_handleReports)
 {
   if (parameters->reportIdentifier == REPORT_BRAILLE_DEVICE_ONLINE) {
     BrailleDisplay *brl = parameters->listenerData;
-    api_flush(brl);
-    resetAllBlinkDescriptors();
+    flushBrailleOutput(brl);
   }
 }
 
 static ReportListenerInstance *api_reportListener;
 
-/* Function : api_link */
+/* Function : api_linkServer */
 /* Does all the link stuff to let api get events from the driver and */
 /* writes from brltty */
-void api_link(BrailleDisplay *brl)
+void api_linkServer(BrailleDisplay *brl)
 {
   logMessage(LOG_CATEGORY(SERVER_EVENTS), "api link");
   trueBraille=braille;
   memcpy(&ApiBraille,braille,sizeof(BrailleDriver));
   ApiBraille.writeWindow=api_writeWindow;
   ApiBraille.readCommand=api_readCommand;
-  ApiBraille.readKey = NULL;
-  ApiBraille.keyToCommand = NULL;
   ApiBraille.readPacket = NULL;
   ApiBraille.writePacket = NULL;
   braille=&ApiBraille;
   lockMutex(&apiDriverMutex);
-  brlResize(brl);
+  disp = brl;
   driverConstructed=1;
   unlockMutex(&apiDriverMutex);
+  brlResize(brl);
   lockMutex(&apiConnectionsMutex);
   broadcastKey(&ttys, BRLAPI_KEY_TYPE_CMD|BRLAPI_KEY_CMD_NOOP, BRL_COMMANDS);
   unlockMutex(&apiConnectionsMutex);
   api_reportListener = registerReportListener(REPORT_BRAILLE_DEVICE_ONLINE, brlapi_handleReports, brl);
 }
 
-/* Function : api_unlink */
+/* Function : api_unlinkServer */
 /* Does all the unlink stuff to remove api from the picture */
-void api_unlink(BrailleDisplay *brl)
+void api_unlinkServer(BrailleDisplay *brl)
 {
   logMessage(LOG_CATEGORY(SERVER_EVENTS), "api unlink");
   unregisterReportListener(api_reportListener);
@@ -2962,15 +4361,15 @@ void api_unlink(BrailleDisplay *brl)
   trueBraille=&noBraille;
   lockMutex(&apiDriverMutex);
   if (!coreActive && driverConstructed)
-    suspendDriver(disp);
+    suspendBrailleDriver();
   driverConstructed=0;
   disp = NULL;
   unlockMutex(&apiDriverMutex);
 }
 
-/* Function : api_identify */
+/* Function : api_logServerIdentity */
 /* Identifies BrlApi */
-void api_identify(int full)
+void api_logServerIdentity(int full)
 {
   logMessage(LOG_NOTICE, RELEASE);
   if (full) {
@@ -2978,19 +4377,19 @@ void api_identify(int full)
   }
 }
 
-/* Function : api_start */
+/* Function : api_startServer */
 /* Initializes BrlApi */
 /* One first initialize the driver */
 /* Then one creates the communication socket */
-int api_start(BrailleDisplay *brl, char **parameters)
+int api_startServer(BrailleDisplay *brl, char **parameters)
 {
   int res,i;
 
   char *hosts =
 #if defined(PF_LOCAL)
-	":0+127.0.0.1:0"
+	":0+127.0.0.1:0+::1:0"
 #else /* PF_LOCAL */
-	"127.0.0.1:0"
+	"127.0.0.1:0+::1:0"
 #endif /* PF_LOCAL */
 	;
 
@@ -3047,11 +4446,10 @@ int api_start(BrailleDisplay *brl, char **parameters)
   pthread_mutex_init(&apiDriverMutex,&mattr);
   pthread_mutex_init(&apiRawMutex,&mattr);
   pthread_mutex_init(&apiSuspendMutex,&mattr);
+  pthread_mutex_init(&apiParamMutex,&mattr);
 
   pthread_attr_init(&attr);
   pthread_attr_setstacksize(&attr,stackSize);
-
-  if (!(flushEvent = asyncNewEvent(handleServerFlushEvent, brl))) goto noFlushEvent;
 
 #ifndef __MINGW32__
   initializeBlockedSignalsMask();
@@ -3081,8 +4479,6 @@ int api_start(BrailleDisplay *brl, char **parameters)
   return 1;
 
 noServerThread:
-  asyncDiscardEvent(flushEvent);
-noFlushEvent:
   freeConnection(ttys.connections);
 noTtysConnections:
   freeConnection(notty.connections);
@@ -3092,11 +4488,11 @@ noNottyConnections:
   return 0;
 }
 
-/* Function : api_stop */
+/* Function : api_stopServer */
 /* End of BrlApi session. Closes the listening socket */
 /* destroys opened connections and associated resources */
 /* Closes the driver */
-void api_stop(BrailleDisplay *brl)
+void api_stopServer(BrailleDisplay *brl)
 {
   terminationHandler();
 }

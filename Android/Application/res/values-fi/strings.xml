@@ -9,12 +9,23 @@
   <string name="application_version_label">Versio</string>
   <string name="application_copyright_label">Tekijänoikeus</string>
 
-  <string name="input_service_name">BRLTTY:n syötepalvelu</string>
-  <string name="input_service_type">Pistenäyttöjen näppäimistöt</string>
-  <string name="input_service_not_enabled">Syötepalvelu ei ole käytössä</string>
-  <string name="input_service_not_selected">Syötepalvelua ei ole valittu</string>
-  <string name="input_service_not_started">Syötepalvelua ei ole käynnistetty</string>
-  <string name="input_service_not_connected">Syötepalvelua ei ole yhdistetty</string>
+  <string name="inputService_name">BRLTTY:n syötepalvelu</string>
+  <string name="inputService_type">Pistenäyttöjen näppäimistöt</string>
+  <string name="inputService_not_enabled">Syötepalvelu ei ole käytössä</string>
+  <string name="inputService_not_selected">Syötepalvelua ei ole valittu</string>
+  <string name="inputService_not_started">Syötepalvelua ei ole käynnistetty</string>
+  <string name="inputService_not_connected">Syötepalvelua ei ole yhdistetty</string>
+
+  <string name="updateApplication_problem_failed">sovellusta ei päivitetty</string>
+
+  <string name="packageInstaller_problem_failed">pakettia ei asennettu</string>
+  <string name="packageInstaller_problem_same">sama versio</string>
+  <string name="packageInstaller_problem_downgrade">alaspäin päivittämistä ei sallita</string>
+
+  <string name="fileDownloader_title">BRLTTY-tiedostolataaja</string>
+  <string name="fileDownloader_problem_failed">tiedostoa ei ladattu</string>
+  <string name="fileDownloader_state_connecting">yhdistetään</string>
+  <string name="fileDownloader_state_downloading">ladataan</string>
 
   <string name="checkbox_state_unchecked">Ei</string>
   <string name="checkbox_state_checked">Kyllä</string>
@@ -38,7 +49,10 @@
   <string name="GLOBAL_BUTTON_BROWSE_COMMUNITY_MESSAGES">Selaa yhteisön viestejä</string>
   <string name="GLOBAL_BUTTON_POST_COMMUNITY_MESSAGE">Lähetä yhteisöviesti</string>
   <string name="GLOBAL_BUTTON_MANAGE_COMMUNITY_MEMBERSHIP">Hallinnoi yhteisöjäsenyyttä</string>
+
   <string name="GLOBAL_BUTTON_UPDATE_APPLICATION">Päivitä sovellus</string>
+
+  <string name="CHOOSER_TITLE_ACCESSIBILITY_ACTIONS">Helppokäyttötoiminnot</string>
 
   <string name="SETTINGS_SCREEN_MAIN">BRLTTY:n asetukset</string>
   <string name="SETTINGS_SCREEN_GENERAL">Yleiset</string>
@@ -223,16 +237,16 @@
 
   <string name="CONTRACTION_TABLE_LABEL_af">afrikaans (lyhennekirjoitus)</string>
   <string name="CONTRACTION_TABLE_LABEL_am">amhara (tavallinen kirjoitus)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_basis">saksa (tavallinen kirjoitus)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift">saksa (lyhennekirjoitus - 1998 standardi)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_1998">saksa (lyhennekirjoitus - 1998 standardi)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_2015">saksa (lyhennekirjoitus - 2015 standardi)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_vollschrift">saksa (peruslyhenteet)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g0">saksa (tavallinen kirjoitus)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g1">saksa (peruslyhenteet)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g2">saksa (lyhennekirjoitus - 1998 standardi)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_1998">saksa (lyhennekirjoitus - 1998 standardi)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_2015">saksa (lyhennekirjoitus - 2015 standardi)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_ueb_g2">englanti (Unified English Braille, taso 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_us_g2">englanti (Yhdysvallat, taso 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_es">espanja (taso 2)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_abrege">ranska (lyhennekirjoitus)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_integral">ranska (tavallinen kirjoitus)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g1">ranska (tavallinen kirjoitus)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g2">ranska (lyhennekirjoitus)</string>
   <string name="CONTRACTION_TABLE_LABEL_ha">hausa (lyhennekirjoitus)</string>
   <string name="CONTRACTION_TABLE_LABEL_id">indonesia (lyhennekirjoitus)</string>
   <string name="CONTRACTION_TABLE_LABEL_ipa">Kansainvälinen foneettinen aakkosto</string>
@@ -250,7 +264,6 @@
   <string name="CONTRACTION_TABLE_LABEL_sw">swahili (lyhennekirjoitus)</string>
   <string name="CONTRACTION_TABLE_LABEL_th">thai (lyhennekirjoitus)</string>
   <string name="CONTRACTION_TABLE_LABEL_zh_tw">kiina (Taiwan, tavallinen kirjoitus)</string>
-  <string name="CONTRACTION_TABLE_LABEL_zh_tw_ucb">kiina (Taiwan, Unique Chinese Braille)</string>
   <string name="CONTRACTION_TABLE_LABEL_zu">Zulu (lyhennekirjoitus)</string>
 
   <string name="KEYBOARD_TABLE_LABEL_braille">pistenäppäimistöjen näppäinmääritykset</string>

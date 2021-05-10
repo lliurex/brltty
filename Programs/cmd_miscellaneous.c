@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -243,6 +243,17 @@ handleMiscellaneousCommands (int command, void *data) {
       break;
     }
 
+    case BRL_CMD_REFRESH: {
+      if (canRefreshBrailleDisplay(&brl)) {
+        if (refreshBrailleDisplay(&brl)) {
+          break;
+        }
+      }
+
+      alert(ALERT_COMMAND_REJECTED);
+      break;
+    }
+
     default: {
       int arg = command & BRL_MSK_ARG;
 
@@ -250,14 +261,27 @@ handleMiscellaneousCommands (int command, void *data) {
         case BRL_CMD_BLK(DESCCHAR): {
           int column, row;
 
-          if (getCharacterCoordinates(arg, &column, &row, 0, 0)) {
+          if (getCharacterCoordinates(arg, &row, &column, NULL, 0)) {
             char description[0X80];
-            formatCharacterDescription(description, sizeof(description), column, row);
+            STR_BEGIN(description, sizeof(description));
+            STR_FORMAT(formatCharacterDescription, column, row);
+            STR_END;
             message(NULL, description, 0);
           } else {
             alert(ALERT_COMMAND_REJECTED);
           }
 
+          break;
+        }
+
+        case BRL_CMD_BLK(REFRESH_LINE): {
+          if (canRefreshBrailleRow(&brl)) {
+            if (refreshBrailleRow(&brl, arg)) {
+              break;
+            }
+          }
+
+          alert(ALERT_COMMAND_REJECTED);
           break;
         }
 

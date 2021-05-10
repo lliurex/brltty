@@ -2,7 +2,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2006-2019 by
+# Copyright (C) 2006-2021 by
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
 #
@@ -19,5 +19,5 @@
 ###############################################################################
 
 . "${0%/*}/../../apitest.sh"
-exec java -classpath "${programDirectory}/classes" org.a11y.brlapi.TestProgram "${@}"
+exec java -classpath "${programDirectory}/classes" org.a11y.brlapi.MainProgram "${@}"
 exit "${?}"

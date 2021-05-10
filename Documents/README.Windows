@@ -10,8 +10,8 @@ BRLTTY on Windows
 .. _Cygwin Ports: http://cygwinports.org/
 .. _Cygwin java-ecj jar: ftp://sourceware.org/pub/java/ecj-4.5.jar
 
-Using BRLTTY
-============
+Building BRLTTY
+===============
 
 System Requirements
 -------------------
@@ -84,16 +84,17 @@ that starts the root BRLTTY. You don't need to worry about unauthorized access
 over the network since the default is that only locally running programs can
 connect to BrlAPI.
 
-Cygwin Package Management via the Command Line
-----------------------------------------------
+Package Management via the Command Line
+---------------------------------------
 
-apt-cyg
-~~~~~~~
+Managing Cygwin Packages
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-A convenient way to manage Cygwin packages from the command line is to use the
-``apt-cyg`` tool. It is similar to the ``apt-get`` command which some Linux 
-distributions use. As of the time of this writing, this is how you can install 
-it::
+A convenient way to manage Cygwin packages from the command line
+is to use the ``apt-cyg`` command.
+It's similar to the ``apt-get`` command which some Linux distributions use.
+
+As of the time of this writing, this is how you can install it::
 
    svn --force export http://apt-cyg.googlecode.com/svn/trunk/ /usr/local/bin/
    chmod +x /usr/local/bin/apt-cyg
@@ -119,6 +120,26 @@ To install a package, you can do:
 For full details, you can do:
 
 .. parsed-literal:: apt-cyg help
+
+Managing MinGW Packages
+~~~~~~~~~~~~~~~~~~~~~~~
+
+A convenient way to manage MinGW packages from the command line
+is to use the ``mingw-get`` command.
+Be sure to invoke it with arguments because
+when invoked with no arguments its graphical interface is used.
+
+To list all of the packages, you can do:
+
+.. parsed-literal:: mingw-get list
+
+To install a package, you can do:
+
+.. parsed-literal:: mingw-get install *name*
+
+For full details, you can do:
+
+.. parsed-literal:: mingw-get -h
 
 USB Support
 -----------
@@ -228,6 +249,40 @@ You may get a Java failure that looks something like this::
 This problem occurs when the ``java-ecj`` package isn't installed. It can be
 obtained from `Cygwin Ports`_. You can also resolve the probem by downloading
 the `Cygwin java-ecj jar`_, and installing it into ``/usr/share/java/ecj.jar``.
+
+Using BRLTTY
+============
+
+Windows Scripts for Managing BRLTTY
+-----------------------------------
+
+These ``.bat`` scripts are in the top-level folder where BRLTTY has been installed.
+They should be run by a user that has administrative privileges.
+
+``run-brltty.bat``
+~~~~~~~~~~~~~~~~~~
+
+Manually run BRLTTY with a log level of ``info``.
+Logs are written to the file ``brltty.log``
+in the top-level folder where BRLTTY has been installed.
+All arguments are passed through to BRLTTY.
+
+``debug-brltty.bat``
+~~~~~~~~~~~~~~~~~~~~
+
+Manually run BRLTTY, via the ``run-brltty.bat`` script, with options that
+set the log level to ``debug`` and enable several useful log categories.
+All arguments are passed through to the ``run-brltty.bat`` script.
+
+``enable-brlapi.bat``
+~~~~~~~~~~~~~~~~~~~~~~
+
+Install the BrlAPI service and start it.
+
+``disable-brlapi.bat``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Stop the BrlAPI service and uninstall it.
 
 Sticking to a Console
 ---------------------
@@ -384,17 +439,18 @@ and stable. Second, JAWS braille must be put to sleep.
    unplugged/replugged to allow JAWS to regain control. In extreme cases, you
    may need to exit BRLTTY before going to Windows.
 
-Useful Scripts
-==============
+MinGW Scripts for Building BRLTTY
+=================================
 
 The ``mkwin`` Script
 --------------------
 
-The ``mkwin`` script, which can be found in the ``Windows/`` subdirectory of
-BRLTTY's source tree, builds the Windows archive and installer for BRLTTY.
+The ``mkwin`` script,
+which can be found in the ``Windows/`` subdirectory of BRLTTY's source tree,
+builds the Windows archive and installer for BRLTTY.
 
-Required Software Components
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Software Components Required by ``mkwin``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Links to the pages where we found these
 installers, components, and files are listed.
@@ -450,6 +506,15 @@ The following packages should also be installed:
    ``Python`` version's hierarchy. Install ``Cython`` with the command::
 
       pip install cython
+
+   Some systems, either in addition to or in place of the ``pip`` command,
+   have the ``pip2`` and/or the ``pip3`` command. As you might have guessed,
+   ``pip2`` corresponds to ``Python2`` and ``pip3`` corresponds to ``Python3``.
+   It's best to use the one with the most explicit version suffix.
+
+   If the ``pip`` command isn't already included within  the version of
+   ``Python`` that you're using (usually within its ``scripts`` subdirectory)
+   then you can install it from `<https://pip.pypa.io/en/stable/installing/>`_.
 
    Copies of the files mentioned below are at
    `<http://BRLTTY.app/archive/Windows/Cython/>`_:
@@ -564,8 +629,8 @@ Copies of them are at `<http://BRLTTY.app/archive/Windows/Bluetooth/>`_.
 *  bthdef.h
 *  bthsdpdef.h
 
-More Options
-~~~~~~~~~~~~
+More ``mkwin`` Options
+~~~~~~~~~~~~~~~~~~~~~~
 
 ``-u`` (USB)
    Specify which USB package is to be used. The following USB packages are
@@ -575,9 +640,10 @@ More Options
    *  libusb-1.0 (for LibUSB-1.0 + WinUSB)
 
 ``-C`` (Cygwin)
-   Specify the root (top-level) directory of a Cygwin installation. Cygwin's
-   ``bin/`` directory is added to the end of the command search path as a last
-   resort for finding needed commands that MinGW may not have.
+   Specify the root (top-level) directory of a Cygwin installation.
+   If it isn't specified then ``/cygwin`` (if it exists) is assumed.
+   Cygwin's ``bin/`` directory is added to the end of the command search path
+   as a last resort for finding needed commands that MinGW may not have.
 
 ``-s`` (shell)
    Invoke an interactive shell just before the archive is created so that you
@@ -585,29 +651,34 @@ More Options
    environment variable is set then that shell is used. If not, ``/bin/sh`` is
    assumed.
 
-``-t`` (temporary)
-   Specify the temporary directory that is to be used for the build. It must
-   not already exist. If you don't specify it then an internally generated path
-   is used.
+``-t`` (temporary directory)
+   Specify the temporary directory that is to be used for the build.
+   It must not already exist.
+   If it isn't specified then an internally generated path is used.
 
 ``-k`` (keep)
-   Prevent the temporary directory from being removed at the end of a
-   successful build. It isn't removed if the build fails so that you can have a
-   look at what went wrong.
+   Don't remove the temporary directory
+   at the end of a successful build.
+   It isn't removed if the build fails
+   so that you can have a look at what went wrong.
 
 .. include:: common-options.rst
 
-Parameters
-~~~~~~~~~~
+``mkwin`` Parameters
+~~~~~~~~~~~~~~~~~~~~
 
-The ``mkwin`` script requires two parameters:
+The ``mkwin`` script accepts two parameters:
 
-1) The path to the top-level directory of BRLTTY's source tree. It may be
-   either relative or absolute.
+1) The path to the top-level directory of BRLTTY's source tree.
+   It may be either relative or absolute.
+   This parameter is required.
 
-2) The build revision. It may be any character sequence that doesn't include
-   whitespace. It is appended, with a prepended dash (``-``), to BRLTTY's
-   version number in order to construct the build version.
+2) The build revision.
+   It may be any character sequence that doesn't include whitespace.
+   It is appended, with a prepended dash (``-``), to
+   BRLTTY's version number in order to construct the build version.
+   This parameter is optional - if it isn't specified then
+   the revision number part of the build identifier is used.
 
 The build name is used as:
 
@@ -617,7 +688,7 @@ The build name is used as:
 
 It has the following form::
 
-   brltty-win-buildVersion-usbPackage
+   brltty-win-buildVersion-buildRevision-usbPackage
 
 For example:
 
@@ -636,4 +707,34 @@ will create these files within the current working directory:
 
 *  brltty-win-5.2-4-libusb.zip (the archive)
 *  brltty-win-5.2-4-libusb.exe (the installer)
+
+The ``winsetup`` Script
+-----------------------
+
+The ``winsetup`` script,
+which can be found in the ``Windows/`` subdirectory of BRLTTY's source tree,
+ensures that all needed components are installed on your system
+so that `the mkwin script`_ can successfully build BRLTTY.
+
+``winsetup`` Options
+~~~~~~~~~~~~~~~~~~~~
+
+``-a`` (archive URL)
+   Specify the location for BRLTTY's Windows archive.
+
+``-d`` (dry run)
+  Don't actually install anything.
+
+``-k`` (keep)
+   Don't remove the temporary directory.
+
+``-p`` (Python directory)
+   Specify the location where Python has been installed.
+
+``-t`` (temporary directory)
+   Specify the temporary directory that is to be used for the installs.
+   It must not already exist.
+   If it isn't specified then an internally generated path is used.
+
+.. include:: common-options.rst
 

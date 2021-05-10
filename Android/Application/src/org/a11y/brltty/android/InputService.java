@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,7 +31,7 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.EditorInfo;
 
 public class InputService extends InputMethodService {
-  private static final String LOG_TAG = InputService.class.getName();
+  private final static String LOG_TAG = InputService.class.getName();
 
   private static volatile InputService inputService = null;
 
@@ -42,7 +42,6 @@ public class InputService extends InputMethodService {
   @Override
   public void onCreate () {
     super.onCreate();
-    ApplicationContext.set(this);
     inputService = this;
     Log.d(LOG_TAG, "input service started");
   }
@@ -107,7 +106,7 @@ public class InputService extends InputMethodService {
     logKeyEvent(code, press, "sent");
   }
 
-  public native boolean handleKeyEvent (int code, boolean press);
+  public final native boolean handleKeyEvent (int code, boolean press);
 
   public void forwardKeyEvent (int code, boolean press) {
     InputConnection connection = getCurrentInputConnection();
@@ -239,9 +238,9 @@ public class InputService extends InputMethodService {
   }
 
   private static void reportInputProblem (int message) {
-    Context context = ApplicationContext.get();
+    Context context = BrailleApplication.get();
     Log.w(LOG_TAG, context.getResources().getString(message));
-    Message.show(Message.Type.WARNING, context.getString(message));
+    BrailleMessage.WARNING.show(context.getString(message));
   }
 
   public static InputConnection getInputConnection () {
@@ -250,40 +249,42 @@ public class InputService extends InputMethodService {
     if (service != null) {
       InputConnection connection = service.getCurrentInputConnection();
       if (connection != null) return connection;
-      reportInputProblem(R.string.input_service_not_connected);
+      reportInputProblem(R.string.inputService_not_connected);
     } else if (isSelected()) {
-      reportInputProblem(R.string.input_service_not_started);
+      reportInputProblem(R.string.inputService_not_started);
     } else if (isEnabled()) {
-      reportInputProblem(R.string.input_service_not_selected);
+      reportInputProblem(R.string.inputService_not_selected);
     } else {
-      reportInputProblem(R.string.input_service_not_enabled);
+      reportInputProblem(R.string.inputService_not_enabled);
     }
 
     return null;
   }
 
-  public static boolean injectKey (int keyCode, boolean longPress) {
-    InputConnection connection = getInputConnection();
+  public static boolean injectKey (InputConnection connection, int keyCode, boolean longPress) {
+    if (connection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, keyCode))) {
+      logKeyEventSent(keyCode, true);
 
-    if (connection != null) {
-      if (connection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, keyCode))) {
-        logKeyEventSent(keyCode, true);
-
-        if (longPress) {
-          try {
-            Thread.sleep(ViewConfiguration.getLongPressTimeout() + ApplicationParameters.LONG_PRESS_DELAY);
-          } catch (InterruptedException exception) {
-          }
+      if (longPress) {
+        try {
+          Thread.sleep(ViewConfiguration.getLongPressTimeout() + ApplicationParameters.LONG_PRESS_DELAY);
+        } catch (InterruptedException exception) {
         }
+      }
 
-        if (connection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, keyCode))) {
-          logKeyEventSent(keyCode, false);
-          return true;
-        }
+      if (connection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, keyCode))) {
+        logKeyEventSent(keyCode, false);
+        return true;
       }
     }
 
     return false;
+  }
+
+  public static boolean injectKey (int keyCode, boolean longPress) {
+    InputConnection connection = getInputConnection();
+    if (connection == null) return false;
+    return injectKey(connection, keyCode, longPress);
   }
 
   public static boolean injectKey (int keyCode) {

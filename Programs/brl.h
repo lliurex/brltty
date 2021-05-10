@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -51,14 +51,20 @@ extern int setStatusText (BrailleDisplay *brl, const char *text);
 
 extern int readBrailleCommand (BrailleDisplay *, KeyTableCommandContext);
 
+extern int canRefreshBrailleDisplay (BrailleDisplay *brl);
+extern int refreshBrailleDisplay (BrailleDisplay *brl);
+
+extern int canRefreshBrailleRow (BrailleDisplay *brl);
+extern int refreshBrailleRow (BrailleDisplay *brl, int row);
+
 extern int canSetBrailleFirmness (BrailleDisplay *brl);
 extern int setBrailleFirmness (BrailleDisplay *brl, BrailleFirmness setting);
 
 extern int canSetTouchSensitivity (BrailleDisplay *brl);
 extern int setTouchSensitivity (BrailleDisplay *brl, TouchSensitivity setting);
 
-extern int canSetBrailleAutorepeat (BrailleDisplay *brl);
-extern int setBrailleAutorepeat (BrailleDisplay *brl, int on, int delay, int interval);
+extern int canSetAutorepeatProperties (BrailleDisplay *brl);
+extern int setAutorepeatProperties (BrailleDisplay *brl, int on, int delay, int interval);
 
 extern int haveBrailleDriver (const char *code);
 extern const char *getDefaultBrailleDriver (void);

@@ -1,7 +1,7 @@
 /*
  * XBrlAPI - A background process tinkering with X for proper BrlAPI behavior
  *
- * Copyright (C) 2003-2019 by Samuel Thibault <Samuel.Thibault@ens-lyon.org>
+ * Copyright (C) 2003-2021 by Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *
  * XBrlAPI comes with ABSOLUTELY NO WARRANTY.
  *
@@ -54,17 +54,14 @@
 #warning key press simulation not supported by this build - check that libxtst has been installed
 #endif /* HAVE_X11_EXTENSIONS_XTEST_H && HAVE_X11_EXTENSIONS_XKB_H */
 
+#include "xsel.h"
+
 #define BRLAPI_NO_DEPRECATED
 #include "brlapi.h"
 
 #include "options.h"
 
-//#define DEBUG
-#ifdef DEBUG
-#define debugf(fmt, ...) fprintf(stderr, fmt, ## __VA_ARGS__)
-#else /* DEBUG */
-#define debugf(fmt, ...) (void)0
-#endif /* DEBUG */
+#define debugf(fmt, ...) do { if (verbose) fprintf(stderr, fmt, ## __VA_ARGS__); } while (0)
 
 /******************************************************************************
  * option handling
@@ -73,36 +70,52 @@
 static char *auth;
 static char *host;
 static char *xDisplay;
+static int no_daemon;
 static int quiet;
+static int verbose;
 
 static int brlapi_fd;
 
+static void *clipboardData;
+
 BEGIN_OPTION_TABLE(programOptions)
-  { .letter = 'b',
-    .word = "brlapi",
+  { .word = "brlapi",
+    .letter = 'b',
     .argument = strtext("[host][:port]"),
     .setting.string = &host,
     .description = strtext("BrlAPI host and/or port to connect to")
   },
 
-  { .letter = 'a',
-    .word = "auth",
-    .argument = strtext("file"),
+  { .word = "auth",
+    .letter = 'a',
+    .argument = strtext("scheme+..."),
     .setting.string = &auth,
-    .description = strtext("BrlAPI authorization/authentication string")
+    .description = strtext("BrlAPI authorization/authentication schemes")
   },
 
-  { .letter = 'd',
-    .word = "display",
+  { .word = "display",
+    .letter = 'd',
     .argument = strtext("display"),
     .setting.string = &xDisplay,
     .description = strtext("X display to connect to")
   },
 
-  { .letter = 'q',
-    .word = "quiet",
+  { .word = "no-daemon",
+    .letter = 'n',
+    .setting.flag = &no_daemon,
+    .description = strtext("Remain a foreground process")
+  },
+
+  { .word = "quiet",
+    .letter = 'q',
     .setting.flag = &quiet,
     .description = strtext("Do not write any text to the braille device")
+  },
+
+  { .word = "verbose",
+    .letter = 'v',
+    .setting.flag = &verbose,
+    .description = strtext("Write debugging output to stdout")
   },
 END_OPTION_TABLE
 
@@ -168,12 +181,16 @@ static void fatal(const char *fmt, ...) {
 #define MIN(a, b) (((a) < (b))? (a): (b))
 #endif /* MIN */
 
+static void clipboardContentChanged(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, void *priv, const void *data, size_t len);
+
 static int tobrltty_init(char *auth, char *host) {
   brlapi_connectionSettings_t settings;
   unsigned int x,y;
   settings.host=host;
   settings.auth=auth;
   static int had_succeeded;
+  brlapi_param_clientPriority_t priority;
+  brlapi_param_retainDots_t dots;
 
   if ((brlapi_fd = brlapi_openConnection(&settings,&settings))<0)
   {
@@ -207,6 +224,22 @@ static int tobrltty_init(char *auth, char *host) {
   }
 
   brlapi_setExceptionHandler(exception_handler);
+
+  /* Our output is really not very interesting */
+  priority = 10;
+  brlapi_setParameter(BRLAPI_PARAM_CLIENT_PRIORITY, 0, BRLAPI_PARAMF_LOCAL, &priority, sizeof(priority));
+
+  /* We prefer to get translated keypresses */
+  dots = 0;
+  brlapi_setParameter(BRLAPI_PARAM_RETAIN_DOTS, 0, BRLAPI_PARAMF_LOCAL, &dots, sizeof(dots));
+
+  /* X already has some clipboard content */
+  if (clipboardData)
+    brlapi_setParameter(BRLAPI_PARAM_CLIPBOARD_CONTENT, 0, BRLAPI_PARAMF_GLOBAL, clipboardData, strlen(clipboardData));
+
+  /* We want to monitor clipboard changes */
+  brlapi_watchParameter(BRLAPI_PARAM_CLIPBOARD_CONTENT, 0, BRLAPI_PARAMF_GLOBAL, clipboardContentChanged, NULL, NULL, 0);
+
   return 1;
 }
 
@@ -321,6 +354,8 @@ static Display *dpy;
 static Window curWindow;
 static Atom netWmNameAtom, utf8StringAtom;
 
+static XSelData xselData;
+
 static volatile int grabFailed;
 
 #ifdef HAVE_ICONV_H
@@ -375,7 +410,7 @@ static int ErrorHandler(Display *dpy, XErrorEvent *ev) {
     grabFailed=1;
     return 0;
   }
-  if (!XGetErrorText(dpy, ev->error_code, buffer, sizeof(buffer)))
+  if (XGetErrorText(dpy, ev->error_code, buffer, sizeof(buffer)))
     fatal("XGetErrorText");
   fprintf(stderr,gettext("xbrlapi: X Error %d, %s on display %s\n"), ev->type, buffer, XDisplayName(Xdisplay));
   fprintf(stderr,gettext("xbrlapi: resource %#010lx, req %u:%u\n"),ev->resourceid,ev->request_code,ev->minor_code);
@@ -530,10 +565,10 @@ static int grabWindows(Window win,int level) {
 }
 
 static void setName(const struct window *window) {
-  if (!window->wm_name)
-    if (window->win==window->root) api_setName("root");
-    else api_setName("unknown");
-  else api_setName(window->wm_name);
+  if (!window->wm_name) {
+    if (window->win!=window->root)
+      api_setName("window without name");
+  } else api_setName(window->wm_name);
 }
 
 static void setFocus(Window win) {
@@ -575,6 +610,25 @@ static void ignoreServerKeys(void) {
 }
 #endif /* CAN_SIMULATE_KEY_PRESSES */
 
+static void clipboardContentChanged(brlapi_param_t parameter, brlapi_param_subparam_t subparam, brlapi_param_flags_t flags, void *priv, const void *data, size_t len) {
+  free(clipboardData);
+  clipboardData = strndup(data, len);
+  debugf("new clipboard content from BrlAPI: '%s'\n", (const char *) clipboardData);
+  if (dpy)
+    XSelSet(dpy, &xselData);
+}
+
+static void XClipboardContentChanged(const char *data, unsigned long size) {
+  free(clipboardData);
+  if (data) {
+    clipboardData = strndup(data, size);
+    brlapi_setParameter(BRLAPI_PARAM_CLIPBOARD_CONTENT, 0, BRLAPI_PARAMF_GLOBAL, clipboardData, size);
+    debugf("new clipboard content from X: '%s'\n", (const char *) clipboardData);
+  } else
+    clipboardData = NULL;
+}
+
+
 static void toX_f(const char *display) {
   Window root;
   XEvent ev;
@@ -613,6 +667,11 @@ static void toX_f(const char *display) {
       fatal(gettext("Incompatible XKB server support\n"));
   }
 #endif /* CAN_SIMULATE_KEY_PRESSES */
+
+  XSelInit(dpy, &xselData);
+
+  if (clipboardData)
+    XSelSet(dpy, &xselData);
 
   X_fd = XConnectionNumber(dpy);
 
@@ -662,11 +721,13 @@ static void toX_f(const char *display) {
     if (select(maxfd,&readfds,NULL,NULL,brlapi_fd<=0?&timeout:NULL)<0)
       fatal_errno("select",NULL);
     if (FD_ISSET(X_fd,&readfds))
+
     while (XPending(dpy)) {
       if ((i=XNextEvent(dpy,&ev)))
 	fatal("XNextEvent: %d\n",i);
-      switch (ev.type) {
 
+      if (!XSelProcess(dpy, &xselData, &ev, clipboardData, XClipboardContentChanged))
+      switch (ev.type) {
       /* focus events */
       case FocusIn:
 	switch (ev.xfocus.detail) {
@@ -966,6 +1027,18 @@ main (int argc, char *argv[]) {
 #endif /* SIGPIPE */
 
   tobrltty_init(auth,host);
+
+  if (!no_daemon) {
+    pid_t child = fork();
+    if (child == -1)
+      fatal_errno("failed to fork", NULL);
+
+    if (child)
+      exit(PROG_EXIT_SUCCESS);
+
+    if (setsid() == -1)
+      fatal_errno("failed to create background session", NULL);
+  }
 
   toX_f(xDisplay);
 

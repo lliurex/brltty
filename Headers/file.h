@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -29,7 +29,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-extern int isPathDelimiter (const char character);
+#define CURRENT_DIRECTORY_NAME "."
+#define PARENT_DIRECTORY_NAME ".."
+
+extern int isPathSeparator (const char character);
 extern int isAbsolutePath (const char *path);
 extern char *getPathDirectory (const char *path);
 extern const char *locatePathName (const char *path);
@@ -49,8 +52,9 @@ extern int testFilePath (const char *path);
 extern int testProgramPath (const char *path);
 extern int testDirectoryPath (const char *path);
 
-extern int createDirectory (const char *path);
-extern int ensureDirectory (const char *path);
+extern int createDirectory (const char *path, int worldWritable);
+extern int ensureDirectory (const char *path, int worldWritable);
+extern int ensurePathDirectory (const char *path);
 
 extern void setUpdatableDirectory (const char *directory);
 extern const char *getUpdatableDirectory (void);
@@ -64,8 +68,10 @@ extern char *getWorkingDirectory (void);
 extern int setWorkingDirectory (const char *path);
 
 extern char *getHomeDirectory (void);
+
 extern const char *const *getAllOverrideDirectories (void);
 extern const char *getPrimaryOverrideDirectory (void);
+extern void forgetOverrideDirectories (void);
 
 extern int acquireFileLock (int file, int exclusive);
 extern int attemptFileLock (int file, int exclusive);
@@ -75,9 +81,19 @@ extern void registerProgramStream (const char *name, FILE **stream);
 
 extern FILE *openFile (const char *path, const char *mode, int optional);
 
-typedef int LineHandler (char *line, void *data);
+typedef struct {
+  void *data;
+
+  struct {
+    char *text;
+    size_t length;
+    unsigned int number;
+  } line;
+} LineHandlerParameters;
+
+typedef int LineHandler (const LineHandlerParameters *parameters);
 extern int processLines (FILE *file, LineHandler handleLine, void *data);
-extern int readLine (FILE *file, char **buffer, size_t *size);
+extern int readLine (FILE *file, char **buffer, size_t *size, size_t *length);
 
 extern STR_DECLARE_FORMATTER(formatInputError, const char *file, const int *line, const char *format, va_list arguments);
 
@@ -88,6 +104,9 @@ extern ssize_t writeFileDescriptor (FileDescriptor fileDescriptor, const void *b
 extern ssize_t readSocketDescriptor (SocketDescriptor socketDescriptor, void *buffer, size_t size);
 extern ssize_t writeSocketDescriptor (SocketDescriptor socketDescriptor, const void *buffer, size_t size);
 #endif /* GOT_SOCKETS */
+
+extern const char *getConsoleEncoding (void);
+extern void writeWithConsoleEncoding (FILE *stream, const char *bytes, size_t count);
 
 extern const char *getNamedPipeDirectory (void);
 extern int createAnonymousPipe (FileDescriptor *pipeInput, FileDescriptor *pipeOutput);

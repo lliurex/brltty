@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -27,8 +27,8 @@
 struct BlinkDescriptorStruct {
   const char *const name;
   const unsigned char *const isEnabled;
-  const unsigned char *const visibleTime;
-  const unsigned char *const invisibleTime;
+  unsigned char *const visibleTime;
+  unsigned char *const invisibleTime;
 
   unsigned isRequired:1;
   unsigned isVisible:1;
@@ -71,6 +71,43 @@ static BlinkDescriptor *const blinkDescriptors[] = {
   NULL
 };
 
+static int
+getBlinkVisibleTime (BlinkDescriptor *blink) {
+  return PREFS2MSECS(*blink->visibleTime);
+}
+
+static int
+getBlinkInvisibleTime (BlinkDescriptor *blink) {
+  return PREFS2MSECS(*blink->invisibleTime);
+}
+
+int
+getBlinkPeriod (BlinkDescriptor *blink) {
+  return getBlinkVisibleTime(blink) + getBlinkInvisibleTime(blink);
+}
+
+int
+getBlinkPercentage (BlinkDescriptor *blink) {
+  return (getBlinkVisibleTime(blink) * 100) / getBlinkPeriod(blink);
+}
+
+int
+setBlinkProperties (BlinkDescriptor *blink, int period, int percentage) {
+  if (period < 1) return 0;
+  period = MSECS2PREFS(period);
+  if (period > UINT8_MAX) return 0;
+
+  if (percentage < 0) return 0;
+  if (percentage > 100) return 0;
+
+  int visible = (period * percentage) / 100;
+  int invisible = period - visible;
+
+  *blink->visibleTime = visible;
+  *blink->invisibleTime = invisible;
+  return 1;
+}
+
 int
 isBlinkVisible (const BlinkDescriptor *blink) {
   if (!*blink->isEnabled) return 1;
@@ -79,7 +116,7 @@ isBlinkVisible (const BlinkDescriptor *blink) {
 
 static int
 getBlinkDuration (const BlinkDescriptor *blink) {
-  return PREFERENCES_TIME(blink->isVisible? *blink->visibleTime: *blink->invisibleTime);
+  return PREFS2MSECS(blink->isVisible? *blink->visibleTime: *blink->invisibleTime);
 }
 
 void

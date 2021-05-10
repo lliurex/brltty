@@ -5,7 +5,6 @@ braille.$O: $(BLD_TOP)config.h
 braille.$O: $(BLD_TOP)forbuild.h
 braille.$O: $(SRC_TOP)Headers/log.h
 braille.$O: $(SRC_TOP)Headers/ascii.h
-braille.$O: $(SRC_TOP)Headers/api_types.h
 braille.$O: $(SRC_TOP)Headers/async.h
 braille.$O: $(SRC_TOP)Headers/async_io.h
 braille.$O: $(SRC_TOP)Headers/brl_base.h

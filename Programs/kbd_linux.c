@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -585,10 +585,17 @@ prepareUinputInstance (UinputObject *uinput, int keyboard) {
       int count = size * 8;
 
       {
-        int key = KEY_ENTER;
+        static const int keys[] = {KEY_ENTER, KEY_SPACE, KEY_BRL_DOT1};
+        const int *key = keys;
+        const int *end = key + ARRAY_COUNT(keys);
 
-        if (key >= count) return 0;
-        if (!BITMASK_TEST(mask, key)) return 0;
+        while (key < end) {
+          if (*key >= count) continue;
+          if (BITMASK_TEST(mask, *key)) break;
+          key += 1;
+        }
+
+        if (key == end) return 0;
       }
 
       if (!enableUinputEventType(uinput, type)) return 0;
@@ -665,8 +672,12 @@ monitorKeyboard (KeyboardInstanceObject *kio) {
   #endif /* BUS_USB */
 
   #ifdef BUS_BLUETOOTH
-                  [BUS_BLUETOOTH] = KBD_TYPE_Bluetooth,
+                  [BUS_BLUETOOTH] = KBD_TYPE_BLUETOOTH,
   #endif /* BUS_BLUETOOTH */
+
+  #ifdef BUS_HOST
+                  [BUS_HOST] = KBD_TYPE_INTERNAL,
+  #endif /* BUS_HOST */
                 };
 
                 if (identity.bustype < ARRAY_COUNT(typeTable)) {
@@ -922,13 +933,17 @@ getKobjectUeventSocket (void) {
     };
 
     if ((socketDescriptor = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_KOBJECT_UEVENT)) != -1) {
-      if (bind(socketDescriptor, (const struct sockaddr *)&socketAddress, sizeof(socketAddress)) == -1) {
-        logSystemError("bind");
+      if (bind(socketDescriptor, (const struct sockaddr *)&socketAddress, sizeof(socketAddress)) != -1) {
+        logMessage(LOG_DEBUG,
+          "netlink kobject uevent socket opened: fd=%d", socketDescriptor
+        );
+      } else {
+        logSystemError("netlink kobject uevent socket bind");
         close(socketDescriptor);
         socketDescriptor = -1;
       }
     } else {
-      logSystemError("socket");
+      logSystemError("netlink kobject uevent socket creation");
     }
   }
 

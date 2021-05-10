@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -27,9 +27,9 @@ extern "C" {
 
 extern void alertLineSkipped (unsigned int *count);
 
-extern int isTextOffset (int *arg, int end, int relaxed);
+extern int isTextOffset (int arg, int *first, int *last, int relaxed);
 
-extern int getCharacterCoordinates (int arg, int *column, int *row, int end, int relaxed);
+extern int getCharacterCoordinates (int arg, int *row, int *first, int *last, int relaxed);
 
 extern STR_DECLARE_FORMATTER(formatCharacterDescription, int column, int row);
 

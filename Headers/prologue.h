@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -35,6 +35,9 @@ extern "C" {
 
 #define STRINGIFY_1(a) #a
 #define STRINGIFY(a) STRINGIFY_1(a)
+
+// only use in the global context
+#define NULL_TERMINATED_STRING_ARRAY(...) (const char *const []){__VA_ARGS__, NULL}
 
 #define MIN(a, b)  (((a) < (b))? (a): (b)) 
 #define MAX(a, b)  (((a) > (b))? (a): (b)) 
@@ -73,7 +76,9 @@ extern "C" {
 #endif /* HAVE_CONFIG_H */
 
 #ifdef __ANDROID__
+#ifndef __ANDROID_API__
 #define __ANDROID_API__ 19
+#endif /* __ANDROID_API__ */
 #endif /* __ANDROID__ */
 
 #if defined(__CYGWIN__) || defined(__MINGW32__)
@@ -81,14 +86,38 @@ extern "C" {
 
 #ifndef HAVE_SDKDDKVER_H
 #include <w32api.h>
+
+#ifndef _WIN32_WINNT_NT4
 #define _WIN32_WINNT_NT4 WindowsNT4
+#endif /* _WIN32_WINNT_NT4 */
+
+#ifndef _WIN32_WINNT_WIN95
 #define _WIN32_WINNT_WIN95 Windows95
+#endif /* _WIN32_WINNT_WIN95 */
+
+#ifndef _WIN32_WINNT_WIN98
 #define _WIN32_WINNT_WIN98 Windows98
+#endif /* _WIN32_WINNT_WIN98 */
+
+#ifndef _WIN32_WINNT_WINME
 #define _WIN32_WINNT_WINME WindowsME
+#endif /* _WIN32_WINNT_WINME */
+
+#ifndef _WIN32_WINNT_WIN2K
 #define _WIN32_WINNT_WIN2K Windows2000
+#endif /* _WIN32_WINNT_WIN2K */
+
+#ifndef _WIN32_WINNT_WINXP
 #define _WIN32_WINNT_WINXP WindowsXP
+#endif /* _WIN32_WINNT_WINXP */
+
+#ifndef _WIN32_WINNT_WS03
 #define _WIN32_WINNT_WS03 Windows2003
+#endif /* _WIN32_WINNT_WS03 */
+
+#ifndef _WIN32_WINNT_VISTA
 #define _WIN32_WINNT_VISTA WindowsVista
+#endif /* _WIN32_WINNT_VISTA */
 #endif /* HAVE_SDKDDKVER_H */
 
 #ifndef _WIN32_WINNT
@@ -400,8 +429,8 @@ mempcpy (void *dest, const void *src, size_t size) {
 #ifdef ENABLE_I18N_SUPPORT
 #include <libintl.h>
 #else /* ENABLE_I18N_SUPPORT */
-#define gettext(string) (string)
-#define ngettext(singular, plural, count) (((count) == 1)? (singular): (plural))
+extern char *gettext (const char *text);
+extern char *ngettext (const char *singular, const char *plural, unsigned long int count);
 #endif /* ENABLE_I18N_SUPPORT */
 #define strtext(string) string
 

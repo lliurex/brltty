@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,9 +22,10 @@
 #include <errno.h>
 
 #include "log.h"
-#include "timing.h"
 #include "system.h"
 #include "system_windows.h"
+#include "timing.h"
+#include "messages.h"
 
 /* ntdll.dll */
 WIN_PROC_STUB(NtSetInformationProcess);
@@ -143,8 +144,8 @@ error:
   return NULL;
 }
 
-void
-initializeSystemObject (void) {
+static void
+loadLibraries (void) {
   HMODULE library;
 
 #define LOAD_LIBRARY(name) (library = loadLibrary(name))
@@ -170,6 +171,28 @@ initializeSystemObject (void) {
     GET_PROC(freeaddrinfo);
   }
 #endif /* __MINGW32__ */
+}
+
+static void
+setLocale (void) {
+  {
+    const char *locale = getenv("LANG");
+
+    if (locale && *locale) {
+      setMessagesLocale(locale);
+      return;
+    }
+  }
+
+  char *locale = getWindowsLocaleName();
+  setMessagesLocale(locale);
+  if (locale) free(locale);
+}
+
+void
+initializeSystemObject (void) {
+  setLocale();
+  loadLibraries();
 }
 
 #ifdef __MINGW32__

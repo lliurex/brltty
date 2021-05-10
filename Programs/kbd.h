@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -26,10 +26,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 typedef enum {
-  KBD_TYPE_Any = 0,
+  KBD_TYPE_ANY = 0,
   KBD_TYPE_PS2,
   KBD_TYPE_USB,
-  KBD_TYPE_Bluetooth
+  KBD_TYPE_BLUETOOTH,
+  KBD_TYPE_INTERNAL,
 } KeyboardType;
 
 typedef struct {

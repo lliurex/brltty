@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -122,6 +122,14 @@ getTitle_BaseScreen (void) {
   return NULL;
 }
 
+static void
+onForeground_BaseScreen (void) {
+}
+
+static void
+onBackground_BaseScreen (void) {
+}
+
 static int
 poll_BaseScreen (void) {
   return 0;
@@ -176,6 +184,16 @@ getPointer_BaseScreen (int *column, int *row) {
 }
 
 static int
+clearSelection_BaseScreen (void) {
+  return 0;
+}
+
+static int
+setSelection_BaseScreen (int startColumn, int startRow, int endColumn, int endRow) {
+  return 0;
+}
+
+static int
 handleCommand_BaseScreen (int command) {
   return 0;
 }
@@ -188,6 +206,8 @@ getCommandContext_BaseScreen (void) {
 void
 initializeBaseScreen (BaseScreen *base) {
   base->getTitle = getTitle_BaseScreen;
+  base->onForeground = onForeground_BaseScreen;
+  base->onBackground = onBackground_BaseScreen;
 
   base->poll = poll_BaseScreen;
   base->refresh = refresh_BaseScreen;
@@ -201,6 +221,9 @@ initializeBaseScreen (BaseScreen *base) {
   base->unhighlightRegion = unhighlightRegion_BaseScreen;
   base->getPointer = getPointer_BaseScreen;
 
+  base->clearSelection = clearSelection_BaseScreen;
+  base->setSelection = setSelection_BaseScreen;
+
   base->currentVirtualTerminal = currentVirtualTerminal_BaseScreen;
   base->selectVirtualTerminal = selectVirtualTerminal_BaseScreen;
   base->switchVirtualTerminal = switchVirtualTerminal_BaseScreen;
@@ -213,15 +236,20 @@ initializeBaseScreen (BaseScreen *base) {
 
 void
 describeBaseScreen (BaseScreen *base, ScreenDescription *description) {
+  description->unreadable = NULL;
+  description->quality = SCQ_GOOD;
+
+  description->number = 0;
   description->cols = description->rows = 1;
   description->posx = description->posy = 0;
-  description->number = 0;
-  description->cursor = 1;
-  description->unreadable = NULL;
+
+  description->hasCursor = 1;
+  description->hasSelection = 0;
+
   base->describe(description);
 
   if (description->unreadable) {
-    description->cursor = 0;
+    description->hasCursor = 0;
   }
 }
 

@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -16,31 +16,64 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-#SYSTEMD_UNITS_DIRECTORY = $(INSTALL_ROOT)$(sysconfdir)/systemd/system
-SYSTEMD_UNITS_DIRECTORY = $(INSTALL_ROOT)$(libdir)/systemd/system
-SYSTEMD_SCRIPTS_DIRECTORY = $(INSTALL_ROOT)/usr/libexec
+SYSTEMD_UNITS_DIRECTORY = $(INSTALL_ROOT)$(SYSTEMD_UNIT_DIR)
+SYSTEMD_SCRIPTS_DIRECTORY = $(INSTALL_ROOT)$(SCRIPTS_DIRECTORY)
 
-install: install-units install-scripts
+SYSTEMD_USERS_DIRECTORY = $(INSTALL_ROOT)$(SYSTEMD_SYSUSERS_DIR)
+SYSTEMD_USERS_FILE = $(SYSTEMD_USERS_DIRECTORY)/$(PACKAGE_TARNAME).conf
+
+SYSTEMD_FILES_DIRECTORY = $(INSTALL_ROOT)$(SYSTEMD_TMPFILES_DIR)
+SYSTEMD_FILES_FILE = $(SYSTEMD_FILES_DIRECTORY)/$(PACKAGE_TARNAME).conf
+
+install: install-units install-scripts install-users install-files
 
 install-units-directory:
 	$(INSTALL_DIRECTORY) $(SYSTEMD_UNITS_DIRECTORY)
 
 install-units: install-units-directory
-	for extension in service path; do \
-	$(INSTALL_DATA) $(SRC_DIR)/*.$$extension $(SYSTEMD_UNITS_DIRECTORY); \
-	done
+	$(INSTALL_DATA) $(BLD_DIR)/brltty@.service $(SYSTEMD_UNITS_DIRECTORY)
+	$(INSTALL_DATA) $(SRC_DIR)/brltty-device@.service $(SYSTEMD_UNITS_DIRECTORY)
+	$(INSTALL_DATA) $(SRC_DIR)/brltty@.path $(SYSTEMD_UNITS_DIRECTORY)
+	$(INSTALL_DATA) $(SRC_DIR)/brltty.path $(SYSTEMD_UNITS_DIRECTORY)
 
 install-scripts-directory:
 	$(INSTALL_DIRECTORY) $(SYSTEMD_SCRIPTS_DIRECTORY)
 
 install-scripts: install-scripts-directory
-	$(INSTALL_SCRIPT) $(SRC_DIR)/$(PACKAGE_TARNAME)-systemd-wrapper $(SYSTEMD_SCRIPTS_DIRECTORY)
+	$(INSTALL_SCRIPT) $(SRC_DIR)/systemd-wrapper $(SYSTEMD_SCRIPTS_DIRECTORY)
+
+install-users-directory:
+	$(INSTALL_DIRECTORY) $(SYSTEMD_USERS_DIRECTORY)
+
+install-users: install-users-directory
+	$(INSTALL_DATA) $(SRC_DIR)/sysusers $(SYSTEMD_USERS_FILE)
+
+install-files-directory:
+	$(INSTALL_DIRECTORY) $(SYSTEMD_FILES_DIRECTORY)
+
+install-files: install-files-directory
+	$(INSTALL_DATA) $(BLD_DIR)/tmpfiles $(SYSTEMD_FILES_FILE)
 
 uninstall:
 	-rm -f $(SYSTEMD_UNITS_DIRECTORY)/$(PACKAGE_TARNAME).*
 	-rm -f $(SYSTEMD_UNITS_DIRECTORY)/$(PACKAGE_TARNAME)@.*
-	-rm -f $(SYSTEMD_SCRIPTS_DIRECTORY)/$(PACKAGE_TARNAME)-systemd-*
+	-rm -f $(SYSTEMD_UNITS_DIRECTORY)/$(PACKAGE_TARNAME)-*
+	-rm -f $(SYSTEMD_SCRIPTS_DIRECTORY)/systemd-*
+	-rm -f $(SYSTEMD_USERS_FILE)
+	-rm -f $(SYSTEMD_FILES_FILE)
 
-reload:
+distclean::
+	-rm brltty@.service
+	-rm tmpfiles
+
+reload: reload-units reload-users reload-files
+
+reload-units:
 	systemctl daemon-reload
+
+reload-users:
+	systemd-sysusers $(SYSTEMD_USERS_FILE)
+
+reload-files:
+	systemd-tmpfiles --create $(SYSTEMD_FILES_FILE)
 

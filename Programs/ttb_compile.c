@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -125,7 +125,7 @@ getUnicodeRowEntry (TextTableData *ttd, wchar_t character, int allocate) {
 }
 
 const unsigned char *
-getUnicodeCellEntry (TextTableData *ttd, wchar_t character) {
+getUnicodeCell (TextTableData *ttd, wchar_t character) {
   const UnicodeRowEntry *row = getUnicodeRowEntry(ttd, character, 0);
 
   if (row) {
@@ -352,6 +352,12 @@ makeTextTable (TextTableData *ttd) {
     table->size = getDataSize(ttd->area);
 
     table->options.tryBaseCharacter = 1;
+
+    {
+      const unsigned char **cell = &table->cells.replacementCharacter;
+      *cell = getUnicodeCell(ttd, UNICODE_REPLACEMENT_CHARACTER);
+      if (!*cell) *cell = getUnicodeCell(ttd, WC_C('?'));
+    }
 
     resetDataArea(ttd->area);
   }

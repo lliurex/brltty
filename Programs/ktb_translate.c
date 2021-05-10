@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -295,40 +295,74 @@ addCommandArguments (KeyTable *table, int *command, const CommandEntry *entry, c
 }
 
 static int
+isInputKey (BRL_Key key) {
+  switch (key) {
+    case BRL_KEY_BACKSPACE:
+    case BRL_KEY_DELETE:
+    case BRL_KEY_ESCAPE:
+    case BRL_KEY_TAB:
+    case BRL_KEY_ENTER:
+      return 1;
+
+    default:
+      return 0;
+  }
+}
+
+static int
 processCommand (KeyTable *table, int command) {
-  int blk = command & BRL_MSK_BLK;
-  int arg = command & BRL_MSK_ARG;
+  int isInput = 0;
 
-  switch (blk) {
-    case BRL_CMD_BLK(CONTEXT): {
-      unsigned char context = KTB_CTX_DEFAULT + arg;
-      const KeyContext *ctx = getKeyContext(table, context);
+  switch (command) {
+    default: {
+      int arg = command & BRL_MSK_ARG;
 
-      if (ctx) {
-        command = BRL_CMD_NOOP;
-        table->context.next = context;
+      switch (command & BRL_MSK_BLK) {
+        case BRL_CMD_BLK(CONTEXT): {
+          unsigned char context = KTB_CTX_DEFAULT + arg;
+          const KeyContext *ctx = getKeyContext(table, context);
 
-        if (isTemporaryKeyContext(table, ctx)) {
-          if (!enqueueCommand(BRL_CMD_ALERT(TOGGLE_ON))) return 0;
-        } else {
-          table->context.persistent = context;
-          if (!enqueueCommand(BRL_CMD_ALERT(TOGGLE_OFF))) return 0;
+          if (ctx) {
+            table->context.next = context;
+
+            if (isTemporaryKeyContext(table, ctx)) {
+              command = BRL_CMD_ALERT(CONTEXT_TEMPORARY);
+            } else {
+              table->context.persistent = context;
+              command =
+                (context == KTB_CTX_DEFAULT)?
+                BRL_CMD_ALERT(CONTEXT_DEFAULT):
+                BRL_CMD_ALERT(CONTEXT_PERSISTENT);
+            }
+
+            if (!enqueueCommand(command)) return 0;
+            command = BRL_CMD_NOOP;
+          }
+
+          break;
         }
+
+        case BRL_CMD_BLK(PASSDOTS):
+        case BRL_CMD_BLK(PASSCHAR):
+          isInput = 1;
+          break;
+
+        case BRL_CMD_BLK(PASSKEY):
+          if (isInputKey(arg)) isInput = 1;
+          break;
+
+        default:
+          break;
       }
 
       break;
     }
+  }
 
-    case BRL_CMD_BLK(PASSCHAR):
-    case BRL_CMD_BLK(PASSDOTS):
-    case BRL_CMD_BLK(PASSKEY):
-      if (table->options.keyboardEnabledFlag && !*table->options.keyboardEnabledFlag) {
-        command = BRL_CMD_ALERT(COMMAND_REJECTED);
-      }
-      break;
-
-    default:
-      break;
+  if (isInput) {
+    if (table->options.keyboardEnabledFlag && !*table->options.keyboardEnabledFlag) {
+      command = BRL_CMD_ALERT(COMMAND_REJECTED);
+    }
   }
 
   return enqueueCommand(command);
@@ -385,7 +419,7 @@ ASYNC_ALARM_CALLBACK(handleLongPressAlarm) {
 
 static void
 setLongPressAlarm (KeyTable *table, unsigned char when) {
-  asyncNewRelativeAlarm(&table->longPress.alarm, PREFERENCES_TIME(when),
+  asyncNewRelativeAlarm(&table->longPress.alarm, PREFS2MSECS(when),
                         handleLongPressAlarm, table);
 }
 
@@ -575,7 +609,7 @@ processKeyEvent (
     } else {
       resetLongPressData(table);
 
-      if (prefs.firstRelease || (table->pressedKeys.count == 0)) {
+      if (prefs.onFirstRelease || (table->pressedKeys.count == 0)) {
         int *cmd = &table->release.command;
 
         if (*cmd != BRL_CMD_NOOP) {
@@ -652,4 +686,123 @@ getKeyGroupCommands (KeyTable *table, KeyGroup group, int *commands, unsigned in
       }
     }
   }
+}
+
+typedef struct {
+  int *array;
+  unsigned int size;
+  unsigned int count;
+} AddCommandData;
+
+static int
+addCommand (AddCommandData *acd, int command) {
+  if (command == EOF) return 1;
+  int blk = command & BRL_MSK_BLK;
+  command &= blk? BRL_MSK_BLK: BRL_MSK_CMD;
+  if (command == BRL_CMD_NOOP) return 1;
+
+  if (acd->count == acd->size) {
+    unsigned int newSize = acd->size? (acd->size << 1): 0X100;
+    int *newArray = realloc(acd->array, ARRAY_SIZE(newArray, newSize));
+
+    if (!newArray) {
+      logMallocError();
+      return 0;
+    }
+
+    acd->array = newArray;
+    acd->size = newSize;
+  }
+
+  acd->array[acd->count++] = command;
+  return 1;
+}
+
+static int
+addBoundCommand (AddCommandData *acd, const BoundCommand *cmd) {
+  return addCommand(acd, cmd->value);
+}
+
+static int
+sortCommands (const void *element1, const void *element2) {
+  const int *command1 = element1;
+  const int *command2 = element2;
+
+  if (*command1 < *command2) return -1;
+  if (*command1 > *command2) return 1;
+  return 0;
+}
+
+int *
+getBoundCommands (KeyTable *table, unsigned int *count) {
+  AddCommandData acd = {
+    .array = NULL,
+    .size = 0,
+    .count = 0
+  };
+
+  for (unsigned int context=0; context<table->keyContexts.count; context+=1) {
+    const KeyContext *ctx = getKeyContext(table, context);
+
+    if (ctx) {
+      {
+        const KeyBinding *binding = ctx->keyBindings.table;
+        const KeyBinding *end = binding + ctx->keyBindings.count;
+
+        while (binding < end) {
+          if (!addBoundCommand(&acd, &binding->primaryCommand)) goto error;
+          if (!addBoundCommand(&acd, &binding->secondaryCommand)) goto error;
+          binding += 1;
+        }
+      }
+
+      {
+        const HotkeyEntry *hotkey = ctx->hotkeys.table;
+        const HotkeyEntry *end = hotkey + ctx->hotkeys.count;
+
+        while (hotkey < end) {
+          if (!addBoundCommand(&acd, &hotkey->pressCommand)) goto error;
+          if (!addBoundCommand(&acd, &hotkey->releaseCommand)) goto error;
+          hotkey += 1;
+        }
+      }
+
+      if (ctx->mappedKeys.count) {
+        if (!addCommand(&acd, BRL_CMD_BLK(PASSDOTS))) {
+          goto error;
+        }
+      }
+    }
+  }
+
+  if (acd.count > 1) {
+    qsort(acd.array, acd.count, sizeof(*acd.array), sortCommands);
+
+    int *to = acd.array;
+    const int *from = to;
+    const int *end = from + acd.count;
+
+    while (from < end) {
+      if ((from == acd.array) || (*from != *(from - 1))) {
+        if (from != to) *to = *from;
+        to += 1;
+      }
+
+      from += 1;
+    }
+
+    acd.count = to - acd.array;
+  }
+
+  {
+    int *newArray = realloc(acd.array, ARRAY_SIZE(newArray, acd.count));
+    if (newArray) acd.array = newArray;
+  }
+
+  *count = acd.count;
+  return acd.array;
+
+error:
+  if (acd.array) free(acd.array);
+  return NULL;
 }

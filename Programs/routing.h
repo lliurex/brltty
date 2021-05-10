@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,11 +24,12 @@ extern "C" {
 #endif /* __cplusplus */
 
 typedef enum {
-  ROUTING_NONE,
-  ROUTING_DONE,
-  ROUTING_WRONG_COLUMN,
-  ROUTING_WRONG_ROW,
-  ROUTING_ERROR
+  // don't change the order
+  ROUTING_STATUS_NONE,
+  ROUTING_STATUS_SUCCEESS,
+  ROUTING_STATUS_COLUMN,
+  ROUTING_STATUS_ROW,
+  ROUTING_STATUS_FAILURE
 } RoutingStatus;
 
 extern int startRouting (int column, int row, int screen);

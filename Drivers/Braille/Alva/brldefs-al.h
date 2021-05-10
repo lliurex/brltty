@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,9 +31,9 @@ typedef enum {
   AL_KEY_OPERATION = 1,
   AL_KEY_STATUS1 = AL_KEY_OPERATION + AL_KEYS_OPERATION,
   AL_KEY_STATUS2 = AL_KEY_STATUS1 + AL_KEYS_STATUS,
-  AL_KEY_LEFT_PAD = AL_KEY_STATUS2 + AL_KEYS_STATUS,
-  AL_KEY_RIGHT_PAD = AL_KEY_LEFT_PAD + AL_KEYS_SATELLITE,
-  AL_KEY_ETOUCH = AL_KEY_RIGHT_PAD + AL_KEYS_SATELLITE,
+  AL_KEY_SPEECH_PAD = AL_KEY_STATUS2 + AL_KEYS_STATUS,
+  AL_KEY_NAV_PAD = AL_KEY_SPEECH_PAD + AL_KEYS_SATELLITE,
+  AL_KEY_ETOUCH = AL_KEY_NAV_PAD + AL_KEYS_SATELLITE,
   AL_KEY_SMARTPAD = AL_KEY_ETOUCH + AL_KEYS_ETOUCH,
   AL_KEY_THUMB = AL_KEY_SMARTPAD + AL_KEYS_SMARTPAD,
   AL_KEY_FEATUREPACK = AL_KEY_THUMB + AL_KEYS_THUMB,
@@ -53,19 +53,19 @@ typedef enum {
   AL_KEY_RightTumblerLeft,
   AL_KEY_RightTumblerRight,
 
-  AL_KEY_LeftPadF1 = AL_KEY_LEFT_PAD,
-  AL_KEY_LeftPadUp,
-  AL_KEY_LeftPadLeft,
-  AL_KEY_LeftPadDown,
-  AL_KEY_LeftPadRight,
-  AL_KEY_LeftPadF2,
+  AL_KEY_SpeechPadF1 = AL_KEY_SPEECH_PAD,
+  AL_KEY_SpeechPadUp,
+  AL_KEY_SpeechPadLeft,
+  AL_KEY_SpeechPadDown,
+  AL_KEY_SpeechPadRight,
+  AL_KEY_SpeechPadF2,
 
-  AL_KEY_RightPadF1 = AL_KEY_RIGHT_PAD,
-  AL_KEY_RightPadUp,
-  AL_KEY_RightPadLeft,
-  AL_KEY_RightPadDown,
-  AL_KEY_RightPadRight,
-  AL_KEY_RightPadF2,
+  AL_KEY_NavPadF1 = AL_KEY_NAV_PAD,
+  AL_KEY_NavPadUp,
+  AL_KEY_NavPadLeft,
+  AL_KEY_NavPadDown,
+  AL_KEY_NavPadRight,
+  AL_KEY_NavPadF2,
 
   AL_KEY_ETouchLeftRear = AL_KEY_ETOUCH,
   AL_KEY_ETouchLeftFront,

@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -18,10 +18,12 @@
 ###############################################################################
 
 . "`dirname "${0}"`/prologue.sh"
+setSourceRoot
+setBuildRoot
 
-BRLTTY_DRIVERS_DIRECTORY="${programDirectory}/lib"
-BRLTTY_TABLES_DIRECTORY="${programDirectory}/Tables"
-export BRLTTY_DRIVERS_DIRECTORY BRLTTY_TABLES_DIRECTORY
+export BRLTTY_TABLES_DIRECTORY="${BRLTTY_SOURCE_ROOT}/Tables"
+export BRLTTY_DRIVERS_DIRECTORY="${BRLTTY_BUILD_ROOT}/lib"
+export BRLTTY_LOCALE_DIRECTORY="${BRLTTY_BUILD_ROOT}/Messages/locale"
 
-exec "${programDirectory}/run-command" "${programDirectory}/Programs/brltty" -E "${@}"
+exec "${programDirectory}/run-command" "${BRLTTY_BUILD_ROOT}/Programs/brltty" -E "${@}"
 exit "${?}"

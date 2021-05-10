@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #include "log.h"
+#include "strfmt.h"
 #include "parameters.h"
 #include "timing.h"
 #include "async_wait.h"
@@ -268,19 +269,19 @@ typedef enum {
   BTH_CONN_TIMEOUT
 } BluetoothConnectionParameter;
 
+static const char *const bthConnectionParameters[] = {
+  "address",
+  "name",
+  "channel",
+  "discover",
+  "timeout",
+  NULL
+};
+
 static char **
 bthGetConnectionParameters (const char *identifier) {
-  static const char *const names[] = {
-    "address",
-    "name",
-    "channel",
-    "discover",
-    "timeout",
-    NULL
-  };
-
   if (!identifier) identifier = "";
-  return getDeviceParameters(names, identifier);
+  return getDeviceParameters(bthConnectionParameters, identifier);
 }
 
 int
@@ -344,6 +345,22 @@ bthParseChannelNumber (uint8_t *channel, const char *string) {
   logMessage(LOG_WARNING, "invalid RFCOMM channel number: %s", string);
   return 0;
 }
+
+STR_BEGIN_FORMATTER(bthFormatAddress, uint64_t address)
+  uint8_t bytes[6];
+  size_t count = ARRAY_COUNT(bytes);
+  unsigned int index = count;
+
+  while (index > 0) {
+    bytes[--index] = address & 0XFF;
+    address >>= 8;
+  }
+
+  while (index < count) {
+    if (index > 0) STR_PRINTF("%c", ':');
+    STR_PRINTF("%02X", bytes[index++]);
+  }
+STR_END_FORMATTER
 
 static const BluetoothNameEntry *
 bthGetNameEntry (const char *name) {
@@ -550,6 +567,54 @@ bthCloseConnection (BluetoothConnection *connection) {
   free(connection);
 }
 
+const char *
+bthMakeConnectionIdentifier (BluetoothConnection *connection, char *buffer, size_t size) {
+  size_t length;
+  STR_BEGIN(buffer, size);
+  STR_PRINTF("%s%c", BLUETOOTH_DEVICE_QUALIFIER, PARAMETER_QUALIFIER_CHARACTER);
+
+  {
+    uint64_t address = bthGetAddress(connection);
+    STR_PRINTF("%s%c", bthConnectionParameters[BTH_CONN_ADDRESS], PARAMETER_ASSIGNMENT_CHARACTER);
+    STR_FORMAT(bthFormatAddress, address);
+    STR_PRINTF("%c", DEVICE_PARAMETER_SEPARATOR);
+  }
+
+  {
+    uint8_t channel = bthGetChannel(connection);
+
+    if (channel) {
+      STR_PRINTF(
+        "%s%c%u%c",
+        bthConnectionParameters[BTH_CONN_CHANNEL],
+        PARAMETER_ASSIGNMENT_CHARACTER,
+        channel,
+        DEVICE_PARAMETER_SEPARATOR
+      );
+    }
+  }
+
+  length = STR_LENGTH;
+  STR_END;
+
+  {
+    char *last = &buffer[length] - 1;
+    if (*last == DEVICE_PARAMETER_SEPARATOR) *last = 0;
+  }
+
+  return buffer;
+}
+
+uint64_t
+bthGetAddress (BluetoothConnection *connection) {
+  return connection->address;
+}
+
+uint8_t
+bthGetChannel (BluetoothConnection *connection) {
+  return connection->channel;
+}
+
 int
 bthAwaitInput (BluetoothConnection *connection, int timeout) {
   return bthPollInput(connection->extension, timeout);
@@ -728,5 +793,5 @@ bthGetDriverCodes (const char *identifier, int timeout) {
 
 int
 isBluetoothDeviceIdentifier (const char **identifier) {
-  return hasQualifier(identifier, "bluetooth");
+  return hasQualifier(identifier, BLUETOOTH_DEVICE_QUALIFIER);
 }

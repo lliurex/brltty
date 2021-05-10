@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,13 +25,9 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <limits.h>
-#include <locale.h>
-
-#ifdef ENABLE_I18N_SUPPORT
-#include <libintl.h>
-#endif /* ENABLE_I18N_SUPPORT */
 
 #include "program.h"
+#include "messages.h"
 #include "pgmpath.h"
 #include "pid.h"
 #include "log.h"
@@ -39,23 +35,13 @@
 #include "parse.h"
 #include "system.h"
 
-const char *programPath;
-const char *programName;
-
 const char standardStreamArgument[] = "-";
 const char standardInputName[] = "<standard-input>";
 const char standardOutputName[] = "<standard-output>";
 const char standardErrorName[] = "<standard-error>";
 
-static void
-prepareLocale (void) {
-  setlocale(LC_ALL, "");
-
-#ifdef ENABLE_I18N_SUPPORT
-  bindtextdomain(PACKAGE_TARNAME, LOCALE_DIRECTORY);
-  textdomain(PACKAGE_TARNAME);
-#endif /* ENABLE_I18N_SUPPORT */
-}
+const char *programPath;
+const char *programName;
 
 static char *
 testProgram (const char *directory, const char *name) {
@@ -80,11 +66,9 @@ findProgram (const char *name) {
     char **array;
 
     if ((array = splitString(string, ':', &count))) {
-      int index;
-
-      for (index=0; index<count; ++index) {
+      for (unsigned int index=0; index<count; index+=1) {
         const char *directory = array[index];
-        if (!*directory) directory = ".";
+        if (!*directory) directory = CURRENT_DIRECTORY_NAME;
         if ((path = testProgram(directory, name))) break;
       }
 
@@ -104,7 +88,7 @@ beginProgram (int argumentCount, char **argumentVector) {
 #endif /* at exit */
 
   initializeSystemObject();
-  prepareLocale();
+  ensureAllMessagesProperties();
 
   if ((programPath = getProgramPath())) {
     registerProgramMemory("program-path", &programPath);
@@ -114,7 +98,7 @@ beginProgram (int argumentCount, char **argumentVector) {
 
   if (!isExplicitPath(programPath)) {
     char *path = findProgram(programPath);
-    if (!path) path = testProgram(".", programPath);
+    if (!path) path = testProgram(CURRENT_DIRECTORY_NAME, programPath);
     if (path) programPath = path;
   }
 
@@ -162,7 +146,7 @@ fixInstallPath (char **path) {
       registerProgramMemory("program-directory", &programDirectory);
     } else {
       logMessage(LOG_WARNING, gettext("cannot determine program directory"));
-      programDirectory = ".";
+      programDirectory = CURRENT_DIRECTORY_NAME;
     }
 
     logMessage(LOG_DEBUG, "program directory: %s", programDirectory);
@@ -202,6 +186,8 @@ createPidFile (const char *path, ProcessIdentifier pid) {
   if (!pid) pid = getProcessIdentifier();
 
   if (path && *path) {
+    if (!ensurePathDirectory(path)) return 0;
+
     typedef enum {PFS_ready, PFS_stale, PFS_clash, PFS_error} PidFileState;
     PidFileState state = PFS_error;
     int file = open(path,
@@ -372,7 +358,7 @@ endProgram (void) {
 
   while (programExitEntries) {
     ProgramExitEntry *pxe = programExitEntries;
-    char *name = pxe->name;
+    const char *name = pxe->name;
 
     programExitEntries = pxe->next;
     if (!name) name = "unknown";

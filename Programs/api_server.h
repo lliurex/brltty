@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,23 +19,23 @@
 #ifndef BRLTTY_INCLUDED_API_SERVER
 #define BRLTTY_INCLUDED_API_SERVER
 
-#include "brl.h"
+#include "brl_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-extern void api_identify (int full);
-extern const char *const api_parameters[];
+extern void api_logServerIdentity (int full);
+extern const char *const api_serverParameters[];
 
-extern int api_start (BrailleDisplay *brl, char **parameters);
-extern void api_stop (BrailleDisplay *brl);
+extern int api_startServer (BrailleDisplay *brl, char **parameters);
+extern void api_stopServer (BrailleDisplay *brl);
 
-extern void api_link (BrailleDisplay *brl);
-extern void api_unlink (BrailleDisplay *brl);
+extern void api_linkServer (BrailleDisplay *brl);
+extern void api_unlinkServer (BrailleDisplay *brl);
 
-extern void api_suspend (BrailleDisplay *brl);
-extern int api_resume (BrailleDisplay *brl);
+extern void api_suspendDriver (BrailleDisplay *brl);
+extern int api_resumeDriver (BrailleDisplay *brl);
 
 extern int api_claimDriver (BrailleDisplay *brl);
 extern void api_releaseDriver (BrailleDisplay *brl);
@@ -43,7 +43,9 @@ extern void api_releaseDriver (BrailleDisplay *brl);
 extern int api_handleCommand (int command);
 extern int api_handleKeyEvent (KeyGroup group, KeyNumber number, int press);
 
-extern int api_flush (BrailleDisplay *brl);
+extern int api_flushOutput (BrailleDisplay *brl);
+
+extern void api_updateParameter (brlapi_param_t parameter, brlapi_param_subparam_t subparam);
 
 #ifdef __cplusplus
 }

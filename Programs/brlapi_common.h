@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2002-2019 by
+ * Copyright (C) 2002-2021 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -408,6 +408,33 @@ static int BRLAPI(loadAuthKey)(const char *filename, size_t *authlength, void *a
   return 0;
 }
 
+static char *
+intToString (int64_t value) {
+  char buffer[0X20];
+  snprintf(buffer, sizeof(buffer), "%"PRId64, value);
+  return strdup(buffer);
+}
+
+#define LOCALHOST_ADDRESS_IPV4 "127.0.0.1"
+#define LOCALHOST_ADDRESS_IPV6 "::1"
+
+static int
+isPortNumber (const char *number, uint16_t *port) {
+  if (!number) return 0;
+  if (*number < '0') return 0;
+  if (*number > '9') return 0;
+
+  char *end;
+  long int value = strtol(number, &end, 10);
+  if (*end) return 0;
+
+  if (value < 0) return 0;
+  if (value > (UINT16_MAX - BRLAPI_SOCKETPORTNUM)) return 0;
+
+  if (port) *port = value + BRLAPI_SOCKETPORTNUM;
+  return 1;
+}
+
 /* Function: brlapi_expandHost
  * splits host into host & port */
 static int BRLAPI(expandHost)(const char *hostAndPort, char **host, char **port) {
@@ -418,19 +445,18 @@ static int BRLAPI(expandHost)(const char *hostAndPort, char **host, char **port)
     *port = strdup("0");
     return PF_LOCAL;
 #else /* PF_LOCAL */
-    *host = strdup("127.0.0.1");
+    *host = strdup(LOCALHOST_ADDRESS_IPV4);
     *port = strdup(BRLAPI_SOCKETPORT);
     return PF_UNSPEC;
 #endif /* PF_LOCAL */
   } else if ((c = strrchr(hostAndPort,':'))) {
     if (c != hostAndPort) {
-      int porti = atoi(c+1);
-      if (porti>=(1<<16)-BRLAPI_SOCKETPORTNUM) porti=0;
+      uint16_t porti = BRLAPI_SOCKETPORTNUM;
+      isPortNumber(c+1, &porti);
       *host = malloc(c-hostAndPort+1);
       memcpy(*host, hostAndPort, c-hostAndPort);
       (*host)[c-hostAndPort] = 0;
-      *port = malloc(6);
-      snprintf(*port,6,"%u",BRLAPI_SOCKETPORTNUM+porti);
+      *port = intToString(porti);
       return PF_UNSPEC;
     } else {
 #if defined(PF_LOCAL)
@@ -438,11 +464,10 @@ static int BRLAPI(expandHost)(const char *hostAndPort, char **host, char **port)
       *port = strdup(c+1);
       return PF_LOCAL;
 #else /* PF_LOCAL */
-      int porti = atoi(c+1);
-      if (porti>=(1<<16)-BRLAPI_SOCKETPORTNUM) porti=0;
-      *host = strdup("127.0.0.1");
-      *port = malloc(6);
-      snprintf(*port,6,"%u",BRLAPI_SOCKETPORTNUM+porti);
+      uint16_t porti = BRLAPI_SOCKETPORTNUM;
+      isPortNumber(c+1, &porti);
+      *host = strdup(LOCALHOST_ADDRESS_IPV4);
+      *port = intToString(porti);
       return PF_UNSPEC;
 #endif /* PF_LOCAL */
     }
@@ -475,6 +500,8 @@ static const brlapi_packetTypeEntry_t brlapi_packetTypeTable[] = {
   { BRLAPI_PACKET_PACKET, "Packet" },
   { BRLAPI_PACKET_SUSPENDDRIVER, "SuspendDriver" },
   { BRLAPI_PACKET_RESUMEDRIVER, "ResumeDriver" },
+  { BRLAPI_PACKET_PARAM_VALUE, "ParameterValue" },
+  { BRLAPI_PACKET_PARAM_REQUEST, "ParameterRequest" },
   { BRLAPI_PACKET_ACK, "Ack" },
   { BRLAPI_PACKET_ERROR, "Error" },
   { BRLAPI_PACKET_EXCEPTION, "Exception" },
@@ -521,6 +548,14 @@ BRLAPI(getArgumentWidth) (brlapi_keyCode_t keyCode) {
 
   brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
   return -1;
+}
+
+/* Function brlapi_uint32ToKeyCode */
+/* Translate keycodes stored in a packet to a keycode */
+static brlapi_keyCode_t
+BRLAPI(packetToKeyCode)(uint32_t t[2])
+{
+  return (((brlapi_keyCode_t)ntohl(t[0])) << 32) | ntohl(t[1]);
 }
 
 /* Function : brlapi_getKeyrangeMask */
@@ -570,3 +605,288 @@ BRLAPI(getKeyFile)(const char *auth)
     *delim = 0;
   return ret;
 }
+
+static const brlapi_param_properties_t brlapi_param_properties[BRLAPI_PARAM_COUNT] = {
+//Connection Parameters
+  [BRLAPI_PARAM_SERVER_VERSION] = {
+    .type = BRLAPI_PARAM_TYPE_UINT32,
+    .count = 1,
+  },
+
+  [BRLAPI_PARAM_CLIENT_PRIORITY] = {
+    .type = BRLAPI_PARAM_TYPE_UINT32,
+    .count = 1,
+  },
+
+//Device Parameters
+  [BRLAPI_PARAM_DRIVER_NAME] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+  },
+
+  [BRLAPI_PARAM_DRIVER_CODE] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+  },
+
+  [BRLAPI_PARAM_DRIVER_VERSION] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+  },
+
+  [BRLAPI_PARAM_DEVICE_MODEL] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+  },
+
+  [BRLAPI_PARAM_DEVICE_CELL_SIZE] = {
+    .type = BRLAPI_PARAM_TYPE_UINT8,
+    .count = 1,
+  },
+
+  [BRLAPI_PARAM_DISPLAY_SIZE] = {
+    .type = BRLAPI_PARAM_TYPE_UINT32,
+    .count = 2,
+    .isArray = 1,
+  },
+
+  [BRLAPI_PARAM_DEVICE_IDENTIFIER] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+  },
+
+  [BRLAPI_PARAM_DEVICE_SPEED] = {
+    .type = BRLAPI_PARAM_TYPE_UINT32,
+    .count = 1,
+  },
+
+  [BRLAPI_PARAM_DEVICE_ONLINE] = {
+    .type = BRLAPI_PARAM_TYPE_BOOLEAN,
+    .count = 1,
+  },
+
+//Input Parameters
+  [BRLAPI_PARAM_RETAIN_DOTS] = {
+    .type = BRLAPI_PARAM_TYPE_BOOLEAN,
+    .count = 1,
+  },
+
+//Braille Rendering Parameters
+  [BRLAPI_PARAM_COMPUTER_BRAILLE_CELL_SIZE] = {
+    .type = BRLAPI_PARAM_TYPE_UINT8,
+    .count = 1,
+  },
+
+  [BRLAPI_PARAM_LITERARY_BRAILLE] = {
+    .type = BRLAPI_PARAM_TYPE_BOOLEAN,
+    .count = 1,
+  },
+
+  [BRLAPI_PARAM_CURSOR_DOTS] = {
+    .type = BRLAPI_PARAM_TYPE_UINT8,
+    .count = 1,
+  },
+
+  [BRLAPI_PARAM_CURSOR_BLINK_PERIOD] = {
+    .type = BRLAPI_PARAM_TYPE_UINT32,
+    .count = 1,
+  },
+
+  [BRLAPI_PARAM_CURSOR_BLINK_PERCENTAGE] = {
+    .type = BRLAPI_PARAM_TYPE_UINT8,
+    .count = 1,
+  },
+
+  [BRLAPI_PARAM_RENDERED_CELLS] = {
+    .type = BRLAPI_PARAM_TYPE_UINT8,
+    .isArray = 1,
+  },
+
+//Navigation Parameters
+  [BRLAPI_PARAM_SKIP_IDENTICAL_LINES] = {
+    .type = BRLAPI_PARAM_TYPE_BOOLEAN,
+    .count = 1,
+  },
+
+  [BRLAPI_PARAM_AUDIBLE_ALERTS] = {
+    .type = BRLAPI_PARAM_TYPE_BOOLEAN,
+    .count = 1,
+  },
+
+//Clipboard Parameters
+  [BRLAPI_PARAM_CLIPBOARD_CONTENT] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+  },
+
+//TTY Mode Parameters
+  [BRLAPI_PARAM_BOUND_COMMAND_KEYCODES] = {
+    .type = BRLAPI_PARAM_TYPE_KEYCODE,
+    .isArray = 1,
+  },
+
+  [BRLAPI_PARAM_COMMAND_KEYCODE_NAME] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+    .hasSubparam = 1,
+  },
+
+  [BRLAPI_PARAM_COMMAND_KEYCODE_SUMMARY] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+    .hasSubparam = 1,
+  },
+
+  [BRLAPI_PARAM_DEFINED_DRIVER_KEYCODES] = {
+    .type = BRLAPI_PARAM_TYPE_KEYCODE,
+    .isArray = 1,
+  },
+
+  [BRLAPI_PARAM_DRIVER_KEYCODE_NAME] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+    .hasSubparam = 1,
+  },
+
+  [BRLAPI_PARAM_DRIVER_KEYCODE_SUMMARY] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+    .hasSubparam = 1,
+  },
+
+//Braille Translation Parameters
+  [BRLAPI_PARAM_COMPUTER_BRAILLE_ROWS_MASK] = {
+    .type = BRLAPI_PARAM_TYPE_UINT8,
+    .count = 544,
+    .isArray = 1,
+  },
+
+  [BRLAPI_PARAM_COMPUTER_BRAILLE_ROW_CELLS] = {
+    .type = BRLAPI_PARAM_TYPE_UINT8,
+    .count = 256,
+    .isArray = 1,
+    .hasSubparam = 1,
+  },
+
+  [BRLAPI_PARAM_COMPUTER_BRAILLE_TABLE] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+  },
+
+  [BRLAPI_PARAM_LITERARY_BRAILLE_TABLE] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+  },
+
+  [BRLAPI_PARAM_MESSAGE_LOCALE] = {
+    .type = BRLAPI_PARAM_TYPE_STRING,
+  },
+};
+
+const brlapi_param_properties_t *brlapi_getParameterProperties(brlapi_param_t parameter) {
+  if (parameter >= (sizeof(brlapi_param_properties) / sizeof(*brlapi_param_properties)))
+    return NULL;
+
+  return &brlapi_param_properties[parameter];
+}
+
+typedef void IntegerConverter (void *v);
+
+static void convertInteger_hton16 (void *v) {
+  uint16_t *u = v;
+  *u = htons(*u);
+}
+
+static void convertInteger_ntoh16 (void *v) {
+  uint16_t *u = v;
+  *u = ntohs(*u);
+}
+
+static void convertInteger_hton32 (void *v) {
+  uint32_t *u = v;
+  *u = htonl(*u);
+}
+
+static void convertInteger_ntoh32 (void *v) {
+  uint32_t *u = v;
+  *u = ntohl(*u);
+}
+
+#define UINT64_SHIFT ((sizeof(uint64_t) / 2) * 8)
+#define UINT64_LOW ((UINT64_C(1) << UINT64_SHIFT) - 1)
+
+static void convertInteger_hton64 (void *v) {
+#ifndef WORDS_BIGENDIAN
+  uint64_t *u = v;
+  uint32_t low = *u & UINT64_LOW;
+  uint32_t high = *u >> UINT64_SHIFT;
+  *u = ((uint64_t)htonl(low) << UINT64_SHIFT) | htonl(high);
+#endif /* WORDS_BIGENDIAN */
+}
+
+static void convertInteger_ntoh64 (void *v) {
+#ifndef WORDS_BIGENDIAN
+  uint64_t *u = v;
+  uint32_t low = *u & UINT64_LOW;
+  uint32_t high = *u >> UINT64_SHIFT;
+  *u = ((uint64_t)ntohl(low) << UINT64_SHIFT) | ntohl(high);
+#endif /* WORDS_BIGENDIAN */
+}
+
+static void convertIntegers (void *data, size_t length, size_t size, IntegerConverter *convert) {
+  length /= size;
+  length *= size;
+  void *end = data + length;
+
+  while (data < end) {
+    convert(data);
+    data += size;
+  }
+}
+
+/* Function: _brlapi_htonParameter */
+/* swap uint32 values of the parameter from host to network */
+void _brlapi_htonParameter(brlapi_param_t parameter, brlapi_paramValuePacket_t *value, size_t len)
+{
+  const brlapi_param_properties_t *properties = brlapi_getParameterProperties(parameter);
+
+  if (properties) {
+    void *p =  value->data;
+
+    switch (properties->type) {
+      case BRLAPI_PARAM_TYPE_UINT16:
+        convertIntegers(p, len, sizeof(uint16_t), convertInteger_hton16);
+        return;
+
+      case BRLAPI_PARAM_TYPE_UINT32:
+        convertIntegers(p, len, sizeof(uint32_t), convertInteger_hton32);
+        return;
+
+      case BRLAPI_PARAM_TYPE_UINT64:
+        convertIntegers(p, len, sizeof(uint64_t), convertInteger_hton64);
+        return;
+
+      default:
+        /* no conversion needed */
+        return;
+    }
+  }
+}
+
+/* Function: _brlapi_ntohParameter */
+/* swap uint32 values of the parameter from network to host */
+void _brlapi_ntohParameter(brlapi_param_t parameter, brlapi_paramValuePacket_t *value, size_t len)
+{
+  const brlapi_param_properties_t *properties = brlapi_getParameterProperties(parameter);
+
+  if (properties) {
+    void *p =  value->data;
+
+    switch (properties->type) {
+      case BRLAPI_PARAM_TYPE_UINT16:
+        convertIntegers(p, len, sizeof(uint16_t), convertInteger_ntoh16);
+        return;
+
+      case BRLAPI_PARAM_TYPE_UINT32:
+        convertIntegers(p, len, sizeof(uint32_t), convertInteger_ntoh32);
+        return;
+
+      case BRLAPI_PARAM_TYPE_UINT64:
+        convertIntegers(p, len, sizeof(uint64_t), convertInteger_ntoh64);
+        return;
+
+      default:
+        /* no conversion needed */
+        return;
+    }
+  }
+}
+

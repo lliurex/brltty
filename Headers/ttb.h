@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,8 +24,10 @@ extern "C" {
 #endif /* __cplusplus */
 
 typedef struct TextTableStruct TextTable;
-
 extern TextTable *textTable;
+
+extern void lockTextTable (void);
+extern void unlockTextTable (void);
 
 extern TextTable *compileTextTable (const char *name);
 extern void destroyTextTable (TextTable *table);
@@ -40,6 +42,9 @@ extern unsigned char convertCharacterToDots (TextTable *table, wchar_t character
 extern wchar_t convertDotsToCharacter (TextTable *table, unsigned char dots);
 
 extern void setTryBaseCharacter (TextTable *table, unsigned char yes);
+
+extern size_t getTextTableRowsMask (TextTable *table, uint8_t *mask, size_t size);
+extern int getTextTableRowCells (TextTable *table, uint32_t rowIndex, uint8_t *cells, uint8_t *defined);
 
 #ifdef __cplusplus
 }

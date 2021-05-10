@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,7 +24,9 @@
 #include "log.h"
 #include "cmd_queue.h"
 #include "cmd_enqueue.h"
+#include "cmd_utils.h"
 #include "brl_cmds.h"
+#include "cmd.h"
 #include "queue.h"
 #include "async_alarm.h"
 #include "prefs.h"
@@ -75,27 +77,31 @@ getCurrentCommandContext (void) {
   return context;
 }
 
-int
-handleCommand (int command) {
-  {
-    int real = command;
+static int
+toPreferredCommand (int command) {
+  int preferred = command;
 
+  int cmd = command & BRL_MSK_CMD;
+  int blk = command & BRL_MSK_BLK;
+
+  if (blk) {
+  } else {
     if (prefs.skipIdenticalLines) {
-      switch (command & BRL_MSK_CMD) {
+      switch (cmd) {
         case BRL_CMD_LNUP:
-          real = BRL_CMD_PRDIFLN;
+          preferred = BRL_CMD_PRDIFLN;
           break;
 
         case BRL_CMD_LNDN:
-          real = BRL_CMD_NXDIFLN;
+          preferred = BRL_CMD_NXDIFLN;
           break;
 
         case BRL_CMD_PRDIFLN:
-          real = BRL_CMD_LNUP;
+          preferred = BRL_CMD_LNUP;
           break;
 
         case BRL_CMD_NXDIFLN:
-          real = BRL_CMD_LNDN;
+          preferred = BRL_CMD_LNDN;
           break;
 
         default:
@@ -104,45 +110,48 @@ handleCommand (int command) {
     }
 
     if (prefs.skipBlankBrailleWindows) {
-      switch (command & BRL_MSK_CMD) {
+      switch (cmd) {
         case BRL_CMD_FWINLT:
-          real = BRL_CMD_FWINLTSKIP;
+          preferred = BRL_CMD_FWINLTSKIP;
           break;
 
         case BRL_CMD_FWINRT:
-          real = BRL_CMD_FWINRTSKIP;
+          preferred = BRL_CMD_FWINRTSKIP;
           break;
 
         case BRL_CMD_FWINLTSKIP:
-          real = BRL_CMD_FWINLT;
+          preferred = BRL_CMD_FWINLT;
           break;
 
         case BRL_CMD_FWINRTSKIP:
-          real = BRL_CMD_FWINRT;
+          preferred = BRL_CMD_FWINRT;
           break;
 
         default:
           break;
       }
     }
-
-    if (real == command) {
-      logCommand(command);
-    } else {
-      real |= (command & ~BRL_MSK_CMD);
-      logTransformedCommand(command, real);
-      command = real;
-    }
   }
 
-  {
-    const CommandEnvironment *env = commandEnvironmentStack;
-    const CommandHandlerLevel *chl = env->handlerStack;
+  if (preferred == command) {
+    logCommand(command);
+  } else {
+    preferred |= (command & ~BRL_MSK_CMD);
+    logTransformedCommand(command, preferred);
+    command = preferred;
+  }
 
-    while (chl) {
-      if (chl->handleCommand(command, chl->handlerData)) return 1;
-      chl = chl->previousLevel;
-    }
+  return command;
+}
+
+int
+handleCommand (int command) {
+  const CommandEnvironment *env = commandEnvironmentStack;
+  const CommandHandlerLevel *chl = env->handlerStack;
+
+  while (chl) {
+    if (chl->handleCommand(command, chl->handlerData)) return 1;
+    chl = chl->previousLevel;
   }
 
   logMessage(LOG_WARNING, "%s: %04X", gettext("unhandled command"), command);
@@ -202,14 +211,19 @@ ASYNC_ALARM_CALLBACK(handleCommandAlarm) {
     int command = dequeueCommand(queue);
 
     if (command != EOF) {
-      CommandEnvironment *env = commandEnvironmentStack;
-      void *state;
-      int handled;
+      command = toPreferredCommand(command);
+      const CommandEntry *cmd = findCommandEntry(command);
 
+      CommandEnvironment *env = commandEnvironmentStack;
       env->handlingCommand = 1;
-      state = env->preprocessCommand? env->preprocessCommand(): NULL;
-      handled = handleCommand(command);
-      if (env->postprocessCommand) env->postprocessCommand(state, command, handled);
+
+      void *pre = env->preprocessCommand? env->preprocessCommand(): NULL;
+      int handled = handleCommand(command);
+
+      if (env->postprocessCommand) {
+        env->postprocessCommand(pre, command, cmd, handled);
+      }
+
       env->handlingCommand = 0;
     }
   }

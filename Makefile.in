@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -30,6 +30,9 @@ install-systemd uninstall-systemd:
 
 install-udev uninstall-udev:
 	cd Autostart/Udev && $(MAKE) $(@:-udev=)
+
+install-polkit uninstall-polkit:
+	cd Authorization/Polkit && $(MAKE) $(@:-polkit=)
 
 install-dracut uninstall-dracut:
 	cd Initramfs/Dracut && $(MAKE) $(@:-dracut=)
@@ -97,12 +100,16 @@ bin-tar-xz: $(BIN_TAR_XZ)
 ITERATE = \
    -for directory in \
    $(PGM_DIR) \
+   $(DOC_DIR) \
    $(MSG_DIR) \
    Autostart/AppStream \
    Autostart/Systemd \
    Autostart/Udev \
+   Autostart/X11 \
+   Authorization/Polkit \
    Initramfs/Dracut \
    Android/Application \
+   Android/Core \
    ; do (cd $$directory && $(MAKE) $@); done
 
 clean::
@@ -111,12 +118,10 @@ clean::
 	-rm -f -r -- $(BIN_DIR)
 
 distclean:: clean
-	-cd $(DOC_DIR) && $(MAKE) $@
 	$(ITERATE)
 	-rm -f brltty.spec
-	-rm -f Autostart/Systemd/brltty@.service
 	-rm -fr autom4te*.cache
 	-rm -f config.log config.cache config.status
-	-rm -f config.mk config.h config.sh
+	-rm -f config.mk config.h brltty-config.sh brltty.pc
 	-rm -f forbuild.log forbuild.cache forbuild.status
 	-rm -f forbuild.mk forbuild.h

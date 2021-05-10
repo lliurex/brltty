@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2006-2019 by
+ * Copyright (C) 2006-2021 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -28,11 +28,20 @@ public class DisplaySize {
     displayHeight = height; 
   }
 
+  public DisplaySize (int[] dimensions) {
+    this(dimensions[0], dimensions[1]);
+  }
+
   public int getWidth () {
     return displayWidth;
   }
 
   public int getHeight () {
     return displayHeight;
+  }
+
+  @Override
+  public String toString () {
+    return String.format("%dx%d", getWidth(), getHeight());
   }
 }

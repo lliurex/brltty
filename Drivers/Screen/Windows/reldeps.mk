@@ -14,7 +14,6 @@ screen.$O: $(SRC_TOP)Headers/driver.h
 screen.$O: $(SRC_TOP)Headers/ktb_types.h
 screen.$O: $(SRC_TOP)Headers/scr_base.h
 screen.$O: $(SRC_TOP)Headers/scr_driver.h
-screen.$O: $(SRC_TOP)Headers/scr_gpm.h
 screen.$O: $(SRC_TOP)Headers/scr_main.h
 screen.$O: $(SRC_TOP)Headers/scr_real.h
 screen.$O: $(SRC_TOP)Headers/scr_types.h

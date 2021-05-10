@@ -9,12 +9,23 @@
   <string name="application_version_label">Različica</string>
   <string name="application_copyright_label">Avtorske Pravice</string>
 
-  <string name="input_service_name">BRLTTY Storitev Vnosa</string>
-  <string name="input_service_type">Tipkovnice na Brajevih Vrsticah</string>
-  <string name="input_service_not_enabled">storitev vnosa ni omogočena</string>
-  <string name="input_service_not_selected">storitev vnosa ni izbrana</string>
-  <string name="input_service_not_started">storitev vnosa ni zagnana</string>
-  <string name="input_service_not_connected">storitev vnosa ni priključena</string>
+  <string name="inputService_name">BRLTTY Storitev Vnosa</string>
+  <string name="inputService_type">Tipkovnice na Brajevih Vrsticah</string>
+  <string name="inputService_not_enabled">storitev vnosa ni omogočena</string>
+  <string name="inputService_not_selected">storitev vnosa ni izbrana</string>
+  <string name="inputService_not_started">storitev vnosa ni zagnana</string>
+  <string name="inputService_not_connected">storitev vnosa ni priključena</string>
+
+  <string name="updateApplication_problem_failed">program se ni posodobil</string>
+
+  <string name="packageInstaller_problem_failed">paket ni nameščen</string>
+  <string name="packageInstaller_problem_same">enaka različica</string>
+  <string name="packageInstaller_problem_downgrade">podgradnja se ne dovoli</string>
+
+  <string name="fileDownloader_title">BRLTTY Prenos Datoteke</string>
+  <string name="fileDownloader_problem_failed">datoteka se ni prenesla</string>
+  <string name="fileDownloader_state_connecting">povezovanje</string>
+  <string name="fileDownloader_state_downloading">prenašanje</string>
 
   <string name="checkbox_state_unchecked">Ne</string>
   <string name="checkbox_state_checked">Da</string>
@@ -38,7 +49,10 @@
   <string name="GLOBAL_BUTTON_BROWSE_COMMUNITY_MESSAGES">Prebrskaj Sporočila Skupnosti</string>
   <string name="GLOBAL_BUTTON_POST_COMMUNITY_MESSAGE">Objavi Sporočilo Skupnosti</string>
   <string name="GLOBAL_BUTTON_MANAGE_COMMUNITY_MEMBERSHIP">Upravljaj Članstvo v Skupnosti</string>
+
   <string name="GLOBAL_BUTTON_UPDATE_APPLICATION">Posodobi Program</string>
+
+  <string name="CHOOSER_TITLE_ACCESSIBILITY_ACTIONS">Dejanja Dostopnosti</string>
 
   <string name="SETTINGS_SCREEN_MAIN">BRLTTY Settings</string>
   <string name="SETTINGS_SCREEN_GENERAL">Splošne Nastavitve</string>
@@ -223,16 +237,16 @@
 
   <string name="CONTRACTION_TABLE_LABEL_af">Afrikanska (s krajšavami)</string>
   <string name="CONTRACTION_TABLE_LABEL_am">Amharijska (brez krajšav)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_basis">Nemška (brez krajšav)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift">Nemška (s krajšavami - 1998 standard)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_1998">Nemška (s krajšavami - 1998 standard)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_2015">Nemška (s krajšavami - 2015 standard)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_vollschrift">Nemška (osnovne krajšave)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g0">Nemška (brez krajšav)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g1">Nemška (osnovne krajšave)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g2">Nemška (s krajšavami - 1998 standard)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_1998">Nemška (s krajšavami - 1998 standard)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_2015">Nemška (s krajšavami - 2015 standard)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_ueb_g2">English (Združena Angleška Brajica, razvrstitev 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_us_g2">English (ZDA, razvrstitev 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_es">Španska(razvrstitev 2)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_abrege">Francoska(s krajšavami)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_integral">Francoska (brez krajšav)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g1">Francoska (brez krajšav)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g2">Francoska(s krajšavami)</string>
   <string name="CONTRACTION_TABLE_LABEL_ha">Hausa (s krajšavami)</string>
   <string name="CONTRACTION_TABLE_LABEL_id">Indonezijska(s krajšavami)</string>
   <string name="CONTRACTION_TABLE_LABEL_ipa">Mednarodna Fonetična Abeceda</string>
@@ -250,7 +264,6 @@
   <string name="CONTRACTION_TABLE_LABEL_sw">Swahili (s krajšavami)</string>
   <string name="CONTRACTION_TABLE_LABEL_th">Tajska(s krajšavami)</string>
   <string name="CONTRACTION_TABLE_LABEL_zh_tw">Kitajska (Tajvan, brez krajšav)</string>
-  <string name="CONTRACTION_TABLE_LABEL_zh_tw_ucb">Kitajska (Tajvan, Edinstvena Kitajska Brajica)</string>
   <string name="CONTRACTION_TABLE_LABEL_zu">Zulu (s krajšavami)</string>
 
   <string name="KEYBOARD_TABLE_LABEL_braille">bližnjice za brajeve tipkovnice</string>

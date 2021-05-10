@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -30,16 +30,15 @@ joinStrings (const char *const *strings, int count) {
   char *string;
   size_t length = 0;
   size_t lengths[count];
-  int index;
 
-  for (index=0; index<count; index+=1) {
+  for (unsigned int index=0; index<count; index+=1) {
     length += lengths[index] = strlen(strings[index]);
   }
 
   if ((string = malloc(length+1))) {
     char *target = string;
 
-    for (index=0; index<count; index+=1) {
+    for (unsigned int index=0; index<count; index+=1) {
       length = lengths[index];
       memcpy(target, strings[index], length);
       target += length;
@@ -53,6 +52,7 @@ joinStrings (const char *const *strings, int count) {
 
 int
 changeStringSetting (char **setting, const char *value) {
+  if (value == *setting) return 1;
   char *string;
 
   if (!value) {
@@ -151,6 +151,24 @@ done:
 }
 
 int
+changeListSetting (char ***list, char **setting, const char *value) {
+  char **newList = splitString(value, PARAMETER_SEPARATOR_CHARACTER, NULL);
+
+  if (newList) {
+    if (changeStringSetting(setting, value)) {
+      char **oldList = *list;
+      *list = newList;
+      if (oldList) deallocateStrings(oldList);
+      return 1;
+    }
+
+    deallocateStrings(newList);
+  }
+
+  return 0;
+}
+
+int
 rescaleInteger (int value, int from, int to) {
   return (to * (value + (from / (to * 2)))) / from;
 }
@@ -189,9 +207,8 @@ int
 isLogLevel (unsigned int *level, const char *string) {
   {
     size_t length = strlen(string);
-    unsigned int index;
 
-    for (index=0; index<logLevelCount; index+=1) {
+    for (unsigned int index=0; index<logLevelCount; index+=1) {
       if (strncasecmp(string, logLevelNames[index], length) == 0) {
         *level = index;
         return 1;
@@ -281,10 +298,10 @@ validateChoice (unsigned int *value, const char *string, const char *const *choi
   return validateChoiceEx(value, string, choices, sizeof(*choices));
 }
 
-FlagKeywordPair fkpOnOff     = {.true="on"  , .false="off"  };
-FlagKeywordPair fkpTrueFalse = {.true="true", .false="false"};
-FlagKeywordPair fkpYesNo     = {.true="yes" , .false="no"   };
-FlagKeywordPair fkp10        = {.true="1"   , .false="0"    };
+FlagKeywordPair fkpOnOff     = {.on="on"  , .off="off"  };
+FlagKeywordPair fkpTrueFalse = {.on="true", .off="false"};
+FlagKeywordPair fkpYesNo     = {.on="yes" , .off="no"   };
+FlagKeywordPair fkp10        = {.on="1"   , .off="0"    };
 
 const FlagKeywordPair *const flagKeywordPairs[] = {
   &fkpOnOff, &fkpTrueFalse, &fkpYesNo, &fkp10
@@ -308,8 +325,8 @@ validateFlagKeyword (unsigned int *value, const char *string) {
     const char **choice = choices;
 
     while (fkp < end) {
-      *choice++ = (*fkp)->false;
-      *choice++ = (*fkp)->true;
+      *choice++ = (*fkp)->off;
+      *choice++ = (*fkp)->on;
       fkp += 1;
     }
 
@@ -323,7 +340,7 @@ validateFlagKeyword (unsigned int *value, const char *string) {
 
 int
 validateFlag (unsigned int *value, const char *string, const FlagKeywordPair *fkp) {
-  const char *choices[] = {fkp->false, fkp->true, NULL};
+  const char *choices[] = {fkp->off, fkp->on, NULL};
   return validateChoice(value, string, choices);
 }
 
@@ -375,7 +392,7 @@ hasQualifier (const char **identifier, const char *qualifier) {
   if (!delimiter) return 0;
 
   size_t count = delimiter - *identifier;
-  if (memchr(*identifier, FILE_PATH_DELIMITER, count)) return 0;
+  if (memchr(*identifier, PATH_SEPARATOR_CHARACTER, count)) return 0;
 
   if (qualifier) {
     if (count != strlen(qualifier)) return 0;

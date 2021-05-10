@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -65,6 +65,11 @@ if __name__ == "__main__":
   import errno
 
   def writeProperty (name, value):
+    try:
+      value = value.decode("utf-8")
+    except AttributeError:
+      pass
+
     sys.stdout.write(name + ": " + value + "\n")
 
   writeProperty("BrlAPI Version", ".".join(map(str, brlapi.getLibraryVersion())))
@@ -82,36 +87,39 @@ if __name__ == "__main__":
       writeProperty("Display Height", str(brl.displaySize[1]))
 
       brl.enterTtyMode()
-      timeout = 10
-      brl.writeText("press keys (timeout is %d seconds)" % (timeout, ))
+      try:
+        timeout = 10
+        brl.writeText("press keys (timeout is %d seconds)" % (timeout, ))
 
-      while True:
-        code = brl.readKeyWithTimeout(timeout * 1000)
-        if not code: break
+        while True:
+          code = brl.readKeyWithTimeout(timeout * 1000)
+          if not code: break
 
-        properties = brlapi.describeKeyCode(code)
-        properties["code"] = "0X%X" % code
+          properties = brlapi.describeKeyCode(code)
+          properties["code"] = "0X%X" % code
 
-        for name in ("flags", ):
-          properties[name] = ",".join(properties[name])
+          for name in ("flags", ):
+            properties[name] = ",".join(properties[name])
 
-        for property in (
-          ("command" , "cmd"),
-          ("argument", "arg"),
-          ("flags"   , "flg"),
-        ):
-          (oldName, newName) = property
-          properties[newName] = properties[oldName]
-          del properties[oldName]
+          for property in (
+            ("command" , "cmd"),
+            ("argument", "arg"),
+            ("flags"   , "flg"),
+          ):
+            (oldName, newName) = property
+            properties[newName] = properties[oldName]
+            del properties[oldName]
 
-        names = ("code", "type", "cmd", "arg", "flg")
-        values = map(lambda name: ("%s=%s" % (name, str(properties[name]))), names)
+          names = ("code", "type", "cmd", "arg", "flg")
+          values = map(lambda name: ("%s=%s" % (name, str(properties[name]))), names)
 
-        text = " ".join(values)
-        brl.writeText(text)
-        writeProperty("Key", text);
+          text = " ".join(values)
+          brl.writeText(text)
+          writeProperty("Key", text);
 
-      brl.leaveTtyMode()
+      finally:
+        brl.leaveTtyMode()
+    finally:
       brl.closeConnection()
   except brlapi.ConnectionError as e:
     if e.brlerrno == brlapi.ERROR_CONNREFUSED:

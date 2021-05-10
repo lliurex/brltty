@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -53,7 +53,7 @@ canMoveUp (void) {
 
 static int
 canMoveDown (void) {
-  return ses->winy < (int)(scr.rows - brl.textRows);
+  return (ses->winy + brl.textRows) < scr.rows;
 }
 
 static int
@@ -206,27 +206,34 @@ addPromptPattern (const char *string) {
 }
 
 static int
-testPrompt (int column, int row, void *data) {
-  int length = scr.cols;
+testPromptOriginal (int column, int row, void *data) {
+  if (!column) return 0;
+
+  int length = column + 1;
   ScreenCharacter characters[length];
   readScreenRow(row, length, characters);
 
-  if (promptPatterns) {
-    wchar_t text[length];
+  const ScreenCharacter *prompt = data;
+  return isSameRow(characters, prompt, length, isSameText);
+}
 
-    {
-      wchar_t *to = text;
-      const ScreenCharacter *from = characters;
-      const ScreenCharacter *end = from + length;
-      while (from < end) *to++ = from++->text;
-    }
+static int
+testPromptPatterns (int column, int row, void *data) {
+  int length = scr.cols;
+  wchar_t text[length];
 
-    if (rgxMatchTextCharacters(promptPatterns, text, length, NULL, NULL)) return 1;
+  {
+    ScreenCharacter characters[length];
+    readScreenRow(row, length, characters);
+
+    const ScreenCharacter *from = characters;
+    const ScreenCharacter *end = from + length;
+
+    wchar_t *to = text;
+    while (from < end) *to++ = from++->text;
   }
 
-  if (!column) return 0;
-  const ScreenCharacter *prompt = data;
-  return isSameRow(characters, prompt, column+1, isSameText);
+  return !!rgxMatchTextCharacters(promptPatterns, text, length, NULL, NULL);
 }
 
 static void
@@ -332,6 +339,7 @@ handleNavigationCommands (int command, void *data) {
 
     case BRL_CMD_TOP_LEFT:
       command |= BRL_FLG_MOTION_TOLEFT;
+      /* fall through */
     case BRL_CMD_TOP:
       row = 0;
       ok = ses->winy > row;
@@ -339,6 +347,7 @@ handleNavigationCommands (int command, void *data) {
 
     case BRL_CMD_BOT_LEFT:
       command |= BRL_FLG_MOTION_TOLEFT;
+      /* fall through */
     case BRL_CMD_BOT:
       row = MAX(scr.rows, brl.textRows) - brl.textRows;
       ok = ses->winy < row;
@@ -445,19 +454,21 @@ handleNavigationCommands (int command, void *data) {
     }
 
     case BRL_CMD_NXPGRPH: {
+      int width = scr.cols;
+      ScreenCharacter characters[width];
+
       int found = 0;
-      ScreenCharacter characters[scr.cols];
       int findBlankLine = 1;
       int line = ses->winy;
 
-      while (line <= (int)(scr.rows - brl.textRows)) {
-        readScreenRow(line, scr.cols, characters);
+      while (line < scr.rows) {
+        readScreenRow(line, width, characters);
 
-        if (isAllSpaceCharacters(characters, scr.cols) == findBlankLine) {
+        if (isAllSpaceCharacters(characters, width) == findBlankLine) {
           if (!findBlankLine) {
-            found = 1;
             ses->winy = line;
             ses->winx = 0;
+            found = 1;
             break;
           }
 
@@ -484,16 +495,26 @@ handleNavigationCommands (int command, void *data) {
 
     findPrompt:
       {
-        ScreenCharacter characters[scr.cols];
-        readScreenRow(ses->winy, scr.cols, characters);
-        size_t length = 0;
+        size_t length = scr.cols;
+        ScreenCharacter characters[length];
+        readScreenRow(ses->winy, length, characters);
 
-        while (length < scr.cols) {
-          if (characters[length].text == WC_C(' ')) break;
-          length += 1;
+        if (promptPatterns) {
+          findRow(length, increment, testPromptPatterns, characters);
+        } else {
+          int column = 0;
+
+          while (column < length) {
+            if (characters[column].text == WC_C(' ')) break;
+            column += 1;
+          }
+
+          if (column < length) {
+            findRow(column, increment, testPromptOriginal, characters);
+          } else {
+            alert(ALERT_BOUNCE);
+          }
         }
-
-        findRow(length, increment, testPrompt, characters);
       }
 
       break;
@@ -679,21 +700,25 @@ handleNavigationCommands (int command, void *data) {
     }
 
     case BRL_CMD_RETURN:
-      if ((ses->winx != ses->motx) || (ses->winy != ses->moty)) {
-    case BRL_CMD_BACK:
-        ses->winx = ses->motx;
-        ses->winy = ses->moty;
-        break;
-      }
+      if ((ses->winx != ses->motx) || (ses->winy != ses->moty)) goto doBack;
+      /* fall through */
     case BRL_CMD_HOME:
       if (!trackScreenCursor(1)) alert(ALERT_COMMAND_REJECTED);
       break;
 
-    case BRL_CMD_CSRJMP_VERT:
-      alert(routeScreenCursor(-1, ses->winy, scr.number)?
-               ALERT_ROUTING_STARTED:
-               ALERT_COMMAND_REJECTED);
+    doBack:
+    case BRL_CMD_BACK:
+      ses->winx = ses->motx;
+      ses->winy = ses->moty;
       break;
+
+    case BRL_CMD_CSRJMP_VERT: {
+      if (!startScreenCursorRouting(-1, ses->winy)) {
+        alert(ALERT_COMMAND_REJECTED);
+      }
+
+      break;
+    }
 
     default: {
       int blk = command & BRL_MSK_BLK;
@@ -704,20 +729,28 @@ handleNavigationCommands (int command, void *data) {
         case BRL_CMD_BLK(ROUTE): {
           int column, row;
 
-          if (getCharacterCoordinates(arg, &column, &row, 0, 1)) {
-            if (routeScreenCursor(column, row, scr.number)) {
-              alert(ALERT_ROUTING_STARTED);
+          if (getCharacterCoordinates(arg, &row, &column, NULL, 1)) {
+            if (startScreenCursorRouting(column, row)) {
               break;
             }
           }
+
           alert(ALERT_COMMAND_REJECTED);
+          break;
+        }
+
+        case BRL_CMD_BLK(ROUTE_LINE): {
+          if (!startScreenCursorRouting(-1, arg)) {
+            alert(ALERT_COMMAND_REJECTED);
+          }
+
           break;
         }
 
         case BRL_CMD_BLK(SETLEFT): {
           int column, row;
 
-          if (getCharacterCoordinates(arg, &column, &row, 0, 0)) {
+          if (getCharacterCoordinates(arg, &row, &column, NULL, 0)) {
             ses->winx = column;
             ses->winy = row;
           } else {
@@ -764,7 +797,7 @@ handleNavigationCommands (int command, void *data) {
           increment = 1;
 
         findIndent:
-          if (getCharacterCoordinates(arg, &column, &row, 0, 0)) {
+          if (getCharacterCoordinates(arg, &row, &column, NULL, 0)) {
             ses->winy = row;
             findRow(column, increment, testIndent, NULL);
           } else {
@@ -776,7 +809,7 @@ handleNavigationCommands (int command, void *data) {
         case BRL_CMD_BLK(PRDIFCHAR): {
           int column, row;
 
-          if (getCharacterCoordinates(arg, &column, &row, 0, 0)) {
+          if (getCharacterCoordinates(arg, &row, &column, NULL, 0)) {
             ses->winy = row;
             upDifferentCharacter(isSameText, column);
           } else {
@@ -788,7 +821,7 @@ handleNavigationCommands (int command, void *data) {
         case BRL_CMD_BLK(NXDIFCHAR): {
           int column, row;
 
-          if (getCharacterCoordinates(arg, &column, &row, 0, 0)) {
+          if (getCharacterCoordinates(arg, &row, &column, NULL, 0)) {
             ses->winy = row;
             downDifferentCharacter(isSameText, column);
           } else {

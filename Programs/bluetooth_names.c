@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -20,8 +20,10 @@
 
 #include "bluetooth_internal.h"
 
-#define BLUETOOTH_NAME_ENTRY(name,...) \
-  {.namePrefix=name, .driverCodes=(const char *const []){__VA_ARGS__, NULL}}
+#define BLUETOOTH_NAME_ENTRY(name,...) { \
+  .namePrefix = name, \
+  .driverCodes = NULL_TERMINATED_STRING_ARRAY(__VA_ARGS__) \
+}
 
 const BluetoothNameEntry bluetoothNameTable[] = {
   // HandyTech: Actilino
@@ -39,8 +41,17 @@ const BluetoothNameEntry bluetoothNameTable[] = {
   // Alva: Basic Controller (6nn)
   BLUETOOTH_NAME_ENTRY("ALVA BC", "al"),
 
+  // HumanWare: APH Chameleon
+  BLUETOOTH_NAME_ENTRY("APH Chameleon", "hw"),
+
+  // HumanWare: APH Mantis
+  BLUETOOTH_NAME_ENTRY("APH Mantis", "hw"),
+
   // HandyTech: Basic Braille
   BLUETOOTH_NAME_ENTRY("Basic Braille BB", "ht"),
+
+  // HandyTech: Basic Braille Plus
+  BLUETOOTH_NAME_ENTRY("Basic Braille Plus BP", "ht"),
 
   // Baum: Conny
   BLUETOOTH_NAME_ENTRY("BAUM Conny", "bm"),
@@ -87,6 +98,9 @@ const BluetoothNameEntry bluetoothNameTable[] = {
   // HumanWare: Brailliant BI
   BLUETOOTH_NAME_ENTRY("Brailliant BI", "hw"),
 
+  // HumanWare: Brailliant BI 14
+  BLUETOOTH_NAME_ENTRY("Brailliant 14", "hw"),
+
   // HumanWare: Brailliant B 80
   BLUETOOTH_NAME_ENTRY("Brailliant 80", "hw"),
 
@@ -99,6 +113,9 @@ const BluetoothNameEntry bluetoothNameTable[] = {
   // Baum: Conny
   BLUETOOTH_NAME_ENTRY("Conny", "bm"),
 
+  // HandyTech: Easy Braille
+  BLUETOOTH_NAME_ENTRY("Easy Braille EBR", "ht"),
+
   // Alva: EL12
   // Harpo: Braille Pen
   BLUETOOTH_NAME_ENTRY("EL12-", "al", "vo"),
@@ -109,11 +126,17 @@ const BluetoothNameEntry bluetoothNameTable[] = {
   // Freedom Scientific: Focus
   BLUETOOTH_NAME_ENTRY("Focus", "fs"),
 
+  // HumanWare: BrailleOne
+  BLUETOOTH_NAME_ENTRY("Humanware BrailleOne", "hw"),
+
   // HumanWare: Brailliant
   BLUETOOTH_NAME_ENTRY("HWG Brailliant", "bm"),
 
   // MDV
   BLUETOOTH_NAME_ENTRY("MB248", "md"),
+
+  // HumanWare: NLS eReader
+  BLUETOOTH_NAME_ENTRY("NLS eReader", "hw"),
 
   // American Printing House: Orbit Reader
   BLUETOOTH_NAME_ENTRY("Orbit Reader", "bm"),

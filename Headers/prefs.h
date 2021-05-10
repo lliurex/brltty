@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,10 +31,11 @@ typedef enum {
 } CursorStyles;
 
 typedef enum {
-  tsComputerBraille8,
-  tsContractedBraille,
-  tsComputerBraille6
-} TextStyles;
+  bvComputer8,
+  bvContracted6,
+  bvComputer6,
+  bvContracted8,
+} BrailleVariant;
 
 typedef enum {
   sbwAll,
@@ -116,9 +117,6 @@ typedef enum {
   ctd2s
 } CursorTrackingDelay;
 
-/*
- * Structure definition for preferences (settings which are saveable).
- */
 typedef struct {
   unsigned char magic[2];
   unsigned char showScreenCursor;
@@ -145,7 +143,7 @@ typedef struct {
   unsigned char highlightBrailleWindowLocation;
   unsigned char attributesInvisibleTime;
   unsigned char trackScreenPointer;
-  unsigned char textStyle;
+  unsigned char brailleVariant;
   unsigned char autorepeatPanning;
   unsigned char slidingBrailleWindow;
   unsigned char eagerSlidingBrailleWindow;
@@ -177,12 +175,12 @@ typedef struct {
   /*****************************************************************************/
 
   unsigned char brailleKeyboardEnabled;
-  unsigned char brailleInputMode;
+  unsigned char brailleTypingMode;
   unsigned char brailleQuickSpace;
-  unsigned char brailleDisplayOrientation;
 
   unsigned char wordWrap;
   unsigned char capitalizationMode;
+  unsigned char startSelectionWithRoutingKey;
 
   unsigned char speechUppercaseIndicator;
   unsigned char speechWhitespaceIndicator;
@@ -212,9 +210,10 @@ typedef struct {
   unsigned char keyboardLedAlerts;
 
   unsigned char autoreleaseTime;
-  unsigned char firstRelease;
+  unsigned char onFirstRelease;
   unsigned char touchNavigation;
 
+  unsigned char scrollAwareCursorNavigation;
   unsigned char cursorTrackingDelay;
   unsigned char trackScreenScroll;
 
@@ -222,10 +221,16 @@ typedef struct {
   unsigned char showSubmenuSizes;
   unsigned char showAdvancedSubmenus;
   unsigned char showAllItems;
-} PACKED Preferences;
+} PACKED PreferenceSettings;
 
-extern Preferences prefs;		/* current preferences settings */
-#define PREFERENCES_TIME(time) ((time) * 10)
+extern PreferenceSettings prefs;		/* current preferences settings */
+
+#define PREFS_TIME_MULTIPLIER 10
+#define PREFS2MSECS(time) ((time) * PREFS_TIME_MULTIPLIER)
+#define MSECS2PREFS(msecs) (((msecs) + (PREFS_TIME_MULTIPLIER - 1)) / PREFS_TIME_MULTIPLIER)
+
+typedef struct PreferenceDefinitionStruct PreferenceDefinition;
+extern const PreferenceDefinition *findPreference (const char *name);
 
 extern void resetPreferences (void);
 extern int setPreference (char *string);
@@ -234,9 +239,6 @@ extern void setStatusFields (const unsigned char *fields);
 extern char *makePreferencesFilePath (const char *name);
 extern int loadPreferencesFile (const char *path);
 extern int savePreferencesFile (const char *path);
-
-typedef struct PreferenceEntryStruct PreferenceEntry;
-extern const PreferenceEntry *findPreferenceEntry (const char *name);
 
 #ifdef __cplusplus
 }

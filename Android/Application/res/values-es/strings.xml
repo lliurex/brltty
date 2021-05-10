@@ -9,12 +9,23 @@
   <string name="application_version_label">Versión</string>
   <string name="application_copyright_label">Derechos de autor</string>
 
-  <string name="input_service_name">BRLTTY Servicio de Entrada</string>
-  <string name="input_service_type">Teclados En Dispositivos de Braille</string>
-  <string name="input_service_not_enabled">servicio de entrada no habilitado</string>
-  <string name="input_service_not_selected">servicio de entrada no seleccionado</string>
-  <string name="input_service_not_started">servicio de entrada no iniciado</string>
-  <string name="input_service_not_connected">servicio de entrada no conectado</string>
+  <string name="inputService_name">BRLTTY Servicio de Entrada</string>
+  <string name="inputService_type">Teclados En Dispositivos de Braille</string>
+  <string name="inputService_not_enabled">servicio de entrada no habilitado</string>
+  <string name="inputService_not_selected">servicio de entrada no seleccionado</string>
+  <string name="inputService_not_started">servicio de entrada no iniciado</string>
+  <string name="inputService_not_connected">servicio de entrada no conectado</string>
+
+  <string name="updateApplication_problem_failed">aplicación no actualizada</string>
+
+  <string name="packageInstaller_problem_failed">paquete no instalado</string>
+  <string name="packageInstaller_problem_same">misma versión</string>
+  <string name="packageInstaller_problem_downgrade">degrado no permitido</string>
+
+  <string name="fileDownloader_title">BRLTTY Bajador de Archivos</string>
+  <string name="fileDownloader_problem_failed">archivo no bajado</string>
+  <string name="fileDownloader_state_connecting">conectando</string>
+  <string name="fileDownloader_state_downloading">bajando</string>
 
   <string name="checkbox_state_unchecked">No</string>
   <string name="checkbox_state_checked">Sí</string>
@@ -38,7 +49,10 @@
   <string name="GLOBAL_BUTTON_BROWSE_COMMUNITY_MESSAGES">Navega por mensajes de comunidad</string>
   <string name="GLOBAL_BUTTON_POST_COMMUNITY_MESSAGE">Publica mensaje de comunidad</string>
   <string name="GLOBAL_BUTTON_MANAGE_COMMUNITY_MEMBERSHIP">Administra membresía de comunidad</string>
+
   <string name="GLOBAL_BUTTON_UPDATE_APPLICATION">Actualiza aplicación</string>
+
+  <string name="CHOOSER_TITLE_ACCESSIBILITY_ACTIONS">Acciones de la accesibilidad</string>
 
   <string name="SETTINGS_SCREEN_MAIN">Ajustos de BRLTTY</string>
   <string name="SETTINGS_SCREEN_GENERAL">Configuración General</string>
@@ -223,16 +237,16 @@
 
   <string name="CONTRACTION_TABLE_LABEL_af">Africaans (contraccionado)</string>
   <string name="CONTRACTION_TABLE_LABEL_am">Amharico (sin contracciones)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_basis">Alemán (sin contracciones)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift">Alemán (contraccionado - estándar de 1998)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_1998">Alemán (contraccionado - estándar de 1998)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_kurzschrift_2015">Alemán (contraccionado - estándar de 2015)</string>
-  <string name="CONTRACTION_TABLE_LABEL_de_vollschrift">Alemán (contracciones básicas)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g0">Alemán (sin contracciones)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g1">Alemán (contracciones básicas)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_g2">Alemán (contraccionado - estándar de 1998)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_1998">Alemán (contraccionado - estándar de 1998)</string>
+  <string name="CONTRACTION_TABLE_LABEL_de_2015">Alemán (contraccionado - estándar de 2015)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_ueb_g2">Inglés (Braille Inglés unificado, grado 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_en_us_g2">Inglés (Estados Unidos, grado 2)</string>
   <string name="CONTRACTION_TABLE_LABEL_es">Español (grado 2)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_abrege">Francés (contraccionado)</string>
-  <string name="CONTRACTION_TABLE_LABEL_fr_integral">Francés (sin contracciones)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g1">Francés (sin contracciones)</string>
+  <string name="CONTRACTION_TABLE_LABEL_fr_g2">Francés (contraccionado)</string>
   <string name="CONTRACTION_TABLE_LABEL_ha">Hausa (contraccionado)</string>
   <string name="CONTRACTION_TABLE_LABEL_id">Indonesio (contraccionado)</string>
   <string name="CONTRACTION_TABLE_LABEL_ipa">Alfabeto Fonético Internacional</string>
@@ -250,7 +264,6 @@
   <string name="CONTRACTION_TABLE_LABEL_sw">Swahilí (contraccionado)</string>
   <string name="CONTRACTION_TABLE_LABEL_th">Tilandés (contraccionado)</string>
   <string name="CONTRACTION_TABLE_LABEL_zh_tw">Chino (Taiwan, sin contracciones)</string>
-  <string name="CONTRACTION_TABLE_LABEL_zh_tw_ucb">Chino (Taiwan, Braille Chino Único)</string>
   <string name="CONTRACTION_TABLE_LABEL_zu">Zulú (contraccionado)</string>
 
   <string name="KEYBOARD_TABLE_LABEL_braille">vinculantes para teclados braille</string>

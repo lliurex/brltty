@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import android.content.SharedPreferences;
 
 public enum DataType {
+  LOCALE,
   TABLES,
   DRIVERS,
   STATE,
@@ -29,9 +30,9 @@ public enum DataType {
   public static Context getContext () {
     synchronized (DATA_CONTEXT_LOCK) {
       if (dataContext == null) {
-        Context context = ApplicationContext.get();
+        Context context = BrailleApplication.get();
 
-        if (ApplicationUtilities.haveNougat) {
+        if (APITests.haveNougat) {
           dataContext = context.createDeviceProtectedStorageContext();
         } else {
           dataContext = context;

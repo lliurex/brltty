@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -20,17 +20,16 @@ package org.a11y.brltty.android;
 import org.a11y.brltty.core.*;
 
 import android.util.Log;
-import android.content.Intent;
 
 import android.accessibilityservice.AccessibilityService;
 import android.view.accessibility.AccessibilityEvent;
 
+import android.content.Intent;
+
 public class BrailleService extends AccessibilityService {
-  private static final String LOG_TAG = BrailleService.class.getName();
+  private final static String LOG_TAG = BrailleService.class.getName();
 
   private static volatile BrailleService brailleService = null;
-  private Thread coreThread = null;
-  private AccessibilityButton accessibilityButton = null;
 
   public static BrailleService getBrailleService () {
     return brailleService;
@@ -39,7 +38,6 @@ public class BrailleService extends AccessibilityService {
   @Override
   public void onCreate () {
     super.onCreate();
-    ApplicationContext.set(this);
     brailleService = this;
     Log.d(LOG_TAG, "braille service started");
   }
@@ -54,6 +52,9 @@ public class BrailleService extends AccessibilityService {
     }
   }
 
+  private Thread coreThread = null;
+  private AccessibilityButton accessibilityButton = null;
+
   @Override
   protected void onServiceConnected () {
     Log.d(LOG_TAG, "braille service connected");
@@ -61,7 +62,7 @@ public class BrailleService extends AccessibilityService {
     coreThread = new CoreThread(this);
     coreThread.start();
 
-    if (ApplicationUtilities.haveOreo) {
+    if (APITests.haveOreo) {
       accessibilityButton = new AccessibilityButton();
       getAccessibilityButtonController().registerAccessibilityButtonCallback(accessibilityButton);
     }

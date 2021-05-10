@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -89,7 +89,7 @@ gpmCloseConnection (int alreadyClosed) {
 #endif /* HAVE_LIBGPM */
 
 static int
-highlightRegion_GpmScreen (int left, int right, int top, int bottom) {
+gpmScreenHandler_highlightRegion (int left, int right, int top, int bottom) {
 #ifdef HAVE_LIBGPM
   FILE *console = getConsole();
 
@@ -110,7 +110,7 @@ highlightRegion_GpmScreen (int left, int right, int top, int bottom) {
 }
 
 static int
-getPointer_GpmScreen (int *column, int *row) {
+gpmScreenHandler_getPointer (int *column, int *row) {
   int ok = 0;
 
 #ifdef HAVE_LIBGPM
@@ -168,7 +168,7 @@ getPointer_GpmScreen (int *column, int *row) {
 }
 
 void
-includeGpmScreen (MainScreen *main) {
-  main->base.highlightRegion = highlightRegion_GpmScreen;
-  main->base.getPointer = getPointer_GpmScreen;
+gpmIncludeScreenHandlers (MainScreen *main) {
+  main->base.highlightRegion = gpmScreenHandler_highlightRegion;
+  main->base.getPointer = gpmScreenHandler_getPointer;
 }

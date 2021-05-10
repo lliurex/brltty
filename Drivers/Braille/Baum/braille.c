@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -1161,7 +1161,7 @@ typedef struct {
 static BraillePacketVerifierResult
 verifyBaumPacket (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   BaumPacketVerificationData *pvd = data;
@@ -2044,7 +2044,7 @@ typedef struct {
 static BraillePacketVerifierResult
 verifyHidPacket (
   BrailleDisplay *brl,
-  const unsigned char *bytes, size_t size,
+  unsigned char *bytes, size_t size,
   size_t *length, void *data
 ) {
   HidPacketVerificationData *pvd = data;

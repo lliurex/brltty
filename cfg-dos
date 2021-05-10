@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2019 by The BRLTTY Developers.
+# Copyright (C) 1995-2021 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -17,7 +17,7 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-. "`dirname "${0}"`/prologue.sh"
+. "`dirname "${0}"`/brltty-prologue.sh"
 set -e
 
 toolsSystem="i586-pc-msdosdjgpp"
@@ -47,6 +47,7 @@ export LDFLAGS=""
    --enable-relocatable-install \
    \
    --disable-api \
+   --disable-expat \
    --disable-gpm \
    --disable-icu \
    --disable-liblouis \
@@ -54,7 +55,7 @@ export LDFLAGS=""
    --disable-x \
    \
    --without-libbraille \
-   --with-braille-driver=-vr,all \
+   --with-braille-driver=-vr,-cn,all \
    \
    --without-espeak \
    --without-espeak-ng \
@@ -63,7 +64,7 @@ export LDFLAGS=""
    --without-speechd \
    --without-swift \
    --without-theta \
-   --with-speech-driver=all \
+   --with-speech-driver=-xs,all \
    \
    --with-screen-driver=pb,-all \
    \
@@ -77,6 +78,7 @@ export LDFLAGS=""
    --without-pgmpath-package \
    --without-service-package \
    --without-params-package \
+   --without-rgx-package \
    --without-hostcmd-package \
    --without-mntpt-package \
    --without-mntfs-package \

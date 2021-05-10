@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -18,11 +18,11 @@
 
 #include "usb_devices.h"
 
-#define USB_DEVICE_ENTRY(vendor,product,...) \
-  { .vendorIdentifier = vendor, \
-    .productIdentifier = product, \
-    .driverCodes = (const char *const []){__VA_ARGS__, NULL} \
-  }
+#define USB_DEVICE_ENTRY(vendor,product,...) { \
+  .vendorIdentifier = vendor, \
+  .productIdentifier = product, \
+  .driverCodes = NULL_TERMINATED_STRING_ARRAY(__VA_ARGS__) \
+}
 
 const UsbDeviceEntry usbDeviceTable[] = {
 // BEGIN_USB_DEVICES
@@ -124,6 +124,14 @@ USB_DEVICE_ENTRY(0X0798, 0X0640, "al"),
 // Device: 0798:0680
 // Alva [BC680]
 USB_DEVICE_ENTRY(0X0798, 0X0680, "al"),
+
+// Device: 0904:1016
+// FrankAudiodata [B2K84 (before firmware installation)]
+USB_DEVICE_ENTRY(0X0904, 0X1016, "fa"),
+
+// Device: 0904:1017
+// FrankAudiodata [B2K84 (after firmware installation)]
+USB_DEVICE_ENTRY(0X0904, 0X1017, "fa"),
 
 // Device: 0904:2000
 // Baum [VarioPro 40 (40 cells)]
@@ -301,6 +309,10 @@ USB_DEVICE_ENTRY(0X1148, 0X0301, "mm"),
 // Inceptor [all models]
 USB_DEVICE_ENTRY(0X1209, 0XABC0, "ic"),
 
+// Device: 16C0:05E1
+// Canute [all models]
+USB_DEVICE_ENTRY(0X16C0, 0X05E1, "cn"),
+
 // Device: 1C71:C004
 // BrailleNote [HumanWare APEX]
 USB_DEVICE_ENTRY(0X1C71, 0XC004, "bn"),
@@ -320,6 +332,38 @@ USB_DEVICE_ENTRY(0X1C71, 0XC00A, "hw"),
 // Device: 1C71:C021
 // HumanWare [Brailliant BI 14 (serial protocol)]
 USB_DEVICE_ENTRY(0X1C71, 0XC021, "hw"),
+
+// Device: 1C71:C101
+// HumanWare [APH Chameleon 20 (HID protocol)]
+USB_DEVICE_ENTRY(0X1C71, 0XC101, "hw"),
+
+// Device: 1C71:C104
+// HumanWare [APH Chameleon 20 (serial protocol)]
+USB_DEVICE_ENTRY(0X1C71, 0XC104, "hw"),
+
+// Device: 1C71:C111
+// HumanWare [APH Mantis Q40 (HID protocol)]
+USB_DEVICE_ENTRY(0X1C71, 0XC111, "hw"),
+
+// Device: 1C71:C114
+// HumanWare [APH Mantis Q40 (serial protocol)]
+USB_DEVICE_ENTRY(0X1C71, 0XC114, "hw"),
+
+// Device: 1C71:C121
+// HumanWare [Humanware BrailleOne (HID protocol)]
+USB_DEVICE_ENTRY(0X1C71, 0XC121, "hw"),
+
+// Device: 1C71:C124
+// HumanWare [Humanware BrailleOne (serial protocol)]
+USB_DEVICE_ENTRY(0X1C71, 0XC124, "hw"),
+
+// Device: 1C71:CE01
+// HumanWare [NLS eReader (HID protocol)]
+USB_DEVICE_ENTRY(0X1C71, 0XCE01, "hw"),
+
+// Device: 1C71:CE04
+// HumanWare [NLS eReader (serial protocol)]
+USB_DEVICE_ENTRY(0X1C71, 0XCE04, "hw"),
 
 // Device: 1FE4:0003
 // HandyTech [USB-HID adapter]

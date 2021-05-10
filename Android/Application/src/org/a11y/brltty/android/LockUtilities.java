@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,10 +21,10 @@ package org.a11y.brltty.android;
 import android.os.PowerManager;
 
 public final class LockUtilities {
-  private static final PowerManager.WakeLock wakeLock =
+  private final static PowerManager.WakeLock wakeLock =
     ApplicationUtilities.getPowerManager().newWakeLock(
       PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE,
-      ApplicationContext.get().getString(R.string.app_name)
+      BrailleApplication.get().getString(R.string.app_name)
     );
 
   public static boolean isLocked () {

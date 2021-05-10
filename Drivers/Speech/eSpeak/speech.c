@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -119,7 +119,7 @@ spk_setPunctuation(volatile SpeechSynthesizer *spk, SpeechPunctuation setting)
 
 static int spk_construct(volatile SpeechSynthesizer *spk, char **parameters)
 {
-	char *data_path, *voicename, *punctlist;
+	const char *data_path, *voicename, *punctlist;
 	int result;
 
 	spk->setVolume = spk_setVolume;

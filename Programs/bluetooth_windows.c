@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,6 +22,7 @@
 #pragma pack(push,2)
 #include <winsock2.h>
 #include <ws2bth.h>
+#include <nspapi.h>
 #pragma pack(pop)
 
 #include "prologue.h"

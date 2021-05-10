@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2019 by The BRLTTY Developers.
+ * Copyright (C) 1995-2021 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -36,15 +36,18 @@ void
 constructBrailleDisplay (BrailleDisplay *brl) {
   brl->data = NULL;
 
-  brl->setFirmness = NULL;
-  brl->setSensitivity = NULL;
-  brl->setAutorepeat = NULL;
+  brl->refreshBrailleDisplay = NULL;
+  brl->refreshBrailleRow = NULL;
+
+  brl->setBrailleFirmness = NULL;
+  brl->setTouchSensitivity = NULL;
+  brl->setAutorepeatProperties = NULL;
 
   brl->textColumns = 0;
   brl->textRows = 1;
   brl->statusColumns = 0;
   brl->statusRows = 0;
-  brl->hideCursor = 0;
+  brl->cellSize = 8;
 
   brl->keyBindings = "all";
   brl->keyNames = NULL;
@@ -54,6 +57,7 @@ constructBrailleDisplay (BrailleDisplay *brl) {
   brl->writeDelay = 0;
 
   brl->buffer = NULL;
+  brl->quality = 0;
   brl->isCoreBuffer = 0;
 
   brl->bufferResized = NULL;
@@ -65,9 +69,7 @@ constructBrailleDisplay (BrailleDisplay *brl) {
   brl->hasFailed = 0;
   brl->isOffline = 0;
   brl->isSuspended = 0;
-
-  brl->rotateInput = NULL;
-  brl->api = NULL;
+  brl->hideCursor = 0;
 
   brl->acknowledgements.messages = NULL;
   brl->acknowledgements.alarm = NULL;
@@ -199,9 +201,11 @@ clearStatusCells (BrailleDisplay *brl) {
 
 static void
 brailleBufferResized (BrailleDisplay *brl, int infoLevel) {
-  logMessage(infoLevel, "Braille Display Dimensions: %d %s, %d %s",
-             brl->textRows, (brl->textRows == 1)? "row": "rows",
-             brl->textColumns, (brl->textColumns == 1)? "column": "columns");
+  logMessage(infoLevel,
+    "Braille Display Dimensions: %d %s, %d %s",
+    brl->textColumns, ((brl->textColumns == 1)? "column": "columns"),
+    brl->textRows, ((brl->textRows == 1)? "row": "rows")
+  );
 
   memset(brl->buffer, 0, brl->textColumns*brl->textRows);
   if (brl->bufferResized) brl->bufferResized(brl->textRows, brl->textColumns);
@@ -247,38 +251,62 @@ readBrailleCommand (BrailleDisplay *brl, KeyTableCommandContext context) {
 }
 
 int
+canRefreshBrailleDisplay (BrailleDisplay *brl) {
+  return brl->refreshBrailleDisplay != NULL;
+}
+
+int
+refreshBrailleDisplay (BrailleDisplay *brl) {
+  if (!canRefreshBrailleDisplay(brl)) return 0;
+  logMessage(LOG_DEBUG, "refreshing braille display");
+  return brl->refreshBrailleDisplay(brl);
+}
+
+int
+canRefreshBrailleRow (BrailleDisplay *brl) {
+  return brl->refreshBrailleRow != NULL;
+}
+
+int
+refreshBrailleRow (BrailleDisplay *brl, int row) {
+  if (!canRefreshBrailleRow(brl)) return 0;
+  logMessage(LOG_DEBUG, "refreshing braille row: %d", row);
+  return brl->refreshBrailleRow(brl, row);
+}
+
+int
 canSetBrailleFirmness (BrailleDisplay *brl) {
-  return brl->setFirmness != NULL;
+  return brl->setBrailleFirmness != NULL;
 }
 
 int
 setBrailleFirmness (BrailleDisplay *brl, BrailleFirmness setting) {
   if (!canSetBrailleFirmness(brl)) return 0;
   logMessage(LOG_DEBUG, "setting braille firmness: %d", setting);
-  return brl->setFirmness(brl, setting);
+  return brl->setBrailleFirmness(brl, setting);
 }
 
 int
 canSetTouchSensitivity (BrailleDisplay *brl) {
-  return brl->setSensitivity != NULL;
+  return brl->setTouchSensitivity != NULL;
 }
 
 int
 setTouchSensitivity (BrailleDisplay *brl, TouchSensitivity setting) {
   if (!canSetTouchSensitivity(brl)) return 0;
   logMessage(LOG_DEBUG, "setting touch sensitivity: %d", setting);
-  return brl->setSensitivity(brl, setting);
+  return brl->setTouchSensitivity(brl, setting);
 }
 
 int
-canSetBrailleAutorepeat (BrailleDisplay *brl) {
-  return brl->setAutorepeat != NULL;
+canSetAutorepeatProperties (BrailleDisplay *brl) {
+  return brl->setAutorepeatProperties != NULL;
 }
 
 int
-setBrailleAutorepeat (BrailleDisplay *brl, int on, int delay, int interval) {
-  if (!canSetBrailleAutorepeat(brl)) return 0;
-  logMessage(LOG_DEBUG, "setting braille autorepeat: %s Delay:%d Interval:%d", 
+setAutorepeatProperties (BrailleDisplay *brl, int on, int delay, int interval) {
+  if (!canSetAutorepeatProperties(brl)) return 0;
+  logMessage(LOG_DEBUG, "setting autorepeat properties: %s Delay:%d Interval:%d", 
              (on? "on": "off"), delay, interval);
-  return brl->setAutorepeat(brl, on, delay, interval);
+  return brl->setAutorepeatProperties(brl, on, delay, interval);
 }
