@@ -1,4 +1,0 @@
-# Yes but we do not ship them in binaries
-source-contains-prebuilt-windows-binary DOS/cwsdpmi.exe
-source-contains-prebuilt-windows-binary Windows/msvcr90.dll
-source-is-missing Documents/BrlAPIref/html/jquery.js

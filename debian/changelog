@@ -1,43 +1,9 @@
-brltty (6.0+dfsg-4ubuntu6.lliurex1) bionic; urgency=medium
+brltty (6.3+dfsg-1ubuntu1-lliurex1) focal; urgency=medium
+  * Backport from hirsute
 
-  * Backport to bionic
+brltty (6.3+dfsg-1ubuntu1) hirsute; urgency=medium
 
- -- Juanma1980 <juanma1980@gmail.com>  Thu, 04 Jun 2020 08:09:07 +0200
-
-brltty (6.0+dfsg-4ubuntu6) focal; urgency=medium
-
-  * No-change rebuild for icu soname change.
-
- -- Matthias Klose <doko@ubuntu.com>  Tue, 03 Mar 2020 21:32:07 +0100
-
-brltty (6.0+dfsg-4ubuntu5) focal; urgency=medium
-
-  * No-change rebuild to drop python3.7.
-
- -- Matthias Klose <doko@ubuntu.com>  Tue, 18 Feb 2020 11:33:16 +0100
-
-brltty (6.0+dfsg-4ubuntu4) focal; urgency=medium
-
-  * No-change rebuild for icu soname change.
-
- -- Matthias Klose <doko@ubuntu.com>  Thu, 13 Feb 2020 08:50:36 +0100
-
-brltty (6.0+dfsg-4ubuntu3) focal; urgency=medium
-
-  * debian/rules: fix the arguments used for dh_installsystemd
-
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 05 Feb 2020 17:19:01 +0100
-
-brltty (6.0+dfsg-4ubuntu2) focal; urgency=medium
-
-  * debian/rules:
-    - use dh_installsystemd instead of dh_systemd_enable
-
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 05 Feb 2020 16:39:58 +0100
-
-brltty (6.0+dfsg-4ubuntu1) focal; urgency=medium
-
-  * Resynchronize with Debian. Remaining changes:
+  * Resynchronize on Debian, remaining changes are
     - Add brltty-setup, installed in both the udeb and the normal system.
     - Add initramfs integration to run brltty-setup if necessary before
       plymouth starts.
@@ -51,10 +17,162 @@ brltty (6.0+dfsg-4ubuntu1) focal; urgency=medium
     - Enable brltty at startup on the target system if the alternate installer
       is used.
     - debian/brltty.sh: Update path /sbin/brltty to /bin/brltty
-  * Removed delta
-    - preinst service migration for xenial upgrades
+    - Build without the udeb package.
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 05 Feb 2020 16:19:37 +0100
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 26 Feb 2021 15:37:32 +0100
+
+brltty (6.3+dfsg-1) unstable; urgency=medium
+
+  * New upstream release.
+    - patches/lock-fixes: Upstreamed.
+    - patches/40-no-update-pot.patch: Refresh.
+  * rules: Fix manpage date reproducibility by setting TZ to UTC.
+  * brltty.manpages: Explicit list of manpages.
+  * xbrlapi.manpages: Install manpage from installed path.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 28 Jan 2021 17:45:12 +0100
+
+brltty (6.2+dfsg-2) unstable; urgency=high
+
+  * rules: Fix passing hardening flags to udeb build.
+  * patches/lock-fixes: Fix some locking issues.
+  * control: Make brltty pre-depend on ${misc:Pre-Depends} to get
+    --skip-systemd-native.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 03 Jan 2021 01:53:04 +0100
+
+brltty (6.2+dfsg-1) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * New upstream release.
+    - patches/atspi2-invalid-unicode: upstreamed.
+    - patches/link: upstreamed.
+    - patches/polkit: upstreamed.
+    - brltty.examples: Update Upstart example file name.
+
+  * Bump debhelper compat from 11 to 12.
+
+  [ Debian Janitor ]
+  * Update renamed lintian tag names in lintian overrides.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 23 Dec 2020 18:24:57 +0100
+
+brltty (6.2~pre.2+dfsg-3) experimental; urgency=medium
+
+  * patches/atspi2-invalid-unicode: Also reject negative unicode characters.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 07 Dec 2020 20:45:15 +0100
+
+brltty (6.2~pre.2+dfsg-2) experimental; urgency=medium
+
+  * patches/atspi2-invalid-unicode: Avoid letting atspi2 return invalid
+    unicode characters.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 06 Dec 2020 11:39:28 +0100
+
+brltty (6.2~pre.2+dfsg-1) experimental; urgency=medium
+
+  * New upstream snapshot.
+    - patches/no-clone-newipc: Upstreamed.
+    - patches/link: Fix link.
+    - patches/polkit: Fix installing polkit action.
+    - rules: run make install-polkit.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 01 Dec 2020 20:59:56 +0100
+
+brltty (6.2~pre+dfsg-2) experimental; urgency=medium
+
+  * patches/no-clone-newipc: Upstream fix for espeak access to alsa.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 21 Nov 2020 22:43:02 +0100
+
+brltty (6.2~pre+dfsg-1) experimental; urgency=medium
+
+  * New upstream snapshot.
+    - control: Add libcap-dev build-dep on linux.
+    - patches/a2_cut: Upstreamed.
+    - patches/a2_x11_crash: Upstreamed.
+    - patches/a2_xsel_flush: Upstreamed.
+    - patches/python-writeDots: Upstreamed.
+    - patches/python3: Upstreamed.
+    - patches/sd_session_get_vt: Upstreamed.
+    - patches/xbrlapi-install: Upstreamed.
+    - patches/xbrlapi-path: Upstreamed.
+    - patches/xbrlapi-root-unknown: Upstreamed.
+    - patches/41-java-bytecode-compat.patch: Bump to java 8 compatibility.
+    - debian/brltty.examples: Fix udev rules examples paths.
+    - debian/brltty-udeb.udev.rules: Update udev rules.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 19 Nov 2020 22:49:34 +0100
+
+brltty (6.1+dfsg-3) unstable; urgency=medium
+
+  * patches/a2_xsel_flush: New patch to fix clipboard management.
+  * patches/xbrlapi-path: Fix path to xbrlapi program.
+  * patches/a2_x11_crash: Fix a2 crash on cursor routing.
+  * patches/a2_cut: Fix clipboard management when running a2 screen driver
+    without the BrlAPI server.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 07 Nov 2020 18:03:54 +0100
+
+brltty (6.1+dfsg-2) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Use secure URI in debian/watch.
+  * control: Bump Standards-Version to 4.5.0 (no change)
+  * Remove 3 unused lintian overrides.
+
+  * debian/xbrlapi.maintscript: Remove old 60xbrlapi script.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 18 Oct 2020 17:54:16 +0200
+
+brltty (6.1+dfsg-1) experimental; urgency=medium
+
+  * New upstream release.
+    - Rename libbrlapi0.7 package to libbrlapi0.8 according to soname bump.
+    - brltty-udeb.udev.rules: Update with new driver support.
+    - patches/50-constants.patch: Upstreamed.
+    - patches/java-jni: Upstreamed.
+    - patches/python3: Refresh.
+    - patches/python-verbose: Upstreamed.
+    - patches/log-spam: Upstreamed.
+    - control: Add libxfixes-dev build-dep.
+    - patches/xbrlapi-install: New patch, fixes installing 90xbrlapi from
+    out-of-source builds.
+    - brltty.examples: Install systemd wrapper example too.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 06 Apr 2020 23:44:34 +0200
+
+brltty (6.0+dfsg-6) unstable; urgency=medium
+
+  * brltty-udeb.udev.rules: Merge with upstream's rules file, to make updating
+    much easier.
+  * brltty-udeb.udev.sh: Add -E option for udev script to make brltty detect
+    exactly the right device.
+  * README.source: Document the dfsg tarball modifications.
+  * patches/sd_session_get_vt: Automatically get VT nr from logind.
+  * control: Update alioth list domain.
+  * patches/python-writeDots: Fix python's writeDots binding.
+  * patches/xbrlapi-root-unknown: do not print the root window name.
+  * brltty-udeb.start: Add missing +x perm.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 11 Jun 2020 02:10:29 +0200
+
+brltty (6.0+dfsg-5) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * rules: Rely on pre-initialized dpkg-architecture variables.
+  * patches/python-verbose: Make python bindings build verbose when V=1 is set.
+  * patches/log-spam: Avoid spamming log with recent Orca which tries to
+    reconnect periodically.
+
+  [ Debian Janitor ]
+  * Trim trailing whitespace.
+  * Set debhelper-compat version in Build-Depends.
+  * Set upstream metadata fields: Name (from ./configure).
+  * Update standards version to 4.4.1, no changes needed.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 12 Mar 2020 00:14:42 +0100
 
 brltty (6.0+dfsg-4) unstable; urgency=medium
 
@@ -858,7 +976,7 @@ brltty (4.1-5) unstable; urgency=low
       of one kind of jvm (Closes: Bug#560072).
   * Bindings/Python/brlapi.pyx: Apply upstream r4991 to fix an uninitialized
     field in python exception handling (Closes: Bug#568512).
-  * Apply upstream r5007 to fix debian installer's fbterm start race 
+  * Apply upstream r5007 to fix debian installer's fbterm start race
     (Closes: Bug#504385).
   * Bindings/Python/Makefile.in: Include /usr/share/python/python.mk and
     pass $(py_setup_install_args) setup.py to keep proper installation paths
@@ -1503,7 +1621,7 @@ brltty (3.2-1) unstable; urgency=low
   * debian/brltty.templates:
     * texttbl: renamed to text-table and changed text.german->text.de,
       text.sweden->text.se1 and text.swedish->text.se2 and added text.ru.
-    * speech-driver: New question. 
+    * speech-driver: New question.
     * braille-driver: Now put the full driver name in the select, and look the
       two letter combo up in brltty.postinst.
       brldriver: Removed.

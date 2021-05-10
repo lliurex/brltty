@@ -5,14 +5,17 @@
 
 PACKAGE=brltty
 VERSION=$(shell dpkg-parsechangelog | grep ^Version: | cut -d ' ' -f 2)
-BRLAPI_VERSION=0.7
+BRLAPI_VERSION=0.8
 CL_DATE=$(shell dpkg-parsechangelog | grep Date: | sed s/Date:\ //)
-DEB_HOST_ARCH?=$(shell dpkg-architecture -qDEB_HOST_ARCH)
-DEB_HOST_MULTIARCH?=$(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+include /usr/share/dpkg/architecture.mk
 # java is not supported on a few archs
 ifneq (,$(filter $(DEB_HOST_ARCH),hppa hurd-i386 kfreebsd-i386 kfreebsd-amd64 m68k))
 export DH_OPTIONS=-Nlibbrlapi-jni -Nlibbrlapi-java
 DISABLE_JAVA_SUPPORT=1
+endif
+
+ifeq (,$(filter noudeb, $(DEB_BUILD_PROFILES)))
+  with_udeb = yes
 endif
 
 PYVERS := $(shell py3versions --supported --version)
@@ -62,7 +65,7 @@ clean:
 
 	dh_clean
 
-acdir/config.sub: /usr/share/misc/config.sub 
+acdir/config.sub: /usr/share/misc/config.sub
 	cp -f $< $@
 acdir/config.guess: /usr/share/misc/config.guess
 	cp -f $< $@
@@ -93,11 +96,13 @@ config-udeb: build-brltty-udeb/config.status
 build-brltty-udeb/config.status: configure acdir/config.sub acdir/config.guess
 	mkdir build-brltty-udeb
 	cd build-brltty-udeb && \
-	CFLAGS="$(UDEB_CFLAGS)" ../configure \
+		$(HARDENING) \
+		CFLAGS="$$(DEB_BUILD_MAINT_OPTIONS=hardening=+all dpkg-buildflags --get CFLAGS) $(UDEB_CFLAGS)" \
+		../configure \
 		$(CONFIGURE_OPTIONS) \
 		$(UDEB_CONFIGURE_OPTIONS)
 
-build-arch: build-brltty build-udeb
+build-arch: build-brltty $(if $(with_udeb),build-udeb)
 build-indep: build-arch build-python
 build: build-indep build-arch
 
@@ -113,7 +118,7 @@ build-stamp: config
 	# more reasonable: the timestamp of the last Debian changelog entry.
 	# Closes: http://bugs.debian.org/708585
 	sed --in-place -e \
-		"s/\(.TH.* 3 \"\).*\(\" \"Version .*\)/\1$$(LC_ALL=C date --date='$(CL_DATE)' +'%a %b %d %Y')\2/" \
+		"s/\(.TH.* 3 \"\).*\(\" \"Version .*\)/\1$$(LC_ALL=C TZ=UTC date --date='$(CL_DATE)' +'%a %b %d %Y')\2/" \
 		build-brltty/Documents/BrlAPIref/man/man3/*
 
 	# Likewise, make sure that the html does not contain the version number of
@@ -145,7 +150,7 @@ build-udeb-stamp: config-udeb
 binary-indep: brltty
 
 # Build architecture-dependent files here.
-binary-arch: brltty brltty-udeb
+binary-arch: brltty $(if $(with_udeb),brltty-udeb)
 
 brltty: build-brltty build-python
 	dh_testdir
@@ -153,7 +158,7 @@ brltty: build-brltty build-python
 	dh_prep
 	dh_installdirs
 
-	$(MAKE) -C build-brltty install install-appstream INSTALL_ROOT=`pwd`/debian/tmp
+	$(MAKE) -C build-brltty install install-appstream install-polkit INSTALL_ROOT=`pwd`/debian/tmp
 	set -e ; for pyver in $(PYVERS); do \
 		$(MAKE) -C build-py$$pyver/Bindings/Python install INSTALL_ROOT=`pwd`/debian/tmp ; \
 	done

@@ -1,7 +1,4 @@
 10-python.patch
 40-no-update-pot.patch
 41-java-bytecode-compat.patch
-50-constants.patch
 disable-synth-callback.patch
-java-jni
-python3

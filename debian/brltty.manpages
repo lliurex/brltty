@@ -1,2 +1,3 @@
-debian/tmp/usr/share/man/man1/*.1
-Drivers/Braille/VisioBraille/vstp.1
+debian/tmp/usr/share/man/man1/brltty.1
+debian/tmp/usr/share/man/man1/eutp.1
+debian/tmp/usr/share/man/man1/vstp.1

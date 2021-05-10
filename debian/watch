@@ -1,3 +1,3 @@
 version=3
 opts=dversionmangle=s/\+dfsg$// \
-http://brltty.com/archive/ brltty-@ANY_VERSION@@ARCHIVE_EXT@ debian uupdate
+https://brltty.com/archive/ brltty-@ANY_VERSION@@ARCHIVE_EXT@ debian uupdate

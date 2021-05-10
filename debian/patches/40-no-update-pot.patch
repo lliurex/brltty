@@ -1,13 +1,15 @@
---- a/Messages/Makefile.in
-+++ b/Messages/Makefile.in
-@@ -37,8 +37,8 @@ $(LANGUAGES_FILE): FORCE
- TEMPLATE_FILE = $(SRC_DIR)/$(PACKAGE_TARNAME).$(TEMPLATE_EXTENSION)
+Index: brltty-6.3+dfsg/Messages/Makefile.in
+===================================================================
+--- brltty-6.3+dfsg.orig/Messages/Makefile.in
++++ brltty-6.3+dfsg/Messages/Makefile.in
+@@ -43,8 +43,8 @@ $(LANGUAGES_FILE): FORCE
+ 	done
+ 
  template $(TEMPLATE_EXTENSION): $(TEMPLATE_FILE)
- 
 -$(TEMPLATE_FILE): $(BLD_TOP)$(PGM_DIR)/cmds.auto.h FORCE
--	$(SRC_TOP)mkpot -p "$(PACKAGE_TARNAME)" -n "$(PACKAGE_VERSION)" -o $@ -b "$(PACKAGE_BUGREPORT)" -c "$(COPYRIGHT_HOLDER)" $(SRC_TOP) $(BLD_TOP)
+-	$(SRC_TOP)mkpot -p "$(PACKAGE_TARNAME)" -n "$(PACKAGE_VERSION)" -b "$(PACKAGE_BUGREPORT)" -c "$(COPYRIGHT_HOLDER)" -o $@ -- $(SRC_TOP) $(BLD_TOP)
 +#$(TEMPLATE_FILE): $(BLD_TOP)$(PGM_DIR)/cmds.auto.h FORCE
-+#	$(SRC_TOP)mkpot -p "$(PACKAGE_TARNAME)" -n "$(PACKAGE_VERSION)" -o $@ -b "$(PACKAGE_BUGREPORT)" -c "$(COPYRIGHT_HOLDER)" $(SRC_TOP) $(BLD_TOP)
++#	$(SRC_TOP)mkpot -p "$(PACKAGE_TARNAME)" -n "$(PACKAGE_VERSION)" -b "$(PACKAGE_BUGREPORT)" -c "$(COPYRIGHT_HOLDER)" -o $@ -- $(SRC_TOP) $(BLD_TOP)
  
- SOURCE_FILES = $(LANGUAGE_CODES:=.$(SOURCE_EXTENSION))
  sources: $(SOURCE_FILES)
+ %.$(SOURCE_EXTENSION): FORCE

@@ -1,3 +1,5 @@
-Autostart/Udev/rules
-Autostart/Udev/brltty-wrapper
-Autostart/Upstart/brltty.conf
+Autostart/Udev/*.rules
+build-brltty/Autostart/Udev/*.rules
+Autostart/Udev/udev-wrapper
+Autostart/Systemd/systemd-wrapper
+Autostart/Upstart/job
