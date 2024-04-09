@@ -1,3 +1,9 @@
+brltty (6.6-1lliurex23) jammy; urgency=medium
+
+  * Backport from Noble
+
+ -- Juanma1980 <juanma1980@gmail.com>  Tue, 09 Apr 2024 12:00:51 +0200
+
 brltty (6.6-4ubuntu5) noble; urgency=medium
 
   * No-change rebuild for CVE-2024-3094
