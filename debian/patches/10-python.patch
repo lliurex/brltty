@@ -1,0 +1,23 @@
+Description: adjust Makefile to build Python bindings correctly
+ Include Python make fules and add build options.
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+---
+ Bindings/Python/Makefile.in |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/Bindings/Python/Makefile.in
++++ b/Bindings/Python/Makefile.in
+@@ -64,10 +64,12 @@ constants.auto.pyx: $(CONSTANTS_DEPENDEN
+ doc: $(PYTHON_API)
+ 	LD_PRELOAD=$(API_LIB) "$(PYTHON)" $(SRC_DIR)/mkdoc.py $(PYTHON_MODULE)
+ 
++-include /usr/share/python3/python.mk
+ install: all
+ 	set -- $(V_setup) install --skip-build --record "$(INSTALLED_FILES)"; \
+ 	[ -z "$(PYTHON_DESTDIR)" ] || set -- "$${@}" --root "$(PYTHON_DESTDIR)"; \
+ 	[ -z "$(PYTHON_PREFIX)" ] || set -- "$${@}" --prefix "$(PYTHON_PREFIX)"; \
++	set -- "$${@}" $(py_setup_install_args); \
+ 	"$(PYTHON)" ./setup.py "$${@}"
+ 	-rm -f -r -- Brlapi.egg-info
+ 

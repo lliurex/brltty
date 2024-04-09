@@ -1,0 +1,25 @@
+debian/tmp/etc/brltty etc
+debian/tmp/bin/brltty bin
+debian/tmp/bin/eutp usr/bin
+debian/tmp/bin/vstp usr/bin
+debian/tmp/bin/brltty-atb usr/bin
+debian/tmp/bin/brltty-ctb usr/bin
+debian/tmp/bin/brltty-ktb usr/bin
+debian/tmp/bin/brltty-ttb usr/bin
+debian/tmp/bin/brltty-trtxt usr/bin
+debian/tmp/bin/brltty-clip usr/bin
+debian/tmp/bin/brltty-hid usr/bin
+debian/tmp/bin/brltty-lscmds usr/bin
+debian/tmp/bin/brltty-morse usr/bin
+debian/tmp/bin/brltty-tune usr/bin
+debian/tmp/lib/brltty lib
+debian/tmp/usr/share/locale
+debian/initramfs/hooks/brltty usr/share/initramfs-tools/hooks
+debian/initramfs/scripts/init-premount/brltty usr/share/initramfs-tools/scripts/init-premount
+debian/tmp/usr/share/polkit-1
+debian/tmp/usr/share/metainfo
+debian/initramfs/scripts/init-top/brltty usr/share/initramfs-tools/scripts/init-top
+debian/initramfs/brltty.sh usr/share/brltty/initramfs
+debian/brltty-setup sbin
+debian/31brltty usr/lib/ubiquity/target-config
+debian/tmp/var/lib

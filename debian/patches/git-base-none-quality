@@ -1,0 +1,42 @@
+commit aadd8a93de29fb1d7d47dbe91b815655e76ef5f8
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Sep 5 00:00:56 2023 +0200
+
+    screen: Set quality to low or none for base and no
+    
+    When e.g. brltty cannot load a screen driver, but can load the BrlAPI
+    driver, we have to make sure to know that we have a low screen reading
+    quality, otherwise the BrlAPI driver would consume braille keyboard
+    events, without being able to do anything about them.
+    
+    This notably fixes cursor routing and braille panning in Orca when
+    xbrlapi is installed but the a2 screen driver is not installed.
+
+diff --git a/Programs/scr_base.c b/Programs/scr_base.c
+index 23c7e4d1f..de867a7d5 100644
+--- a/Programs/scr_base.c
++++ b/Programs/scr_base.c
+@@ -149,6 +149,7 @@ refresh_BaseScreen (void) {
+ 
+ static void
+ describe_BaseScreen (ScreenDescription *description) {
++  description->quality = SCQ_NONE;
+   description->rows = 1;
+   description->cols = strlen(text_BaseScreen);
+   description->posx = 0;
+diff --git a/Programs/scr_driver.c b/Programs/scr_driver.c
+index 57e602b0b..416487471 100644
+--- a/Programs/scr_driver.c
++++ b/Programs/scr_driver.c
+@@ -81,6 +81,11 @@ describe_NoScreen (ScreenDescription *description) {
+     screenMessage = message;
+   }
+ 
++  if (screenMessage)
++    description->quality = SCQ_LOW;
++  else
++    description->quality = SCQ_NONE;
++
+   description->rows = 1;
+   description->cols = strlen(screenMessage);
+   description->posx = 0;

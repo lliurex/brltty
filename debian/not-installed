@@ -1,0 +1,13 @@
+bin/brltty-cldr
+bin/brltty-config.sh
+bin/brltty-genkey
+bin/brltty-lsinc
+bin/brltty-mkuser
+bin/brltty-prologue.bash
+bin/brltty-prologue.lua
+bin/brltty-prologue.sh
+bin/brltty-prologue.tcl
+bin/brltty-setcaps
+bin/brltty-ttysize
+lib/pkgconfig/brltty.pc
+usr/include/brltty/*

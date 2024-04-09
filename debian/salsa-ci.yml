@@ -1,0 +1,17 @@
+---
+include:
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/salsa-ci.yml
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/pipeline-jobs.yml
+
+variables:
+  # Disable reprotest until salsa-ci-team/pipeline#26 is resolved
+  # as well as #988999
+  SALSA_CI_DISABLE_REPROTEST: 1
+
+  SALSA_CI_REPROTEST_ENABLE_DIFFOSCOPE: 1
+
+# needs cross-clisp and cross-cython
+#test-crossbuild-arm64:
+#  allow_failure: false
+
+# vim: ts=2 sw=2 et sts=2 ft=yaml

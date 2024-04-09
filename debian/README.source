@@ -1,0 +1,17 @@
+This package uses quilt to manage all modifications to the upstream source.
+For further information, see /usr/share/doc/quilt/README.source.
+
+The difference between upstream tarball and dfsg tarball is
+
+- the removal of the generated
+
+  Documents/BrlAPIref/html
+
+- the removal of the non-free
+
+  DOS/cwsdpmi.exe
+  Windows/msvcr90.dll
+
+- the removal of the file without source
+
+  Android/Gradle/gradle/wrapper/gradle-wrapper.jar

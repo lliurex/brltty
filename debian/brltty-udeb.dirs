@@ -1,0 +1,7 @@
+etc/brltty
+lib/udev/rules.d
+lib/brltty
+lib/debian-installer.d
+lib/debian-installer-startup.d
+lib/udev
+usr/lib/finish-install.d

@@ -1,0 +1,3 @@
+debian/tmp/bin/xbrlapi usr/bin
+debian/tmp/etc/X11/Xsession.d
+debian/tmp/usr/share/gdm/greeter/autostart

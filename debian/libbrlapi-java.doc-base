@@ -1,0 +1,9 @@
+Document: libbrlapi-java
+Title: Programmer API for BrlAPI
+Author: Sébastien Hinderer and Samuel Thibault
+Abstract: BrlAPI provides a client/server way to access a braille display.
+Section: Programming/Java
+
+Format: HTML
+Index: /usr/share/doc/libbrlapi-java/doc/index.html
+Files: /usr/share/doc/libbrlapi-java/doc/*.html

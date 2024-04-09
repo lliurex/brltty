@@ -1,0 +1,4 @@
+# We do have a recommends
+python3-script-but-no-python3-dep etc/brltty/Contraction/latex-access.ctb /usr/bin/python3
+
+non-standard-dir-perm 1777 != 0755 [var/lib/BrlAPI/]

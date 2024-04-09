@@ -1,0 +1,29 @@
+# brltty debconf templates French translation
+# Copyright (C) 2021
+# This file is distributed under the same license as the brltty package.
+#
+# Translators:
+# Jean-Pierre Giraud <jean-pierregiraud@neuf.fr>, 2021.
+msgid ""
+msgstr ""
+"Project-Id-Version: brltty\n"
+"Report-Msgid-Bugs-To: brltty@packages.debian.org\n"
+"POT-Creation-Date: 2021-08-15 23:13+0200\n"
+"PO-Revision-Date: 2021-09-09 08:42+0200\n"
+"Last-Translator: Jean-Pierre Giraud <jean-pierregiraud@neuf.fr>\n"
+"Language-Team: French <debian-l10n-french@lists.debian.org>\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Lokalize 2.0\n"
+
+#. Type: text
+#. Description
+#. Main menu item
+#. MUST be kept below 55 characters/columns
+#. :sl1:
+#: ../brltty-udeb.templates:1001
+msgid "Access the installer using a Braille display"
+msgstr "Accès à l'installateur avec une plage braille"

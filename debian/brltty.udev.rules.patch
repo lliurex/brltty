@@ -1,0 +1,85 @@
+--- debian/brltty-udeb.udev.rules	2023-09-04 15:08:51.000000000 -0700
++++ debian/brltty.udev.rules	2023-11-19 20:18:24.245305400 -0800
+@@ -20,18 +20,12 @@
+ # Udev rules for starting BRLTTY when a USB braille device is connected #
+ #########################################################################
+ 
++# compare this with BRLTTY's Autostart/Udev/rules
++
+ SUBSYSTEM=="usb_device", GOTO="brltty_usb_begin"
+ SUBSYSTEM=="usb", KERNEL!="*:*", GOTO="brltty_usb_begin"
+ GOTO="brltty_device_end"
+ 
+-# Note: This is only meant for use in the Debian Installer, since it contains
+-# the udev rules for generic USB IDs. For installed packages, make install-udev
+-# should be used instead, and customized.rules can be installed by default, but
+-# generic.rules should be installed only when one is sure that the system is
+-# supposed to be running a Braille device.
+-#
+-# Note: Compare this with BRLTTY's Autostart/Udev/{customized,generic}.rules after running make there.
+-#
+ # Note about generic identifiers:
+ #
+ # on updating, check in Programs/config.c's autodetectableBrailleDrivers_* about
+@@ -54,17 +48,19 @@
+ # HandyTech [FTDI chip]
+ # Hedo [MobilLine]
+ # MDV [all models]
+-ENV{PRODUCT}=="403/6001/*", ATTR{manufacturer}=="FTDI", ENV{BRLTTY_BRAILLE_DRIVER}="hm,ht", GOTO="brltty_usb_run"
++# Ubuntu disable those to avoid conflicts, https://launchpad.net/bugs/1958224
++# ENV{PRODUCT}=="403/6001/*", ATTR{manufacturer}=="FTDI", ENV{BRLTTY_BRAILLE_DRIVER}="hd,hm,ht", GOTO="brltty_usb_run"
+ ENV{PRODUCT}=="403/6001/*", ATTR{manufacturer}=="Hedo Reha Technik GmbH", ENV{BRLTTY_BRAILLE_DRIVER}="hd", GOTO="brltty_usb_run"
+ ENV{PRODUCT}=="403/6001/*", ATTR{manufacturer}=="Tivomatic Oy", ENV{BRLTTY_BRAILLE_DRIVER}="at", GOTO="brltty_usb_run"
+-ENV{PRODUCT}=="403/6001/*", ENV{BRLTTY_BRAILLE_DRIVER}="ce,md", GOTO="brltty_usb_run"
++#ENV{PRODUCT}=="403/6001/*", ENV{BRLTTY_BRAILLE_DRIVER}="ce,md", GOTO="brltty_usb_run"
+ 
+ # Device: 0403:6010
+ # Generic Identifier
+ # Vendor: Future Technology Devices International, Ltd
+ # Product: FT2232C/D/H Dual UART/FIFO IC
+ # DotPad [all models]
+-ENV{PRODUCT}=="403/6010/*", ENV{BRLTTY_BRAILLE_DRIVER}="dp", GOTO="brltty_usb_run"
++# Ubuntu disable those to avoid conflicts, https://launchpad.net/bugs/1958224
++#ENV{PRODUCT}=="403/6010/*", ENV{BRLTTY_BRAILLE_DRIVER}="dp", GOTO="brltty_usb_run"
+ 
+ # Device: 10C4:EA60
+ # Generic Identifier
+@@ -72,14 +68,16 @@
+ # Product: CP210x UART Bridge / myAVR mySmartUSB light
+ # BrailleMemo [Pocket]
+ # Seika [Braille Display]
+-ENV{PRODUCT}=="10c4/ea60/*", ATTR{manufacturer}=="Silicon Labs", ENV{BRLTTY_BRAILLE_DRIVER}="sk", GOTO="brltty_usb_run"
++# Ubuntu disable those to avoid conflicts, https://launchpad.net/bugs/1958224
++#ENV{PRODUCT}=="10c4/ea60/*", ATTR{manufacturer}=="Silicon Labs", ENV{BRLTTY_BRAILLE_DRIVER}="sk", GOTO="brltty_usb_run"
+ 
+ # Device: 10C4:EA80
+ # Generic Identifier
+ # Vendor: Cygnal Integrated Products, Inc.
+ # Product: CP210x UART Bridge
+ # Seika [Note Taker]
+-ENV{PRODUCT}=="10c4/ea80/*", ATTR{manufacturer}=="Silicon Laboratories", ENV{BRLTTY_BRAILLE_DRIVER}="sk", GOTO="brltty_usb_run"
++# Ubuntu disable those to avoid conflicts, https://launchpad.net/bugs/1958224
++#ENV{PRODUCT}=="10c4/ea80/*", ATTR{manufacturer}=="Silicon Laboratories", ENV{BRLTTY_BRAILLE_DRIVER}="sk", GOTO="brltty_usb_run"
+ 
+ # Device: 1A86:7523
+ # Generic Identifier
+@@ -564,17 +562,8 @@
+ 
+ LABEL="brltty_device_run"
+ ENV{BRLTTY_PID_FILE}="/var/run/brltty.pid"
+-
+-ACTION=="add", GOTO="brltty_add"
+-ACTION=="remove", GOTO="brltty_remove"
+-GOTO="brltty_device_end"
+-
+-LABEL="brltty_add"
+-RUN+="/lib/udev/brltty.sh"
+-GOTO="brltty_device_end"
+-
+-LABEL="brltty_remove"
+-RUN+="/lib/udev/brltty.sh -C"
++TAG+="systemd"
++ENV{SYSTEMD_WANTS}+="brltty-udev.service"
+ GOTO="brltty_device_end"
+ 
+ LABEL="brltty_device_end"

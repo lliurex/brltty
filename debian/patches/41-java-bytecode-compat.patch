@@ -1,0 +1,29 @@
+Description: Debian and Ubuntu contain multiple JRE implementations
+ .
+ This patch ensures that the Java bytecode built by this package is
+ compatible with all versions of Java from 1.8.
+Author: James Page <james.page@ubuntu.com>
+Forwarded: no
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/brltty/+bug/1049757
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=688127
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=893102
+
+---
+ Bindings/Java/bindings.m4 |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/Bindings/Java/bindings.m4
++++ b/Bindings/Java/bindings.m4
+@@ -65,10 +65,11 @@ then
+ 
+    java_compiler_name="${java_compiler_path##*/}"
+    java_source_encoding="UTF-8"
++   java_target="-source 1.8 -target 1.8"
+ 
+    case "${java_compiler_name}"
+    in
+-      javac) java_compiler_options="-encoding ${java_source_encoding}";;
++      javac) java_compiler_options="-encoding ${java_source_encoding} ${java_target}";;
+       gcj)   java_compiler_options="-C --encoding=${java_source_encoding}";;
+ 
+       *)     java_compiler_options=""

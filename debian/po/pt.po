@@ -1,0 +1,28 @@
+# Translation of brltty debconf messages to European Portuguese
+# Copyright (C) YEAR THE brltty'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the brltty package.
+#
+# Américo Monteiro <a_monteiro@gmx.com>, 2021.
+msgid ""
+msgstr ""
+"Project-Id-Version: brltty 6.4-2\n"
+"Report-Msgid-Bugs-To: brltty@packages.debian.org\n"
+"POT-Creation-Date: 2021-08-15 23:13+0200\n"
+"PO-Revision-Date: 2021-12-18 22:13+0000\n"
+"Last-Translator: Américo Monteiro <a_monteiro@gmx.com>\n"
+"Language-Team: Portuguese <>\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 20.12.0\n"
+
+#. Type: text
+#. Description
+#. Main menu item
+#. MUST be kept below 55 characters/columns
+#. :sl1:
+#: ../brltty-udeb.templates:1001
+msgid "Access the installer using a Braille display"
+msgstr "Aceder ao instalador usando um mostrador de Braille"

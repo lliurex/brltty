@@ -1,0 +1,49 @@
+# Mesajele în limba română pentru pachetul brltty.
+# Romanian translation of brltty.
+# Copyright © 2023 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the brltty package.
+#
+# Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>, 2023.
+#
+# Cronologia traducerii fișierului „brltty”:
+# Traducerea inițială, făcută de R-GC, pentru versiunea brltty 6.5-6.
+# Actualizare a traducerii pentru versiunea Y, făcută de X, Y(anul).
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: brltty 6.5-6\n"
+"Report-Msgid-Bugs-To: brltty@packages.debian.org\n"
+"POT-Creation-Date: 2021-08-15 23:13+0200\n"
+"PO-Revision-Date: 2023-02-08 09:58+0100\n"
+"Last-Translator: Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>\n"
+"Language-Team: \n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n==0 || (n!=1 && n%100>=1 && "
+"n%100<=19) ? 1 : 2);\n"
+"X-Generator: Poedit 3.2.2\n"
+
+# R-GC, scrie:
+# inițial, am tradus mesajul, ca:
+# „Accesați programul de instalare folosind un afișaj Braille”
+# *****
+# După care am văzut nota pt. traducători,
+# de limitare a mesajului la
+# 55 de caractere/coloane. Așa că l-am
+# reformulat (49 de caractee):
+# „Accesați instalatorul folosind un afișaj Braille”
+# ======
+# Sau, alternativ (53 de caractere):
+# „Accesați instalatorul de Debian cu un afișaj Braille”
+# -----------------------------
+# Opinii/Sugestii?
+#. Type: text
+#. Description
+#. Main menu item
+#. MUST be kept below 55 characters/columns
+#. :sl1:
+#: ../brltty-udeb.templates:1001
+msgid "Access the installer using a Braille display"
+msgstr "Accesați programul de instalare folosind un afișaj Braille"

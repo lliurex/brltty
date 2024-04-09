@@ -1,0 +1,4 @@
+debian/tmp/usr/lib/*/libbrlapi*.a
+debian/tmp/usr/include/brlapi*
+debian/tmp/usr/include/brltty/api.h
+debian/tmp/usr/include/brltty/brldefs*

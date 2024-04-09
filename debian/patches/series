@@ -1,0 +1,7 @@
+10-python.patch
+40-no-update-pot.patch
+41-java-bytecode-compat.patch
+disable-synth-callback.patch
+cython-3.0
+git-keyrange
+git-base-none-quality

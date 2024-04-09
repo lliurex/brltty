@@ -1,0 +1,26 @@
+# brltty po-debconf italian translation.
+# Copyright (C) 2022 brltty's package copyright holder
+# This file is distributed under the same license as the brltty package.
+# Ceppo <ceppo@oziosi.org>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: brltty\n"
+"Report-Msgid-Bugs-To: brltty@packages.debian.org\n"
+"POT-Creation-Date: 2021-08-15 23:13+0200\n"
+"PO-Revision-Date: 2022-10-30 00:00+0000\n"
+"Last-Translator: Ceppo <ceppo@oziosi.org>\n"
+"Language-Team: Italian <debian-l10n-italian@lists.debian.org>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: text
+#. Description
+#. Main menu item
+#. MUST be kept below 55 characters/columns
+#. :sl1:
+#: ../brltty-udeb.templates:1001
+msgid "Access the installer using a Braille display"
+msgstr "Accedere all'installatore usando uno schermo Braille"

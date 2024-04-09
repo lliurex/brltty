@@ -1,0 +1,87 @@
+commit 74d63ddae1ad4160d33e1725cf5fc732f583b555
+Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Date:   Tue Aug 22 22:58:24 2023 +0200
+
+    Revert "brlapi: Simplify keyrange management"
+    
+    This reverts commit c1996200f4e85d4370a3bb9462c4859790f4a9c3.
+    
+    In general, we do need to separate out each bit processing. For instance
+    xbrlapi's request to ignore
+    
+        .first = BRLAPI_KEY_FLG(ControlMask|Mod1Mask),
+        .last  = BRLAPI_KEY_FLG(ControlMask|Mod1Mask)|~BRLAPI_KEY_FLAGS_MASK,
+    
+    indeed has to generate 32 intervals to properly accept any flag combination
+    that is not exactly ControlMask|Mod1Mask.
+
+diff --git a/Programs/brlapi_keyranges.c b/Programs/brlapi_keyranges.c
+index f8851696a..8a5a75450 100644
+--- a/Programs/brlapi_keyranges.c
++++ b/Programs/brlapi_keyranges.c
+@@ -145,6 +145,7 @@ int removeKeyrange(KeyrangeElem x0, KeyrangeElem y0, KeyrangeList **l)
+   uint32_t minVal   = MIN(KeyrangeVal(x0), KeyrangeVal(y0));
+   uint32_t maxVal   = MAX(KeyrangeVal(x0), KeyrangeVal(y0));
+   KeyrangeList *c, **p, *tmp;
++  int i;
+ 
+   if ((l==NULL) || (*l==NULL)) return 0;
+ 
+@@ -189,21 +190,45 @@ int removeKeyrange(KeyrangeElem x0, KeyrangeElem y0, KeyrangeList **l)
+       c->maxVal = maxVal;
+     }
+ 
+-    /* Now values are contained in suppression, intersect against flags */
+-
+-    if (~minFlags & maxFlags) {
+-      /* At least some flag must now be neither cleared nor set, drop range */
++    /* Now values are the same, tinker with flags */
++    for (i=0; i<32; i++) {
++      uint32_t mask = 1U<<i;
++
++      if ((!(c->maxFlags & mask) &&  (minFlags & mask)) ||
++          ( (c->minFlags & mask) && !(maxFlags & mask)))
++	/* don't intersect on this flag */
++	continue;
++
++      if (!(c->minFlags & mask) &&  (minFlags & mask)) {
++        /* && (c->maxFlags & mask) */
++	/* part without flag i should be kept intact, save it */
++        p = createKeyrange(p, c->minFlags, c->minVal, c->maxFlags & ~mask, c->maxVal, c);
++        if (p == NULL) return -1;
++	/* now handling part with flag i */
++        c->minFlags |= mask;
++      }
++
++      if ( (c->maxFlags & mask) && !(maxFlags & mask)) {
++        /* && !(c->minFlags & mask) */
++	/* part with flag i should be kept intact, save it */
++        p = createKeyrange(p, c->minFlags | mask, c->minVal, c->maxFlags, c->maxVal, c);
++        if (p == NULL) return -1;
++	/* now handling part without flag i */
++        c->maxFlags &= ~mask;
++      }
++
++      if (!(c->maxFlags | ~minFlags) || !(~c->minFlags | maxFlags))
++        /* don't intersect any more*/
++	break;
++    }
++    if (i<32) {
++      /* don't intersect any more, keep it */
++      break;
++    } else {
++      /* remaining intersection, drop it */
+       tmp = c; c = c->next;
+       freeKeyrange(p,tmp);
+-      continue;
+     }
+-
+-    /* Clamp flags on the value interval */
+-    c->minFlags |= ~maxFlags;
+-    c->maxFlags &= ~minFlags;
+-
+-    p = &c->next;
+-    c = *p;
+   }
+ 
+   return 0;

@@ -1,0 +1,2240 @@
+brltty (6.6-4ubuntu5) noble; urgency=medium
+
+  * No-change rebuild for CVE-2024-3094
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sun, 31 Mar 2024 00:24:15 +0000
+
+brltty (6.6-4ubuntu4) noble; urgency=medium
+
+  * No-change rebuild against libglib2.0-0t64
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Mon, 11 Mar 2024 22:05:38 +0000
+
+brltty (6.6-4ubuntu3) noble; urgency=medium
+
+  * No-change rebuild against libglib2.0-0t64
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Fri, 08 Mar 2024 03:58:09 +0000
+
+brltty (6.6-4ubuntu2) noble; urgency=medium
+
+  * No-change rebuild for ICU soname change.
+
+ -- Matthias Klose <doko@ubuntu.com>  Tue, 19 Dec 2023 11:05:14 +0100
+
+brltty (6.6-4ubuntu1) noble; urgency=low
+
+  * Merge from Debian unstable. Remaining changes:
+    - Remaining changes:
+      + add brltty-setup
+        - debian/brltty-setup
+        - debian/brltty.install
+        - debian/rules
+      + add initramfs integration to run brltty-setup if necessary before
+        plymouth starts
+        - debian/control
+        - debian/initramfs/brltty.sh
+        - debian/initramfs/hooks/brltty.in
+        - debian/initramfs/scripts/init-premount/brltty
+        - debian/initramfs/scripts/init-top/brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+        - debian/brltty.postinst
+      + add ubiquity integration to propagate any brltty configuration to the
+        target system
+        - debian/31brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+      + add udev rules file that uses brltty-udev.service to activate via
+        systemd
+        - debian/brltty-udev.service
+        - debian/brltty.dirs
+        - debian/brltty.udev.rules
+        - debian/rules
+      + disable brltty.service by default, but enable it if the user configures
+        Braille at install time for a non-USB display
+        - debian/31brltty
+        - debian/rules
+      + don't install /etc/brltty.conf in the package
+        - debian/31brltty
+  * Include further updates to brltty.udev.rules from brltty-udeb.udev.rules
+    that were omitted in the previous release cycle due to timing.
+    - devices with FTDI and Silicon Laboratories as a manufacturer remain
+      disabled as these do not uniquely identify accessibility devices.
+  * Re-enable udev rules for devices from Hedo Reha Technik GmbH, which is
+    a maker of accessibility devices and therefore not a false positive
+  * Move debian/brltty.udev.rules to a patch debian/brltty.udev.rules.patch
+    against debian/brltty-udeb.udev.rules to be applied at build time and
+    hard fail on any inconsistencies, to avoid future issues with missing
+    updates to the Ubuntu-specific file
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sun, 19 Nov 2023 04:08:14 -0800
+
+brltty (6.6-4) unstable; urgency=high
+
+  * patches/git-base-none-quality: Set quality to low or none for base and no
+    screen drivers.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 05 Sep 2023 00:11:56 +0200
+
+brltty (6.6-3) unstable; urgency=high
+
+  [ Peter Kvillegård ]
+  * po/sv.po: Swedish translation of debconf messages (Closes: Bug#1050441).
+
+  [ Samuel Thibault ]
+  * patches/git-keyrange: Fix keyrange computation.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 04 Sep 2023 19:02:41 +0200
+
+brltty (6.6-2) unstable; urgency=medium
+
+  * rules: Also drop aclocal.m4 on clean (Closes: Bug#1043727).
+  * patches/cython-3.0: Fix orca crash when BrlAPI is built with cython 3.0.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 15 Aug 2023 16:33:12 +0200
+
+brltty (6.6-1) unstable; urgency=medium
+
+  * New upstream release.
+    - patches/git-xbrlapi: Upstreamed.
+    - patches/atspi2-routing-crash.patch: Upstreamed.
+    - rules: Disable em and fv screen drivers in udeb.
+    - brltty-udeb.udev.rules: Update with newer supported devices.
+  * control, rules: Support hurd-amd64.
+  * control: drop lsb-base dep.
+  * control: replace libncursesw5-dev build-dep with libncurses-dev.
+  * patches/git-xbrlapi: Fix ba+a2 load failure log flood.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 05 Aug 2023 02:42:32 +0200
+
+brltty (6.5-7ubuntu3) noble; urgency=medium
+
+  * No-change rebuild to build with python3.12 as supported.
+
+ -- Matthias Klose <doko@ubuntu.com>  Thu, 02 Nov 2023 09:19:04 +0100
+
+brltty (6.5-7ubuntu2) mantic; urgency=medium
+
+  * Merge brltty.udev.rules from brltty-udeb.udev.rules.  This picks up only
+    changes to comments, enablement of new device IDs that are from
+    manufacturers that work specifically in Braille devices (HumanWare), and
+    those changes that restrict existing matches on generic device IDs to
+    reduce false-positives matches.  Additional changes should be merged for
+    testing at the start of the next release cycle.  Thanks to
+    Samuel Thibault for pointing this out (LP 1958224).
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sun, 01 Oct 2023 16:58:06 -0700
+
+brltty (6.5-7ubuntu1) mantic; urgency=low
+
+  * Merge from Debian unstable. Remaining changes:
+    - Remaining changes:
+      + add brltty-setup
+        - debian/brltty-setup
+        - debian/brltty.install
+        - debian/rules
+      + add initramfs integration to run brltty-setup if necessary before
+        plymouth starts
+        - debian/control
+        - debian/initramfs/brltty.sh
+        - debian/initramfs/hooks/brltty.in
+        - debian/initramfs/scripts/init-premount/brltty
+        - debian/initramfs/scripts/init-top/brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+        - debian/brltty.postinst
+      + add ubiquity integration to propagate any brltty configuration to the
+        target system
+        - debian/31brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+      + add udev rules file that uses brltty-udev.service to activate via
+        systemd
+        - debian/brltty-udev.service
+        - debian/brltty.dirs
+        - debian/brltty.udev.rules
+        - debian/rules
+      + disable brltty.service by default, but enable it if the user configures
+        Braille at install time for a non-USB display
+        - debian/31brltty
+        - debian/rules
+      + don't install /etc/brltty.conf in the package
+        - debian/31brltty
+      + debian/brltty.udev.rules: don't claim generic USB device IDs it leads
+        to brltty grabbing serial ports which other devices like Arduinos
+        boards can't use anymore
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 18 May 2023 08:32:55 -0700
+
+brltty (6.5-7) unstable; urgency=medium
+
+  [ Remus-Gabriel Chelu ]
+  * po/ro.po: Add Romanian debconf translation (Closes: Bug#1031150).
+
+  [ Samuel Thibault ]
+  * patches/atspi2-routing-crash.patch: Fix crash on cursor routing call.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 06 Apr 2023 01:27:28 +0200
+
+brltty (6.5-6) unstable; urgency=medium
+
+  * initramfs/hooks/brltty.in: Copy over brltty preferences into initramfs.
+  * po/it.po: Add Italian debconf translation (Closes: Bug#1024689).
+  * po/pt_BR.po: Add Brazilian Portuguese translation (Closes: Bug#1025207).
+  * control: Add polkitd as alternative to policykit-1 package
+    (Closes: Bug#1025547).
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 06 Dec 2022 22:25:48 +0100
+
+brltty (6.5-5ubuntu3) lunar; urgency=medium
+
+  * Rebuild against latest icu
+
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Sat, 04 Feb 2023 14:27:29 -0500
+
+brltty (6.5-5ubuntu2) lunar; urgency=medium
+
+  * Fix accidentally uploaded merge conflict
+
+ -- William 'jawn-smith' Wilson <jawn-smith@ubuntu.com>  Thu, 24 Nov 2022 09:55:15 -0600
+
+brltty (6.5-5ubuntu1) lunar; urgency=low
+
+  * Merge from Debian unstable. Remaining changes:
+    - Remaining changes:
+      + add brltty-setup
+        - debian/brltty-setup
+        - debian/brltty.install
+        - debian/rules
+      + add initramfs integration to run brltty-setup if necessary before
+        plymouth starts
+        - debian/control
+        - debian/initramfs/brltty.sh
+        - debian/initramfs/hooks/brltty.in
+        - debian/initramfs/scripts/init-premount/brltty
+        - debian/initramfs/scripts/init-top/brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+        - debian/brltty.postinst
+      + add ubiquity integration to propagate any brltty configuration to the
+        target system
+        - debian/31brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+      + add udev rules file that uses brltty-udev.service to activate via
+        systemd
+        - debian/brltty-udev.service
+        - debian/brltty.dirs
+        - debian/brltty.udev.rules
+        - debian/rules
+      + disable brltty.service by default, but enable it if the user configures
+        Braille at install time for a non-USB display
+        - debian/31brltty
+        - debian/rules
+      + don't install /etc/brltty.conf in the package
+        - debian/31brltty
+      + debian/brltty.udev.rules: don't claim generic USB device IDs it leads
+        to brltty grabbing serial ports which other devices like Arduinos
+        boards can't use anymore
+
+ -- William 'jawn-smith' Wilson <jawn-smith@ubuntu.com>  Fri, 23 Nov 2022 16:22:13 +0000
+
+brltty (6.5-5) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * {brltty,libbrlapi-dev}.lintian-overrides: Update suppressions.
+  * debian/initramfs/scripts/init-premount/brltty: Make initrd-started brltty
+    emit its pid into /run.
+  * debian/brltty.service: Kill the initrd-started brltty before running the
+    systemd-controlled brltty.
+
+  [ Sébastien Hinderer ]
+  * initramfs/hooks/brltty.in: Fix copy_exec call, it already includes
+    $DESTDIR.
+
+  [ Debian Janitor ]
+  * Remove constraints unnecessary since buster (oldstable):
+    + Build-Depends: Drop versioned constraint on cython3 and tcl.
+    + brltty: Drop versioned constraint on lsb-base in Depends.
+    + brltty-x11: Drop versioned constraint on xbrlapi in Recommends.
+    + brltty-x11: Drop versioned constraint on gnome-orca in Breaks.
+    + xbrlapi: Drop versioned constraint on brltty-x11 in Replaces.
+    + xbrlapi: Drop versioned constraint on brltty-x11 in Breaks.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 12 Nov 2022 13:18:59 +0100
+
+brltty (6.5-4) unstable; urgency=medium
+
+  * rules: Leverage /usr/share/dpkg/pkg-info.mk to provide package
+    information.
+  * brltty.postinst: Call update-initramfs -u when START_IN_INITRAMFS is set
+    (Closes: Bug#1019889)
+  * control: Make cl-brlapi Multi-Arch: foreign.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 17 Sep 2022 21:01:50 +0200
+
+brltty (6.5-3ubuntu2) lunar; urgency=medium
+
+  * No-change rebuild with Python 3.11 as supported
+
+ -- Graham Inggs <ginggs@ubuntu.com>  Thu, 03 Nov 2022 15:39:30 +0000
+
+brltty (6.5-3ubuntu1) kinetic; urgency=low
+
+  * Merge from Debian unstable. Remaining changes:
+    - Remaining changes:
+      + add brltty-setup
+        - debian/brltty-setup
+        - debian/brltty.install
+        - debian/rules
+      + add initramfs integration to run brltty-setup if necessary before
+        plymouth starts
+        - debian/control
+        - debian/initramfs/brltty.sh
+        - debian/initramfs/hooks/brltty.in
+        - debian/initramfs/scripts/init-premount/brltty
+        - debian/initramfs/scripts/init-top/brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+        - debian/brltty.postinst
+      + add ubiquity integration to propagate any brltty configuration to the
+        target system
+        - debian/31brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+      + add udev rules file that uses brltty-udev.service to activate via
+        systemd
+        - debian/brltty-udev.service
+        - debian/brltty.dirs
+        - debian/brltty.udev.rules
+        - debian/rules
+      + disable brltty.service by default, but enable it if the user configures
+        Braille at install time for a non-USB display
+        - debian/31brltty
+        - debian/rules
+      + don't install /etc/brltty.conf in the package
+        - debian/31brltty
+      + debian/brltty.udev.rules: don't claim generic USB device IDs it leads
+        to brltty grabbing serial ports which other devices like Arduinos
+        boards can't use anymore
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Mon, 15 Aug 2022 20:28:46 -0700
+
+brltty (6.5-3) unstable; urgency=medium
+
+  * debian/brltty-udeb.sh: Automatically shrink d-i width to 80 columns, as
+    that is much more convenient on Braille devices.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 12 Jun 2022 18:11:04 +0200
+
+brltty (6.5-2) unstable; urgency=medium
+
+  * rules: Disable hid package in udeb package.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 12 Jun 2022 10:00:49 +0200
+
+brltty (6.5-1) unstable; urgency=medium
+
+  * New upstream release.
+    - patches/socket-permissions: Drop, fixed upstream.
+    - patches/py310-sysconfig: Drop, merged upstream.
+    - patches/paste-newlines: Drop, merged upstream.
+    - patches/paste-firefox-lo: Drop, merged upstream.
+    - control: Add python3-setuptools build-dep.
+    - rules: Add dh_missing call.
+    - not-installed: Ignore non-installation of hacking tools, brltty.pc, and
+      internal headers.
+    - brltty.install: Install polkit rules.d. Install brltty-atb, brltty-ktb,
+      brltty-clip, brltty-hid, brltty-lscmds, brltty-morse, brltty-tune.
+    - libbrlapi-jni.install: Simplify rule.
+    - rules: Simplify installing messages.
+    - brltty-udeb.udev.rules: Update udev rules.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 11 Jun 2022 18:59:43 +0200
+
+brltty (6.4-6ubuntu1) kinetic; urgency=medium
+
+  * Resynchronize on Debian
+    - Remaining changes:
+      + add brltty-setup
+        - debian/brltty-setup
+        - debian/brltty.install
+        - debian/rules
+      + add initramfs integration to run brltty-setup if necessary before
+        plymouth starts
+        - debian/control
+        - debian/initramfs/brltty.sh
+        - debian/initramfs/hooks/brltty.in
+        - debian/initramfs/scripts/init-premount/brltty
+        - debian/initramfs/scripts/init-top/brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+        - debian/brltty.postinst
+      + add ubiquity integration to propagate any brltty configuration to the
+        target system
+        - debian/31brltty
+        - debian/brltty.dirs
+        - debian/brltty.install
+      + add udev rules file that uses brltty-udev.service to activate via
+        systemd
+        - debian/brltty-udev.service
+        - debian/brltty.dirs
+        - debian/brltty.udev.rules
+        - debian/rules
+      + disable brltty.service by default, but enable it if the user configures
+        Braille at install time for a non-USB display
+        - debian/31brltty
+        - debian/rules
+      + don't install /etc/brltty.conf in the package
+        - debian/31brltty
+      + debian/brltty.udev.rules: don't claim generic USB device IDs it leads
+        to brltty grabbing serial ports which other devices like Arduinos
+        boards can't use anymore, thanks Samuel Thibault (lp: #1958224)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 12 May 2022 16:01:05 +0200
+
+brltty (6.4-6) unstable; urgency=medium
+
+  * patches/paste-newlines: Fix pasting newlines in X with the brltty
+    shortcut.
+  * patches/paste-firefox-lo: Fix pasting into FireFox and LibreOffice.
+  * debian/brltty-udeb.prebaseconfig: Use ':' in chown.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 28 Apr 2022 00:24:23 +0200
+
+brltty (6.4-5) unstable; urgency=medium
+
+  * patches/py310-sysconfig: Fix build with python 3.10 (Closes: Bug#1007927)
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 28 Mar 2022 00:09:45 +0200
+
+brltty (6.4-4) unstable; urgency=medium
+
+  [ Camaleón ]
+  * po/es.po: Spanish translation (Closes: Bug#1003516)
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 29 Jan 2022 14:21:00 +0100
+
+brltty (6.4-3) unstable; urgency=medium
+
+  [ Américo Monteiro ]
+  * po/pt.po: Portuguese translation (Closes: Bug#1001919)
+
+  [ Samuel Thibault ]
+  * rules: Remove etc/brltty/Contraction/latex-access.ctb from brltty-udeb.
+  * control: Remove libpcre3-dev build-dep, not actually used
+    (Closes: Bug#1000046)
+  * rules: Remove --without-viavoice, dropped in 6.0 release.
+  * control: Bump Standards-Version to 4.6.0 (no change)
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 08 Jan 2022 20:13:40 +0100
+
+brltty (6.4-2) unstable; urgency=medium
+
+  * patches/socket-permissions: Fix BrlAPI socket permissions
+    (Closes: Bug#995971)
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 09 Oct 2021 14:54:01 +0200
+
+brltty (6.4-1) unstable; urgency=medium
+
+  * New upstream release.
+  * po/nl.po: Add French translation (Closes: Bug#994985)
+  * po/de.po: Add German translation (Closes: Bug#995105)
+  * brltty.lintian-overrides: Note that we already recommend python3 for
+    brltty.
+  * control: Make python3-all-dev build-dep :any.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 07 Oct 2021 01:27:30 +0200
+
+brltty (6.4~pre-1) experimental; urgency=medium
+
+  * New upstream snapshot.
+    - patches/41-java-bytecode-compat.patch: Refresh.
+    - rules: Disable liblouis support in udeb.
+    - brltty-udeb.udev.rules: Update udev rules.
+  * gbp.conf: Use filter to clean upstream tarball.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 19 Aug 2021 11:43:58 +0200
+
+brltty (6.3+dfsg-4) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * patches/11-python-ldflags.patch: Drop patch, fixed in distutils.
+  * po/nl.po: Add Dutch translation (Closes: Bug#994142)
+
+  [ Gregory Nowak ]
+  * brltty.init: Make it wait for $local_fs, like the systemd service does.
+    (Closes: Bug#994729)
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 20 Sep 2021 23:26:29 +0200
+
+brltty (6.3+dfsg-3) unstable; urgency=medium
+
+  * brltty-udeb.prebaseconfig: Enable screen reader in Cinnamon
+    (Closes: Bug#992169).
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 22 Aug 2021 14:55:23 +0200
+
+brltty (6.3+dfsg-2) unstable; urgency=medium
+
+  [ Matthias Klose ]
+  * Allow one to build without the udeb package (Closes: Bug#983323)
+
+  [ Jonathan Hettwer ]
+  * Add a proper d-i menu title to brltty-udeb
+  * Add po-debconf translation infrastructure
+
+  [ John Paul Adrian Glaubitz ]
+  * control, rules: Enable java support on m68k (Closes: Bug#986053)
+
+  [ Adrian Bunk ]
+  * rules: on ia64, pass -static-libgcc in LDFLAGS of the udeb build
+    (Closes: Bug#986743)
+
+  [ Samuel Thibault ]
+  * control: Make brltty suggest unicode-cldr-core to get emoji pronounciations.
+  * control: Drop autoconf build-dep, now pulled by debhelper.
+  * control: Explicitly add libx11-dev and libxt-dev, that autoconf explicitly
+    tests for.
+  * control: Replace libgpmg1-dev build-dep with libgpm-dev.
+  * control: Explicitly build-depend on gettext.
+  * control: Set Rules-Requires-Root to no.
+  * rules: Drop ddeb-migration rules, now useless.
+  * debian/brltty-udeb.sh: Also kill the main menu and debconf, otherwise the
+    graphical versions remain behind and fill logs.
+  * rules: Make Python bindings build verbose.
+  * patches/11-python-ldflags.patch: Manually pass CFLAGS/LDFLAGS from
+    environment to setup.py.
+  * rules: Call debconf-updatepo in clean rule.
+  * po/templates.pot: Refresh.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 15 Aug 2021 22:57:39 +0200
+
+brltty (6.3+dfsg-1) unstable; urgency=medium
+
+  * New upstream release.
+    - patches/lock-fixes: Upstreamed.
+    - patches/40-no-update-pot.patch: Refresh.
+  * rules: Fix manpage date reproducibility by setting TZ to UTC.
+  * brltty.manpages: Explicit list of manpages.
+  * xbrlapi.manpages: Install manpage from installed path.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 28 Jan 2021 17:45:12 +0100
+
+brltty (6.2+dfsg-2) unstable; urgency=high
+
+  * rules: Fix passing hardening flags to udeb build.
+  * patches/lock-fixes: Fix some locking issues.
+  * control: Make brltty pre-depend on ${misc:Pre-Depends} to get
+    --skip-systemd-native.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 03 Jan 2021 01:53:04 +0100
+
+brltty (6.2+dfsg-1) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * New upstream release.
+    - patches/atspi2-invalid-unicode: upstreamed.
+    - patches/link: upstreamed.
+    - patches/polkit: upstreamed.
+    - brltty.examples: Update Upstart example file name.
+
+  * Bump debhelper compat from 11 to 12.
+
+  [ Debian Janitor ]
+  * Update renamed lintian tag names in lintian overrides.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 23 Dec 2020 18:24:57 +0100
+
+brltty (6.2~pre.2+dfsg-3) experimental; urgency=medium
+
+  * patches/atspi2-invalid-unicode: Also reject negative unicode characters.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 07 Dec 2020 20:45:15 +0100
+
+brltty (6.2~pre.2+dfsg-2) experimental; urgency=medium
+
+  * patches/atspi2-invalid-unicode: Avoid letting atspi2 return invalid
+    unicode characters.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 06 Dec 2020 11:39:28 +0100
+
+brltty (6.2~pre.2+dfsg-1) experimental; urgency=medium
+
+  * New upstream snapshot.
+    - patches/no-clone-newipc: Upstreamed.
+    - patches/link: Fix link.
+    - patches/polkit: Fix installing polkit action.
+    - rules: run make install-polkit.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 01 Dec 2020 20:59:56 +0100
+
+brltty (6.2~pre+dfsg-2) experimental; urgency=medium
+
+  * patches/no-clone-newipc: Upstream fix for espeak access to alsa.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 21 Nov 2020 22:43:02 +0100
+
+brltty (6.2~pre+dfsg-1) experimental; urgency=medium
+
+  * New upstream snapshot.
+    - control: Add libcap-dev build-dep on linux.
+    - patches/a2_cut: Upstreamed.
+    - patches/a2_x11_crash: Upstreamed.
+    - patches/a2_xsel_flush: Upstreamed.
+    - patches/python-writeDots: Upstreamed.
+    - patches/python3: Upstreamed.
+    - patches/sd_session_get_vt: Upstreamed.
+    - patches/xbrlapi-install: Upstreamed.
+    - patches/xbrlapi-path: Upstreamed.
+    - patches/xbrlapi-root-unknown: Upstreamed.
+    - patches/41-java-bytecode-compat.patch: Bump to java 8 compatibility.
+    - debian/brltty.examples: Fix udev rules examples paths.
+    - debian/brltty-udeb.udev.rules: Update udev rules.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 19 Nov 2020 22:49:34 +0100
+
+brltty (6.1+dfsg-3) unstable; urgency=medium
+
+  * patches/a2_xsel_flush: New patch to fix clipboard management.
+  * patches/xbrlapi-path: Fix path to xbrlapi program.
+  * patches/a2_x11_crash: Fix a2 crash on cursor routing.
+  * patches/a2_cut: Fix clipboard management when running a2 screen driver
+    without the BrlAPI server.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 07 Nov 2020 18:03:54 +0100
+
+brltty (6.1+dfsg-2) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Use secure URI in debian/watch.
+  * control: Bump Standards-Version to 4.5.0 (no change)
+  * Remove 3 unused lintian overrides.
+
+  * debian/xbrlapi.maintscript: Remove old 60xbrlapi script.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 18 Oct 2020 17:54:16 +0200
+
+brltty (6.1+dfsg-1) experimental; urgency=medium
+
+  * New upstream release.
+    - Rename libbrlapi0.7 package to libbrlapi0.8 according to soname bump.
+    - brltty-udeb.udev.rules: Update with new driver support.
+    - patches/50-constants.patch: Upstreamed.
+    - patches/java-jni: Upstreamed.
+    - patches/python3: Refresh.
+    - patches/python-verbose: Upstreamed.
+    - patches/log-spam: Upstreamed.
+    - control: Add libxfixes-dev build-dep.
+    - patches/xbrlapi-install: New patch, fixes installing 90xbrlapi from
+    out-of-source builds.
+    - brltty.examples: Install systemd wrapper example too.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 06 Apr 2020 23:44:34 +0200
+
+brltty (6.0+dfsg-6) unstable; urgency=medium
+
+  * brltty-udeb.udev.rules: Merge with upstream's rules file, to make updating
+    much easier.
+  * brltty-udeb.udev.sh: Add -E option for udev script to make brltty detect
+    exactly the right device.
+  * README.source: Document the dfsg tarball modifications.
+  * patches/sd_session_get_vt: Automatically get VT nr from logind.
+  * control: Update alioth list domain.
+  * patches/python-writeDots: Fix python's writeDots binding.
+  * patches/xbrlapi-root-unknown: do not print the root window name.
+  * brltty-udeb.start: Add missing +x perm.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 11 Jun 2020 02:10:29 +0200
+
+brltty (6.0+dfsg-5) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * rules: Rely on pre-initialized dpkg-architecture variables.
+  * patches/python-verbose: Make python bindings build verbose when V=1 is set.
+  * patches/log-spam: Avoid spamming log with recent Orca which tries to
+    reconnect periodically.
+
+  [ Debian Janitor ]
+  * Trim trailing whitespace.
+  * Set debhelper-compat version in Build-Depends.
+  * Set upstream metadata fields: Name (from ./configure).
+  * Update standards version to 4.4.1, no changes needed.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 12 Mar 2020 00:14:42 +0100
+
+brltty (6.0+dfsg-4) unstable; urgency=medium
+
+  * patches/python3: Make latex-access.ctb use python3. Make configure look
+    for cython3 too.
+  * patches/10-python.patch: Use python3's python.mk
+  * control: Recommend python3 instead of python.
+  * control: Build-depend on cython3 instead of cython (Closes: Bug#945627)
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 01 Dec 2019 14:39:33 +0100
+
+brltty (6.0+dfsg-3) unstable; urgency=medium
+
+  * Upload to unstable.
+  * watch: Generalize pattern.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 12 Oct 2019 19:26:20 +0200
+
+brltty (6.0+dfsg-2) experimental; urgency=medium
+
+  * control,rules: Re-enable java on riscv64 (Closes: Bug#933711)
+  * control: Set Vcs-* to salsa.debian.org.
+  * control: Bump Standards-Version to 4.4.0 (no changes).
+  * control: Drop X-Python3-Version 3.2.
+  * sources/options: Remove now-useless compression option.
+  * source/lintian-overrides: Silence some warnings.
+  * brltty.{pre,post}{inst,rm}: Remove old upgrade fixes.
+  * libbrlapi-dev.lintian-overrides: Silence warnings.
+  * rules: Remove non-working jquery files.
+  * control: Build-depend on cython (>= 0.28.4).
+  * brltty.lintian-overrides: Remove package-contains-empty-directory
+    lib/brltty/rw/, dropped upstream.
+  * control: Remove autotools-dev build-dep, now useless.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 17 Sep 2019 21:24:22 +0200
+
+brltty (6.0+dfsg-1) experimental; urgency=medium
+
+  * New upstream release.
+    - Remove non-shipped generated files DOS/cwsdpmi.exe, Windows/msvcr90.dll,
+    Documents/BrlAPIref/html from upstream tarball.
+    - Rename libbrlapi0.6 to libbrlapi0.7 according to soname bump.
+    - debian/patches/atspi2-shutdown: Merged.
+    - debian/patches/git-atspi2-init: Merged.
+    - debian/patches/git-new_hedomobiline_usbid: Merged.
+    - debian/patches/git-pythonclose: Merged.
+    - debian/patches/git-xbrlapi: Merged.
+    - debian/patches/policykit-fix: Merged.
+    - debian/patches/10-python.patch: Refreshed.
+    - debian/patches/java-jni: Fix jni path, allow to preseed it.
+    - control: Add libexpat1-dev, libpcre3-dev build-dependencies.
+    - rules: Preseed jni path.
+    - rules: Disable using rgx package for d-i which does not have it.
+    - control: Explicitly add libespeak-ng-dev build-dependency.
+    - rules: Add espeak-ng driver to brltty-espeak package.
+    - debian/libbrlapi-jni.install: Move jni to multi-arch.
+    - control: Add dh-exec build-depend. Make libbrlapi-jni multiarch: same.
+    - control: Make brltty, libbrlapi-java, xbrlapi multi-arch: foreign.
+    - compat: Bump to 11.
+    - debian/brltty.docs: Drop elder README file.
+    - rules: Use dh_installsystemd instead of dh_systemd_enable and
+    dh_systemd_start.
+  * Demote policykit-1 Depends to Recommends on !linux.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 02 Mar 2019 10:24:01 -0800
+
+brltty (5.6-11) unstable; urgency=medium
+
+  * brltty-udeb.prebaseconfig: Stop creating my-at-spi-dbus-bus.desktop in
+    user profile, at-spi2-core now always start the at-spi bus.
+  * Drop python-brlapi.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 25 Jul 2019 21:30:08 +0200
+
+brltty (5.6-10) unstable; urgency=medium
+
+  * debian/brltty-udeb.udev.rules: Fix hd detection
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 03 Feb 2019 23:04:56 +0100
+
+brltty (5.6-9) unstable; urgency=medium
+
+  [ Sebastian Humenda ]
+  * backport fixed/updated chipset detection for Hedo MobiLine from commit
+    7299c5c70682f98b191a660eec5559479bd12d2f
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 26 Jan 2019 22:58:12 +0100
+
+brltty (5.6-8) unstable; urgency=medium
+
+  * Install /var/lib/BrlAPI too for user-started brlapi servers.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 01 Jan 2019 16:59:59 +0100
+
+brltty (5.6-7) unstable; urgency=medium
+
+  * control, rules: Disable java on riscv64 too.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 04 Nov 2018 12:18:36 +0100
+
+brltty (5.6-6) unstable; urgency=medium
+
+  * control: Bump Standards-Version to 4.2.0 (no changes).
+  * control, rules: Disable java on archs without openjdk.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 04 Nov 2018 03:25:00 +0100
+
+brltty (5.6-5) unstable; urgency=medium
+
+  * patches/atspi2-shutdown: Automatically shut down brltty on session shut
+    down.
+  * control: Bump Standards-Version to 4.1.5 (no changes).
+  * control: Mark python-brlapi and python3-brlapi Multi-Arch: same.
+  * patches/policykit-fix: Fix polkit authentication (Closes: #905058).
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 01 Aug 2018 18:14:54 +0200
+
+brltty (5.6-4) unstable; urgency=medium
+
+  * Cherry-pick python brlapi close fix, to avoid orca accumulating brlapi
+    connections.
+  * Cherry-pick at-spi2 initialization fix.
+  * Cherry-pick xbrlapi patch to be able to type any keysym.
+  * Bump Standards-Version to 4.1.4 (no changes).
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 17 May 2018 19:28:00 +0200
+
+brltty (5.6-3) unstable; urgency=medium
+
+  * debian/patches/41-java-bytecode-compat.patch: Bump java compatability to
+    1.6 and later (Closes: Bug#893102).
+
+ -- Samuel Thibault <sthibault@debian.org>  Fri, 16 Mar 2018 15:20:39 +0100
+
+brltty (5.6-2) unstable; urgency=medium
+
+  * debian/copyright: Fix licence terms.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 13 Feb 2018 11:35:38 +0100
+
+brltty (5.6-1) experimental; urgency=medium
+
+  * New upstream release.
+    - debian/patches/api_startup.patch: Upstreamed.
+    - debian/patches/git-07ecca2240c680373e9c2e5e38241edde9d1a677: Upstreamed.
+    - debian/patches/brldefs-install.patch: Upstreamed.
+    - debian/patches/git-ba42441d03c6145fe6859c90fb01b1fa16221a2f: Upstreamed.
+    - debian/brltty-udeb.udev.rules: Add new device IDs.
+    - debian/control: Add liblouis-dev build-dep.
+    - debian/rules: Make brltty install appstream data.
+  * control: Avoid the ALSA PCM package on non-Linux.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 11 Feb 2018 17:18:14 +0100
+
+brltty (5.5-4) unstable; urgency=medium
+
+  * initramfs/hooks/brltty.in, initramfs/scripts/init-premount/brltty: Update
+    /sbin/brltty paths.
+  * control: Replace dh-systemd build-depends with debhelper (>= 9.20160709)
+  * rules: Set DEB_HOST_ARCH only if not defined already.
+
+  [ Mario Lang ]
+  * git-ba42441d03c6145fe6859c90fb01b1fa16221a2f: New patch to prevent scancodes
+    from generating spurious log messages.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 03 Dec 2017 18:37:26 +0100
+
+brltty (5.5-3) experimental; urgency=medium
+
+  * rules: Let brltty get installed into /bin, so it can be run e.g. in X for
+    accessing terminals.
+  * brltty.links: Add compatibility symlink in /sbin/brltty.
+  * brltty-udeb.dirs, brltty-udeb.sh, brltty.dirs, brltty.init,
+    brltty.install, brltty.service, xbrlapi.install, 20-sbin.patch: Update
+    accordingly.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 01 Oct 2017 22:19:06 +0200
+
+brltty (5.5-2) unstable; urgency=medium
+
+  * Upload to unstable (Closes: #871155)
+  * patches/git-07ecca2240c680373e9c2e5e38241edde9d1a677: Apply upstream patch
+    to fix finnish table (Closes: Bug#864670).
+  * control: Update maintainer mailing list.
+  * libbrlapi-dev.install: Also install device-specific brldefs headers
+    (Closes: Bug#869972).
+  * patches/brldefs-install: Fix installing device-specific brldefs headers.
+  * control: Migrate priority to optional.
+  * control: Bump Standards-Version to 4.1.1
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 01 Oct 2017 22:09:51 +0200
+
+brltty (5.5-1) experimental; urgency=medium
+
+  * git-reproducible.patch: Make the build reproducible, thanks Chris West for
+    the patch (Closes: Bug#859959).
+  * New upstream release (Closes: #871155)
+    - patches/defauth-keyfile.patch, defauth-polkit, git-braillenote.patch,
+      git-lsystemd.patch, git-manufacturer.patch, git-reproducible.patch,
+      git-speech-crash.patch, git-vario-ultra-restart.patch, wait-polkit,
+      xbrlapi-nospam.patch, xbrlapi-setfocus.patch, xbrlapi.patch: Remove
+      patches, merged upstream.
+    - patches/20-sbin.patch: update patch.
+    - org.a11y.brltty.metainfo.xml, 60xbrlapi, xbrlapi.desktop: Remove files,
+      merged upstream.
+  * patches/api_startup.patch: Fix race between socket setup and select().
+  * brltty-udeb.udev.rules: Update.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 22 May 2017 01:43:35 +0200
+
+brltty (5.4-7) unstable; urgency=medium
+
+  * git-vario-ultra-restart.patch: Fix baum driver restarting when typing too
+    fast on Vario Ultra device (Closes: Bug#857558).
+  * disable-synth-callback.patch: Disable synth callback from espeak-ng to
+    avoid crashes (Closes: Bug#854295).
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 12 Mar 2017 15:31:57 +0100
+
+brltty (5.4-6) unstable; urgency=medium
+
+  * patches/xbrlapi-nospam.patch: Prevent xbrlapi from retrying to connect to
+    brltty when it failed at startup (Closes: Bug#851623).
+  * Use canonical anonscm vcs URL.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 24 Jan 2017 03:10:25 +0100
+
+brltty (5.4-4) unstable; urgency=medium
+
+  [team upload]
+  * start brltty only if all keyboards have been detected (Closes: #848008)
+
+ -- Sebastian Humenda <shumenda@gmx.de>  Tue, 13 Dec 2016 07:35:37 +0100
+
+brltty (5.4-3) unstable; urgency=medium
+
+  * patches/git-braillenote.patch: Upstream patch to fix USB autodetection of
+    BrailleNote.
+  * patches/git-manufacturer.patch: Upstream patch to use USB manufacturer to
+    match braille devices with a generic USB ID, to avoid taking control of
+    unrelated devices.
+  * brltty-udeb.udev.rules: Match USB manufacturers too.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 21 Nov 2016 21:33:59 +0100
+
+brltty (5.4-2) unstable; urgency=medium
+
+  * org.a11y.brltty.metainfo.xml: Fix hexadecimal case (Closes: Bug#837640).
+  * patches/{git-speech-crash.patch,wait-polkit,xbrlapi-setfocus.patch,
+    xbrlapi.patch}: Refresh to actual upstream commit.
+  * brltty-udeb.prebaseconfig: Add support for LXQt.
+  * control: Switch to espeak-ng.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 10 Nov 2016 00:42:06 +0100
+
+brltty (5.4-1) unstable; urgency=low
+
+  * Upload to unstable
+  * control: Update Uploaders (Closes: Bug#840859).
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 18 Oct 2016 23:41:16 +0200
+
+brltty (5.4-1~3) experimental; urgency=medium
+
+  * patches/xbrlapi-setfocus.patch: Fix flush on xbrlapi setfocus.
+  * 60xbrlapi: Fix typo (Closes: Bug#840183).
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 09 Oct 2016 13:41:04 +0200
+
+brltty (5.4-1~2) experimental; urgency=medium
+
+  * patches/xbrlapi.patch: Fix spurious brlapi connection reopens.
+  * patches/defauth-keyfile.patch: Fix using both polkit and keyfile.
+  * patches/defauth-polkit: Default to using both policykit and
+    /etc/brlapi.key to authenticate brlapi clients.
+  * brltty.postinst: Do not make /etc/brlapi.key readable by world any more,
+    polkit should now be enough.
+  * brltty.service: Drop filesystem access restrictions, brltty needs to
+    access /var/lib/BrlAPI as well as preference files.
+  * control: brltty now needs policykit installed.
+  * patches/wait-polkit: Wait for policykit startup instead of failing to
+    start BrlAPI.
+  * NEWS: fix description of adding policykit support.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 09 Oct 2016 02:03:48 +0200
+
+brltty (5.4-1~1) experimental; urgency=medium
+
+  [ Samuel Thibault ]
+  * control: Bump Standards-Version to 3.9.8 (no change)
+  * brltty-udeb.udev.rules: Add new HumanWare USB ID.
+  * brltty.install: Install eutp too.
+  * control: Add libpolkit-gobject-1-dev build-dep. Drop hardening-wrapper
+    dependency (closes: Bug#836617).
+  * rules: Disable polkit from udeb. Set hardening.
+  * brltty.install: Install polkit policy.
+  * 60xbrlapi: Silence startup warning when brltty is not running.
+  * org.a11y.brltty.metainfo.xml: Add appstream meta-info for isenkram
+    (Closes: Bug#837640).
+  * patches/git-speech-crash.patch: New upstream patch to fix crash when sd
+    module set but speech-dispatcher not running (Closes: Bug#838764).
+    Thanks Sebastian Humenda for the report.
+  * rules: Fix some non-reproducibility by calling dh_strip_nondeterminism.
+  * git-lsystemd.patch: Fix build with libsystemd.
+  * patches/defauth-polkit: Default to using policykit to authenticate brlapi
+    clients instead of /etc/brlapi.key.
+
+  [ Mario Lang ]
+  * New upstream release.
+
+ -- Mario Lang <mlang@debian.org>  Wed, 29 Jun 2016 16:30:01 +0200
+
+brltty (5.3.1-3) unstable; urgency=high
+
+  [ Samuel Thibault ]
+  * brltty-udeb.postinst: Only preseed installing MATE desktop by default when
+    brltty is really running.
+
+  [ Cyril Brulebois ]
+  * Bump urgency to high for the upcoming D-I Stretch Alpha 6 release.
+
+ -- Cyril Brulebois <kibi@debian.org>  Thu, 19 May 2016 21:12:24 +0200
+
+brltty (5.3.1-2) unstable; urgency=high
+
+  * rules: Set ddeb-migration.
+  * control: Depend on debhelper 9.20150628 for ddeb-migration.
+  * control: Bump Standards-Version to 3.9.7 (no change).
+  * control: Build-depend on libsystemd-dev on linux-any (Closes: Bug#818241).
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 15 Mar 2016 01:36:39 +0100
+
+brltty (5.3.1-1) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * brltty-udeb.postinst: Preseed installing MATE desktop by default when brltty
+    is used in d-i.
+  * watch: Generalize URL.
+  * Disable auto-detection of Cebra, Albatross, and BrailleMemo devices in the
+    Debian Installer, since they are rare and conflict with other devices
+    (Closes: #782732).
+  * patches/git-18c9b3f: New patch to fix xbrlapi looping when brltty shuts
+    down.
+  * rules:
+    - Remove /lib/$DEB_HOST_MULTIARCH/libbrlapi.so, link directly
+    libbrlapi from /lib to /usr/lib (Closes: #766810).
+    - Make binary-indep depend on brltty to actually install the binary-indep
+    files (Closes: #805938).
+  * brltty-udeb.prebaseconfig:
+    - Enable screen reader in KDE.
+    - Support 4th bootline parameter.
+  * patches/git-8229038: New patch to add 4th bootline parameter support.
+  * control: Drop multiarch-support pre-depend.
+
+  [ Mario Lang ]
+  * New upstream release.
+  * Drop merged patches.
+  * Disable systemd in udev package.
+
+  [ Samuel Thibault ]
+  * brltty-udeb.udev.rules: Add new USB IDs.
+  * Drop merged patch.
+  * Drop libbrlapi0.6.postinst libbrlapi0.6.postrm, now using triggers.
+  * Drop jquery.js from brlapi reference documentation, to make sure that
+    doxygen regenerates it.
+
+  [ Mario Lang ]
+  * debian/brltty.service: Update from upstream example.
+
+ -- Mario Lang <mlang@debian.org>  Sat, 09 Jan 2016 13:54:30 +0100
+
+brltty (5.2~20141018-5) unstable; urgency=high
+
+  * patches/60-albatross.patch: Fix probing loop stuck inside the albatross
+    driver (Closes: #782732).
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 16 Apr 2015 23:19:16 +0200
+
+brltty (5.2~20141018-4) unstable; urgency=medium
+
+  * patches/git-9337089: Fix xbrlapi into really not writing anything when
+    passed option -q (closes: #777574).
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 15 Feb 2015 02:25:14 +0100
+
+brltty (5.2~20141018-3) unstable; urgency=medium
+
+  * brltty-udeb.prebaseconfig: Make grub beep at boot when brltty was used
+    during installation (Closes: #774536).
+  * patches/git-2421eda: Fix xbrlapi window path computation (Closes: #777377).
+  * control: Break old version of Orca which does not have the same fix as
+    xbrlapi.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 08 Feb 2015 22:58:05 +0100
+
+brltty (5.2~20141018-2) unstable; urgency=medium
+
+  * patches/git-a7123d7: Fix brlapi output with the NoScreen screen driver.
+    (Closes: #767601).
+  * libbrlapi-dev.install: Do not install internal brltty headers
+    (Closes: #766844).
+  * rules: Remove brltty headers from brltty-udeb.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 06 Nov 2014 19:53:48 +0100
+
+brltty (5.2~20141018-1) unstable; urgency=medium
+
+  * New upstream snapshot, very close to upstream 5.2 release.
+    - control: Build-Depend on pkg-config
+    - brltty-udeb.udev.rules: Update autostart rules with newer devices.
+    - patches/30-format-security.patch, 60-fix-man-install.patch,
+      70-fs-hang-fix.patch, 80-kfreebsd.patch, 90-zh-lang-fix.patch: Remove,
+      merged upstream
+    - rules: Fix table and help paths.
+  * rules: Fix passing CL_DATE to sed (Closes: #708585).
+  * brltty-udeb.prebaseconfig: Fix auto-starting at-spi and orca in XFCE and
+    LXDE.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 25 Oct 2014 22:33:42 +0200
+
+brltty (5.0-3) unstable; urgency=low
+
+  [ Paul Gevers ]
+  * Improved timestamp fix in man pages to be independent of locales and
+    file timestamps (Closes: #708585)
+
+  [ Samuel Thibault ]
+  * Team upload.
+  * Append the d-i -inherited configure to the end of brltty.conf instead of
+    dropping it (which was thus losing the documentation for the user).
+  * patches/90-zh-lang-fix.patch: Fix zh translation syntax.
+  * brltty-udeb.prebaseconfig: Enable accessibility in XFCE, LXDE and MATE
+    sessions too.
+  * Bump Standards-Version to 3.9.6 (no changes).
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 27 Sep 2014 00:46:19 +0200
+
+brltty (5.0-2) unstable; urgency=medium
+
+  * Fix debian/watch file.
+  * Fix download URLs in copyright file(s).
+  * debian/patches/80-kfreebsd.patch: Try to fix build failure on
+    kFreeBSD.  Patch taken from upstream, but squashed, so no commit ID.
+
+ -- Mario Lang <mlang@debian.org>  Thu, 13 Mar 2014 14:42:49 +0100
+
+brltty (5.0-1) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * control:
+    - Make python*-brlapi description more explicit.
+    - Bump Standards-Version to 3.9.5 (no changes).
+  * debian/initramfs/hooks/brltty: rename to .in, and make DEB_HOST_MULTIARCH
+    computed at build time by debian/rules (Closes: #725986).
+  * Add brltty 5.0 USB IDs to udev rules.
+
+  [ Jason White ]
+  * Add support for systemd (based on upstream service file).
+    Closes: #726783.
+
+  [ Paul Gevers ]
+  * Adjust build and source files to be able to build against
+    speech-dispatcher 0.8
+  * Fix timestamp in man pages and strip LinuxDoc-Tools version from html
+    (Closes: #708585)
+
+  [ Mario Lang ]
+  * New upstream release.
+  * debian/source/options: compress with xz.
+  * debian/patches/20-sbin.patch: Update.
+  * debian/patches/30-format-security.patch: New.
+  * debian/brltty.examples: Update to account for renaming of a directory.
+  * (temporarily) disable bluetooth in udeb to prevent linking against
+    non-udeb packages.
+  * debian/patches/60-fix-man-install.patch: Cherry pick
+    a1e3a6a71d1278e243881ae7abdf0b65841c6aee from upstream to fix
+    installation of man pages for driver-specific tools.
+  * debian/patches/70-fs-hang-fix.patch: Cherry pick
+    aa3c189d5fb32859d2e93164f59255db35aea4f8 from upstream to fix
+    issues with FreedomScientific driver.
+
+ -- Mario Lang <mlang@debian.org>  Thu, 13 Mar 2014 11:18:19 +0100
+
+brltty (4.5-3) unstable; urgency=low
+
+  * Add python3-brlapi bindings. Thanks Luke for the Ubuntu work.
+  * Harmonize some rules with ubuntu packaging.
+  * Fix erroneous BRLAPI_DOT_CHORD value due to using awk instead of gawk.
+    (Closes: #708595)
+
+  * Merge wheezy changes:
+  * As discussed in bug Bug#705599, synchronize with finish-install on the
+    method to enable accessibility in the installed system when accessibility
+    was enabled in the installer.
+  * Also enable sound events at gdm banner.
+  * Add xbrlapi.desktop file to gdm session to get braille keyboard input
+    working. Closes: #680636.
+  * brltty-udeb.sh: Put Xorg killing in background, to avoid getting stuck if
+    Xorg is not actually to be started after all (textmode installer). Also
+    kill bterm, in case udev detects the braille device after bterm is
+    started. Closes: #705196.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 17 Jun 2013 22:15:01 +0200
+
+brltty (4.5-2) unstable; urgency=low
+
+  * Build-Depend on cython instead of python-pxrex.
+  * Fix "Ensure backwards compatible Java bytecode is built" by
+    applying the proposed patch (Closes: #688127)
+
+ -- Mario Lang <mlang@debian.org>  Thu, 16 May 2013 14:38:06 +0200
+
+brltty (4.5-1) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * control:
+    - Make libbrlapi-dev Multi-Arch: same.
+    - Fix long line in brltty description.
+    - Fix libbrlapi-jni section into java.
+  * brltty.{pre,post}{inst,rm}: Remove old conffiles. Closes: #704068.
+  * Fix stripping xbrlapi.
+  * Rename libbrlapi0.5 into libbrlapi0.6 to follow soname change.
+
+  [ Mario Lang ]
+  * New upstream release.
+    + Dropped debian/patches/30-late-fixes-*
+
+ -- Mario Lang <mlang@debian.org>  Tue, 07 May 2013 13:33:03 +0200
+
+brltty (4.4-8) unstable; urgency=low
+
+  * brltty-udeb.sh:
+    - Fix typo in path.
+    - Kill Xorg instead of debconf to switch back installer from g-i to
+    textmode. Also, sleep instead of busy-waiting for Xorg. Closes: #696972.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 31 Dec 2012 00:42:37 +0100
+
+brltty (4.4-7) unstable; urgency=low
+
+  * control: Add >= 8.5~ version to tcl build-depend, as brltty won't build
+    with tcl 8.4.
+  * patches/30-late-fixes-r6685.patch: Avoid cosmetic change in patch.
+
+ -- Samuel Thibault <sthibault@debian.org>  Thu, 20 Dec 2012 20:41:43 +0100
+
+brltty (4.4-6) unstable; urgency=low
+
+  * brltty-udeb.prebaseconfig: Enable orca in gnome3 sessions too.
+  * patches/30-late-fixes-r6685.patch: New patch to trivially add support for
+    EL*c.
+  * patches/30-late-fixes-r6777.patch: New patch to trivially add support for
+    Focus 14.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 02 Oct 2012 02:42:49 +0200
+
+brltty (4.4-5) unstable; urgency=low
+
+  [ Mario Lang ]
+  * Cherry-pick r6587 from upstream to fix accents output in screen message
+  (Closes: Bug#680648).
+
+  [ Samuel Thibault ]
+  * Cherry-pick r6588 from upstream to unfuzzy actually-translated messages
+  (Closes: Bug#680638).
+  * Cherry-pick r6592 and r6625 from upstream to fix typing modifiers in X11
+  (Closes: Bug#681460).
+  * Regenerate configure, add autoconf and tcl build-dependency.
+  * Cherry-pick r6623 from upstream to fix the atspi-2 screen driver. Add
+    atspi-2 and glib build-dependency accordingly.
+  * 40-no-update-pot.patch: Disable spurious update of .po files.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 28 Aug 2012 10:09:36 +0200
+
+brltty (4.4-4) unstable; urgency=medium
+
+  * Severity set to medium as it completely breaks access to d-i.
+  * brltty-udeb.*: Use /var/run/brltty.pid instead of /var/run/brltty, as the
+    latter is now installed as directory by brltty (Closes: #680208).
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 04 Jul 2012 23:05:59 -0300
+
+brltty (4.4-3) unstable; urgency=low
+
+  [ Mario Lang ]
+  * Update the list of supported displays in package description.
+
+  [ Samuel Thibault ]
+  * brltty-udeb.udev.rules: Add new braille USB IDs to d-i udev rules.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 27 Jun 2012 14:19:16 -0300
+
+brltty (4.4-2) unstable; urgency=low
+
+  [ Jason White ]
+  * control: Add brltty-dbg and libbrlapi-dbg packages.
+  * rules: Install debugging information.
+
+  [ Samuel Thibault ]
+  * patches/30-late-fixes-r6572.patch: Add patch to fix crash on brlapi
+    activity while devices are unplugged.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 18 Jun 2012 11:54:12 +0200
+
+brltty (4.4-1) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * debian/rules: Disable USB support on kFreeBSD (Closes: #668669).
+
+  [ Mario Lang ]
+  * New upstream release.
+    - Fixes spurious warning from xbrlapi (Closes: #673880).
+  * Drop all cherry-picked patches.
+  * Do not build the documentation twice.
+  * Cherry-pick some late fixes from upstream.
+  * brltty recommends python now because of /etc/brltty/latex-acces.ctb
+    which is written in Python.
+  * Install brltty-trtxt.
+  * Install brltty-ctb and brltty-ttb as well, and move vstp to
+    /usr/bin.
+
+ -- Mario Lang <mlang@debian.org>  Thu, 07 Jun 2012 16:08:28 +0200
+
+brltty (4.3-3) unstable; urgency=low
+
+  * control:
+    - Move xbrlapi from brltty-x11 to new xbrlapi package.  Should fix
+    spurious installation of brltty through orca's recommandation of xbrlapi.
+    - Set libbrlapi0.5 Multi-arch: same.
+  * libbrlapi-dev.links: Remove, move to ...
+  * rules: ... here, install libbrlapi in multiarch path.
+  * brltty-x11.{install,manpages}: Move xbrlapi to xbrlapi package.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sun, 25 Mar 2012 23:08:36 +0200
+
+brltty (4.3-2) unstable; urgency=low
+
+  * debian/patches/fr.po.patch: New patch to fix accents in french
+    translations (Closes: #655291).
+  * debian/rules: Do not enable hardening in brltty-udeb (saves room).
+  * control: Bump Standards-Version to 3.9.3 (no changes).
+  * debian/patches/40-esys-64.patch: New patch from upstream to fix support for
+    large esys/iris displays.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 27 Feb 2012 03:13:59 +0100
+
+brltty (4.3-1) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * New upstream release.
+    - debian/patches/30-upstream-table-fixes.patch: Drop, merged upstream.
+    - debian/patches/40-silence-offset-warning.patch: Drop, fixed upstream.
+    - debian/patches/50-screen_linux_build.patch: Drop, merged upstream.
+    - debian/rules: Help files are now called *.txt. Install localized messages.
+    - debian/60xbrlapi: Add script to automatically start xbrlapi on X11 session
+    startup.
+  * debian/rules: Use dh_python2 instead of dh_pysupport (Closes: #633910).
+  * debian/control: Bump dependencies accordingly. Set new XS-Python-Version
+    field to 2.7.
+  * debian/brltty-udeb.start: New script installed as
+    /lib/debian-installer.d/S19brltty, to record in /var/run/brltty-debconf that
+    debconf is about to be started with the current framebuffer parameters.
+  * debian/brltty-udeb.init: Remove udevadm settle call, and move disabling
+    framebuffer to...
+  * debian/brltty-udeb.sh: here, but create a
+    /lib/debian-installer.d/S20brltty script instead of doing it immediately,
+    since debconf might be currently running and about to overwrite the
+    database. Last but not least, if /var/run/brltty-debconf exists, kill
+    debconf to let it restart without framebuffer (Closes: #611648).
+  * debian/brltty-udeb.udev.rules: Add 1fe4:0054 entry.
+  * debian/rules: Add build-indep and build-arch targets.
+  * debian/rules: Set DEB_BUILD_HARDENING=1 to enable hardening.
+  * debian/control:
+    - Depend on hardening-check.
+    - Build-Conflict with libatspi-dev.
+  * debian/rules: Do not build and install atspi driver any more.
+
+  [ Mario Lang ]
+  * Fix brace-expansion-in-debhelper-config-file debian/brltty.install
+  * debian/initramfs/hooks/brltty: Update for multiarch (Closes: Bug#653587).
+
+ -- Samuel Thibault <sthibault@debian.org>  Fri, 06 Jan 2012 00:41:46 +0100
+
+brltty (4.2-8) unstable; urgency=low
+
+  * debian/brltty-udeb.prebasconfig: do not stop and not setup gconf just
+    because no table was specified in kernel parameters.
+  * debian/brltty.postinst: Fix typo.
+  * debian/control:
+    - Build-depend on libespeak-dev, add brltty-espeak package.
+    - Bump Standards-Version to 3.9.2 (no change needed)
+    - Remove libbrlapi-java dependency on JRE.
+  * debian/rules: Remove --without-espeak configure option, install
+    libbrlttyses.so
+  * debian/brltty-udeb.prebaseconfig: Fix parsing brltty= when not all
+    parameters are provided.
+  * debian/patches/50-screen_linux_build.patch: Upstream fix for linux screen
+    driver build (Closes: #625153).
+  * debian/cl-brlapi.postinst, cl-brlapi.prerm: Remove, and drop dh_lisp call
+    from debian/control, these are now void.
+  * debian/rules: To avoid spurious diffs, remove config.{sub,guess} at clean,
+    and copy them from autotools-dev just before configure.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 14 Feb 2011 00:49:23 +0100
+
+brltty (4.2-7) unstable; urgency=low
+
+  * debian/brltty-udeb.init: Call udevadm settle before deciding whether to
+    disable the framebuffer or not.
+
+ -- Samuel Thibault <sthibault@debian.org>  Fri, 24 Dec 2010 01:04:27 +0100
+
+brltty (4.2-6) unstable; urgency=low
+
+  * debian/patches/40-silence-offset-warning.patch: New patch to silence
+    permanent "input byte missing at offset 14" warnings on clio and esys
+    devices, making the console unusable.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 17 Nov 2010 23:58:16 +0100
+
+brltty (4.2-5) unstable; urgency=low
+
+  * debian/patches/30-upstream-table-fixes.patch: Upstream braille tables fixes.
+  * debian/brltty-udeb.prebaseconfig: When braille is enabled, enable
+    orca in gdm, and accessibility+orca+sounds in the created user session.
+  * debian/rules: Move brltty-udeb finish-install script a bit later, after
+    users are created.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 10 Nov 2010 23:57:45 +0100
+
+brltty (4.2-4) unstable; urgency=medium
+
+  * debian/control: Use Package-Type instead of XC-Package-Type.
+  * debian/brltty-udeb.udev.rules: SUBSYSTEM is usb instead of usb_device
+    nowadays. Fixes braille autodetection in d-i.
+  * Setting urgency to medium to fix RC bug.
+
+ -- Samuel Thibault <sthibault@debian.org>  Mon, 30 Aug 2010 23:09:56 +0200
+
+brltty (4.2-3) unstable; urgency=low
+
+  [ Mario Lang ]
+  * Add libasound2-dev to Build-Depends for Linux architectures.
+  * Binary package brltty Suggests console-braille.
+
+  [ Samuel Thibault ]
+  * Make libbrlapi-java depend on default-jre-headless |
+    java2-runtime-headless instead of gij | java2-runtime.
+  * Debian Installer: Make udev call /lib/udev/brltty.sh instead of
+    /lib/brltty/brltty.sh, the former checking whether the user forced some
+    brltty parameter on the kernel command line before calling the latter
+    (closes: #501160).
+  * debian/control:
+    - Bump Standards-Version to 3.9.1 (no change needed).
+    - Replace [!kfreebsd-i386 !kfreebsd-amd64 !hurd-i386] with [linux-any] in
+    Build-Depends.
+
+ -- Mario Lang <mlang@debian.org>  Tue, 27 Jul 2010 01:27:08 +0200
+
+brltty (4.2-2) unstable; urgency=low
+
+  * Add libdbus-1-dev to Build-Depends for the a2 screen driver.
+  * Remove bison from Build-Depends, no longer needed.
+
+ -- Mario Lang <mlang@debian.org>  Tue, 11 May 2010 15:39:47 +0200
+
+brltty (4.2-1) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * debian/libbrlapi-java.docs: Add doc
+  * debian/libbrlapi-java.doc-base: Register doc.
+  * debian/brltty-udeb.udev.rules: Update list of supported devices.
+
+  [ Mario Lang ]
+  * New upstream release.
+    - Drop all patches, merged upstream.
+    - Convert to source format 3.0 (quilt).
+  * Temporarily disable the eSpeak driver to avoid NEW processing.
+
+ -- Mario Lang <mlang@debian.org>  Tue, 11 May 2010 08:49:21 +0200
+
+brltty (4.1-5) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * Cherry-pick upstream r4902 and 4904 to fix linking libbrlapi without
+    libpthread.
+  * Cherry-pick upstream r4926 to fix minus sign in vtsp.1.
+  * Cherry-pick upstream r4927 to fix a typo.
+  * debian/NEWS: Remove bullets, fix version number.
+  * Override package-contains-empty-directory lib/brltty/rw/ which is on
+    purpose.
+  * debian/control:
+    - Drop duplicate Priority field.
+    - Fix duplicate short descriptions.
+  * Move udev rules to /lib/udev/rules.d
+  * debian/control: Bump Standards-Version to 3.8.4 (no change needed).
+  * debian/control: Add default-jdk build-dep except on m68k.
+  * debian/rules:
+    - Only disable java on m68k as it should now work on all other archs.
+    - Set JAVA_HOME to /usr/lib/jvm/default-java instead of hardcoding the use
+      of one kind of jvm (Closes: Bug#560072).
+  * Bindings/Python/brlapi.pyx: Apply upstream r4991 to fix an uninitialized
+    field in python exception handling (Closes: Bug#568512).
+  * Apply upstream r5007 to fix debian installer's fbterm start race
+    (Closes: Bug#504385).
+  * Bindings/Python/Makefile.in: Include /usr/share/python/python.mk and
+    pass $(py_setup_install_args) setup.py to keep proper installation paths
+    (Closes: Bug#571274).
+
+  [ Mario Lang ]
+  * debian/control: Add x11proto-kb-dev and libxtst-dev to Build-Depends.
+  * Update Build-Depends version of debhelper since we are using
+    dh_lintian now.
+  * Fix "initramfs hooks are not executed" (Closes: #570172)
+  * Remove a false positive dependency on /usr from init script, we do
+    not want to rely on $remote_fs
+
+ -- Mario Lang <mlang@debian.org>  Wed, 24 Mar 2010 14:53:59 +0100
+
+brltty (4.1-4) unstable; urgency=high
+
+  * High-urgency upload for bug fix for d-i alpha release.
+  * debian/libbrlapi-dev.links: Add /usr/lib/libbrlapi.so -> /lib/libbrlapi.so
+    symlink to fix dynamic linking of libbrlapi by default by gcc.
+  * Cherry-pick upstream r4916 change and regenerate configure to fix build on
+    kfreebsd-* machines with the newer USB API (Closes: Bug#560114).
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 05 Jan 2010 23:20:29 +0100
+
+brltty (4.1-3) unstable; urgency=high
+
+  * High-urgency upload for bug fix for d-i alpha release.
+  * debian/control, debian/rules: Temporarily disable building the java
+    bindings to get a brltty-udeb package for d-i alpha release.
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 09 Dec 2009 00:51:07 +0100
+
+brltty (4.1-2) unstable; urgency=high
+
+  * High-urgency upload for bug fix for d-i alpha release.
+  * debian/brltty-udeb.udev.rules: Fix udev 148-2 warnings cluttering
+  debian-installer (Closes: Bug#559564).
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 08 Dec 2009 01:59:48 +0100
+
+brltty (4.1-1) unstable; urgency=low
+
+  * Add a debian/watch file
+  * Stop brltty from suggesting libbrlapi-dev.
+  * New upstream bugfix release
+  * Use the --disable-stripping configure option
+  * Install README.Bluetooth.
+
+ -- Mario Lang <mlang@debian.org>  Sat, 10 Oct 2009 13:58:31 +0200
+
+brltty (4.0-9) unstable; urgency=low
+
+  * Incorrect dependencies in init.d LSB header (Closes: Bug#548550)
+  * Fix weak-library-dev-dependency of libbrlapi-dev on libbrlapi0.5
+
+ -- Mario Lang <mlang@debian.org>  Sun, 27 Sep 2009 14:22:55 +0200
+
+brltty (4.0-8) unstable; urgency=low
+
+  [ Dave Mielke ]
+  * Change the "braille display offline/online" logs to DEBUG (from
+    NOTICE).
+
+  [ Lee Maschmeyer ]
+  * en-us-g2 fixes.
+
+  [ Mario Lang ]
+  * /etc/brltty.conf is not generated during installation anymore.
+  * Move the EuroBraille driver's clio model table into constant memory.
+  * Remove an unnecessary memcpy().
+  * The VisioBraille driver's output translation table should be const.
+
+  [ Samuel Thibault ]
+  * debian/control: Bump Standards-Version to 3.8.3
+
+  [ Mario Lang ]
+  * Support for startup during initramfs
+
+ -- Mario Lang <mlang@debian.org>  Wed, 09 Sep 2009 11:55:49 +0200
+
+brltty (4.0-7) unstable; urgency=low
+
+  [ Samuel Thibault ]
+  * debian/rules: also strip whitespaces in brltty-udeb's tables, strip
+    attribute and keyboard tables too.
+  * Cherry-pick upstream r4506: "JNI fixes for Sun-based jvms. (sm)"
+  * Cherry-pick upstream r4687: "Pyrex doesn't convert NULL to None. (st)"
+  * debian/control:
+    - Bump build-depend debhelper to >= 5.
+    - Bump Standards-Version to 3.8.2 (no change needed).
+    - Add ${misc:Depends} dependency to libbrlapi-{java,dev,jni}
+    - Remove libc6-dev dependency of libbrlapi-dev, as build-essential already
+      depends on it and some ports do not have it.
+
+  [ Mario Lang ]
+  * debian/brltty.docs: Add Documents/HISTORY.
+  * debian/control: Add Samuel Thibault to Uploaders.
+  * debian/libbrlapi-dev.install: Install libbrlapi.a in /usr/lib
+    (Closes: Bug#411671).
+
+ -- Mario Lang <mlang@debian.org>  Sat, 18 Jul 2009 18:09:33 +0200
+
+brltty (4.0-6) unstable; urgency=low
+
+  [ Mario Lang ]
+  * debian/control:
+    - Remove libbluetooth2-dev from Build-Depends. (Closes: 530355)
+    - Add Vcs-Git and Vcs-Browser fields.
+
+  [ Samuel Thibault ]
+  * Add Homepage field.
+
+  [ Mario Lang ]
+  * debian/control:
+    - Set Maintainer to "Debian Accessibility Team".
+    - Update package description to mention newly supported displays.
+  * Fix from upstream SVN:
+    r4495: The Java bindings should load the JNI part automatically.
+
+ -- Mario Lang <mlang@debian.org>  Mon, 25 May 2009 00:41:02 +0200
+
+brltty (4.0-5) unstable; urgency=low
+
+  * Fix "X11 is left enabled" by changing --without-x to --disable-x
+    during udeb configure (Closes: #529526)
+
+ -- Mario Lang <mlang@debian.org>  Wed, 20 May 2009 15:36:48 +0200
+
+brltty (4.0-4) unstable; urgency=low
+
+  * debian/brltty-udeb.udev.rules: Add new USB IDs.
+  * debian/brltty.docs: Install Tables/README-* which
+    fixes "Should provide the tables documentation". (Closes: #522702)
+  * debian/brltty.examples: Install Hotplug/udev.rules and
+    Hotplug/upstart.job.
+  * debian/libbrlapi0.5.copyright: Update copyright years and mention
+    LGPL version.
+
+ -- Mario Lang <mlang@debian.org>  Mon, 18 May 2009 11:49:26 +0200
+
+brltty (4.0-3) unstable; urgency=low
+
+  * Fix Build-Depends to actually include libspeechd-dev.
+    A comma was missing, argh!
+
+ -- Mario Lang <mlang@debian.org>  Sun, 17 May 2009 19:11:42 +0200
+
+brltty (4.0-2) unstable; urgency=low
+
+  * debian/control: Move cl-brlapi from section admin to lisp.
+  * Enable speech-dispatcher support via new binary package
+    brltty-speechd. (Closes: #486291)
+  * Update debian/copyright:
+    - Update copyright years.
+    - Mention /usr/share/doc/brltty/CONTRIBUTORS.
+    - Add info about license version.
+    - Mention that tables are now licensed LGPL.
+  * debian/brltty.docs: Install Documents/CONTRIBUTORS.
+  * Merge from Ubuntu: "Add 'status' action to init script":
+    - debian/control: brltty: Depend on lsb-base >= 3.2-14, providing
+      status_of_proc().
+    - debian/brltty.init: Add the 'status' action.
+
+ -- Mario Lang <mlang@debian.org>  Sun, 17 May 2009 16:55:20 +0200
+
+brltty (4.0-1) unstable; urgency=low
+
+  * New upstream release:
+    - Fixes "causes excessive resume of USB" (Closes: #497155).
+  * Fix "Bus specifiers are mistakenly interpreted as relative paths"
+    by removing not so clever code from debian/brltty-udeb.prebaseconfig
+    (Closes: #516091)
+  * Fix "Use libncursew5-dev". (Closes: #488993)
+  * debian/control: Move libbrlapi-java from section libs to java.
+  * Upgrade Standards-Version from 3.7.3 to 3.8.1 (no changes).
+  * debian/brltty.examples: Remove, unused.
+
+ -- Mario Lang <mlang@debian.org>  Fri, 15 May 2009 13:49:14 +0200
+
+brltty (3.10~r3724-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Apply patch from Samuel Thibault to fix FTBFS in unstable.
+    (Closes: #516240)
+
+ -- Adeodato Simó <dato@net.com.org.es>  Sat, 14 Mar 2009 11:09:53 +0100
+
+brltty (3.10~r3724-1) unstable; urgency=low
+
+  * New subversion snapshot, fixing FTBFS (Closes: Bug#482205).
+
+ -- Mario Lang <mlang@debian.org>  Thu, 22 May 2008 18:37:09 +0200
+
+brltty (3.10~r3715-1) unstable; urgency=low
+
+  * New subversion snapshot with minor fixes.
+  * Clean up the multi binary package handling a bit, now installing
+    non-udeb build to debian/tmp.
+  * debian/brlapi0.5-dev.copyright: Renamed to libbrlapi-dev.copyright so
+    that it gets installed.
+  * Use upstream rules to install man3 manpages (Closes: Bug#479754).
+  * No longer ship brltty-config, it used to be wrong and I don't
+    see a single use-case for it.
+  * debian/brltty.conf: Deleted, unused.
+
+ -- Mario Lang <mlang@debian.org>  Fri, 09 May 2008 16:51:16 +0200
+
+brltty (3.10~r3710-1) unstable; urgency=low
+
+  * New subversion snapshot, target for unstable after good test results.
+  * Disable the Java bindings on alpha and hppa (in addition to the
+    already disabled archs) (Closes: Bug#477848).
+
+ -- Mario Lang <mlang@debian.org>  Sun, 04 May 2008 22:06:34 +0200
+
+brltty (3.10~r3666-1) experimental; urgency=low
+
+  * New subversion snapshot.
+  * Build-Depend on libicu-dev but disable icu in the udeb build
+    (Closes: Bug#475604).
+
+ -- Mario Lang <mlang@debian.org>  Tue, 15 Apr 2008 23:27:18 +0200
+
+brltty (3.10~r3662-2) experimental; urgency=low
+
+  * Add --disable-iconv to udeb configure options (Closes: Bug#475612).
+
+ -- Mario Lang <mlang@debian.org>  Sun, 13 Apr 2008 20:18:31 +0200
+
+brltty (3.10~r3662-1) experimental; urgency=low
+
+  * New subversion snapshot.
+    - Fix to Java building outside of sourcedir and Lisp bindings
+      merged upstream.
+  * Fix libbrlapi-dev header installation (Closes: Bug#475015).
+
+ -- Mario Lang <mlang@debian.org>  Sat, 12 Apr 2008 14:53:51 +0200
+
+brltty (3.10~r3654-1) experimental; urgency=low
+
+  * New upstream subversion snapshot.
+    - This adds unicode support.  Please test it so that we can evaluate
+      if it can be used for Lenny.
+  * Fix library name in Lisp bindings.
+
+ -- Mario Lang <mlang@debian.org>  Fri, 11 Apr 2008 20:32:29 +0200
+
+brltty (3.9-6) unstable; urgency=low
+
+  * Add patch to fix vcsa reading on big-endian architectures
+    (Closes: Bug#467269).
+  * Disable Java bindings on hurd-i386 (Closes: Bug#469984).
+  * Fix the TTY driver (Closes: Bug#467192).
+  * Rework the init script:
+    - Use --exec for start-stop-daemon to finally resolve long standing
+      "double-started brltty on upgrade" problems.
+    - Use lsb/init-functions for output.
+
+ -- Mario Lang <mlang@debian.org>  Tue, 25 Mar 2008 19:16:53 +0100
+
+brltty (3.9-5) unstable; urgency=low
+
+  * Hopefully fix disabling Java support on ARM for real this time.
+  * Disable Java on m68k as well.
+  * Revisit debhelper calls and simplify.
+  * Convert debian/copyright and debian/libbrlapi0.5.copyright to UTF-8.
+  * Update Standards-Version to 3.7.3 (no changes).
+  * Fix debian/rules so that "dpkg-buildpackage -j2" does not fail.
+  * Make python-brlapi part of section python.
+
+ -- Mario Lang <mlang@debian.org>  Fri, 14 Dec 2007 00:35:44 +0100
+
+brltty (3.9-4) unstable; urgency=low
+
+  * Disable Java support on ARM.
+
+ -- Mario Lang <mlang@debian.org>  Tue, 20 Nov 2007 19:47:01 +0100
+
+brltty (3.9-3) unstable; urgency=low
+
+  * Set $JAVA_HOME to /usr/lib/jvm/java-gcj.
+
+ -- Mario Lang <mlang@debian.org>  Tue, 20 Nov 2007 18:23:02 +0100
+
+brltty (3.9-2) unstable; urgency=low
+
+  * Only Build-Depend on libgpmg1-dev on Linux archs (Closes: Bug#450795).
+
+ -- Mario Lang <mlang@debian.org>  Sun, 11 Nov 2007 21:42:25 +0100
+
+brltty (3.9-1) unstable; urgency=low
+
+  * New upstream release.
+  * Build-depend on libgpmg1-dev.
+
+ -- Mario Lang <mlang@debian.org>  Wed, 17 Oct 2007 18:02:18 +0200
+
+brltty (3.8-8) unstable; urgency=low
+
+  * Disable GPM in udeb build (Closes: Bug#440731, Bug#441782).
+
+ -- Mario Lang <mlang@debian.org>  Tue, 11 Sep 2007 14:10:07 +0200
+
+brltty (3.8-7) unstable; urgency=low
+
+  * Add --mandir to configure call. Upstream added GNU/kFreeBSD support
+    so this should finally (Closes: Bug#414068).
+
+ -- Mario Lang <mlang@debian.org>  Sun, 09 Sep 2007 17:37:50 +0200
+
+brltty (3.8-6) unstable; urgency=low
+
+  * Fix typo in libbrlapi-dev Conflicts line.
+  * Build-Depend on java-gcj-compat-dev.
+  * Uniformly refer to hardware we support as "braille display" and remove
+    references to "soft" and "refreshable" from package description.
+    Hopefully this makes things a little more consistent and clearer.
+  * Initial upload to unstable.
+
+ -- Mario Lang <mlang@debian.org>  Sun, 02 Sep 2007 12:40:05 +0200
+
+brltty (3.8-5) experimental; urgency=low
+
+  * libbrlapi-dev should conflict with libbrlapi1-dev (<< 3.8).
+  * Pull changes from r3208 to fix up Lisp bindings.
+
+ -- Mario Lang <mlang@debian.org>  Sun, 26 Aug 2007 13:23:47 +0200
+
+brltty (3.8-4) experimental; urgency=low
+
+  * Let cl-brlapi depend on cl-cffi.
+  * Fix "Wrong permissions of brlapi.so" (Closes: Bug#439343).
+
+ -- Mario Lang <mlang@debian.org>  Fri, 24 Aug 2007 15:32:57 +0200
+
+brltty (3.8-3) experimental; urgency=low
+
+  * Add python-dev to Build-Depends (Closes: Bug#434858).
+  * Stop config.mk.in from stripping binaries by default on install
+    (Closes: Bug#436606).
+  * Package Java bindings as libbrlapi-jni and libbrlapi-java:
+    - Add gcj to Build-Depends.
+  * Temporarily disable speech dispatcher support.
+
+ -- Mario Lang <mlang@debian.org>  Thu, 09 Aug 2007 15:00:53 +0200
+
+brltty (3.8-2) experimental; urgency=low
+
+  * Add python-pyrex and dh-lisp to Build-Depends.
+  * Merge r3167 and r3168 to kill two lintian warnings.
+
+ -- Mario Lang <mlang@debian.org>  Wed, 01 Aug 2007 11:42:06 +0200
+
+brltty (3.8-1) experimental; urgency=low
+
+  * New upstream release: (Closes: Bug#414068, Bug#428920).
+    - New SONAME for brlapi, use the opportunity to make the package
+      name match the SONAME: libbrlapi1 -> libbrlapi0.5.
+    - New binding packages cl-brlapi and python-brlapi
+      (tcl, caml and java are not yet done).
+  * Include the TTY driver (for testing purposes) in the
+    udeb build. (Closes: Bug#357887).
+  * Cleanup: Remove lintian overrides.
+  * Add LSB init info section to init script.
+  * Pull changes to support Handy Tech Easy Braille from r3089.
+  * First upload to experimental to make it easy to time the transition
+    of depending packages.
+
+ -- Mario Lang <mlang@debian.org>  Sun, 22 Jul 2007 15:54:50 +0200
+
+brltty (3.7.2-7.2) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * High-urgency upload for RC bug fix.
+  * Fix FTBFS with linux-libc-dev (closes: #414068).
+  * libbluetooth2-dev build-dep doesn't apply to non-linux architectures.
+
+ -- Julien Cristau <jcristau@debian.org>  Wed, 18 Jul 2007 16:50:34 +0200
+
+brltty (3.7.2-7.1) unstable; urgency=high
+
+  * Non-maintainer upload.
+  * Move xbrlapi to package brltty-x11 and libbrlttybba.so to package brltty
+    (closes: #411426), because libbrlapi1 should only contain the shared
+    library.  Move xbrlapi from /bin to /usr/bin in the process.  Thanks,
+    Samuel Thibault!
+  * Urgency high to hopefully get this into etch.
+
+ -- Julien Cristau <jcristau@debian.org>  Sun, 01 Apr 2007 17:03:27 +0200
+
+brltty (3.7.2-7) unstable; urgency=medium
+
+  * The "hopefully final for Etch" release.
+  * Fix out-dated reference to text-table fr in default config
+    (Closes: Bug#406610).
+  * Use 'usb:' and 'auto' as defaults for braille-device and braille-driver
+    in finish-install.  This results in a correct brltty.conf
+    file if the user uses the shortcut "brltty=,,de" to
+    activate brltty in the installer with a different translation
+    table then the default (german in this example). Thanks to Simon for
+    triggereing this and to Samuel for providing the patch
+    (Closes: Bug#406257).
+  * Urgency medium because this should ideally make it for etch.
+
+ -- Mario Lang <mlang@debian.org>  Sun, 21 Jan 2007 18:48:29 +0100
+
+brltty (3.7.2-6) unstable; urgency=medium
+
+  * Backport Handy Tech Modular Evolution 64/88 support from upstream
+    repository. This change is harmless, adds support for new hardware
+    that I will need in stable and only affects *one* driver module that
+    I have the hardware for to test if it still works.
+    This would be very nice to have in etch.
+
+ -- Mario Lang <mlang@debian.org>  Thu, 14 Dec 2006 18:13:27 +0100
+
+brltty (3.7.2-5) unstable; urgency=low
+
+  * Fix startup error during early startup in d-i (Closes: Bug#371458).
+  * Rename finish-install.d script to 05brltty (from 50brltty) (Closes
+    Bug#400538).
+  * Enable the preference menu in the udeb build (Closes: Bug#374556).
+
+ -- Mario Lang <mlang@debian.org>  Mon, 27 Nov 2006 14:07:01 +0100
+
+brltty (3.7.2-4) unstable; urgency=low
+
+  * Acknowledge NMU for libbluetooth2-dev Build-Depends, thanks!
+    (Closes: Bug#376863).
+  * Fix FTBFS "'MAX_NR_CONSOLES' undeclared" (Closes: Bug#392135).
+  * Move 50brltty from prebaseconfig.d to finish-install.d
+    (Closes: Bug#373118).
+  * Move libbrlttybba.so to package libbrlapi1 (Closes: Bug#384254).
+  * Upgrade Standards-Version to 3.7.2.
+
+ -- Mario Lang <mlang@debian.org>  Tue, 10 Oct 2006 19:09:25 +0200
+
+brltty (3.7.2-3.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * changing build-depends from libbluetooth1-dev to libbluetooth2-dev |
+    libbluetooth-dev as suggested by Felipe Augusto van de Wiel and Rudy
+    Godoy. (Closes: #376863)
+    Thanks!
+
+ -- Alexander Schmehl <tolimar@debian.org>  Thu, 27 Jul 2006 13:54:51 +0200
+
+brltty (3.7.2-3) unstable; urgency=low
+
+  * Add libbluetooth1-dev to Build-Depends.
+  * Patch from SVN to fix Papenmeier memory leaks.
+  * Go back to libxaw7-dev (on request from the XSF).
+  * Remove brltty.1 from udeb (Closes: Bug#359326).
+  * Patch frm SVN to eliminate rpath usage (Closes: Bug#360252).
+  * Really purge brlapi.key (Closes: Bug#327238).
+  * Reshuffle misplaced files (Closes: Bug#357860).
+  * Samuel Thibault <samuel.thibault@ens-lyon.org>:
+    * Autostart brltty only if the user set some "brltty=" parameters at the
+      kernel command line.
+    * Add udev rules for autostarting brltty when USB devices are probed.
+    * Disable framebuffer and install brltty when brltty got auto-started.
+
+ -- Mario Lang <mlang@debian.org>  Wed, 19 Apr 2006 13:04:54 +0200
+
+brltty (3.7.2-2) unstable; urgency=low
+
+  * Move xbrlapi to libbrlapi1-dev.
+
+ -- Mario Lang <mlang@debian.org>  Wed, 22 Feb 2006 10:48:29 +0100
+
+brltty (3.7.2-1) unstable; urgency=low
+
+  * New upstream release (Closes: Bug#343122).
+  * Use debhelper's new udeb capabilities instead of hacking around
+    the issue. Updated Build-Depends to >= 4.2.
+  * Drop debconf /etc/brltty.conf management support (sorry to the
+    translators) (Closes: Bug#313182, Bug#314146, Bug#341029).
+  * Add --retry 5 to init script stop/restart targets (Closes: Bug#313262).
+
+ -- Mario Lang <mlang@debian.org>  Wed, 22 Feb 2006 09:39:36 +0100
+
+brltty (3.4.1-2) unstable; urgency=low
+
+  * Include Czech debconf translation (Closes: Bug#237678).
+  * debian/brltty.postinst: erm, it is /etc/brltty.key, not -key.
+
+ -- Mario Lang <mlang@debian.org>  Fri, 12 Mar 2004 19:30:59 +0100
+
+brltty (3.4.1-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * Fix the regexp in brltty.postinst so that config files where
+    a tab immediately follows the option name are edited properly.
+
+ -- Mario Lang <mlang@debian.org>  Tue, 20 Jan 2004 10:48:26 +0100
+
+brltty (3.4-1) unstable; urgency=low
+
+  * New upstream version:
+    * "Fixes" my blunder with makePath since what I backported
+      to 3.3.1-7 is now integrated (Closes: Bug#226656).
+
+ -- Mario Lang <mlang@debian.org>  Sun,  4 Jan 2004 20:19:23 +0100
+
+brltty (3.3.1-7) unstable; urgency=low
+
+  * Massive patch to enable inclusion of all driver modules in the
+    executable for brltty-udeb (this saves more space, and fixes the problem
+    that driver modules were referencing symbols defined in the executable):
+    - Programs/{spk,brl}_driver.h: Rename the {Braille,Speech}Driver structs
+      from {brl,spk}_driver to {brl,spk}_driver_XX where XX is the two-letter
+      driver code.  This change went already into upstream's subversion
+      repository, and is how 3.4 will do it.  However, backporting this
+      change into 3.3.1 means that you can not use this version of BRLTTY
+      with driver modules compiled for a standard 3.3.1
+      (upstream doesn't support any kind of versioning anyway, and expects
+       that the executable and driver modules are in sync at all times, so this
+       will only beat those who already try to do unsupported things.)
+    - configure.in: Add --enable-all-builtin.  (This is not how
+      3.4 will do it, but upstream doesn't have this in subversion yet,
+      so I had to go ahead and implement it myself (somehow ugly, but still
+      working).
+    - config.mk: Add BUILTIN_DRIVERS and DRIVER_LIST variables for conditional
+      linking of all driver modules into the executable.
+    - Drivers/*/braille.c: Make various private globals static.
+    - Drivers/*/speech.c: Make #include "Programs/misc.h" appear before
+      #include "Programs/brl_driver.h" to make macros available.
+    - Documents/{brltty.{conf,1},Manual.sgml}: Document the fact that
+      specifying drivers by full shared object path is no longer supported.
+    - debian/rules: Use --enable-all-builtin if building the udeb.
+    (Closes: Bug#211092, Bug#219928)
+
+ -- Mario Lang <mlang@debian.org>  Sat, 15 Nov 2003 13:04:39 +0100
+
+brltty (3.3.1-6) unstable; urgency=low
+
+  * Add package groff to Build-Depends (closes: #219364)
+
+ -- Mario Lang <mlang@debian.org>  Thu,  6 Nov 2003 12:18:43 +0100
+
+brltty (3.3.1-5) unstable; urgency=low
+
+  * Add linuxdoc-tools to Build-Depends (closes: #218815)
+  * Upgrade to Standards-Version 3.6.1.
+
+ -- Mario Lang <mlang@debian.org>  Sun,  2 Nov 2003 20:38:47 +0100
+
+brltty (3.3.1-4) unstable; urgency=low
+
+  * Patch from 3.4-branch: Support for HandyTech Braillino.
+  * debian/control: Added Braillino to list of HandyTech devices
+  * debian/po/nl.po: Updated (Closes: Bug#215363).
+  * debian/rules:
+    - Install Drivers/*/README* in /usr/share/doc/brltty/.
+    - Remove the vh driver from brltty-udeb since it is redundant and
+      currently broken.  Vario users should use Emulation 3 (PB1) or
+      Emulation 4 (PB2) with the TSI (ts) driver.
+
+ -- Mario Lang <mlang@debian.org>  Wed, 29 Oct 2003 18:00:45 +0100
+
+brltty (3.3.1-3) unstable; urgency=low
+
+  * Programs/scr_linux.c:
+    - Patch from 3.4-branch: Assume a direct-through mapping if
+      ioctl GET_UNIMAP returns a zero-element map.
+  * New Japanese debconf translation (Closes: Bug#210711).
+
+ -- Mario Lang <mlang@debian.org>  Thu, 11 Sep 2003 15:09:00 +0200
+
+brltty (3.3.1-2) unstable; urgency=low
+
+  * debian/brltty.init:
+    - Use --pidfile for start-stop-daemon to prevent starting several
+      instances of BRLTTY.  This also removes a indirect dependency on
+      a mounted /proc since start-stop-daemon requires it when used with
+      --exec or --name (Closes: Bug#208323).
+  * Change Architecutre of binary package brltty to any.
+  * Switch to po-debconf (Thanks to Christian Perrier, Closes: Bug#205806).
+  * Add French debconf translation (Closes: Bug#206732).
+  * Add Brazilian Portuguese debconf translation (Closes: Bug#187782).
+  * Update German debconf translation.
+  * Update debian/lintian.override.
+
+ -- Mario Lang <mlang@debian.org>  Tue,  9 Sep 2003 18:04:45 +0200
+
+brltty (3.3.1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Mario Lang <mlang@debian.org>  Mon,  1 Sep 2003 17:10:49 +0200
+
+brltty (3.3-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/README.Debian:
+    - Remove obsolete notes.
+  * debian/brltty.docs:
+    - Removed Documents/Manual-ger-HTML/ and Documents/Manual-ger.txt
+      since upstream deleted the obsolete German manual.
+  * debian/brltty.post{inst,rm}:
+    - Create (only if not existing) and rm /etc/brlapi-key.
+  * debian/control:
+    - Add packages libbrlapi and libbrlapi-dev.
+
+ -- Mario Lang <mlang@debian.org>  Mon,  4 Aug 2003 18:11:16 +0200
+
+brltty (3.2-5) unstable; urgency=low
+
+  * Fix a case where upgrade failed due to init script start failing
+    (add --oknodo, and remove --quiet)
+
+ -- Mario Lang <mlang@debian.org>  Fri,  4 Apr 2003 14:12:56 +0200
+
+brltty (3.2-4) unstable; urgency=low
+
+  * Fix doc-base.brltty (Closes: Bug#183230)
+
+ -- Mario Lang <mlang@debian.org>  Sun, 16 Mar 2003 23:36:13 +0100
+
+brltty (3.2-3) unstable; urgency=low
+
+  * For udeb configure, set CXXFLAGS=-Os too, save another 608 bytes.
+  * Portability fix in config.c
+  * prebaseconfig: use apt-install, support short-hand device names, and
+    translate them into their non-devfs equivalent names.
+
+ -- Mario Lang <mlang@debian.org>  Fri, 21 Feb 2003 12:23:44 +0100
+
+brltty (3.2-2) unstable; urgency=low
+
+  * Add 50brltty to prebaseconfig.d in the -udeb variant.
+
+ -- Mario Lang <mlang@debian.org>  Tue,  4 Feb 2003 17:50:32 +0100
+
+brltty (3.2-1) unstable; urgency=low
+
+  * New upstream release (Closes: Bug#177400)
+  * Remove undocumented.7 link and replace it with a real manpage from upstream
+    (yay!)
+  * Set standard-version to 3.5.8
+  * debian/brltty.templates:
+    * texttbl: renamed to text-table and changed text.german->text.de,
+      text.sweden->text.se1 and text.swedish->text.se2 and added text.ru.
+    * speech-driver: New question.
+    * braille-driver: Now put the full driver name in the select, and look the
+      two letter combo up in brltty.postinst.
+      brldriver: Removed.
+    * override: New question.
+  * debian/brltty.config:
+    * Added override question, copied from libpam-ldap.
+    * Added speech-driver.
+    * Changed brldriver to braille-driver
+    * Swap device and speech-driver position.
+    * Provide device and speech-driver defaults based on braille-driver
+      selection.
+  * debian/brltty.postinst:
+    * Moved /etc/brltty.conf mangling here, also partly taken from libpam-ldap.
+  * debian/brltty.init: Use -P and --pidfile.  --exec didn't work with restart
+    on upgrade.
+  * debian/brltty-udeb.init: Remove mknod again, upstream handles devfs now.
+  * debian/rules:
+    * Build brltty and -udeb with --disable-tainted-components.  This
+      prevents accidental builds with the viavoice speech module included.
+    * Build brltty-udeb with CFLAGS=-Os, --disable-speech-support and
+      --disable-pm-configfile.
+  * Update lintian.override to get rid of select-with-translated-default-field
+    and bogus partial-translated warnings.
+
+ -- Mario Lang <mlang@debian.org>  Mon,  3 Feb 2003 17:10:32 +0100
+
+brltty (3.1-4) unstable; urgency=low
+
+  * Add --with-braille-device=/dev/tts/0 to configure-udeb
+    target, because d-i is using devfsd.
+  * Add mknod /dev/tty0 call to brltty-udeb.init.
+
+ -- Mario Lang <mlang@debian.org>  Mon,  9 Dec 2002 13:45:23 +0100
+
+brltty (3.1-3) unstable; urgency=low
+
+  * Use gcc instead of ld to link.
+
+ -- Mario Lang <mlang@debian.org>  Mon, 18 Nov 2002 20:21:20 +0100
+
+brltty (3.1-2) unstable; urgency=low
+
+  * Update config.guess/sub on debian/rules clean.
+  * Set DH_COMPAT=2 while doing dh_installdeb for the
+    -udeb to prevent filenames like /etc/rcS.d/S02brltty.dpkg-new
+
+ -- Mario Lang <mlang@debian.org>  Mon, 18 Nov 2002 16:38:20 +0100
+
+brltty (3.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * New binary package brltty-udeb.
+  * Lots of changes to debian/ files were necessary because upstream
+    changed to autoconf, and also decided to rename the whole source tree!
+  * Excluded viavoice from configure.in again.
+  * Remove mknod from Programs/Makefile.
+
+ -- Mario Lang <mlang@debian.org>  Wed, 13 Nov 2002 22:18:20 +0100
+
+brltty (3.0-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Mario Lang <mlang@debian.org>  Tue, 13 Aug 2002 12:30:00 +0100
+
+brltty (2.99.5-5) unstable; urgency=low
+
+  * Added --oknodo to brltty stop
+    (Closes: Bug#149989)
+  * Added db_stop to end of postinst
+    (Closes: Bug#147776)
+
+ -- Mario Lang <mlang@delysid.org>  Mon,  8 Jul 2002 14:30:28 +0100
+
+brltty (2.99.5-4) unstable; urgency=low
+
+
+  * Created lintian override file to prevent warnings
+    which aren't relevant
+
+ -- Mario Lang <mlang@delysid.org>  Mon, 24 Jun 2002 17:31:28 +0100
+
+brltty (2.99.5-3) unstable; urgency=low
+
+  * Fixed copyright file to point to gpl
+  * Fixed upstream changelog name to changelog.gz instead of ChangeLog.gz
+  * dh_compat set to 3
+  * German debconf templates
+    (Closes: Bug#118044)
+  * Added many archs to build on too
+  * Changed runlevel to S
+
+ -- Mario Lang <mlang@delysid.org>  Wed, 22 May 2002 19:21:29 +0100
+
+brltty (2.99.5-2) unstable; urgency=medium
+
+  * Fix init script to correctly behave (hopefully this time)
+  * Added Spanish templates (Closes: Bug#136361)
+  * Added Dutch templates (Closes: Bug#134622)
+  * Urgency medium to go to woody
+
+ -- Mario Lang <mlang@delysid.org>  Thu, 11 Apr 2002 18:01:44 +0100
+
+brltty (2.99.5-1) unstable; urgency=low
+
+  * New upstream version.
+  * Fixed /etc/init.d/brltty stop bug (pidfile)
+  * Added new drivers in debconf templates.
+    (I won't install i18n templates until 3.0 is out)
+
+ -- Mario Lang <mlang@delysid.org>  Sat, 16 Feb 2002 18:40:58 +0100
+
+brltty (2.98-2) unstable; urgency=low
+
+  * Fixed control file to section extra as override file requested
+  * Added missing braille drivers to debconf template
+
+ -- Mario Lang <mlang@delysid.org>  Mon, 29 Oct 2001 15:05:57 +0100
+
+brltty (2.98-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Mario Lang <mlang@delysid.org>  Thu,  4 Jan 2001 16:22:12 +0100
+

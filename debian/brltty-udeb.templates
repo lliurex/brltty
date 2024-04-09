@@ -1,0 +1,6 @@
+Template: debian-installer/brltty-udeb/title
+Type: text
+#  Main menu item
+# MUST be kept below 55 characters/columns
+# :sl1:
+_Description: Access the installer using a Braille display
