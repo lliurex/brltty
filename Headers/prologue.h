@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,11 +24,21 @@ extern "C" {
 #endif /* __cplusplus */
 
 #undef HAVE_BUILTIN_POPCOUNT
+#undef HAVE_SYNC_SYNCHRONIZE
+
 #ifdef __has_builtin
 #if __has_builtin(__builtin_popcount)
 #define HAVE_BUILTIN_POPCOUNT
 #endif /* __has_builtin(__builtin_popcount) */
+
+#if __has_builtin(__sync_synchronize)
+#define HAVE_SYNC_SYNCHRONIZE
+#endif /* __has_builtin(__sync_synchronize) */
 #endif /* __has_builtin */
+
+#ifndef HAVE_SYNC_SYNCHRONIZE
+static inline void __sync_synchronize (void) {}
+#endif /* HAVE_SYNC_SYNCHRONIZE */
 
 #define CONCATENATE_1(a,b) a##b
 #define CONCATENATE(a,b) CONCATENATE_1(a,b)
@@ -259,6 +269,10 @@ WIN_ERRNO_STORAGE_CLASS int win_toErrno (DWORD error);
 
 #if defined(__CYGWIN__)
 #define PRIkey "llX"
+#elif defined(__FreeBSD__)
+#define PRIkey "lX"
+#elif defined(__OpenBSD__)
+#define PRIkey "lX"
 #else /* format for key_t */
 #define PRIkey PRIX32
 #endif /* format for key_t */
@@ -394,43 +408,44 @@ mempcpy (void *dest, const void *src, size_t size) {
 #define WRITABLE_DIRECTORY ""
 #endif /* WRITABLE_DIRECTORY */
 
-#ifndef PRINTF
-#ifdef HAVE_ATTRIBUTE_FORMAT_PRINTF
-#define PRINTF(fmt,var) __attribute__((format(__printf__, fmt, var)))
-#else /* HAVE_ATTRIBUTE_FORMAT_PRINTF */
-#define PRINTF(fmt,var)
-#endif /* HAVE_ATTRIBUTE_FORMAT_PRINTF */
-#endif /* PRINTF */
-
-#ifndef NORETURN
-#ifdef HAVE_ATTRIBUTE_NORETURN
-#define NORETURN __attribute__((noreturn))
-#else /* HAVE_ATTRIBUTE_NORETURN */
-#define NORETURN
-#endif /* HAVE_ATTRIBUTE_NORETURN */
-#endif /* NORETURN */
-
-#ifndef PACKED
-#ifdef HAVE_ATTRIBUTE_PACKED
+#ifdef HAVE_VAR_ATTRIBUTE_PACKED
 #define PACKED __attribute__((packed))
-#else /* HAVE_ATTRIBUTE_PACKED */
+#else /* HAVE_VAR_ATTRIBUTE_PACKED */
 #define PACKED
-#endif /* HAVE_ATTRIBUTE_PACKED */
-#endif /* PACKED */
+#endif /* HAVE_VAR_ATTRIBUTE_PACKED */
 
-#ifndef UNUSED
-#ifdef HAVE_ATTRIBUTE_UNUSED
+#ifdef HAVE_FUNC_ATTRIBUTE_FORMAT
+#define PRINTF(fmt,var) __attribute__((format(__printf__, fmt, var)))
+#else /* HAVE_FUNC_ATTRIBUTE_FORMAT */
+#define PRINTF(fmt,var)
+#endif /* HAVE_FUNC_ATTRIBUTE_FORMAT */
+
+#ifdef HAVE_FUNC_ATTRIBUTE_FORMAT_ARG
+#define FORMAT_ARG(n) __attribute__((format_arg((n))))
+#else /* HAVE_FUNC_ATTRIBUTE_FORMAT_ARG */
+#define FORMAT_ARG(n)
+#endif /* HAVE_FUNC_ATTRIBUTE_FORMAT_ARG */
+
+#ifdef HAVE_FUNC_ATTRIBUTE_NORETURN
+#define NORETURN __attribute__((noreturn))
+#else /* HAVE_FUNC_ATTRIBUTE_NORETURN */
+#define NORETURN
+#endif /* HAVE_FUNC_ATTRIBUTE_NORETURN */
+
+#ifdef HAVE_FUNC_ATTRIBUTE_UNUSED
 #define UNUSED __attribute__((unused))
-#else /* HAVE_ATTRIBUTE_UNUSED */
+#else /* HAVE_FUNC_ATTRIBUTE_UNUSED */
 #define UNUSED
-#endif /* HAVE_ATTRIBUTE_UNUSED */
-#endif /* UNUSED */
+#endif /* HAVE_FUNC_ATTRIBUTE_UNUSED */
 
 #ifdef ENABLE_I18N_SUPPORT
 #include <libintl.h>
 #else /* ENABLE_I18N_SUPPORT */
-extern char *gettext (const char *text);
-extern char *ngettext (const char *singular, const char *plural, unsigned long int count);
+extern char *gettext (const char *text) FORMAT_ARG(1);
+
+extern char *ngettext (
+  const char *singular, const char *plural, unsigned long int count
+) FORMAT_ARG(1) FORMAT_ARG(2);
 #endif /* ENABLE_I18N_SUPPORT */
 #define strtext(string) string
 

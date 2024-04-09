@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,6 +25,7 @@
 
 #include "log.h"
 #include "io_misc.h"
+#include "async_io.h"
 
 #include "serial_termios.h"
 #include "serial_internal.h"
@@ -358,7 +359,7 @@ serialGetDataBits (const SerialAttributes *attributes) {
 #endif /* CS8 */
 
     default:
-      logMessage(LOG_WARNING, "unsupported serial data bits value: %lX", (unsigned long)size);
+      logMessage(LOG_WARNING, "unsupported termios data bits: %lX", (unsigned long)size);
       return 0;
   }
 }
@@ -513,6 +514,8 @@ serialConnectDevice (SerialDevice *serial, const char *device) {
   serial->package.inputMonitor = NULL;
 
   if ((serial->fileDescriptor = open(device, O_RDWR|O_NOCTTY|O_NONBLOCK)) != -1) {
+    setCloseOnExec(serial->fileDescriptor, 1);
+
     if (isatty(serial->fileDescriptor)) {
       if (serialPrepareDevice(serial)) {
         logMessage(LOG_CATEGORY(SERIAL_IO), "device opened: %s: fd=%d",

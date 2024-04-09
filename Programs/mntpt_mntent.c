@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -32,7 +32,7 @@ openMountsTable (int update) {
   FILE *table = setmntent(MOUNTS_TABLE_PATH, (update? "a": "r"));
   if (!table)
     logMessage((errno == ENOENT)? LOG_WARNING: LOG_ERR,
-               "mounted file systems table open erorr: %s: %s",
+               "mounted file systems table open error: %s: %s",
                MOUNTS_TABLE_PATH, strerror(errno));
   return table;
 }

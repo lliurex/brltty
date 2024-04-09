@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -18,7 +18,7 @@
 
 DRIVER_CODE = eu
 DRIVER_NAME = EuroBraille
-DRIVER_COMMENT = AzerBraille, Clio, Esys, Iris, NoteBraille, Scriba
+DRIVER_USAGE = AzerBraille, Clio, Esys, Iris, NoteBraille, Scriba
 DRIVER_VERSION = 2.0
 DRIVER_DEVELOPERS = Yannick PLASSIARD <yan@mistigri.org>, Olivier BERT <obert01@mistigri.org>, Nicolas PITRE <nico@fluxnic.net>
 include $(SRC_TOP)braille.mk
@@ -30,8 +30,14 @@ OBJ_FILES = $(SRC_FILES:.c=.$O)
 braille.$O: $(OBJ_FILES)
 	$(MKREL) $@ $(OBJ_FILES)
 
-%.$O: $(SRC_DIR)/%.c
-	$(CC) $(BRL_CFLAGS) -o $@ -c $<
+eu_braille.$O:
+	$(CC) $(BRL_CFLAGS) -o $@ -c $(SRC_DIR)/eu_braille.c
+
+eu_clio.$O:
+	$(CC) $(BRL_CFLAGS) -o $@ -c $(SRC_DIR)/eu_clio.c
+
+eu_esysiris.$O:
+	$(CC) $(BRL_CFLAGS) -o $@ -c $(SRC_DIR)/eu_esysiris.c
 
 ###############################################################################
 

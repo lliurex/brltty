@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,6 +24,7 @@
 #include "system_windows.h"
 #include "kbd_keycodes.h"
 #include "unicode.h"
+#include "ascii.h"
 
 typedef enum {
   PARM_ROOT,
@@ -394,13 +395,15 @@ insertKey_WindowsScreen (ScreenKey key) {
   DWORD controlKeyState = 0;
   WCHAR wchar = 0;
 
+  mapScreenKey(&key);
+
   logMessage(LOG_DEBUG, "Insert key: %4.4X",key);
   if (isSpecialKey(key)) {
     switch (key & SCR_KEY_CHAR_MASK) {
       case SCR_KEY_ENTER:         vk = VK_RETURN; wchar='\r'; break;
       case SCR_KEY_TAB:           vk = VK_TAB;    wchar='\t'; break;
       case SCR_KEY_BACKSPACE:     vk = VK_BACK;   wchar='\b'; break;
-      case SCR_KEY_ESCAPE:        vk = VK_ESCAPE; wchar='\e'; break;
+      case SCR_KEY_ESCAPE:        vk = VK_ESCAPE; wchar=ASCII_ESC; break;
       case SCR_KEY_CURSOR_LEFT:   vk = VK_LEFT;   break;
       case SCR_KEY_CURSOR_RIGHT:  vk = VK_RIGHT;  break;
       case SCR_KEY_CURSOR_UP:     vk = VK_UP;     break;

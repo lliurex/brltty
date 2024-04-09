@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,7 +21,7 @@
 
 #include "prologue.h"
 #undef GOT_CURSES
-#undef GOT_CURSES_GET_WCH
+#undef GOT_CURSES_WCH
 
 #if defined(HAVE_PKG_CURSES)
 #define GOT_CURSES
@@ -33,7 +33,7 @@
 
 #elif defined(HAVE_PKG_NCURSESW)
 #define GOT_CURSES
-#define GOT_CURSES_GET_WCH
+#define GOT_CURSES_WCH
 #include <ncursesw/ncurses.h>
 
 #elif defined(HAVE_PKG_PDCURSES)
@@ -46,7 +46,7 @@
 
 #elif defined(HAVE_PKG_PDCURSESW)
 #define GOT_CURSES
-#define GOT_CURSES_GET_WCH
+#define GOT_CURSES_WCH
 #define PDC_WIDE
 #include <curses.h>
 

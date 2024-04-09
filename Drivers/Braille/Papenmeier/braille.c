@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -215,7 +215,7 @@ verifyPacket1 (
   switch (size) {
     case 1:
       *length = 2;
-      if (byte != STX) return BRL_PVR_INVALID;
+      if (byte != ASCII_STX) return BRL_PVR_INVALID;
       break;
 
     case 2:
@@ -258,7 +258,7 @@ verifyPacket1 (
   }
 
   if (size == *length) {
-    if (byte != ETX) {
+    if (byte != ASCII_ETX) {
       return BRL_PVR_INVALID;
     }
   }
@@ -275,12 +275,12 @@ static int
 writePacket1 (BrailleDisplay *brl, unsigned int xmtAddress, unsigned int count, const unsigned char *data) {
   if (count) {
     unsigned char header[] = {
-      STX,
+      ASCII_STX,
       PM_P1_PKT_SEND,
       0, 0, /* big endian data offset */
       0, 0  /* big endian packet length */
     };
-    static const unsigned char trailer[] = {ETX};
+    static const unsigned char trailer[] = {ASCII_ETX};
 
     unsigned int size = sizeof(header) + count + sizeof(trailer);
     unsigned char buffer[size];
@@ -527,11 +527,11 @@ static const ProtocolOperations protocolOperations1 = {
 static int
 writeIdentifyRequest1 (BrailleDisplay *brl) {
   static const unsigned char badPacket[] = {
-    STX,
+    ASCII_STX,
     PM_P1_PKT_SEND,
     0, 0,			/* position */
     0, 0,			/* wrong number of bytes */
-    ETX
+    ASCII_ETX
   };
 
   return writePacket(brl, badPacket, sizeof(badPacket));
@@ -591,12 +591,12 @@ verifyPacket2 (
   unsigned char byte = bytes[size-1];
 
   switch (byte) {
-    case STX:
+    case ASCII_STX:
       if (size != 1) break;
       *length = 5;
       return BRL_PVR_INCLUDE;
 
-    case ETX:
+    case ASCII_ETX:
       if (size != *length) break;
       return BRL_PVR_INCLUDE;
 
@@ -675,7 +675,7 @@ writePacket2 (BrailleDisplay *brl, unsigned char command, unsigned char count, c
   unsigned char buffer[(count * 2) + 5];
   unsigned char *byte = buffer;
 
-  *byte++ = STX;
+  *byte++ = ASCII_STX;
   *byte++ = 0X40 | command;
   *byte++ = 0X50 | (count >> 4);
   *byte++ = 0X50 | (count & 0XF);
@@ -686,7 +686,7 @@ writePacket2 (BrailleDisplay *brl, unsigned char command, unsigned char count, c
     data++;
   }
 
-  *byte++ = ETX;
+  *byte++ = ASCII_ETX;
   return writePacket(brl, buffer, byte-buffer);
 }
 
@@ -1206,7 +1206,7 @@ initializeGenericStatusCodes (BrailleDisplay *brl) {
 
         SET(BRL_CMD_FREEZE, PM_GSC_FLAG, gscFrozenScreen);
         SET(BRL_CMD_DISPMD, PM_GSC_FLAG, gscDisplayMode);
-        SET(BRL_CMD_SIXDOTS, PM_GSC_FLAG, gscSixDotBraille);
+        SET(BRL_CMD_SIXDOTS, PM_GSC_FLAG, gscSixDotComputerBraille);
         SET(BRL_CMD_SLIDEWIN, PM_GSC_FLAG, gscSlidingBrailleWindow);
         SET(BRL_CMD_SKPIDLNS, PM_GSC_FLAG, gscSkipIdenticalLines);
         SET(BRL_CMD_SKPBLNKWINS, PM_GSC_FLAG, gscSkipBlankBrailleWindows);

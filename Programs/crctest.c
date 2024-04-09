@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,7 +19,7 @@
 #include "prologue.h"
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "crc.h"
 
 static char *opt_algorithmName;
@@ -103,7 +103,7 @@ BEGIN_OPTION_TABLE(programOptions)
     .setting.string = &opt_residue,
     .description = "the residue"
   },
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 static int
 validateOptions (void) {
@@ -113,10 +113,13 @@ validateOptions (void) {
 int
 main (int argc, char *argv[]) {
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "crctest",
-      .argumentsSummary = ""
+
+      .usage = {
+        .purpose = strtext("Test supported CRC (Cyclic Redundancy Check) checksum algorithms."),
+      }
     };
 
     PROCESS_OPTIONS(descriptor, argc, argv);

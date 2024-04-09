@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -95,8 +95,8 @@ serialPutInitialAttributes (SerialAttributes *attributes) {
   attributes->DCBlength = sizeof(*attributes);
   attributes->fBinary = TRUE;
   attributes->fTXContinueOnXoff = TRUE;
-  attributes->XonChar = DC1;
-  attributes->XoffChar = DC3;
+  attributes->XonChar = ASCII_DC1;
+  attributes->XoffChar = ASCII_DC3;
 }
 
 int
@@ -226,7 +226,7 @@ serialGetStopBits (const SerialAttributes *attributes) {
   if (attributes->StopBits == ONESTOPBIT) return 1;
   if (attributes->StopBits == TWOSTOPBITS) return 2;
 
-  logMessage(LOG_WARNING, "unsupported serial stop bits value: %X", attributes->StopBits);
+  logMessage(LOG_WARNING, "unsupported Windows serial stop bits value: %X", attributes->StopBits);
   return 0;
 }
 

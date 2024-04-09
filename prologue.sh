@@ -1,8 +1,9 @@
+#!/bin/bash
 ###############################################################################
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -16,12 +17,14 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-. "$(dirname "${0}")/brltty-prologue.sh"
+. "$(dirname "${BASH_SOURCE[0]}")/brltty-prologue.bash"
 
 setSourceRoot() {
    findContainingDirectory BRLTTY_SOURCE_ROOT "${programDirectory}" brltty.pc.in || {
       semanticError "source tree not found"
    }
+
+   readonly sourceRoot="${BRLTTY_SOURCE_ROOT}"
 }
 
 setBuildRoot() {
@@ -33,5 +36,13 @@ setBuildRoot() {
          semanticError "build tree not found"
       }
    }
+
+   readonly buildRoot="${BRLTTY_BUILD_ROOT}"
 }
+
+readonly documentsSubdirectory="Documents"
+readonly driversSubdirectory="Drivers"
+readonly programsSubdirectory="Programs"
+readonly tablesSubdirectory="Tables"
+readonly toolsSubdirectory="Tools"
 

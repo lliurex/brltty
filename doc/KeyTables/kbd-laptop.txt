@@ -1,0 +1,156 @@
+Key Table: Bindings for Keyboards without a Keypad
+==================================================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: CapsLock+F1
+* enter/leave command learn mode: CapsLock+ShiftLeft+F1
+* enter/leave preferences menu: CapsLock+F2
+* set screen image frozen/unfrozen: CapsLock+F
+* describe character at cursor: CapsLock+D
+* show current date and time: CapsLock+T
+
+Cursor Functions
+* go back after cursor tracking: CapsLock+DeleteBackward
+* bring screen cursor to speech cursor:
+  + Tab+Nine
+  + ControlRight+ShiftRight
+
+Vertical Navigation
+* go up one line: CapsLock+ArrowUp
+* go down one line: CapsLock+ArrowDown
+* go to top line: CapsLock+ShiftLeft+Home
+* go to bottom line: CapsLock+ShiftLeft+End
+* go to beginning of top line: CapsLock+Home
+* go to beginning of bottom line: CapsLock+End
+* go up to nearest line with different content: CapsLock+ShiftLeft+ArrowUp
+* go down to nearest line with different content: CapsLock+ShiftLeft+ArrowDown
+
+Horizontal Navigation
+* go to beginning of line: CapsLock+ShiftLeft+ArrowLeft
+* go to end of line: CapsLock+ShiftLeft+ArrowRight
+* go left one character: CapsLock+ArrowLeft
+* go right one character: CapsLock+ArrowRight
+
+Clipboard Functions
+* start new clipboard at character at cursor: CapsLock+X
+* append to clipboard from character at cursor: CapsLock+ShiftLeft+X
+* linear copy to character at cursor: CapsLock+ShiftLeft+C
+* rectangular copy to character at cursor: CapsLock+C
+* insert clipboard text after screen cursor: CapsLock+V
+
+Configuration Functions
+* set track screen cursor on/off: CapsLock+Enter
+* set track screen cursor off: CapsLock+ShiftLeft+Enter
+
+Menu Operations
+* save preferences to disk: CapsLock+ShiftLeft+F2
+
+Speech Functions
+* stop speaking:
+  + CapsLock+ShiftLeft+J
+  + ControlLeft
+  + ControlRight
+* speak current line:
+  + CapsLock+ShiftLeft+K
+  + CapsLock+Space
+* speak from top of screen through current line:
+  + CapsLock+ShiftLeft+I
+  + CapsLock+PageUp
+* speak from current line through bottom of screen:
+  + CapsLock+ShiftLeft+Comma
+  + CapsLock+PageDown
+* go to current speaking position: CapsLock+ShiftLeft+Eight
+* decrease speaking volume:
+  + CapsLock+ShiftLeft+M
+  + CapsLock+F7
+* increase speaking volume:
+  + CapsLock+ShiftLeft+Period
+  + CapsLock+F8
+* decrease speaking rate:
+  + CapsLock+ShiftLeft+U
+  + CapsLock+F5
+* increase speaking rate:
+  + CapsLock+ShiftLeft+O
+  + CapsLock+F6
+* set autospeak on/off:
+  + CapsLock+ShiftLeft+L
+  + CapsLock+F9
+* set autospeak selected line on/off: CapsLock+ShiftLeft+ControlLeft+K
+* set autospeak selected character on/off: CapsLock+ShiftLeft+ControlLeft+J
+* set autospeak inserted characters on/off: CapsLock+ShiftLeft+ControlLeft+Period
+* set autospeak deleted characters on/off: CapsLock+ShiftLeft+ControlLeft+M
+* set autospeak replaced characters on/off: CapsLock+ShiftLeft+ControlLeft+Comma
+* set autospeak completed words on/off: CapsLock+ShiftLeft+ControlLeft+L
+* set autospeak indent of current line on/off: Tab+ControlLeft+Zero
+
+Speech Navigation
+* speak current character: Tab+Comma
+* describe current character: Tab+ControlLeft+Comma
+* go to and speak previous character: Tab+M
+* go to and speak next character: Tab+Period
+* go to and speak first non-blank character on line:
+  + Tab+ControlLeft+M
+  + ControlRight+ArrowLeft
+* go to and speak last non-blank character on line:
+  + Tab+ControlLeft+Period
+  + ControlRight+ArrowRight
+* speak current word: Tab+K
+* spell current word: Tab+ControlLeft+K
+* go to and speak previous word:
+  + Tab+J
+  + ShiftRight+ArrowLeft
+* go to and speak next word:
+  + Tab+L
+  + ShiftRight+ArrowRight
+* speak current line: Tab+I
+* go to and speak previous line:
+  + Tab+U
+  + ShiftRight+ArrowUp
+* go to and speak next line:
+  + Tab+O
+  + ShiftRight+ArrowDown
+* go to and speak first non-blank line on screen:
+  + Tab+ControlLeft+U
+  + ControlRight+ArrowUp
+* go to and speak last non-blank line on screen:
+  + Tab+ControlLeft+O
+  + ControlRight+ArrowDown
+* speak indent of current line: Tab+Zero
+* speak speech cursor location:
+  + Tab+Eight
+  + ShiftRight+Enter
+* set speech cursor visibility on/off: Tab+ControlLeft+Eight
+
+Special Functions
+* remember current braille window position #1: CapsLock+M
+* remember current braille window position #2: CapsLock+ShiftLeft+One
+* remember current braille window position #3: CapsLock+ShiftLeft+Two
+* remember current braille window position #4: CapsLock+ShiftLeft+Three
+* remember current braille window position #5: CapsLock+ShiftLeft+Four
+* go to remembered braille window position #1: CapsLock+J
+* go to remembered braille window position #2: CapsLock+One
+* go to remembered braille window position #3: CapsLock+Two
+* go to remembered braille window position #4: CapsLock+Three
+* go to remembered braille window position #5: CapsLock+Four
+* restart braille driver: CapsLock+R
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: CapsLock+ShiftLeft+ArrowDown
+
+Menu Operations
+* go up to previous item: CapsLock+ArrowUp
+* go down to next item: CapsLock+ArrowDown
+* go up to first item: CapsLock+Home
+* go down to last item: CapsLock+End
+* select previous choice: CapsLock+ArrowLeft
+* select next choice: CapsLock+ArrowRight
+* go to previous menu level: CapsLock+ShiftLeft+ArrowUp
+* save preferences to disk: CapsLock+ShiftLeft+ArrowRight
+* restore preferences from disk: CapsLock+ShiftLeft+ArrowLeft
+

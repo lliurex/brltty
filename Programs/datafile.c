@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -342,6 +342,11 @@ parseDataString (DataFile *file, DataString *string, const wchar_t *characters, 
 
           case WC_C('r'):
             character = WC_C('\r');
+            ok = 1;
+            break;
+
+          case WC_C('R'):
+            character = UNICODE_REPLACEMENT_CHARACTER;
             ok = 1;
             break;
 

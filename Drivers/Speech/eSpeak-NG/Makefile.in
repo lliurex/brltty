@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -18,7 +18,7 @@
 
 DRIVER_CODE = en
 DRIVER_NAME = eSpeak-NG
-DRIVER_COMMENT = text to speech engine
+DRIVER_USAGE = software engine
 DRIVER_VERSION = 0.1
 DRIVER_DEVELOPERS = Nicolas Pitre <nico@fluxnic.net>, Ondřej Lysoněk <olysonek@redhat.com>
 SPK_OBJS = @speech_libraries_en@

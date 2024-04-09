@@ -90,7 +90,7 @@ The Char Directive
 .. parsed-literal:: char *character* *dots* # *comment*
 
 Use this directive to specify how a Unicode character is to be represented in
-braille. Characters defined via this directive can also be entered from a
+braille. A character defined via this directive can also be entered from a
 braille keyboard. If several characters have the same braille representation
 then only one of them should be defined via this directive - the others should
 be defined via `The Glyph Directive`_ (which has the same syntax). If more than
@@ -120,8 +120,25 @@ The Glyph Directive
 .. parsed-literal:: glyph *character* *dots* # *comment*
 
 Use this directive to specify how a Unicode character is to be represented in
-braille.  Characters defined via this directive are output-only - they cannot
+braille. A character defined via this directive is output-only - it can't
 be entered from a braille keyboard.
+
+*character*
+   |character operand|
+
+*dots*
+   |dots operand|
+
+See `The Char Directive`_ for examples.
+
+The Input Directive
+-------------------
+
+.. parsed-literal:: input *character* *dots* # *comment*
+
+Use this directive to specify how a Unicode character is to be entered from a
+braille keyboard. A character defined via this directive is input-only - its
+actual braille representation isn't defined.
 
 *character*
    |character operand|
@@ -193,10 +210,10 @@ Examples::
 
    ifNotGlyph \s glyph \s 0
 
-The IfCell Directive
+The IfInput Directive
 ---------------------
 
-.. parsed-literal:: ifCell *cell* *directive*
+.. parsed-literal:: ifInput *cell* *directive*
 
 Use this directive to only process one or more directives if a character can be
 entered from a braille keyboard.
@@ -207,10 +224,10 @@ entered from a braille keyboard.
 *directive*
    |directive operand|
 
-The IfNotCell Directive
+The IfNotInput Directive
 ------------------------
 
-.. parsed-literal:: ifNotCell *cell* *directive*
+.. parsed-literal:: ifNotInput *cell* *directive*
 
 Use this directive to only process one or more directives if a character can't
 be entered from a braille keyboard.
@@ -254,6 +271,6 @@ Text Table List
 ===============
 
 .. csv-table::
-   :header: "Name", "Description"
+   :header-rows: 1
    :file: text-table.csv
 

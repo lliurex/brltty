@@ -1,7 +1,7 @@
 /*
  * XBrlAPI - A background process tinkering with X for proper BrlAPI behavior
  *
- * Copyright (C) 2003-2021 by Samuel Thibault <Samuel.Thibault@ens-lyon.org>
+ * Copyright (C) 2003-2023 by Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *
  * XBrlAPI comes with ABSOLUTELY NO WARRANTY.
  *
@@ -59,7 +59,7 @@
 #define BRLAPI_NO_DEPRECATED
 #include "brlapi.h"
 
-#include "options.h"
+#include "cmdline.h"
 
 #define debugf(fmt, ...) do { if (verbose) fprintf(stderr, fmt, ## __VA_ARGS__); } while (0)
 
@@ -73,6 +73,7 @@ static char *xDisplay;
 static int no_daemon;
 static int quiet;
 static int verbose;
+static int xkb_major_opcode;
 
 static int brlapi_fd;
 
@@ -100,12 +101,6 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("X display to connect to")
   },
 
-  { .word = "no-daemon",
-    .letter = 'n',
-    .setting.flag = &no_daemon,
-    .description = strtext("Remain a foreground process")
-  },
-
   { .word = "quiet",
     .letter = 'q',
     .setting.flag = &quiet,
@@ -117,7 +112,13 @@ BEGIN_OPTION_TABLE(programOptions)
     .setting.flag = &verbose,
     .description = strtext("Write debugging output to stdout")
   },
-END_OPTION_TABLE
+
+  { .word = "no-daemon",
+    .letter = 'n',
+    .setting.flag = &no_daemon,
+    .description = strtext("Remain a foreground process")
+  },
+END_OPTION_TABLE(programOptions)
 
 /******************************************************************************
  * error handling
@@ -356,7 +357,7 @@ static Atom netWmNameAtom, utf8StringAtom;
 
 static XSelData xselData;
 
-static volatile int grabFailed;
+static volatile sig_atomic_t grabFailed;
 
 #ifdef HAVE_ICONV_H
 iconv_t utf8Conv = (iconv_t)(-1);
@@ -390,6 +391,22 @@ static struct window *window_of_Window(Window win) {
   return cur;
 }
 
+static int isRootWindow (Window win) {
+  if (win == PointerRoot) return 1;
+
+  {
+    int count = ScreenCount(dpy);
+     
+    for (int index=0; index<count; index+=1) {
+      if (RootWindow(dpy, index) == win) {
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
 static int del_window(Window win) {
   struct window **pred;
   struct window *cur;
@@ -410,6 +427,13 @@ static int ErrorHandler(Display *dpy, XErrorEvent *ev) {
     grabFailed=1;
     return 0;
   }
+#ifdef CAN_SIMULATE_KEY_PRESSES
+  if (ev->request_code == xkb_major_opcode && ev->minor_code == X_kbSetMap) {
+    /* Server refused our Xkb remapping request, probably the buggy version 21, ignore error */
+    fprintf(stderr,gettext("xbrlapi: server refused our mapping request, could not synthesize key\n"));
+    return 0;
+  }
+#endif
   if (XGetErrorText(dpy, ev->error_code, buffer, sizeof(buffer)))
     fatal("XGetErrorText");
   fprintf(stderr,gettext("xbrlapi: X Error %d, %s on display %s\n"), ev->type, buffer, XDisplayName(Xdisplay));
@@ -516,7 +540,7 @@ static char *getWindowTitle(Window win) {
   wm_name[nitems++] = 0;
   ret = strdup((char *) wm_name);
   XFree(wm_name);
-  debugf("type %lx name %s len %ld\n",actual_type,ret,nitems);
+  debugf("type %ld name %s len %ld\n",actual_type,ret,nitems);
 #ifdef HAVE_ICONV_H
   {
     if (actual_type == utf8StringAtom && utf8Conv != (iconv_t)(-1)) {
@@ -572,16 +596,18 @@ static void setName(const struct window *window) {
 }
 
 static void setFocus(Window win) {
-  struct window *window;
-
   curWindow=win;
   api_setFocus((uint32_t)win);
 
   if (!quiet) {
-    if (!(window=window_of_Window(win))) {
-      fprintf(stderr,gettext("xbrlapi: didn't grab window %#010lx but got focus\n"),win);
-      api_setName("unknown");
-    } else setName(window);
+    struct window *window = window_of_Window(win);
+
+    if (window) {
+      setName(window);
+    } else {
+      fprintf(stderr, gettext("xbrlapi: didn't grab window %#010lx but got focus\n"), win);
+      api_setName(isRootWindow(win)? "root window": "unnamed window");
+    }
   }
 }
 
@@ -665,6 +691,8 @@ static void toX_f(const char *display) {
       fatal(gettext("Incompatible XKB library\n"));
     if (!XkbQueryExtension(dpy, &foo, &foo, &foo, &major, &minor))
       fatal(gettext("Incompatible XKB server support\n"));
+    if (!XQueryExtension(dpy, "XKEYBOARD", &xkb_major_opcode, &foo, &foo))
+      fatal(gettext("Could not get XKB major opcode\n"));
   }
 #endif /* CAN_SIMULATE_KEY_PRESSES */
 
@@ -1007,10 +1035,15 @@ static void term_handler(int foo) {
 int
 main (int argc, char *argv[]) {
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
-      .applicationName = "xbrlapi"
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
+      .applicationName = "xbrlapi",
+
+      .usage = {
+        .purpose = strtext("Augment an X session by supporting input typed on the braille device, showing the title of the focused window on the braille display, and switching braille focus to it."),
+      }
     };
+
     PROCESS_OPTIONS(descriptor, argc, argv);
   }
 

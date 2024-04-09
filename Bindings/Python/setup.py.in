@@ -2,7 +2,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2005-2021 by
+# Copyright (C) 2005-2023 by
 #   Alexis Robert <alexissoft@free.fr>
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #
@@ -18,7 +18,7 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 if __name__ == "__main__":
     brlapi = Extension("brlapi",
@@ -54,6 +54,8 @@ if __name__ == "__main__":
     )
     
     setup(
+        zip_safe = False,
+
         name = "Brlapi",
         version = "@api_release@",
         description = "BrlAPI Client Bindings for Python",

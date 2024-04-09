@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -137,25 +137,27 @@ getUnicodeCell (TextTableData *ttd, wchar_t character) {
 }
 
 static void
-resetTextTableDots (TextTableData *ttd, unsigned char dots, wchar_t character) {
+clearTextTableInput (TextTableData *ttd, unsigned char dots, wchar_t character) {
   TextTableHeader *header = getTextTableHeader(ttd);
 
-  if (BITMASK_TEST(header->dotsCharacterDefined, dots)) {
-    if (header->dotsToCharacter[dots] == character) {
-      header->dotsToCharacter[dots] = 0;
-      BITMASK_CLEAR(header->dotsCharacterDefined, dots);
+  if (BITMASK_TEST(header->inputCharacterDefined, dots)) {
+    if (header->inputCharacters[dots] == character) {
+      header->inputCharacters[dots] = 0;
+      BITMASK_CLEAR(header->inputCharacterDefined, dots);
     }
   }
 }
 
-static void
-setTextTableDots (TextTableData *ttd, wchar_t character, unsigned char dots) {
+int
+setTextTableInput (TextTableData *ttd, wchar_t character, unsigned char dots) {
   TextTableHeader *header = getTextTableHeader(ttd);
 
-  if (!BITMASK_TEST(header->dotsCharacterDefined, dots)) {
-    header->dotsToCharacter[dots] = character;
-    BITMASK_SET(header->dotsCharacterDefined, dots);
+  if (!BITMASK_TEST(header->inputCharacterDefined, dots)) {
+    header->inputCharacters[dots] = character;
+    BITMASK_SET(header->inputCharacterDefined, dots);
   }
+
+  return 1;
 }
 
 int
@@ -169,7 +171,7 @@ setTextTableGlyph (TextTableData *ttd, wchar_t character, unsigned char dots) {
     if (!BITMASK_TEST(row->cellDefined, cellNumber)) {
       BITMASK_SET(row->cellDefined, cellNumber);
     } else if (*cell != dots) {
-      resetTextTableDots(ttd, *cell, character);
+      clearTextTableInput(ttd, *cell, character);
     }
 
     *cell = dots;
@@ -182,7 +184,7 @@ setTextTableGlyph (TextTableData *ttd, wchar_t character, unsigned char dots) {
 int
 setTextTableCharacter (TextTableData *ttd, wchar_t character, unsigned char dots) {
   if (!setTextTableGlyph(ttd, character, dots)) return 0;
-  setTextTableDots(ttd, character, dots);
+  if (!setTextTableInput(ttd, character, dots)) return 0;
   return 1;
 }
 
@@ -196,7 +198,7 @@ unsetTextTableCharacter (TextTableData *ttd, wchar_t character) {
     if (BITMASK_TEST(row->cellDefined, cellNumber)) {
       unsigned char *cell = &row->cells[cellNumber];
 
-      resetTextTableDots(ttd, *cell, character);
+      clearTextTableInput(ttd, *cell, character);
       *cell = 0;
       BITMASK_CLEAR(row->cellDefined, cellNumber);
     }
@@ -392,54 +394,7 @@ makeTextTablePath (const char *directory, const char *name) {
   return NULL;
 }
 
-static int
-testTextTable (const char *directory, char *name) {
-  int exists = 0;
-  char *path;
-
-  if ((path = makeTextTablePath(directory, name))) {
-    logMessage(LOG_DEBUG, "checking for text table: %s", path);
-    if (testFilePath(path)) exists = 1;
-    free(path);
-  }
-
-  return exists;
-}
-
 char *
-selectTextTable (const char *directory) {
-  char *locale = getLocaleName();
-
-  if (locale) {
-    char name[strlen(locale) + 1];
-
-    {
-      size_t length = strcspn(locale, ".@");
-      strncpy(name, locale, length);
-      name[length] = 0;
-    }
-
-    free(locale);
-    locale = NULL;
-
-    if (isPosixLocale(name)) {
-      name[0] = 0;
-    } else if (!testTextTable(directory, name)) {
-      char *delimiter = strchr(name, '_');
-
-      if (delimiter) {
-        *delimiter = 0;
-        if (!testTextTable(directory, name)) name[0] = 0;
-      }
-    }
-
-    if (name[0]) {
-      char *textTableName = strdup(name);
-
-      if (textTableName) return textTableName;
-      logMallocError();
-    }
-  }
-
-  return NULL;
+getTextTableForLocale (const char *directory) {
+  return getFileForLocale(directory, makeTextTablePath);
 }

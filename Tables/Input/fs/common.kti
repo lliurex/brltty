@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -19,12 +19,13 @@
 bind Left\{navKeyType}Press LNBEG
 bind Right\{navKeyType}Press LNEND
 
-bind LeftSelector BACK
-bind RightSelector HOME
+bind LeftSelector BACK:TOP_LEFT
+bind RightSelector HOME:BOT_LEFT
 bind LeftSelector+RightSelector PASTE
 
 bind PanLeft FWINLT
 bind PanRight FWINRT
+bind PanLeft+PanRight CSRJMP_VERT
 
 bind LeftSelector+PanLeft TOP_LEFT
 bind LeftSelector+PanRight BOT_LEFT
@@ -57,11 +58,11 @@ bind RightSelector+!Left\{navKeyType}Up PRSEARCH
 bind RightSelector+!Left\{navKeyType}Down NXSEARCH
 
 bind RoutingKey ROUTE
-bind Left\{navKeyType}Press+!RoutingKey SETLEFT
-bind Right\{navKeyType}Press+!RoutingKey DESCCHAR
+bind Left\{navKeyType}Press+RoutingKey SETLEFT
+bind Right\{navKeyType}Press+RoutingKey DESCCHAR
 
 bind RoutingKey+!RoutingKey CLIP_COPY
-bind PanLeft+!RoutingKey CLIP_NEW
-bind PanRight+!RoutingKey COPY_RECT
-bind LeftSelector+!RoutingKey CLIP_ADD
-bind RightSelector+!RoutingKey COPY_LINE
+bind PanLeft+RoutingKey CLIP_NEW
+bind PanRight+RoutingKey COPY_RECT
+bind LeftSelector+RoutingKey CLIP_ADD
+bind RightSelector+RoutingKey COPY_LINE

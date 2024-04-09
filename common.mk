@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -22,9 +22,7 @@ FORCE:
 
 include $(BLD_TOP)config.mk
 include $(BLD_TOP)forbuild.mk
-
 include $(SRC_TOP)absdeps.mk
-include $(SRC_DIR)/reldeps.mk
 
 %.$B: $(SRC_DIR)/%.c
 	$(CC_FOR_BUILD) -DFOR_BUILD $(CFLAGS_FOR_BUILD) -o $@ -c $<
@@ -57,6 +55,10 @@ INSTALL_PROGRAM_DIRECTORY = $(INSTALL_ROOT)$(PROGRAM_DIRECTORY)
 install-program-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_PROGRAM_DIRECTORY)
 
+INSTALL_COMMANDS_DIRECTORY = $(INSTALL_ROOT)$(COMMANDS_DIRECTORY)
+install-commands-directory:
+	$(INSTALL_DIRECTORY) $(INSTALL_COMMANDS_DIRECTORY)
+
 INSTALL_DRIVERS_DIRECTORY = $(INSTALL_ROOT)$(DRIVERS_DIRECTORY)
 install-drivers-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_DRIVERS_DIRECTORY)
@@ -69,13 +71,13 @@ INSTALL_TEXT_TABLES_DIRECTORY = $(INSTALL_TABLES_DIRECTORY)/$(TEXT_TABLES_SUBDIR
 install-text-tables-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_TEXT_TABLES_DIRECTORY)
 
-INSTALL_ATTRIBUTES_TABLES_DIRECTORY = $(INSTALL_TABLES_DIRECTORY)/$(ATTRIBUTES_TABLES_SUBDIRECTORY)
-install-attributes-tables-directory:
-	$(INSTALL_DIRECTORY) $(INSTALL_ATTRIBUTES_TABLES_DIRECTORY)
-
 INSTALL_CONTRACTION_TABLES_DIRECTORY = $(INSTALL_TABLES_DIRECTORY)/$(CONTRACTION_TABLES_SUBDIRECTORY)
 install-contraction-tables-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_CONTRACTION_TABLES_DIRECTORY)
+
+INSTALL_ATTRIBUTES_TABLES_DIRECTORY = $(INSTALL_TABLES_DIRECTORY)/$(ATTRIBUTES_TABLES_SUBDIRECTORY)
+install-attributes-tables-directory:
+	$(INSTALL_DIRECTORY) $(INSTALL_ATTRIBUTES_TABLES_DIRECTORY)
 
 INSTALL_KEYBOARD_TABLES_DIRECTORY = $(INSTALL_TABLES_DIRECTORY)/$(KEYBOARD_TABLES_SUBDIRECTORY)
 install-keyboard-tables-directory:
@@ -132,11 +134,15 @@ install-gdm-autostart-directory:
 	$(INSTALL_DIRECTORY) $(INSTALL_GDM_AUTOSTART_DIRECTORY)
 
 clean::
-	-rm -f *.$O *.auto.h *.auto.c core implib.a
+	-test -f core && rm -f core
+	-rm -f *.$O *.auto.h *.auto.c implib.a
 
 distclean::
 	-rm -f *~ *orig \#*\# *.rej ? a.out
 	-rm -f Makefile
+
+src:
+	$(SYMLINK) $(SRC_DIR) src
 
 .DELETE_ON_ERROR:
 

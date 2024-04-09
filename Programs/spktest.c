@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -27,7 +27,7 @@
 #include <errno.h>
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "log.h"
 #include "spk.h"
 #include "file.h"
@@ -41,16 +41,6 @@ static char *opt_pcmDevice;
 static char *opt_driversDirectory;
 
 BEGIN_OPTION_TABLE(programOptions)
-  { .word = "drivers-directory",
-    .letter = 'D',
-    .flags = OPT_Hidden,
-    .argument = "directory",
-    .setting.string = &opt_driversDirectory,
-    .internal.setting = DRIVERS_DIRECTORY,
-    .internal.adjust = fixInstallPath,
-    .description = "Path to directory for loading drivers."
-  },
-
   { .word = "text-string",
     .letter = 't',
     .argument = "string",
@@ -78,10 +68,19 @@ BEGIN_OPTION_TABLE(programOptions)
     .setting.string = &opt_pcmDevice,
     .description = "Digital audio soundcard device specifier."
   },
-END_OPTION_TABLE
+
+  { .word = "drivers-directory",
+    .letter = 'D',
+    .argument = "directory",
+    .setting.string = &opt_driversDirectory,
+    .internal.setting = DRIVERS_DIRECTORY,
+    .internal.adjust = fixInstallPath,
+    .description = "Path to directory for loading drivers."
+  },
+END_OPTION_TABLE(programOptions)
 
 static int
-say (volatile SpeechSynthesizer *spk, const char *string) {
+say (SpeechSynthesizer *spk, const char *string) {
   if (!sayString(spk, string, 0)) return 0;
   asyncWait(250);
   return 1;
@@ -89,7 +88,7 @@ say (volatile SpeechSynthesizer *spk, const char *string) {
 
 static int
 sayLine (const LineHandlerParameters *parameters) {
-  volatile SpeechSynthesizer *spk = parameters->data;
+  SpeechSynthesizer *spk = parameters->data;
 
   say(spk, parameters->line.text);
   return 1;
@@ -98,7 +97,7 @@ sayLine (const LineHandlerParameters *parameters) {
 int
 main (int argc, char *argv[]) {
   ProgramExitStatus exitStatus;
-  volatile SpeechSynthesizer spk;
+  SpeechSynthesizer spk;
 
 
   const char *driver = NULL;
@@ -108,10 +107,14 @@ main (int argc, char *argv[]) {
   int speechRate = SPK_RATE_DEFAULT;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "spktest",
-      .argumentsSummary = "[driver [parameter=value ...]]"
+
+      .usage = {
+        .purpose = strtext("Test a speech driver."),
+        .parameters = "[driver [parameter=value ...]]",
+      }
     };
 
     PROCESS_OPTIONS(descriptor, argc, argv);

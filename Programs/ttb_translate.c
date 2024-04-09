@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -28,9 +28,11 @@
 #include "ttb.h"
 #include "ttb_internal.h"
 #include "brl_dots.h"
+#include "brl_types.h"
+#include "prefs.h"
 
 static const unsigned char internalTextTableBytes[] = {
-#include "text.auto.h"
+#include "ttb.auto.h"
 };
 
 static TextTable internalTextTable = {
@@ -191,15 +193,18 @@ setBrailleRepresentation (wchar_t character, void *data) {
 
 unsigned char
 convertCharacterToDots (TextTable *table, wchar_t character) {
-  wchar_t row = character & ~UNICODE_CELL_MASK;
+  uint32_t row = character & ~UNICODE_CELL_MASK;
 
   switch (row) {
+#if WCHAR_MAX >= UINT16_MAX
     case 0XF000: {
       wint_t wc = convertCharToWchar(character & UNICODE_CELL_MASK);
       if (wc == WEOF) break;
       character = wc;
     }
     /* fall through */
+#endif /* WCHAR_MAX >= UINT16_MAX */
+
     default: {
       {
         unsigned char dots;
@@ -238,8 +243,22 @@ convertCharacterToDots (TextTable *table, wchar_t character) {
 wchar_t
 convertDotsToCharacter (TextTable *table, unsigned char dots) {
   const TextTableHeader *header = table->header.fields;
-  if (BITMASK_TEST(header->dotsCharacterDefined, dots)) return header->dotsToCharacter[dots];
+  if (BITMASK_TEST(header->inputCharacterDefined, dots)) return header->inputCharacters[dots];
   return UNICODE_REPLACEMENT_CHARACTER;
+}
+
+wchar_t
+convertInputToCharacter (unsigned char dots) {
+  switch (prefs.brailleTypingMode) {
+    case BRL_TYPING_TEXT:
+      return convertDotsToCharacter(textTable, dots);
+
+    default:
+      logMessage(LOG_WARNING, "unknown braille typing mode: %u", prefs.brailleTypingMode);
+      /* fall through */
+    case BRL_TYPING_DOTS:
+      return UNICODE_BRAILLE_ROW | dots;
+  }
 }
 
 int

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,7 +23,7 @@
 #include <errno.h>
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "log.h"
 #include "cldr.h"
 #include "datafile.h"
@@ -39,9 +39,35 @@ BEGIN_OPTION_TABLE(programOptions)
     .argument = strtext("string"),
     .setting.string = &opt_outputFormat,
     .internal.setting = DEFAULT_OUTPUT_FORMAT,
-    .description = strtext("Format of each output line.")
+    .description = strtext("The format of each output line.")
   },
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
+
+static
+BEGIN_USAGE_NOTES(usageNotes)
+  "The output format is printf-like -",
+  "arbitrary text which may contain",
+  "field specifiers (introduced via a percent sign [%])",
+  "and/or special characters (introduced via a backslash [\\]).",
+  "The default format, excluding the quotes, is \"" DEFAULT_OUTPUT_FORMAT "\".",
+  "",
+  "These field specifiers are recognized:",
+  "  %n  the name of the character sequence",
+  "  %s  the character sequence itself",
+  "  %x  the character sequence in hexadecimal",
+  "  %%  a literal percent sign",
+  "",
+  "These special characters are recognized:",
+  "  \\a  alert (bell)",
+  "  \\b  backspace",
+  "  \\e  escape",
+  "  \\f  form feed",
+  "  \\n  new line",
+  "  \\r  carriage return",
+  "  \\t  horizontal tab",
+  "  \\v  vertical tab",
+  "  \\\\  literal backslasha  ",
+END_USAGE_NOTES
 
 static void
 onFormatError (void) {
@@ -203,11 +229,17 @@ CLDR_ANNOTATION_HANDLER(handleAnnotation) {
 int
 main (int argc, char *argv[]) {
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltty-cldr",
-      .argumentsSummary = "input-file"
+
+      .usage = {
+        .purpose = strtext("List the characters defined within a CLDR (Common Locale Data Repository Project) annotations file."),
+        .parameters = "input-file",
+        .notes = USAGE_NOTES(usageNotes),
+      }
     };
+
     PROCESS_OPTIONS(descriptor, argc, argv);
   }
 

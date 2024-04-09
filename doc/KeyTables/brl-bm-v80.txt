@@ -1,0 +1,156 @@
+Key Table: Baum Vario 80
+========================
+
+Notes
+* There are three display keys at each end of the braille cells.
+  From top to bottom:
+  + The three at the left are named Display1, Display2, and Display3.
+  + The three at the right are named Display4, Display5, and Display6.
+* The command keys are in the middle, just behind the cursor routing keys,
+* and, from left to right, are named Command1 through Command7.
+* The keys in the upper row on the front are named:
+  Front1, Front3, Front5, Front7, Front9.
+* The keys in the lower row on the front are named:
+  Front2, Front4, Front6, Front8, Front10.
+* The keys in the upper row on the back are named:
+  Back1, Back3, Back5, Back7, Back9.
+* The keys in the lower row on the back are named:
+  Back2, Back4, Back6, Back8, Back10.
+* RoutingKey refers to any of the keys immediately behind the braille cells.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Display1+Display2+Display5
+* enter/leave command learn mode: Display1+Display4+Display5+Display6
+* enter/leave preferences menu: Display1+Display3+Display4
+* enter/leave status display: Display2+Display5
+* set display mode attributes/text: Display1+Display4+Display5
+* set screen image frozen/unfrozen: Display1+Display2+Display4
+* describe character: Display3+RoutingKey
+* show current date and time: Display1+Display5
+
+Cursor Functions
+* go to screen cursor: Display2+Display4+Display6
+* go back after cursor tracking: Display1+Display6
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: Display1+Display3+Display4+Display6
+
+Vertical Navigation
+* go up one line:
+  + Display4
+  + Front1
+  + Front3
+  + Front5
+  + Front7
+  + Front9
+* go down one line:
+  + Display6
+  + Front2
+  + Front4
+  + Front6
+  + Front8
+  + Front10
+* go to top line:
+  + Display1+Display4
+  + Front6+Front1
+* go to bottom line:
+  + Display3+Display6
+  + Front6+Front2
+* go to beginning of top line:
+  + Display2+Display4
+  + Front5+Front1
+* go to beginning of bottom line:
+  + Display2+Display6
+  + Front5+Front2
+* go up to nearest line with different content:
+  + Display5+Display4
+  + Front5+Front9
+* go down to nearest line with different content:
+  + Display5+Display6
+  + Front5+Front10
+* go up to nearest line with different highlighting:
+  + Display2+Display1
+  + Front6+Front9
+* go down to nearest line with different highlighting:
+  + Display2+Display3
+  + Front6+Front10
+* go up to first line of paragraph:
+  + Front6+Front3
+  + Display2+Display5+Display4
+* go down to first line of next paragraph:
+  + Front6+Front4
+  + Display2+Display5+Display6
+* go up to previous command prompt:
+  + Front5+Front3
+  + Display2+Display5+Display1+Display4
+* go down to next command prompt:
+  + Front5+Front4
+  + Display2+Display5+Display3+Display6
+* go up to nearest line with less indent than character: Display2+Display1+RoutingKey
+* go down to nearest line with less indent than character: Display2+Display3+RoutingKey
+* go up to nearest line with different character: Display5+Display4+RoutingKey
+* go down to nearest line with different character: Display5+Display6+RoutingKey
+
+Horizontal Navigation
+* go backward one braille window: Display2
+* go forward one braille window: Display5
+* go to beginning of line: Display1+Display2+Display3
+* go to end of line: Display4+Display5+Display6
+* go left one character: Display1+Display3
+* go right one character: Display4+Display6
+* place left end of braille window at character: Display6+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: Display1+RoutingKey
+* append to clipboard from character: Display2+RoutingKey
+* linear copy to character: Display4+RoutingKey
+* rectangular copy to character: Display5+RoutingKey
+* copy characters to clipboard: RoutingKey+RoutingKey
+* append characters to clipboard: Display2+RoutingKey+RoutingKey
+* insert clipboard text after screen cursor: Display1+Display2+Display3+Display4
+* search backward for clipboard text: Display2+Display4+Display6+Display1
+* search forward for clipboard text: Display2+Display4+Display6+Display3
+
+Configuration Functions
+* set text style 6-dot: Display2+Display3+Display5
+* set text style 8-dot: Display2+Display3+Display6
+* set track screen cursor on: Display1
+* set track screen cursor off: Display3
+* set attribute underlining on/off: Display2+Display3+Display4+Display5
+
+Menu Operations
+* save preferences to disk: Display2+Display4+Display5+Display6
+* restore preferences from disk: Display1+Display2+Display3+Display5
+
+Speech Functions
+* stop speaking: Display3+Display4
+* speak current line: Display3+Display5
+* speak from top of screen through current line: Display3+Display5+Display4
+* speak from current line through bottom of screen: Display3+Display5+Display6
+* go to current speaking position: Display1+Display3+Display5
+* set autospeak on/off: Display3+Display4+Display6
+
+Keyboard Input
+* braille keyboard dot3: Command1
+* braille keyboard dot2: Command2
+* braille keyboard dot1: Command3
+* braille keyboard space: Command4
+* braille keyboard dot4: Command5
+* braille keyboard dot5: Command6
+* braille keyboard dot6: Command7
+* backspace key: Command4+Command2
+* cursor-left key: Command4+Command1
+* cursor-right key: Command4+Command7
+* enter key: Command4+Command5
+* tab key: Command4+Command6
+* switch to specific virtual terminal: Display4+Display5+Display6+RoutingKey
+* switch to the previous virtual terminal: Display3+Display4+Display5+Display6
+* switch to the next virtual terminal: Display1+Display2+Display3+Display6
+
+Special Functions
+* remember current braille window position: Display1+Display3+RoutingKey
+* go to remembered braille window position: Display4+Display6+RoutingKey
+* restart speech driver: Display2+Display3+Display4
+

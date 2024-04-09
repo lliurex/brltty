@@ -1,0 +1,187 @@
+#!/usr/bin/env tclsh
+###############################################################################
+# BRLTTY - A background process providing access to the console screen (when in
+#          text mode) for a blind person using a refreshable braille display.
+#
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
+#
+# BRLTTY comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+source [file join [file dirname [info script]] "prologue.tcl"]
+
+proc splitNames {names oldNamesVariable sameNamesVariable newNamesVariable} {
+   global baseStrings ignorableNames
+
+   upvar 1 $oldNamesVariable oldNames
+   upvar 1 $sameNamesVariable sameNames
+   upvar 1 $newNamesVariable newNames
+
+   lassign [intersect3 $names [dict keys $baseStrings]] oldNames sameNames newNames
+   lassign [intersect3 $newNames $ignorableNames] newNames x x
+}
+
+proc writeNames {path names} {
+   global baseStrings
+   file delete $path
+
+   if {[llength $names] > 0} {
+      if {[catch [list open $path {WRONLY TRUNC CREAT}] channel] == 0} {
+         foreach name $names {
+            set string [dict get $baseStrings $name]
+            puts $channel "$name [dict get $string text]"
+         }
+
+         close $channel; unset channel
+      } else {
+         semanticError $channel
+      }
+   }
+}
+
+proc loadStringList {} {
+   global androidDirectory
+
+   set strings [dict create]
+   set path [file join $androidDirectory STRINGS]
+   logMessage detail "loading string list: $path"
+
+   set order 0
+   set pattern {^\s*(\S+)\s+(.*?)\s*$}
+
+   if {[catch [list open $path {RDONLY}] channel] == 0} {
+      while {[gets $channel line] >= 0} {
+         if {[regexp $pattern $line x name text]} {
+            set string [dict create text $text order [incr order]]
+            dict set strings $name $string
+         }
+      }
+
+      close $channel; unset channel
+   } else {
+      semanticError $channel
+   }
+
+   return $strings
+}
+
+proc auditStringList {} {
+   global baseStrings listedStrings
+
+   logNote "auditing string list"
+   splitNames [dict keys $listedStrings] oldNames sameNames newNames
+   writeNames "[getProgramName].txt" $newNames
+
+   foreach name $oldNames {
+      writeProgramMessage "old listed string: $name"
+   }
+
+   foreach name $sameNames {
+      set oldText [dict get $listedStrings $name text]
+      set newText [dict get $baseStrings $name text]
+
+      if {![string equal $newText $oldText]} {
+         writeProgramMessage "base string changed: $name: $oldText -> $newText"
+      }
+   }
+}
+
+proc loadStringResources {directory} {
+   logMessage detail "loading resource directory: $directory"
+   set strings [dict create]
+
+   set pattern {^\s*<\s*string}
+   append pattern {\s+name\s*=\s*"([^"]*)"}
+   append pattern {(?:\s+translatable\s*=\s*"true")?}
+   append pattern {(?:\s+tools:ignore\s*=\s*"(MissingTranslation)")?}
+   append pattern {\s*>\s*(.*?)\s*<\s*/string\s*>\s*$}
+
+   foreach path [glob "$directory/*.xml"] {
+      logMessage detail "loading string resources: $path"
+
+      if {[catch [list open $path {RDONLY}] channel] == 0} {
+         set order 0
+
+         while {[gets $channel line] >= 0} {
+            if {[regexp $pattern $line x name ignorable text]} {
+               set ignorable [expr {[string length $ignorable] > 0}]
+               set string [dict create text $text ignorable $ignorable order [incr order]]
+               dict set strings $name $string
+            }
+         }
+
+         close $channel; unset channel
+      } else {
+         semanticError $channel
+      }
+   }
+
+   return $strings
+}
+
+proc getIgnorableNames {strings} {
+   set names [list]
+
+   foreach name [dict keys $strings] {
+      if {[dict get $strings $name ignorable]} {
+         lappend names $name
+      }
+   }
+
+   return $names
+}
+
+proc auditLanguage {code directory} {
+   logNote "auditing language: $code"
+   set languageStrings [loadStringResources $directory]
+   splitNames [dict keys $languageStrings] oldNames sameNames newNames
+   writeNames "[getProgramName]-$code.txt" $newNames
+
+   foreach name $oldNames {
+      writeProgramMessage "old language string: $code: $name"
+   }
+
+   if {([string length $oldNames] + [string length $newNames]) == 0} {
+      global listedStrings
+
+      foreach name [dict keys $listedStrings] {
+         if {[dict get $listedStrings $name order] != [dict get $languageStrings $name order]} {
+            writeProgramMessage "language string out of order: $code: $name"
+         }
+      }
+   }
+}
+
+proc auditAllLanguages {} {
+   global baseDirectory
+   set languageDelimiter -
+
+   foreach directory [glob -nocomplain -path "$baseDirectory$languageDelimiter" "?*"] {
+      set code [lindex [split [file tail $directory] $languageDelimiter] 1]
+      auditLanguage $code $directory
+   }
+}
+
+set optionDefinitions {
+}
+
+processProgramArguments optionValues $optionDefinitions
+
+set baseDirectory [file join $applicationDirectory res values]
+set baseStrings [loadStringResources $baseDirectory]
+set ignorableNames [getIgnorableNames $baseStrings]
+
+set listedStrings [loadStringList]
+auditStringList
+
+auditAllLanguages
+exit 0

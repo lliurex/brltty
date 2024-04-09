@@ -1,0 +1,810 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="Docutils 0.16: http://docutils.sourceforge.net/" />
+<title>BRLTTY on DOS</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7952 2016-07-26 18:15:59Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left, table.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right, table.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table.align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+.align-top    {
+  vertical-align: top }
+
+.align-middle {
+  vertical-align: middle }
+
+.align-bottom {
+  vertical-align: bottom }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math, pre.code {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="brltty-on-dos">
+<h1 class="title">BRLTTY on DOS</h1>
+
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#using-brltty" id="id3">Using BRLTTY</a><ul>
+<li><a class="reference internal" href="#serial-support" id="id4">Serial Support</a></li>
+<li><a class="reference internal" href="#usb-support" id="id5">USB Support</a></li>
+<li><a class="reference internal" href="#bluetooth-support" id="id6">Bluetooth Support</a></li>
+<li><a class="reference internal" href="#unpacking-the-archive" id="id7">Unpacking the Archive</a><ul>
+<li><a class="reference internal" href="#a-simple-but-dangerous-way" id="id8">A Simple but Dangerous Way</a></li>
+<li><a class="reference internal" href="#using-kpatrx" id="id9">Using <tt class="docutils literal">kpatrx</tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dosidle" id="id10"><tt class="docutils literal">DOSIDLE</tt></a></li>
+<li><a class="reference internal" href="#using-dosemu-on-linux" id="id11">Using <tt class="docutils literal">dosemu</tt> on Linux</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#making-the-cross-compiler" id="id12">Making the Cross Compiler</a><ul>
+<li><a class="reference internal" href="#the-mkdostools-script" id="id13">The <tt class="docutils literal">mkdostools</tt> Script</a><ul>
+<li><a class="reference internal" href="#basic-options" id="id14">Basic Options</a></li>
+<li><a class="reference internal" href="#build-directories" id="id15">Build Directories</a></li>
+<li><a class="reference internal" href="#required-archives" id="id16">Required Archives</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#building-brltty" id="id17">Building BRLTTY</a><ul>
+<li><a class="reference internal" href="#configuring-the-build" id="id18">Configuring the Build</a><ul>
+<li><a class="reference internal" href="#the-cfg-dos-script" id="id19">The <tt class="docutils literal"><span class="pre">cfg-dos</span></tt> Script</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-mkdosarc-script" id="id20">The <tt class="docutils literal">mkdosarc</tt> Script</a><ul>
+<li><a class="reference internal" href="#parameters" id="id21">Parameters</a></li>
+<li><a class="reference internal" href="#options" id="id22">Options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="using-brltty">
+<h2><a class="toc-backref" href="#id3">Using BRLTTY</a></h2>
+<div class="section" id="serial-support">
+<h3><a class="toc-backref" href="#id4">Serial Support</a></h3>
+<p>The default DOS serial driver does not support speeds above 9600 baud. For
+higher speeds, a more capable serial driver (like ADF) must be used.</p>
+</div>
+<div class="section" id="usb-support">
+<h3><a class="toc-backref" href="#id5">USB Support</a></h3>
+<p>USB isn't supported.</p>
+</div>
+<div class="section" id="bluetooth-support">
+<h3><a class="toc-backref" href="#id6">Bluetooth Support</a></h3>
+<p>Bluetooth isn't supported.</p>
+</div>
+<div class="section" id="unpacking-the-archive">
+<h3><a class="toc-backref" href="#id7">Unpacking the Archive</a></h3>
+<p>If you'd like to unpack the archive on your DOS system but don't have an
+unzip command on it, you can get one from
+<a class="reference external" href="ftp://ftp.delorie.com/pub/djgpp/current/v2/unzip32.exe">ftp://ftp.delorie.com/pub/djgpp/current/v2/unzip32.exe</a>.</p>
+<p>If you'd like to unpack the archive into your DOS file system from your Linux
+system then you need to be able to mount your DOS partition on your Linux
+system. If you do this then you must be careful about two things. The first is
+that you must ensure that your DOS system is shut down first so that two
+systems won't be accessing the same partition at the same time. The second is
+that you must mount the partition in a way that prevents the long file names
+that BRLTTY uses from being converted into those cryptic Windows short file
+names - the ones that look like <tt class="docutils literal">longna~1.ext</tt>. One way to do this is to use
+the <tt class="docutils literal"><span class="pre">-o</span> nonumtail</tt> option when mounting your DOS partition. For example:</p>
+<pre class="literal-block">
+mkdir -p /mnt/dos
+mount -o nonumtail /dev/sda1 /mnt/dos
+</pre>
+<p>What you most likely have is an image of the whole hard disk, rather than an
+image of just the DOS partition. There are a number of ways to mount the DOS
+partition within the hard disk image. We'll describe some of them here. For our
+examples, we'll assume that the DOS partition is the first primary partition of
+a hard disk whose image is in the file <tt class="docutils literal">disk.img</tt>.</p>
+<div class="section" id="a-simple-but-dangerous-way">
+<h4><a class="toc-backref" href="#id8">A Simple but Dangerous Way</a></h4>
+<p>The simplest, but also the most dangerous, way is to do some simple math and to
+use an obscure mount option. First, use the <tt class="docutils literal">fdisk</tt> command to find out where
+the DOS partition starts within the hard disk image. To do this, use the
+command:</p>
+<pre class="literal-block">
+fdisk -l disk.img
+</pre>
+<p>You should see output that looks like this:</p>
+<pre class="literal-block">
+Disk disk.img: 1073 MB, 1073741824 bytes, 2097152 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk identifier: 0x00000000
+
+   Device Boot      Start         End      Blocks   Id  System
+disk.img1   *          63     2062367     1031152+   6  FAT16
+</pre>
+<p>From the <tt class="docutils literal">Start</tt> column, you can see that the DOS partition starts in sector
+63 of the hard disk. Since a sector is a 512-byte block, you need to multiply
+63 by 512 in order to calculate the partition's byte offset:</p>
+<pre class="literal-block">
+63 x 512 = 32256
+</pre>
+<p>Now you can mount the DOS partition using that obscure option:</p>
+<pre class="literal-block">
+mount -o offset=32256 disk.img /mnt/dos
+</pre>
+<p>But don't forget the afore-mentioned Windows cryptic short file name problem.
+The command you should really use, therefore, is:</p>
+<pre class="literal-block">
+mount -o offset=32256,nonumtail disk.img /mnt/dos
+</pre>
+<p>Before you restart your DOS system, don't forget to first unmount the DOS
+partition from your Linux system:</p>
+<pre class="literal-block">
+umount /mnt/dos
+</pre>
+</div>
+<div class="section" id="using-kpatrx">
+<h4><a class="toc-backref" href="#id9">Using <tt class="docutils literal">kpatrx</tt></a></h4>
+<p>Another way to mount the DOS partition, which is much safer, is to use the
+<tt class="docutils literal">kpartx</tt> command to create a loop device for the desired partition within the
+hard disk image. Use a command like this:</p>
+<pre class="literal-block">
+kpartx -v -s -a disk.img
+</pre>
+<ul class="simple">
+<li>The <tt class="docutils literal"><span class="pre">-v</span></tt> (verbose) option tells <tt class="docutils literal">kpartx</tt> to be informative, which is the
+easiest way to find out the name of the loop device that it will create.</li>
+<li>The <tt class="docutils literal"><span class="pre">-s</span></tt> (synchronous) option tells <tt class="docutils literal">kpartx</tt> to wait until the loop
+device has been created by <tt class="docutils literal">udev</tt> before returning.</li>
+<li>The <tt class="docutils literal"><span class="pre">-a</span></tt> (add) option tells <tt class="docutils literal">kpartx</tt> to create the loop device.</li>
+</ul>
+<p>You should see output like this:</p>
+<pre class="literal-block">
+add map loop0p1 (253:11): 0 2062305 linear /dev/loop0 63
+</pre>
+<p>So you now know that the loop device you need to mount is
+<tt class="docutils literal">/dev/mapper/loop0p1</tt>:</p>
+<pre class="literal-block">
+mount -o nonumtail /dev/mapper/loop0p1 /mnt/dos
+</pre>
+<p>When you're finished, you need to unmount the partition and to remove the loop
+device:</p>
+<pre class="literal-block">
+umount /mnt/dos
+kpartx -d disk.img
+</pre>
+</div>
+</div>
+<div class="section" id="dosidle">
+<h3><a class="toc-backref" href="#id10"><tt class="docutils literal">DOSIDLE</tt></a></h3>
+<p><tt class="docutils literal">DOSIDLE</tt> is a DOS application that many users run in order to stop their
+computer or virtual machine from needlessly consuming CPU time when DOS has
+nothing meaningful to do. If you use it, don't use a &quot;cooling strategy&quot; more
+invasive than <tt class="docutils literal">weak</tt>. In other words, don't specify more than <tt class="docutils literal"><span class="pre">-fm1</span></tt>. Using
+a &quot;cooling strategy&quot; that is too aggressive will cause <tt class="docutils literal">DOSIDLE</tt> to correctly
+deduce that the system is idle when BRLTTY has nothing to do, but that will
+cause BRLTTY to stop running, too, which isn't what you want.</p>
+</div>
+<div class="section" id="using-dosemu-on-linux">
+<h3><a class="toc-backref" href="#id11">Using <tt class="docutils literal">dosemu</tt> on Linux</a></h3>
+<p>If you're using <tt class="docutils literal">dosemu</tt> on Linux, and the Linux kernel is 3.15, then you'll
+need to explicitly enable 16-bit segment support. This can be done with the
+following command:</p>
+<pre class="literal-block">
+echo 1 &gt;/proc/sys/abi/ldt16
+</pre>
+<p>If you'd like this setting to take effect automatically each time you reboot,
+then create the file <tt class="docutils literal">ldt16.conf</tt> in the directory <tt class="docutils literal">/etc/sysctl.d/</tt>,
+and place the following line in it:</p>
+<pre class="literal-block">
+abi.ldt16 = 1
+</pre>
+</div>
+</div>
+<div class="section" id="making-the-cross-compiler">
+<h2><a class="toc-backref" href="#id12">Making the Cross Compiler</a></h2>
+<p>The DOS version of BRLTTY can be compiled on Linux by using a cross-compiler.
+To create it, get the following archives:</p>
+<ul class="simple">
+<li><a class="reference external" href="ftp://ftp.delorie.com/pub/djgpp/current/v2gnu/gcc410s2.zip">ftp://ftp.delorie.com/pub/djgpp/current/v2gnu/gcc410s2.zip</a></li>
+<li><a class="reference external" href="ftp://ftp.delorie.com/pub/djgpp/current/v2/djcrx203.zip">ftp://ftp.delorie.com/pub/djgpp/current/v2/djcrx203.zip</a></li>
+</ul>
+<p>The <tt class="docutils literal">djcrx203.zip</tt> archive contains a file named <tt class="docutils literal">cross/howto.32</tt> that
+explains how to build a cross-compiler for gcc 3.2. You can build one for gcc
+4.1 by applying the same instructions to the <tt class="docutils literal">gcc410s2.zip</tt> archive (listed
+above) instead of to the <tt class="docutils literal">gcc32s2.zip</tt> archive (mentioned in the &quot;howto&quot;).
+You can also use a more recent <tt class="docutils literal">binutils</tt> package (2.2.24 works fine).</p>
+<p>If, when building the cross-compiler, you encounter an error that complains
+about the <tt class="docutils literal">writev</tt> function and the <tt class="docutils literal">iovec</tt> structure not being defined,
+then you need to upgrade to a newer version of <tt class="docutils literal">djcrx</tt>. Upgrading to
+<tt class="docutils literal">djcrx204</tt> is sufficient. It can be downloaded from
+<a class="reference external" href="ftp://ftp.delorie.com/pub/djgpp/beta/v2/djcrx204.zip">ftp://ftp.delorie.com/pub/djgpp/beta/v2/djcrx204.zip</a>.</p>
+<p>Another complexity when building the cross-compiler is that some parts of the
+process need an older version of <tt class="docutils literal">autoconf</tt> (2.13) whereas other parts of it
+need a newer version (2.57). Also, the build works best when a specific version
+of <tt class="docutils literal">automake</tt> (1.9.6) is used.</p>
+<p>We've written a script that builds the cross-compiler, and that also takes care
+of all of the idiosyncracies that we encountered when doing so.</p>
+<div class="section" id="the-mkdostools-script">
+<h3><a class="toc-backref" href="#id13">The <tt class="docutils literal">mkdostools</tt> Script</a></h3>
+<p>The <tt class="docutils literal">mkdostools</tt> script builds the cross-compiler that's needed in order to
+build BRLTTY for DOS on Linux. It resides in the <tt class="docutils literal">DOS/</tt> subdirectory of
+BRLTTY's source tree.</p>
+<div class="section" id="basic-options">
+<h4><a class="toc-backref" href="#id14">Basic Options</a></h4>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">-v</span></tt> (verbose)</dt>
+<dd>Increase output verbosity. This option complements the <tt class="docutils literal"><span class="pre">-q</span></tt> option. It may
+be specified multiple times.</dd>
+<dt><tt class="docutils literal"><span class="pre">-q</span></tt> (quiet)</dt>
+<dd>Decrease output verbosity. This option complements the <tt class="docutils literal"><span class="pre">-v</span></tt> option. It may
+be specified multiple times.</dd>
+<dt><tt class="docutils literal"><span class="pre">-h</span></tt> (help)</dt>
+<dd>Write a brief command line usage summary on standard output, and then exit.</dd>
+</dl>
+</div>
+<div class="section" id="build-directories">
+<h4><a class="toc-backref" href="#id15">Build Directories</a></h4>
+<p>A number of directories are used during the build process. Each of them can be
+explicitly specified via an option, and also has a default subdirectory within
+the directory that contains the script itself. Each of the default
+subdirectories may be a symbolic link that points somewhere else. These
+directories are:</p>
+<blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="35%" />
+<col width="26%" />
+<col width="39%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Purpose</td>
+<td>Option</td>
+<td>Default</td>
+</tr>
+<tr><td>archives</td>
+<td><tt class="docutils literal"><span class="pre">-a</span></tt></td>
+<td>Archives/</td>
+</tr>
+<tr><td>build</td>
+<td><tt class="docutils literal"><span class="pre">-b</span></tt></td>
+<td>Build/</td>
+</tr>
+<tr><td>install</td>
+<td><tt class="docutils literal"><span class="pre">-i</span></tt></td>
+<td>Tools/</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>The <strong>archives</strong> directory is the only one that you need to prepare. It must
+contain all of the archives that are needed in order to build the
+cross-compiler. DJGPP archives have the <tt class="docutils literal">.zip</tt> extension, and Gnu archives
+have the <tt class="docutils literal">.tar.gz</tt> extension. See <a class="reference internal" href="#required-archives">Required Archives</a> for the list.</p>
+<p>The <strong>build</strong> directory will contain all of the files that are intirimly needed
+during the build process. It's created if it doesn't already exist. If it does
+already exist then it's emptied at the start of the build process. It's also
+emptied upon the completion of a successful build. This directory needs to be
+on a volume that has at least 1.5GB of free file space.</p>
+<p>The <strong>install</strong> directory is where the cross-compiler tools are to be
+installed. It's created if it doesn't already exist. If it does already exist
+then it's emptied at the start of the build process.</p>
+</div>
+<div class="section" id="required-archives">
+<h4><a class="toc-backref" href="#id16">Required Archives</a></h4>
+<p>You'll need the following DJGPP archives:</p>
+<blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="24%" />
+<col width="76%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Archive Name</td>
+<td>Download From</td>
+</tr>
+<tr><td><tt class="docutils literal">djcrx204.zip</tt></td>
+<td><a class="reference external" href="ftp://ftp.delorie.com/pub/djgpp/beta/v2">ftp://ftp.delorie.com/pub/djgpp/beta/v2</a></td>
+</tr>
+<tr><td><tt class="docutils literal">gcc432s2.zip</tt></td>
+<td><a class="reference external" href="ftp://ftp.delorie.com/pub/djgpp/current/v2gnu">ftp://ftp.delorie.com/pub/djgpp/current/v2gnu</a></td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>You'll need the following Gnu archives:</p>
+<blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="59%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Archive Name</td>
+<td>Download From</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">autoconf-2.13.tar.gz</span></tt></td>
+<td><a class="reference external" href="http://ftp.gnu.org/gnu/autoconf">http://ftp.gnu.org/gnu/autoconf</a></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">autoconf-2.57.tar.gz</span></tt></td>
+<td><a class="reference external" href="http://ftp.gnu.org/gnu/autoconf">http://ftp.gnu.org/gnu/autoconf</a></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">automake-1.9.6.tar.gz</span></tt></td>
+<td><a class="reference external" href="http://ftp.gnu.org/gnu/automake">http://ftp.gnu.org/gnu/automake</a></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">binutils-2.24.tar.gz</span></tt></td>
+<td><a class="reference external" href="http://ftp.gnu.org/gnu/binutils">http://ftp.gnu.org/gnu/binutils</a></td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">gcc-4.3.2.tar.gz</span></tt></td>
+<td><a class="reference external" href="http://gcc.gnu.org/mirrors.html">http://gcc.gnu.org/mirrors.html</a></td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>If you'd prefer to build a different version of gcc, there are two important
+things to know. One is that you need the <tt class="docutils literal">gcc*s2.zip</tt> archives from
+DJGPP. The other is that the versions of the Gnu and DJGPP gcc archives must
+match. If, for example, you'd like to build gcc-4.1.2, then you'll need
+both <tt class="docutils literal"><span class="pre">gcc-4.1.2.tar.gz</span></tt> and <tt class="docutils literal">gcc412s2.zip</tt>. The reason we use gcc-4.3.2 in
+our examples here is because it's the highest version of gcc for which we could
+find an <tt class="docutils literal">s2.zip</tt> DJGPP archive.</p>
+<p>If you only have one Gnu archive for gcc in your <strong>archives</strong> directory then
+that version will be built. If you have more than one then you'll need to use
+the <tt class="docutils literal"><span class="pre">-g</span></tt> (gcc) option (e.g. <tt class="docutils literal"><span class="pre">-g</span> 4.3.2</tt>) to explicitly specify the version
+that is to be built.</p>
+</div>
+</div>
+</div>
+<div class="section" id="building-brltty">
+<h2><a class="toc-backref" href="#id17">Building BRLTTY</a></h2>
+<div class="section" id="configuring-the-build">
+<h3><a class="toc-backref" href="#id18">Configuring the Build</a></h3>
+<p>Before configuring BRLTTY, you must add the <tt class="docutils literal">bin/</tt> subdirectory of the
+cross-compiler tools to your command search path. If, for example, the
+cross-compiler is installed in <tt class="docutils literal">/usr/local/dostools</tt>, then add its tools to
+your command search path with a command like this:</p>
+<pre class="literal-block">
+export PATH=&quot;/usr/local/dostools/bin:$PATH&quot;
+</pre>
+<p>You'll also need to ensure that gcc's <tt class="docutils literal"><span class="pre">-fgnu89-inline</span></tt> option is used. This
+is done by setting the <tt class="docutils literal">CFLAGS</tt> environment variable before configuring. For
+example:</p>
+<pre class="literal-block">
+export CFLAGS=&quot;-fgnu89-inline&quot;
+</pre>
+<p>You should be able to use a configure command like this one:</p>
+<pre class="literal-block">
+./configure \
+   --prefix=/brltty-dos --host=i586-pc-msdosdjgpp \
+   --enable-relocatable-install \
+   --disable-api --disable-icu --disable-x \
+   --without-usb-package --without-bluetooth-package \
+   --without-libbraille --with-braille-driver=-vr,all \
+   --without-espeak --without-espeak-ng \
+   --without-flite --without-speechd \
+   --with-speech-driver=all \
+   --with-screen-driver=pb,-all
+</pre>
+<div class="section" id="the-cfg-dos-script">
+<h4><a class="toc-backref" href="#id19">The <tt class="docutils literal"><span class="pre">cfg-dos</span></tt> Script</a></h4>
+<p>We provide a script named <tt class="docutils literal"><span class="pre">cfg-dos</span></tt>, which resides in the top-level directory
+of BRLTTY's source tree, that should make configuring BRLTTY for DOS a bit
+easier. It runs the <tt class="docutils literal">configure</tt> script for you, giving it all of the options
+that are required for a successful DOS build. You can specify additional
+<tt class="docutils literal">configure</tt> options (although that shouldn't be necessary) simply by giving
+them to <tt class="docutils literal"><span class="pre">cfg-dos</span></tt>. The only thing you do need to do is to point the
+<tt class="docutils literal">DOS_TOOLS_ROOT</tt> environment variable to the top-level directory of your
+cross-compiler tools. For example:</p>
+<pre class="literal-block">
+export DOS_TOOLS_ROOT=/usr/local/dostools
+</pre>
+</div>
+</div>
+<div class="section" id="the-mkdosarc-script">
+<h3><a class="toc-backref" href="#id20">The <tt class="docutils literal">mkdosarc</tt> Script</a></h3>
+<p>The <tt class="docutils literal">mkdosarc</tt> script, which resides in the <tt class="docutils literal">DOS/</tt> subdirectory of BRLTTY's
+source tree, creates a DOS archive (a <tt class="docutils literal">.zip</tt> file) of BRLTTY. It does
+everything (<tt class="docutils literal">configure</tt>, <tt class="docutils literal">make</tt>, ..., <tt class="docutils literal">zip</tt>) except for building the
+cross-compiler. If you don't already have a cross-compiler for DOS then see
+<a class="reference internal" href="#making-the-cross-compiler">Making the Cross Compiler</a> for instructions on how to build one.</p>
+<p>Before running this script, ensure that the following commands have been
+installed on your system:</p>
+<ul class="simple">
+<li>linuxdoc</li>
+<li>unix2dos</li>
+<li>zip</li>
+</ul>
+<p>You'll also need to point the <tt class="docutils literal">DOS_TOOLS_ROOT</tt> environment variable to the
+top-level directory of the cross-compiler tools. For example:</p>
+<pre class="literal-block">
+export DOS_TOOLS_ROOT=/usr/local/dostools
+</pre>
+<div class="section" id="parameters">
+<h4><a class="toc-backref" href="#id21">Parameters</a></h4>
+<p>The script requires only one parameter - the path to the top-level directory of
+BRLTTY's source tree. If, for example, you're in the <tt class="docutils literal">DOS/</tt> subdirectory of
+BRLTTY's source tree (where the script resides), then invoke it like this:</p>
+<pre class="literal-block">
+./mkdosarc ..
+</pre>
+<p>If you're in the top-level directory of BRLTTY's soruce tree then invoke it
+like this:</p>
+<pre class="literal-block">
+DOS/mkdosarc .
+</pre>
+</div>
+<div class="section" id="options">
+<h4><a class="toc-backref" href="#id22">Options</a></h4>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">-a</span></tt> (archive)</dt>
+<dd>Specify the name of the archive (<tt class="docutils literal">.zip</tt>) file that will be created. The
+default archive name is <tt class="docutils literal"><span class="pre">brltty-dos</span></tt>.</dd>
+<dt><tt class="docutils literal"><span class="pre">-o</span></tt> (overwrite)</dt>
+<dd>Allow an already-existing archive to be overwritten. The default is that an
+already-existing archive won't be overwritten.</dd>
+<dt><tt class="docutils literal"><span class="pre">-i</span></tt> (install)</dt>
+<dd>Specify the name of the subdirectory on the target DOS system into which the
+archive will be unpacked. Its default name is <tt class="docutils literal">BRLTTY</tt>. It will be an
+immediate subdirectory of the current working directory when the archive is
+being unpacked. It will be created if it doesn't already exist.</dd>
+<dt><tt class="docutils literal"><span class="pre">-s</span></tt> (shell)</dt>
+<dd>Invoke an interactive shell just before the archive is created so that you
+can inspect and/or modify what will be in the archive. The current working
+directory is set to the top-level directory of the content.
+The shell specified by the <tt class="docutils literal">SHELL</tt> environment variable is used. If it
+isn't set then <tt class="docutils literal">/bin/sh</tt> is assumed.</dd>
+</dl>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">-v</span></tt> (verbose)</dt>
+<dd>Increase output verbosity. This option complements the <tt class="docutils literal"><span class="pre">-q</span></tt> option. It may
+be specified multiple times.</dd>
+<dt><tt class="docutils literal"><span class="pre">-q</span></tt> (quiet)</dt>
+<dd>Decrease output verbosity. This option complements the <tt class="docutils literal"><span class="pre">-v</span></tt> option. It may
+be specified multiple times.</dd>
+<dt><tt class="docutils literal"><span class="pre">-h</span></tt> (help)</dt>
+<dd>Write a brief command line usage summary on standard output, and then exit.</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

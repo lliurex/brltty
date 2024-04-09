@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2006-2021 by
+ * Copyright (C) 2006-2023 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -21,20 +21,28 @@ package org.a11y.brlapi;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
 
 public abstract class Program extends ProgramComponent implements Runnable {
   protected abstract void runProgram () throws ProgramException;
+  private String programName = null;
 
   public final boolean isClient () {
     return isClient(this);
   }
 
-  public final String getName () {
-    return getProgramName(getClass());
+  public final String getProgramName () {
+    if (programName == null) return getObjectName();
+    return programName;
+  }
+
+  public final Program setProgramName (String name) {
+    programName = name;
+    return this;
   }
 
   protected final void writeProgramMessage (String format, Object... arguments) {
-    System.err.println((getName() + ": " + String.format(format, arguments)));
+    System.err.println((getObjectName() + ": " + String.format(format, arguments)));
   }
 
   protected static class Option {
@@ -114,20 +122,39 @@ public abstract class Program extends ProgramComponent implements Runnable {
     haveRepeatingParameter = true;
   }
 
-  public final static char USAGE_OPTIONAL_BEGIN = '[';
-  public final static char USAGE_OPTIONAL_END = ']';
-  public final static String USAGE_REPEATING_INDICATOR = "...";
+  public String getPurpose () {
+    return null;
+  }
 
   protected void extendUsageSummary (StringBuilder usage) {
   }
 
+  public final static char USAGE_OPTIONAL_BEGIN = '[';
+  public final static char USAGE_OPTIONAL_END = ']';
+  public final static String USAGE_REPEATING_INDICATOR = "...";
+
   public final String getUsageSummary () {
     StringBuilder usage = new StringBuilder();
-    usage.append("Usage Summary for ").append(getName());
     boolean haveOptions = !programOptions.isEmpty();
 
     {
-      usage.append("\nSyntax:");
+      String pattern = "^(.*)(\\p{Upper}.*)$";
+      String name = getObjectName();
+      Matcher matcher = Strings.getMatcher(pattern, name);
+      String phrase;
+
+      if (matcher.matches()) {
+        name = matcher.group(1);
+        phrase = "the " + name + ' ' + matcher.group(2);
+      } else {
+        phrase = name;
+      }
+
+      usage.append("Usage Summary for ").append(phrase);
+    }
+
+    {
+      usage.append("\nSyntax: ").append(getProgramName());
       int start = usage.length();
 
       if (haveOptions) {
@@ -159,6 +186,14 @@ public abstract class Program extends ProgramComponent implements Runnable {
       }
 
       if (usage.length() == start) usage.append(" (no arguments)");
+    }
+
+    {
+      String purpose = getPurpose();
+
+      if ((purpose != null) && !purpose.isEmpty()) {
+        usage.append("\n\n").append(purpose);
+      }
     }
 
     if (haveOptions) {

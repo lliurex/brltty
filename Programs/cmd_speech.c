@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -126,11 +126,37 @@ handleSpeechCommands (int command, void *data) {
     case BRL_CMD_SAY_LINE:
       sayScreenLines(ses->winy, 1, 0, prefs.sayLineMode);
       break;
+
+    case BRL_CMD_SAY_ALL:
+      sayScreenLines(0, scr.rows, 1, sayImmediate);
+      break;
+
     case BRL_CMD_SAY_ABOVE:
       sayScreenLines(0, ses->winy+1, 1, sayImmediate);
       break;
+
     case BRL_CMD_SAY_BELOW:
       sayScreenLines(ses->winy, scr.rows-ses->winy, 1, sayImmediate);
+      break;
+
+    case BRL_CMD_SAY_SOFTER:
+      if (!canSetSpeechVolume(&spk)) {
+        alert(ALERT_COMMAND_REJECTED);
+      } else if (prefs.speechVolume > 0) {
+        setSpeechVolume(&spk, --prefs.speechVolume, 1);
+      } else {
+        alert(ALERT_NO_CHANGE);
+      }
+      break;
+
+    case BRL_CMD_SAY_LOUDER:
+      if (!canSetSpeechVolume(&spk)) {
+        alert(ALERT_COMMAND_REJECTED);
+      } else if (prefs.speechVolume < SPK_VOLUME_MAXIMUM) {
+        setSpeechVolume(&spk, ++prefs.speechVolume, 1);
+      } else {
+        alert(ALERT_NO_CHANGE);
+      }
       break;
 
     case BRL_CMD_SAY_SLOWER:
@@ -153,21 +179,21 @@ handleSpeechCommands (int command, void *data) {
       }
       break;
 
-    case BRL_CMD_SAY_SOFTER:
-      if (!canSetSpeechVolume(&spk)) {
+    case BRL_CMD_SAY_LOWER:
+      if (!canSetSpeechPitch(&spk)) {
         alert(ALERT_COMMAND_REJECTED);
-      } else if (prefs.speechVolume > 0) {
-        setSpeechVolume(&spk, --prefs.speechVolume, 1);
+      } else if (prefs.speechPitch > 0) {
+        setSpeechPitch(&spk, --prefs.speechPitch, 1);
       } else {
         alert(ALERT_NO_CHANGE);
       }
       break;
 
-    case BRL_CMD_SAY_LOUDER:
-      if (!canSetSpeechVolume(&spk)) {
+    case BRL_CMD_SAY_HIGHER:
+      if (!canSetSpeechPitch(&spk)) {
         alert(ALERT_COMMAND_REJECTED);
-      } else if (prefs.speechVolume < SPK_VOLUME_MAXIMUM) {
-        setSpeechVolume(&spk, ++prefs.speechVolume, 1);
+      } else if (prefs.speechPitch < SPK_PITCH_MAXIMUM) {
+        setSpeechPitch(&spk, ++prefs.speechPitch, 1);
       } else {
         alert(ALERT_NO_CHANGE);
       }
@@ -265,21 +291,21 @@ handleSpeechCommands (int command, void *data) {
         int column = ses->spkx;
 
         ScreenCharacter characters[scr.cols];
-        ScreenCharacterType type;
         int onCurrentWord;
+        int onSpace;
 
         int from = column;
         int to = from + 1;
 
       findWord:
         readScreenRow(row, scr.cols, characters);
-        type = (row == ses->spky)? getScreenCharacterType(&characters[column]): SCT_SPACE;
-        onCurrentWord = type != SCT_SPACE;
+        onCurrentWord = (row == ses->spky) && !iswspace(characters[column].text);
+        onSpace = !onCurrentWord;
 
         if (direction < 0) {
           while (1) {
             if (column == 0) {
-              if ((type != SCT_SPACE) && !onCurrentWord) {
+              if (!onSpace && !onCurrentWord) {
                 ses->spkx = from = column;
                 ses->spky = row;
                 break;
@@ -292,26 +318,26 @@ handleSpeechCommands (int command, void *data) {
             }
 
             {
-              ScreenCharacterType newType = getScreenCharacterType(&characters[--column]);
+              int isSpace = iswspace(characters[--column].text);
 
-              if (newType != type) {
+              if (isSpace != onSpace) {
                 if (onCurrentWord) {
                   onCurrentWord = 0;
-                } else if (type != SCT_SPACE) {
+                } else if (!onSpace) {
                   ses->spkx = from = column + 1;
                   ses->spky = row;
                   break;
                 }
 
-                if (newType != SCT_SPACE) to = column + 1;
-                type = newType;
+                if (!isSpace) to = column + 1;
+                onSpace = isSpace;
               }
             }
           }
         } else if (direction > 0) {
           while (1) {
             if (++column == scr.cols) {
-              if ((type != SCT_SPACE) && !onCurrentWord) {
+              if (!onSpace && !onCurrentWord) {
                 to = column;
                 ses->spkx = from;
                 ses->spky = row;
@@ -325,33 +351,33 @@ handleSpeechCommands (int command, void *data) {
             }
 
             {
-              ScreenCharacterType newType = getScreenCharacterType(&characters[column]);
+              int isSpace = iswspace(characters[column].text);
 
-              if (newType != type) {
+              if (isSpace != onSpace) {
                 if (onCurrentWord) {
                   onCurrentWord = 0;
-                } else if (type != SCT_SPACE) {
+                } else if (!onSpace) {
                   to = column;
                   ses->spkx = from;
                   ses->spky = row;
                   break;
                 }
 
-                if (newType != SCT_SPACE) from = column;
-                type = newType;
+                if (!isSpace) from = column;
+                onSpace = isSpace;
               }
             }
           }
-        } else if (type != SCT_SPACE) {
+        } else if (!onSpace) {
           while (from > 0) {
-            if (getScreenCharacterType(&characters[--from]) != type) {
+            if (iswspace(characters[--from].text)) {
               from += 1;
               break;
             }
           }
 
           while (to < scr.cols) {
-            if (getScreenCharacterType(&characters[to]) != type) break;
+            if (iswspace(characters[to].text)) break;
             to += 1;
           }
         }
@@ -454,7 +480,7 @@ handleSpeechCommands (int command, void *data) {
     case BRL_CMD_DESC_CURR_CHAR: {
       char description[0X50];
       STR_BEGIN(description, sizeof(description));
-      STR_FORMAT(formatCharacterDescription, ses->spkx, ses->spky);
+      STR_FORMAT(formatPhoneticPhrase, ses->spkx, ses->spky);
       STR_END;
       sayString(&spk, description, SAY_OPT_MUTE_FIRST);
       break;
@@ -481,8 +507,27 @@ handleSpeechCommands (int command, void *data) {
       speakIndent(NULL, 0, 1);
       break;
 
-    default:
-      return 0;
+    default: {
+      int arg = command & BRL_MSK_ARG;
+
+      switch (command & BRL_MSK_BLK) {
+        case BRL_CMD_BLK(ROUTE_SPEECH): {
+          int column, row;
+
+          if (getCharacterCoordinates(arg, &row, &column, NULL, 0)) {
+            ses->spkx = column;
+            ses->spky = row;
+          } else {
+            alert(ALERT_COMMAND_REJECTED);
+          }
+
+          break;
+        }
+
+        default:
+          return 0;
+      }
+    }
   }
 
   return 1;

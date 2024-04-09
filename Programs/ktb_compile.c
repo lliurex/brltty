@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,6 +24,7 @@
 #include "log.h"
 #include "file.h"
 #include "datafile.h"
+#include "utf8.h"
 #include "cmd.h"
 #include "brl_cmds.h"
 #include "ktb.h"
@@ -182,6 +183,7 @@ getKeyContext (KeyTableData *ktd, unsigned char context) {
       ctx->isSpecial = 0;
       ctx->isDefined = 0;
       ctx->isReferenced = 0;
+      ctx->isIsolated = 0;
 
       ctx->keyBindings.table = NULL;
       ctx->keyBindings.size = 0;
@@ -943,6 +945,14 @@ addKeyBinding (KeyContext *ctx, const KeyBinding *binding, int incomplete) {
   return 1;
 }
 
+static void
+initializeKeyBinding (KeyBinding *binding, KeyTableData *ktd) {
+  memset(binding, 0, sizeof(*binding));
+  binding->primaryCommand = ktd->nullBoundCommand;
+  binding->secondaryCommand = ktd->nullBoundCommand;
+  if (hideBindings(ktd)) binding->flags |= KBF_HIDDEN;
+}
+
 int
 compareHotkeyEntries (const HotkeyEntry *hotkey1, const HotkeyEntry *hotkey2) {
   return compareKeyValues(&hotkey1->keyValue, &hotkey2->keyValue);
@@ -1075,10 +1085,9 @@ addMappedKey (KeyContext *ctx, const MappedKeyEntry *map) {
 
 static DATA_OPERANDS_PROCESSOR(processBindOperands) {
   KeyTableData *ktd = data;
-  KeyBinding binding;
 
-  memset(&binding, 0, sizeof(binding));
-  if (hideBindings(ktd)) binding.flags |= KBF_HIDDEN;
+  KeyBinding binding;
+  initializeKeyBinding(&binding, ktd);
 
   if (getKeysOperand(file, &binding.keyCombination, ktd)) {
     BoundCommand *cmds[] = {
@@ -1171,29 +1180,6 @@ static DATA_OPERANDS_PROCESSOR(processHotkeyOperands) {
         return 0;
       }
     }
-  }
-
-  return 1;
-}
-
-static DATA_OPERANDS_PROCESSOR(processIgnoreOperands) {
-  KeyTableData *ktd = data;
-  HotkeyEntry hotkey;
-
-  memset(&hotkey, 0, sizeof(hotkey));
-  if (hideBindings(ktd)) hotkey.flags |= HKF_HIDDEN;
-  hotkey.pressCommand = hotkey.releaseCommand = ktd->nullBoundCommand;
-
-  if (getKeyOperand(file, &hotkey.keyValue, ktd)) {
-    KeyContext *ctx = getCurrentKeyContext(ktd);
-
-    if (ctx) {
-      if (addHotkey(ctx, &hotkey)) {
-        return 1;
-      }
-    }
-
-    return 0;
   }
 
   return 1;
@@ -1293,6 +1279,29 @@ static DATA_OPERANDS_PROCESSOR(processIfNotPlatformOperands) {
   return processPlatformTestOperands(file, 1, data);
 }
 
+static DATA_OPERANDS_PROCESSOR(processIgnoreOperands) {
+  KeyTableData *ktd = data;
+  HotkeyEntry hotkey;
+
+  memset(&hotkey, 0, sizeof(hotkey));
+  if (hideBindings(ktd)) hotkey.flags |= HKF_HIDDEN;
+  hotkey.pressCommand = hotkey.releaseCommand = ktd->nullBoundCommand;
+
+  if (getKeyOperand(file, &hotkey.keyValue, ktd)) {
+    KeyContext *ctx = getCurrentKeyContext(ktd);
+
+    if (ctx) {
+      if (addHotkey(ctx, &hotkey)) {
+        return 1;
+      }
+    }
+
+    return 0;
+  }
+
+  return 1;
+}
+
 static DATA_OPERANDS_PROCESSOR(processIncludeWrapper) {
   KeyTableData *ktd = data;
   int result;
@@ -1308,6 +1317,92 @@ static DATA_OPERANDS_PROCESSOR(processIncludeWrapper) {
   ktd->hideRequested = hideRequested;
   ktd->hideInherited = hideInherited;
   return result;
+}
+
+static DATA_OPERANDS_PROCESSOR(processIsolatedOperands) {
+  KeyTableData *ktd = data;
+  KeyContext *ctx = getCurrentKeyContext(ktd);
+
+  if (ctx) {
+    if (!ctx->isIsolated) {
+      ctx->isIsolated = 1;
+    } else {
+      reportDataError(file, "context already solated: %"PRIws, ctx->name);
+    }
+  }
+
+  return 1;
+}
+
+static DATA_OPERANDS_PROCESSOR(processMacroOperands) {
+  KeyTableData *ktd = data;
+  KeyTable *table = ktd->table;
+
+  KeyBinding binding;
+  initializeKeyBinding(&binding, ktd);
+
+  {
+    BoundCommand *cmd = &binding.primaryCommand;
+    cmd->value = BRL_CMD_BLK(MACRO);
+    cmd->entry = findCommandEntry(cmd->value);
+    cmd->value += table->commandMacros.count;
+  }
+
+  if (getKeysOperand(file, &binding.keyCombination, ktd)) {
+    size_t limit = 100;
+    BoundCommand commands[limit];
+    size_t count = 0;
+
+    while (findDataOperand(file, NULL)) {
+      if (count == limit) {
+        reportDataError(file, "command macro too large");
+        return 1;
+      }
+
+      BoundCommand *command = &commands[count];
+      if (!getCommandOperand(file, command, ktd)) return 1;
+      count += 1;
+    }
+
+    if (count == 0) {
+      reportDataError(file, "empty command macro");
+    } else {
+      if (table->commandMacros.count == table->commandMacros.size) {
+        size_t newSize = table->commandMacros.size? table->commandMacros.size<<1: 4;
+        CommandMacro *newTable = realloc(table->commandMacros.table, ARRAY_SIZE(table->commandMacros.table, newSize));
+
+        if (!newTable) {
+          logMallocError();
+          return 0;
+        }
+
+        table->commandMacros.table = newTable;
+        table->commandMacros.size = newSize;
+      }
+
+      CommandMacro *macro = &table->commandMacros.table[table->commandMacros.count];
+      memset(macro, 0, sizeof(*macro));
+      size_t size = ARRAY_SIZE(macro->commands, (macro->count = count));
+
+      if ((macro->commands = malloc(size))) {
+        memcpy(macro->commands, commands, size);
+        KeyContext *ctx = getCurrentKeyContext(ktd);
+
+        if (ctx) {
+          if (addKeyBinding(ctx, &binding, 0)) {
+            table->commandMacros.count += 1;
+            return 1;
+          }
+        }
+
+        free(macro->commands);
+      }
+
+      return 0;
+    }
+  }
+
+  return 1;
 }
 
 static DATA_OPERANDS_PROCESSOR(processMapOperands) {
@@ -1381,6 +1476,96 @@ static DATA_OPERANDS_PROCESSOR(processNoteOperands) {
   return 1;
 }
 
+static DATA_OPERANDS_PROCESSOR(processRunOperands) {
+  KeyTableData *ktd = data;
+  KeyTable *table = ktd->table;
+  int seriousFailure = 0;
+
+  KeyBinding binding;
+  initializeKeyBinding(&binding, ktd);
+
+  {
+    BoundCommand *cmd = &binding.primaryCommand;
+    cmd->value = BRL_CMD_BLK(HOSTCMD);
+    cmd->entry = findCommandEntry(cmd->value);
+    cmd->value += table->hostCommands.count;
+  }
+
+  if (getKeysOperand(file, &binding.keyCombination, ktd)) {
+    int allArgumentsParsed = 1;
+
+    size_t limit = 100;
+    char *arguments[limit];
+    size_t count = 0;
+
+    while (findDataOperand(file, NULL)) {
+      if (count == limit) {
+        reportDataError(file, "too many host command arguments");
+        allArgumentsParsed = 0;
+        break;
+      }
+
+      DataString argument;
+      if (!getDataString(file, &argument, 0, "host command argument")) {
+        allArgumentsParsed = 0;
+        break;
+      }
+
+      if (!(arguments[count] = getUtf8FromWchars(argument.characters, argument.length, NULL))) {
+        seriousFailure = 1;
+        break;
+      }
+
+      count += 1;
+    }
+
+    if (allArgumentsParsed && !seriousFailure) {
+      if (count == 0) {
+        reportDataError(file, "host command name/path not specified");
+      } else {
+        seriousFailure = 1;
+
+        if (table->hostCommands.count == table->hostCommands.size) {
+          size_t newSize = table->hostCommands.size? table->hostCommands.size<<1: 4;
+          HostCommand *newTable = realloc(table->hostCommands.table, ARRAY_SIZE(table->hostCommands.table, newSize));
+
+          if (!newTable) {
+            logMallocError();
+            goto SERIOUS_FAILURE;
+          }
+
+          table->hostCommands.table = newTable;
+          table->hostCommands.size = newSize;
+        }
+
+        HostCommand *hc = &table->hostCommands.table[table->hostCommands.count];
+        memset(hc, 0, sizeof(*hc));
+        size_t size = ARRAY_SIZE(hc->arguments, (hc->count = count));
+
+        if ((hc->arguments = malloc(size + sizeof(*hc->arguments)))) {
+          memcpy(hc->arguments, arguments, size);
+          hc->arguments[hc->count] = NULL;
+          KeyContext *ctx = getCurrentKeyContext(ktd);
+
+          if (ctx) {
+            if (addKeyBinding(ctx, &binding, 0)) {
+              table->hostCommands.count += 1;
+              return 1;
+            }
+          }
+
+          free(hc->arguments);
+        }
+      }
+    }
+
+  SERIOUS_FAILURE:
+    while (count > 0) free(arguments[--count]);
+  }
+
+  return !seriousFailure;
+}
+
 static DATA_OPERANDS_PROCESSOR(processSuperimposeOperands) {
   KeyTableData *ktd = data;
 
@@ -1436,8 +1621,11 @@ static DATA_OPERANDS_PROCESSOR(processKeyTableOperands) {
     {.name=WS_C("ifnotplatform"), .processor=processIfNotPlatformOperands, .unconditional=1},
     {.name=WS_C("ignore"), .processor=processIgnoreOperands},
     {.name=WS_C("include"), .processor=processIncludeWrapper},
+    {.name=WS_C("isolated"), .processor=processIsolatedOperands},
+    {.name=WS_C("macro"), .processor=processMacroOperands},
     {.name=WS_C("map"), .processor=processMapOperands},
     {.name=WS_C("note"), .processor=processNoteOperands},
+    {.name=WS_C("run"), .processor=processRunOperands},
     {.name=WS_C("superimpose"), .processor=processSuperimposeOperands},
     {.name=WS_C("title"), .processor=processTitleOperands},
   END_DATA_DIRECTIVE_TABLE
@@ -1514,20 +1702,24 @@ addIncompleteSubbindings (KeyContext *ctx, const KeyValue *keys, unsigned char c
 static int
 addIncompleteBindings (KeyContext *ctx) {
   size_t count = ctx->keyBindings.count;
-  if (!count) return 1;
 
-  size_t size = count * sizeof(*ctx->keyBindings.table);
-  KeyBinding bindings[size];
-  memcpy(bindings, ctx->keyBindings.table, size);
+  if (count > 0) {
+    KeyBinding bindings[count];
 
-  const KeyBinding *binding = bindings;
-  const KeyBinding *end = binding + count;
+    memcpy(
+      bindings, ctx->keyBindings.table,
+      (count * sizeof(*ctx->keyBindings.table))
+    );
 
-  while (binding < end) {
-    const KeyCombination *combination = &binding->keyCombination;
-    if (!addIncompleteBinding(ctx, combination->modifierKeys, combination->modifierCount)) return 0;
-    if (!addIncompleteSubbindings(ctx, combination->modifierKeys, combination->modifierCount)) return 0;
-    binding += 1;
+    const KeyBinding *binding = bindings;
+    const KeyBinding *end = binding + count;
+
+    while (binding < end) {
+      const KeyCombination *combination = &binding->keyCombination;
+      if (!addIncompleteBinding(ctx, combination->modifierKeys, combination->modifierCount)) return 0;
+      if (!addIncompleteSubbindings(ctx, combination->modifierKeys, combination->modifierCount)) return 0;
+      binding += 1;
+    }
   }
 
   return 1;
@@ -1659,6 +1851,14 @@ compileKeyTable (const char *name, KEY_NAME_TABLES_REFERENCE keys) {
       ktd.table->autorelease.alarm = NULL;
       ktd.table->autorelease.time = 0;
 
+      ktd.table->commandMacros.table = NULL;
+      ktd.table->commandMacros.size = 0;
+      ktd.table->commandMacros.count = 0;
+
+      ktd.table->hostCommands.table = NULL;
+      ktd.table->hostCommands.size = 0;
+      ktd.table->hostCommands.count = 0;
+
       ktd.table->options.logLabel = NULL;
       ktd.table->options.logKeyEventsFlag = NULL;
       ktd.table->options.keyboardEnabledFlag = NULL;
@@ -1708,6 +1908,24 @@ destroyKeyTable (KeyTable *table) {
     if (ctx->keyBindings.table) free(ctx->keyBindings.table);
     if (ctx->hotkeys.table) free(ctx->hotkeys.table);
     if (ctx->mappedKeys.table) free(ctx->mappedKeys.table);
+  }
+
+  if (table->commandMacros.table) {
+    while (table->commandMacros.count > 0) {
+      CommandMacro *macro = &table->commandMacros.table[--table->commandMacros.count];
+      free(macro->commands);
+    }
+
+    free(table->commandMacros.table);
+  }
+
+  if (table->hostCommands.table) {
+    while (table->hostCommands.count > 0) {
+      HostCommand *hcmd = &table->hostCommands.table[--table->hostCommands.count];
+      free(hcmd->arguments);
+    }
+
+    free(table->hostCommands.table);
   }
 
   if (table->keyContexts.table) free(table->keyContexts.table);

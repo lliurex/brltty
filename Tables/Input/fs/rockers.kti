@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -18,12 +18,41 @@
 
 # This key subtable is for FreedomScientific displays which have rockers.
 
+note The left and right rockers are short, up/down, rocker keys.
+
 bind LeftRockerUp KEY_CURSOR_UP
 bind LeftRockerDown KEY_CURSOR_DOWN
+
+bind LeftRockerUp+PanLeft KEY_CURSOR_LEFT
+bind LeftRockerDown+PanLeft KEY_CURSOR_RIGHT
+
+bind LeftRockerUp+LeftSelector KEY_HOME
+bind LeftRockerDown+LeftSelector KEY_END
+
+bind LeftRockerUp+RightSelector KEY_PAGE_UP
+bind LeftRockerDown+RightSelector KEY_PAGE_DOWN
+
+bind LeftRockerUp+PanRight CSRTRK+off
+bind LeftRockerDown+PanRight CSRTRK+on
 
 bind RightRockerUp LNUP
 bind RightRockerDown LNDN
 
+bind RightRockerUp+PanLeft LNBEG
+bind RightRockerDown+PanLeft LNEND
+
+bind RightRockerUp+LeftSelector PRSEARCH
+bind RightRockerDown+LeftSelector NXSEARCH
+
+bind RightRockerUp+RightSelector ATTRUP
+bind RightRockerDown+RightSelector ATTRDN
+
+bind RightRockerUp+PanRight SIXDOTS+off
+bind RightRockerDown+PanRight SIXDOTS+on
+
 bind RightRockerUp+RoutingKey SETMARK
 bind RightRockerDown+RoutingKey GOTOMARK
+
+bind LeftRockerUp+RightRockerUp INFO
+bind LeftRockerDown+RightRockerDown TIME
 

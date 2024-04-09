@@ -1,0 +1,29 @@
+# Dependencies for em_screen.$O:
+em_screen.$O: $(SRC_DIR)/em_screen.c
+em_screen.$O: $(SRC_TOP)Headers/prologue.h
+em_screen.$O: $(BLD_TOP)config.h
+em_screen.$O: $(BLD_TOP)forbuild.h
+em_screen.$O: $(SRC_TOP)Headers/log.h
+em_screen.$O: $(SRC_TOP)Headers/scr_terminal.h
+em_screen.$O: $(SRC_TOP)Headers/msg_queue.h
+em_screen.$O: $(SRC_TOP)Headers/utf8.h
+em_screen.$O: $(SRC_TOP)Headers/hostcmd.h
+em_screen.$O: $(SRC_TOP)Headers/parse.h
+em_screen.$O: $(SRC_TOP)Headers/file.h
+em_screen.$O: $(SRC_TOP)Headers/get_sockets.h
+em_screen.$O: $(SRC_TOP)Headers/pid.h
+em_screen.$O: $(SRC_TOP)Headers/program.h
+em_screen.$O: $(SRC_TOP)Headers/async_handle.h
+em_screen.$O: $(SRC_TOP)Headers/async_types_handle.h
+em_screen.$O: $(SRC_TOP)Headers/async_io.h
+em_screen.$O: $(SRC_TOP)Headers/async_types_io.h
+em_screen.$O: $(SRC_TOP)Headers/embed.h
+em_screen.$O: $(SRC_TOP)Headers/driver.h
+em_screen.$O: $(SRC_TOP)Headers/ktb_types.h
+em_screen.$O: $(SRC_TOP)Headers/scr_base.h
+em_screen.$O: $(SRC_TOP)Headers/scr_driver.h
+em_screen.$O: $(SRC_TOP)Headers/scr_main.h
+em_screen.$O: $(SRC_TOP)Headers/scr_real.h
+em_screen.$O: $(SRC_TOP)Headers/scr_types.h
+em_screen.$O: $(SRC_TOP)Headers/scr_utils.h
+

@@ -1,7 +1,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2005-2021 by
+# Copyright (C) 2005-2023 by
 #   Alexis Robert <alexissoft@free.fr>
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #
@@ -38,7 +38,7 @@ cdef extern from "Programs/brlapi.h":
 	ctypedef struct brlapi_writeArguments_t:
 		int displayNumber
 		unsigned int regionBegin
-		unsigned int regionSize
+		int regionSize
 		char *text
 		int textSize
 		unsigned char *andMask
@@ -121,19 +121,25 @@ cdef extern from "Programs/brlapi.h":
 	ctypedef int brlapi_param_type_t
 	ctypedef struct brlapi_param_properties_t:
 		brlapi_param_type_t type
-		uint16_t count
-		uint8_t isArray
-		uint8_t hasSubparam
+		uint16_t arraySize
+		uint16_t isArray
+		uint16_t canRead
+		uint16_t canWrite
+		uint16_t canWatch
+		uint16_t abiPadding1
+		uint16_t hasSubparam
 
 	void *brlapi__getParameterAlloc(brlapi_handle_t *, brlapi_param_t, unsigned long long, brlapi_param_flags_t, size_t *) nogil
 	int brlapi__setParameter(brlapi_handle_t *, brlapi_param_t, unsigned long long, brlapi_param_flags_t, void*, size_t) nogil
 	const brlapi_param_properties_t *brlapi_getParameterProperties(brlapi_param_t parameter) nogil
-	brlapi_paramCallbackDescriptor_t brlapi__watchParameter(brlapi_handle_t *, brlapi_param_t, uint64_t, brlapi_param_flags_t, brlapi_paramCallback_t, void *, void*, size_t);
-	int brlapi__unwatchParameter(brlapi_handle_t *,
-	brlapi_paramCallbackDescriptor_t)
+	brlapi_paramCallbackDescriptor_t brlapi__watchParameter(brlapi_handle_t *, brlapi_param_t, uint64_t, brlapi_param_flags_t, brlapi_paramCallback_t, void *, void*, size_t)
+	int brlapi__unwatchParameter(brlapi_handle_t *, brlapi_paramCallbackDescriptor_t)
+
+	int brlapi__pause(brlapi_handle_t *handle, int timeout_ms) nogil
+	int brlapi__sync(brlapi_handle_t *handle) nogil
 
 	brlapi_error_t* brlapi_error_location()
-	char* brlapi_strerror(brlapi_error_t*)
+	size_t brlapi_strerror_r(brlapi_error_t*, char *buf, size_t buflen)
 	brlapi_keyCode_t BRLAPI_KEY_MAX
 	brlapi_keyCode_t BRLAPI_KEY_FLAGS_MASK
 	brlapi_keyCode_t BRLAPI_KEY_TYPE_MASK

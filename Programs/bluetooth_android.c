@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,15 +21,18 @@
 #include <string.h>
 #include <errno.h>
 
+#include "log.h"
 #include "io_bluetooth.h"
 #include "bluetooth_internal.h"
-#include "log.h"
+#include "async_handle.h"
+#include "async_io.h"
 #include "io_misc.h"
 #include "thread.h"
 #include "system_java.h"
 
 static jclass connectionClass = NULL;
 static jmethodID connectionConstructor = 0;
+static jmethodID canDiscoverMethod = 0;
 static jmethodID openMethod = 0;
 static jmethodID closeMethod = 0;
 static jmethodID writeMethod = 0;
@@ -47,6 +50,15 @@ bthGetConnectionConstructor (JNIEnv *env) {
     env, &connectionConstructor, connectionClass,
     JAVA_SIG_CONSTRUCTOR(
       JAVA_SIG_LONG // address
+    )
+  );
+}
+
+static int
+bthGetCanDiscoverMethod (JNIEnv *env) {
+  return findJavaInstanceMethod(
+    env, &canDiscoverMethod, connectionClass, "canDiscover",
+    JAVA_SIG_METHOD(JAVA_SIG_BOOLEAN,
     )
   );
 }
@@ -225,8 +237,27 @@ bthDiscoverChannel (
   const void *uuidBytes, size_t uuidLength,
   int timeout
 ) {
-  *channel = 0;
-  return 1;
+  JNIEnv *env = bcx->env;
+
+  if (bthGetCanDiscoverMethod(env)) {
+    jboolean result = (*env)->CallBooleanMethod(env, bcx->connection, canDiscoverMethod);
+
+    if (!clearJavaException(env, 1)) {
+      int yes = result == JNI_TRUE;
+
+      if (yes) {
+        logMessage(LOG_CATEGORY(BLUETOOTH_IO), "can discover serial port channel");
+        *channel = 0;
+      } else {
+        errno = ENOENT;
+      }
+
+      return yes;
+    }
+  }
+
+  errno = EIO;
+  return 0;
 }
 
 int

@@ -1,0 +1,47 @@
+Key Table: Metec BD I (with 3 keys)
+===================================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Select+RoutingKey.1
+* enter/leave command learn mode: Select+RoutingKey.2
+* enter/leave preferences menu: Select+RoutingKey.3
+* enter/leave status display: Select+RoutingKey.4
+
+Cursor Functions
+* go to screen cursor or go back after cursor tracking: Select+Up+Down
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: Up
+* go down one line: Down
+* go to top line: Select+Up
+* go to bottom line: Select+Down
+
+Horizontal Navigation
+* go forward one braille window:
+  + Select
+  + Up+Down
+
+Clipboard Functions
+* start new clipboard at character: Up+RoutingKey
+* linear copy to character: Down+RoutingKey
+* rectangular copy to character: Down+Select+RoutingKey
+* append characters to clipboard: Up+Select+RoutingKey
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: Select+Up+Down
+
+Menu Operations
+* go up to previous item: Up
+* go down to next item: Down
+* go up to first item: Select+Up
+* go down to last item: Select+Down
+* select previous choice: Up+Down
+* select next choice: Select
+

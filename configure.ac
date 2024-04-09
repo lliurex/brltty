@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -17,24 +17,26 @@
 ###############################################################################
 
 AC_PREREQ([2.64])
-AC_INIT([BRLTTY], [6.3], [BRLTTY@brltty.app], [brltty], [http://brltty.app/])
+AC_INIT([BRLTTY], [6.6], [BRLTTY@brltty.app], [brltty], [https://brltty.app/])
 AC_CONFIG_SRCDIR([Programs/brltty.c])
 
 AC_CONFIG_MACRO_DIR([m4])
+m4_include([Bindings/Emacs/bindings.m4])
 m4_include([Bindings/Java/bindings.m4])
 m4_include([Bindings/Lisp/bindings.m4])
+m4_include([Bindings/Lua/bindings.m4])
 m4_include([Bindings/OCaml/bindings.m4])
 m4_include([Bindings/Python/bindings.m4])
 m4_include([Bindings/Tcl/bindings.m4])
 
-copyright="© 1995-2021 by The BRLTTY Developers"
+copyright="© 1995-2023 by The BRLTTY Developers"
 AC_SUBST([PACKAGE_COPYRIGHT], ["${copyright}"])
 AC_DEFINE_UNQUOTED([PACKAGE_COPYRIGHT], ["${copyright}"],
                    [Define this to be a string containing the copyright notice.])
 
 AC_SUBST([api_major], [0])
 AC_SUBST([api_minor], [8])
-AC_SUBST([api_revision], [2])
+AC_SUBST([api_revision], [5])
 
 AC_SUBST([api_name], [BrlAPI])
 AC_SUBST([api_version], [${api_major}.${api_minor}])
@@ -75,11 +77,11 @@ done
 AC_SUBST([brltty_manual_directories])
 brltty_build_directories="${brltty_build_directories} ${brltty_manual_directories}"
 
-AC_CONFIG_HEADER([config.h])
-AC_CONFIG_HEADER([Programs/brlapi.h])
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([Programs/brlapi.h])
 AC_PREFIX_DEFAULT([])
 AC_CONFIG_AUX_DIR([acdir])
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 
 brltty_default_execute_root="/${PACKAGE_TARNAME}-${PACKAGE_VERSION}"
 BRLTTY_ARG_WITH(
@@ -140,15 +142,15 @@ BRLTTY_ARG_REQUIRED(
 )
 
 BRLTTY_ARG_REQUIRED(
-   [drivers-directory], [DIRECTORY],
-   [path to directory containing drivers],
-   [drivers_directory], ["${libdir}/${PACKAGE_TARNAME}"]
+   [commands-directory], [DIRECTORY],
+   [path to directory containing helper commands],
+   [commands_directory], ["${libexecdir}/${PACKAGE_TARNAME}"]
 )
 
 BRLTTY_ARG_REQUIRED(
-   [scripts-directory], [DIRECTORY],
-   [path to directory containing helper scripts],
-   [scripts_directory], ["${libexecdir}/${PACKAGE_TARNAME}"]
+   [drivers-directory], [DIRECTORY],
+   [path to directory containing drivers],
+   [drivers_directory], ["${libdir}/${PACKAGE_TARNAME}"]
 )
 
 BRLTTY_ARG_WITH(
@@ -188,19 +190,19 @@ BRLTTY_ARG_REQUIRED(
 )
 
 BRLTTY_DEFINE_STRING([TEXT_TABLES_SUBDIRECTORY], [Text], [the subdirectory for text tables])
-BRLTTY_DEFINE_STRING([ATTRIBUTES_TABLES_SUBDIRECTORY], [Attributes], [the subdirectory for attributes tables])
 BRLTTY_DEFINE_STRING([CONTRACTION_TABLES_SUBDIRECTORY], [Contraction], [the subdirectory for contraction tables])
+BRLTTY_DEFINE_STRING([ATTRIBUTES_TABLES_SUBDIRECTORY], [Attributes], [the subdirectory for attributes tables])
 BRLTTY_DEFINE_STRING([KEYBOARD_TABLES_SUBDIRECTORY], [Keyboard], [the subdirectory for keyboard key tables])
 BRLTTY_DEFINE_STRING([INPUT_TABLES_SUBDIRECTORY], [Input], [the subdirectory for braille device key tables])
 
 BRLTTY_DEFINE_STRING([TEXT_TABLE_EXTENSION], [.ttb], [the extension for text tables])
 BRLTTY_DEFINE_STRING([TEXT_SUBTABLE_EXTENSION], [.tti], [the extension for text subtables])
 
-BRLTTY_DEFINE_STRING([ATTRIBUTES_TABLE_EXTENSION], [.atb], [the extension for attributes tables])
-BRLTTY_DEFINE_STRING([ATTRIBUTES_SUBTABLE_EXTENSION], [.ati], [the extension for attributes subtables])
-
 BRLTTY_DEFINE_STRING([CONTRACTION_TABLE_EXTENSION], [.ctb], [the extension for contraction tables])
 BRLTTY_DEFINE_STRING([CONTRACTION_SUBTABLE_EXTENSION], [.cti], [the extension for contraction subtables])
+
+BRLTTY_DEFINE_STRING([ATTRIBUTES_TABLE_EXTENSION], [.atb], [the extension for attributes tables])
+BRLTTY_DEFINE_STRING([ATTRIBUTES_SUBTABLE_EXTENSION], [.ati], [the extension for attributes subtables])
 
 BRLTTY_DEFINE_STRING([KEY_TABLE_EXTENSION], [.ktb], [the extension for key tables])
 BRLTTY_DEFINE_STRING([KEY_SUBTABLE_EXTENSION], [.kti], [the extension for key subtables])
@@ -268,24 +270,9 @@ AC_SUBST([stderr_path])
 AC_PROG_MAKE_SET
 
 AC_PROG_CC
-if test -z "${CXX}"
-then
-   if test "${GCC}" = "yes"
-   then
-      AC_SEARCH_LIBS([__cxa_pure_virtual], [supc++])
-      AC_CACHE_CHECK([if the C compiler can compile C++], [brltty_cv_prog_cc_cxx], [dnl
-      brltty_save_ac_ext="${ac_ext}"
-      ac_ext="cc"
-      AC_TRY_LINK([], [class c {};],
-                  [brltty_cv_prog_cc_cxx="yes"],
-                  [brltty_cv_prog_cc_cxx="no"])
-      ac_ext="${brltty_save_ac_ext}"])
-      test "${brltty_cv_prog_cc_cxx}" = "yes" && CXX="${CC}"
-   fi
-fi
 AC_PROG_CXX
 
-brltty_gcc_cflags="-std=gnu99 -Wall -Werror=format-security -Wno-address-of-packed-member -Wno-stringop-truncation"
+brltty_gcc_cflags="-std=gnu99 -Wall"
 brltty_gcc_cppflags=""
 
 case "${host_os}"
@@ -311,6 +298,38 @@ esac
 test "${GCC}" = "yes" && {
    CFLAGS="${CFLAGS} ${brltty_gcc_cflags}"
    CPPFLAGS="${CPPFLAGS} ${brltty_gcc_cppflags}"
+
+   extraCFlags=""
+   for flag in unknown-warning-option
+   do
+      AX_CHECK_COMPILE_FLAG([-Werror=${flag}], [dnl
+         extraCFlags="${extraCFlags} -Werror=${flag}"
+      ])
+   done
+
+   # warnings that should be errors
+   for flag in  format-security
+   do
+      AX_CHECK_COMPILE_FLAG([-Werror=${flag}], [dnl
+         CFLAGS="${CFLAGS} -Werror=${flag}"
+      ], [:], [${extraCFlags}])
+   done
+
+   # warnings that should be suppressed
+   for flag in address-of-packed-member stringop-truncation initializer-overrides
+   do
+      AX_CHECK_COMPILE_FLAG([-Werror=${flag}], [dnl
+         CFLAGS="${CFLAGS} -Wno-${flag}"
+      ], [:], [${extraCFlags}])
+   done
+
+   AX_GCC_VAR_ATTRIBUTE([packed])
+   AX_GCC_VAR_ATTRIBUTE([unused])
+
+   AX_GCC_FUNC_ATTRIBUTE([format])
+   AX_GCC_FUNC_ATTRIBUTE([format_arg])
+   AX_GCC_FUNC_ATTRIBUTE([noreturn])
+   AX_GCC_FUNC_ATTRIBUTE([unused])
 }
 
 test "${GXX}" = "yes" && {
@@ -387,9 +406,9 @@ else
 fi
 AC_SUBST([LIBCXXFLAGS])
 
-AC_PATH_TOOL([LD], [ld])
-AC_PATH_TOOL([STRIP], [strip])
-AC_PATH_TOOL([RANLIB], [ranlib])
+AC_CHECK_TOOL([LD], [ld])
+AC_CHECK_TOOL([STRIP], [strip])
+AC_CHECK_TOOL([RANLIB], [ranlib])
 
 AC_PROG_AWK
 AC_PROG_LN_S
@@ -642,7 +661,7 @@ BRLTTY_ARG_DISABLE(
       install_messages=install-messages
 
       AC_CHECK_HEADER([libintl.h], [dnl
-         AC_HAVE_LIBRARY([intl])
+         BRLTTY_HAVE_LIBRARY([intl])
          AC_DEFINE([ENABLE_I18N_SUPPORT], [1],
                    [Define this if internationalization support is to be included.])
       ])
@@ -689,7 +708,7 @@ BRLTTY_ARG_DISABLE(
    [],
 [dnl
    AC_CHECK_HEADERS([iconv.h], [
-      AC_HAVE_LIBRARY([iconv])
+      BRLTTY_HAVE_LIBRARY([iconv])
    ])
 ])
 
@@ -744,8 +763,10 @@ BRLTTY_ARG_DISABLE(
           [api_socket_path], ["${default_api_socket_path}"]
       )
 
+      BRLTTY_BINDINGS([Emacs])
       BRLTTY_BINDINGS([Java])
       BRLTTY_BINDINGS([Lisp])
+      BRLTTY_BINDINGS([Lua])
       BRLTTY_BINDINGS([OCaml])
       BRLTTY_BINDINGS([Python])
       BRLTTY_BINDINGS([Tcl])
@@ -779,6 +800,28 @@ BRLTTY_SUMMARY_ITEM([api-socket-path], [api_socket_path])
 BRLTTY_DEFINE_EXPANDED([BRLAPI_AUTHKEYFILE], ["${api_authkeyfile}"],
                        [Define this to be a string containing the name of BrlAPI's authorization key file.])
 
+BRLTTY_ARG_ENABLE(
+   [api-fuzzing],
+   [fuzzing the application programming interface],
+   [],
+[dnl
+  AC_CACHE_CHECK([for LLVM fuzzer], [brltty_cv_llvm_fuzzer], [dnl
+    HOST_CPU="`$CC -print-multiarch | sed -e 's/-.*//'`"
+    fuzzer_libs="`$CC -print-runtime-dir`/libclang_rt.fuzzer_no_main-$HOST_CPU.a -lstdc++ -lm"
+    CFLAGS="$CFLAGS -fsanitize=fuzzer-no-link -fsanitize=address,undefined -fstack-protector-strong"
+    LIBS="$LIBS -fsanitize=address,undefined -lubsan"
+    OLD_LIBS="$LIBS"
+    LIBS="$LIBS $fuzzer_libs"
+    AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM([[]], [[]])],
+      [], [AC_MSG_ERROR([Compiler does not support fuzzing, did you set CC=clang?])])
+    LIBS="$OLD_LIBS"
+  ])
+  AC_DEFINE([ENABLE_API_FUZZING], [1],
+    [Define this if the application programming interface is to be fuzzed.])
+])
+AC_SUBST(fuzzer_libs)
+
 brltty_curses_libs_save="${LIBS}"
 BRLTTY_PACKAGE_CHOOSE([curses],
    [ncursesw ncursesw/ncurses.h],
@@ -797,9 +840,9 @@ AC_SUBST([curses_libs])
 
 xkb_libs=""
 xtk_libs=""
-xsel_object=""
 all_xbrlapi=""
 install_xbrlapi=""
+xsel_object=""
 BRLTTY_ARG_DISABLE(
    [x],
    [support for X11],
@@ -827,6 +870,16 @@ BRLTTY_ARG_DISABLE(
          ])
       ])
 
+      brltty_cppflags_save="${CPPFLAGS}"
+      CPPFLAGS="${CPPFLAGS} ${x11_includes}"
+      brltty_libs_save="${LIBS}"
+      LIBS="${x11_libs} ${LIBS}"
+
+      AC_CHECK_FUNCS([XSetIOErrorExitHandler])
+
+      CPPFLAGS="${brltty_cppflags_save}"
+      LIBS="${brltty_libs_save}"
+
       BRLTTY_HAVE_PACKAGE([xt], [xt], [dnl
          xtk_libs="${xt_libs} ${xtk_libs}"
 
@@ -852,9 +905,9 @@ BRLTTY_ARG_DISABLE(
 ])
 AC_SUBST([xkb_libs])
 AC_SUBST([xtk_libs])
-AC_SUBST([xsel_object])
 AC_SUBST([all_xbrlapi])
 AC_SUBST([install_xbrlapi])
+AC_SUBST([xsel_object])
 
 test -z "$gui_toolkit_package" && {
    case "${host_os}"
@@ -887,18 +940,21 @@ AC_CHECK_HEADERS([signal.h sys/signalfd.h])
 AC_CHECK_FUNCS([sigaction])
 
 AC_CHECK_HEADERS([alloca.h getopt.h regex.h])
-AC_CHECK_HEADERS([syslog.h execinfo.h])
+AC_CHECK_HEADERS([syslog.h])
 AC_CHECK_HEADERS([sys/file.h sys/socket.h])
 AC_CHECK_HEADERS([pwd.h grp.h])
 AC_CHECK_HEADERS([sys/io.h sys/modem.h machine/speaker.h dev/speaker/speaker.h linux/vt.h])
 AC_CHECK_HEADERS([sdkddkver.h])
+
+AC_CHECK_HEADERS([execinfo.h], [BRLTTY_HAVE_LIBRARY([execinfo])])
 
 AC_CHECK_HEADERS([linux/input.h], [
    AC_CHECK_HEADERS([linux/uinput.h], [], [], [
 #include <linux/input.h>
 ])])
 
-AC_CHECK_FUNCS([getopt_long hstrerror realpath vsyslog])
+AC_CHECK_FUNCS([getopt_long hstrerror vsyslog])
+AC_CHECK_FUNCS([realpath readlink])
 AC_CHECK_FUNCS([pause])
 AC_CHECK_FUNCS([fchdir fchmod])
 AC_CHECK_FUNCS([shmget shm_open])
@@ -946,83 +1002,28 @@ AC_EXEEXT
 AC_CACHE_CHECK(
    [if the compiler understands the __alignof__ operator],
    [brltty_cv_c_operator_alignof],
-   [AC_TRY_COMPILE([
-int a;
-int b = __alignof__(a);
-],
-[],
-[brltty_cv_c_operator_alignof=yes],
-[brltty_cv_c_operator_alignof=no])])
+   [
+      AC_COMPILE_IFELSE(
+         [
+            AC_LANG_PROGRAM(
+               [[
+                  int a;
+                  int b = __alignof__(a);
+               ]], [[
+               ]]
+            )
+         ], [
+            brltty_cv_c_operator_alignof=yes
+         ], [
+            brltty_cv_c_operator_alignof=no
+         ]
+      )
+   ]
+)
 if test "${brltty_cv_c_operator_alignof}" = "yes"
 then
    AC_DEFINE([HAVE_OPERATOR_ALIGNOF],  [1],
              [Define this if the __alignof__ operator is supported.])
-fi
-
-AC_CACHE_CHECK(
-   [if the compiler understands __attribute__((format(__printf__)))],
-   [brltty_cv_c_attribute_format_printf],
-   [AC_TRY_COMPILE([
-extern void conf_attribute_format_printf(const char *format, ...)
-       __attribute__((format(__printf__, 1, 2)));
-],
-[],
-[brltty_cv_c_attribute_format_printf=yes],
-[brltty_cv_c_attribute_format_printf=no])])
-if test "${brltty_cv_c_attribute_format_printf}" = "yes"
-then
-   AC_DEFINE([HAVE_ATTRIBUTE_FORMAT_PRINTF], [1],
-             [Define this if the printf format attribute is supported.])
-fi
-
-AC_CACHE_CHECK(
-   [if the compiler understands __attribute__((noreturn))],
-   [brltty_cv_c_attribute_noreturn],
-   [AC_TRY_COMPILE([
-extern void conf_attribute_noreturn(void)
-       __attribute__((noreturn));
-],
-[],
-[brltty_cv_c_attribute_noreturn=yes],
-[brltty_cv_c_attribute_noreturn=no])])
-if test "${brltty_cv_c_attribute_noreturn}" = "yes"
-then
-   AC_DEFINE([HAVE_ATTRIBUTE_NORETURN], [1],
-             [Define this if the noreturn attribute is supported.])
-fi
-
-AC_CACHE_CHECK(
-   [if the compiler understands __attribute__((packed))],
-   [brltty_cv_c_attribute_packed],
-   [AC_TRY_COMPILE([
-typedef struct {
-  char c;
-  int i;
-} __attribute__((packed)) conf_attribute_packed;
-],
-[],
-[brltty_cv_c_attribute_packed=yes],
-[brltty_cv_c_attribute_packed=no])])
-if test "${brltty_cv_c_attribute_packed}" = "yes"
-then
-   AC_DEFINE([HAVE_ATTRIBUTE_PACKED], [1],
-             [Define this if the packed attribute is supported.])
-fi
-
-AC_CACHE_CHECK(
-   [if the compiler understands __attribute__((unused))],
-   [brltty_cv_c_attribute_unused],
-   [AC_TRY_COMPILE([
-static void conf_attribute_unused (void)
-       __attribute__((unused));
-],
-[],
-[brltty_cv_c_attribute_unused=yes],
-[brltty_cv_c_attribute_unused=no])])
-if test "${brltty_cv_c_attribute_unused}" = "yes"
-then
-   AC_DEFINE([HAVE_ATTRIBUTE_UNUSED], [1],
-             [Define this if the unused attribute is supported.])
 fi
 
 AC_CACHE_CHECK(
@@ -1032,11 +1033,19 @@ AC_CACHE_CHECK(
       brltty_cv_c_thread_local=""
       for thread_local_qualifier in "_Thread_local" "__thread" "__declspec(thread)"
       do
-         AC_TRY_COMPILE([
-static ${thread_local_qualifier} int i;
-],
-            [],
-            [brltty_cv_c_thread_local="${thread_local_qualifier}"; break])
+         AC_COMPILE_IFELSE(
+            [
+               AC_LANG_PROGRAM(
+                  [[
+                     static ${thread_local_qualifier} int i;
+                  ]], [[
+                  ]]
+               )
+            ], [
+               brltty_cv_c_thread_local="${thread_local_qualifier}"
+               break
+            ]
+         )
       done
    ]
 )
@@ -1130,7 +1139,7 @@ BRLTTY_PKGCONFIG_VARIABLE([POLKIT_RULE_DIR], [polkit-gobject-1], [ruledir], [/us
 BRLTTY_PKGCONFIG_VARIABLE([SYSTEMD_SYSUSERS_DIR], [systemd], [sysusersdir], [/usr/lib/sysusers.d])
 BRLTTY_PKGCONFIG_VARIABLE([SYSTEMD_TMPFILES_DIR], [systemd], [tmpfilesdir], [/usr/lib/tmpfiles.d])
 BRLTTY_PKGCONFIG_VARIABLE([SYSTEMD_UNIT_DIR], [systemd], [systemdsystemunitdir], [/usr/lib/systemd/system])
-BRLTTY_PKGCONFIG_VARIABLE([UDEV_DIR], [udev], [udevdir], [/usr/lib/udev])
+BRLTTY_PKGCONFIG_VARIABLE([SYSTEMD_CONF_DIR], [systemd], [systemdsystemconfdir], [/usr/lib/systemd/system])
 
 BRLTTY_ARG_PACKAGE([system], [base system], [], [dnl
    *android*)
@@ -1184,45 +1193,28 @@ BRLTTY_ARG_DISABLE(
 AC_SUBST([expat_includes])
 AC_SUBST([expat_libs])
 
+contracted_braille_objects='ctb_compile.$O cldr.$O ctb_translate.$O ctb_native.$O ctb_external.$O'
+louis_includes=""
+louis_libs=""
 BRLTTY_ARG_DISABLE(
-   [contracted-braille],
-   [in-line contracted braille],
+   [liblouis],
+   [support for LibLouis-based contracted braille],
    [],
 [dnl
-   AC_DEFINE([ENABLE_CONTRACTED_BRAILLE], [1],
-             [Define this to include contraction table support.])
-
-   all_brltty_ctb="all-brltty-ctb"
-   install_brltty_ctb="install-brltty-ctb"
-
-   contracted_braille_objects='ctb_compile.$O cldr.$O ctb_translate.$O ctb_native.$O ctb_external.$O'
-   install_contraction_tables=install-contraction-tables
-
-   louis_includes=""
-   louis_libs=""
-   BRLTTY_ARG_DISABLE(
-      [liblouis],
-      [support for LibLouis-based contracted braille],
-      [],
-   [dnl
-      BRLTTY_HAVE_PACKAGE([louis], [liblouis], [dnl
-         louisTablesDirectory=`${PKG_CONFIG} --variable=tablesdir ${louis_package}`
-         if test -n "${louisTablesDirectory}"
-         then
-            AC_SUBST([louis_tables_directory], ["${louisTablesDirectory}"])
-            AC_DEFINE_UNQUOTED([LOUIS_TABLES_DIRECTORY], ["${louisTablesDirectory}"],
-                               [Define this to be a string containing the path to the LibLouis tables directory.])
-            contracted_braille_objects="${contracted_braille_objects} ctb_louis.\$O"
-         fi
-      ])
+   BRLTTY_HAVE_PACKAGE([louis], [liblouis], [dnl
+      louisTablesDirectory=`${PKG_CONFIG} --variable=tablesdir ${louis_package}`
+      if test -n "${louisTablesDirectory}"
+      then
+         AC_SUBST([louis_tables_directory], ["${louisTablesDirectory}"])
+         AC_DEFINE_UNQUOTED([LOUIS_TABLES_DIRECTORY], ["${louisTablesDirectory}"],
+                            [Define this to be a string containing the path to the LibLouis tables directory.])
+         contracted_braille_objects="${contracted_braille_objects} ctb_louis.\$O"
+      fi
    ])
-   AC_SUBST([louis_includes])
-   AC_SUBST([louis_libs])
 ])
-AC_SUBST([all_brltty_ctb])
-AC_SUBST([install_brltty_ctb])
+AC_SUBST([louis_includes])
+AC_SUBST([louis_libs])
 AC_SUBST([contracted_braille_objects])
-AC_SUBST([install_contraction_tables])
 
 BRLTTY_ARG_DISABLE(
    [gpm],
@@ -1245,8 +1237,14 @@ BRLTTY_ARG_PACKAGE([pgmpath], [program path], [], [dnl
    cygwin*)
       pgmpath_package="windows"
       ;;
+   freebsd*)
+      pgmpath_package="freebsd"
+      ;;
    linux*)
       pgmpath_package="linux"
+      ;;
+   gnu*)
+      pgmpath_package="hurd"
       ;;
    mingw*)
       pgmpath_package="windows"
@@ -1259,7 +1257,7 @@ BRLTTY_ARG_PACKAGE([pgmpath], [program path], [], [dnl
 BRLTTY_ARG_PACKAGE([pgmprivs], [program privileges], [], [dnl
    linux*)
       pgmprivs_package="linux"
-      AC_HAVE_LIBRARY([cap])
+      BRLTTY_HAVE_LIBRARY([cap])
       ;;
 ])
 
@@ -1281,15 +1279,17 @@ in
 esac
 
 BRLTTY_HAVE_PACKAGE([systemd], [libsystemd], [
-    brltty_libs_save="${LIBS}"
-    LIBS="${LIBS} ${systemd_libs}"
-    AC_CHECK_FUNC([sd_session_get_vt], [
+   brltty_libs_save="${LIBS}"
+   LIBS="${LIBS} ${systemd_libs}"
+   AC_CHECK_FUNC([sd_session_get_vt], [dnl
       AC_DEFINE([HAVE_SD_SESSION_GET_VT], [1],
                 [Define this if the function sd_session_get_vt is available in libsystemd.])
       api_libraries="${api_libraries} ${systemd_libs}"
-    ])
-    LIBS="${brltty_libs_save}"
-])
+   ], [dnl
+      AC_MSG_WARN([function not available: systemd:sd_session_get_vt()])
+   ])
+   LIBS="${brltty_libs_save}"
+], [:])
 
 BRLTTY_ARG_PACKAGE([params], [boot parameters], [], [dnl
    linux*)
@@ -1515,7 +1515,7 @@ BRLTTY_ARG_PACKAGE([serial], [serial I/O], [termios], [dnl
       ;;
 ])
 
-BRLTTY_ARG_PACKAGE([usb], [USB I/O], [libusb-1.0 libusb], [dnl
+BRLTTY_ARG_PACKAGE([usb], [USB I/O], [winusb libusb-1.0 libusb], [dnl
    *android*)
       usb_package="android"
       ;;
@@ -1544,15 +1544,21 @@ BRLTTY_ARG_PACKAGE([usb], [USB I/O], [libusb-1.0 libusb], [dnl
       ;;
    solaris*)
       usb_package="solaris"
-      AC_HAVE_LIBRARY([aio])
-      AC_HAVE_LIBRARY([rt])
+      BRLTTY_HAVE_LIBRARY([aio])
+      BRLTTY_HAVE_LIBRARY([rt])
       ;;
 ], [dnl
+   winusb)
+      BRLTTY_HAVE_HEADER([winusb.h], [dnl
+         usb_package="winusb"
+         usb_libs="-lwinusb"
+      ])
+      ;;
    libusb)
-      AC_CHECK_HEADER([usb.h], [dnl
+      BRLTTY_HAVE_HEADER([usb.h], [dnl
          usb_package="libusb"
          usb_libs="-lusb"
-      ], [], [-])
+      ])
       ;;
 ])
 
@@ -1574,12 +1580,25 @@ BRLTTY_ARG_PACKAGE([bluetooth], [Bluetooth I/O], [], [dnl
    linux*)
       AC_CHECK_HEADER([bluetooth/bluetooth.h], [dnl
          bluetooth_package="linux"
-         AC_HAVE_LIBRARY([bluetooth])
+         BRLTTY_HAVE_LIBRARY([bluetooth])
 
-         BRLTTY_HAVE_PACKAGE([dbus], ["dbus-1 >= 1.0"], [dnl
+         BRLTTY_IF_DBUS([dnl
             bluetooth_includes="${dbus_includes}"
             bluetooth_libs="${dbus_libs}"
          ])
+      ])
+      ;;
+])
+
+BRLTTY_ARG_PACKAGE([hid], [Human Interface Device I/O], [], [dnl
+   linux*)
+      AC_CHECK_HEADER([linux/hidraw.h], [dnl
+         BRLTTY_HAVE_PACKAGE([libudev], [libudev], [dnl
+            hid_package="linux"
+            hid_includes="${libudev_includes}"
+            hid_libs="${libudev_libs}"
+         ])
+         BRLTTY_HAVE_LIBRARY([bluetooth])
       ])
       ;;
 ])
@@ -1623,6 +1642,7 @@ BRLTTY_BRAILLE_DRIVER([bn], [BrailleNote])
 BRLTTY_BRAILLE_DRIVER([cb], [CombiBraille])
 BRLTTY_BRAILLE_DRIVER([ce], [Cebra])
 BRLTTY_BRAILLE_DRIVER([cn], [Canute])
+BRLTTY_BRAILLE_DRIVER([dp], [DotPad])
 BRLTTY_BRAILLE_DRIVER([ec], [EcoBraille])
 BRLTTY_BRAILLE_DRIVER([eu], [EuroBraille])
 BRLTTY_BRAILLE_DRIVER([fa], [FrankAudiodata])
@@ -1737,7 +1757,7 @@ AC_DEFINE_UNQUOTED([SERIAL_FIRST_DEVICE], ["${serial_first_device}"],
 
 BRLTTY_ARG_WITH(
    [braille-device], [DEVICE],
-   [default braille display device],
+   [default braille device],
    [braille_device], ["yes"]
 )
 if test "${braille_device}" = "no"
@@ -1761,100 +1781,8 @@ AC_DEFINE_UNQUOTED([BRAILLE_DEVICE], ["${braille_device}"],
                    [Define this to be a string containing the path to the default braille device.])
 BRLTTY_SUMMARY_ITEM([braille-device], [braille_device])
 
-BRLTTY_TEXT_TABLE([auto], [locale-based autoselection])
-BRLTTY_TEXT_TABLE([ar], [Arabic (generic)])
-BRLTTY_TEXT_TABLE([as], [Assamese])
-BRLTTY_TEXT_TABLE([awa], [Awadhi])
-BRLTTY_TEXT_TABLE([bg], [Bulgarian])
-BRLTTY_TEXT_TABLE([bh], [Bihari])
-BRLTTY_TEXT_TABLE([bn], [Bengali])
-BRLTTY_TEXT_TABLE([bo], [Tibetan])
-BRLTTY_TEXT_TABLE([bra], [Braj])
-BRLTTY_TEXT_TABLE([brf], [Braille Ready Format (for viewing .brf files within an editor or pager)])
-BRLTTY_TEXT_TABLE([cs], [Czech])
-BRLTTY_TEXT_TABLE([cy], [Welsh])
-BRLTTY_TEXT_TABLE([da], [Danish])
-BRLTTY_TEXT_TABLE([da-1252], [Danish (Svend Thougaard, 2002-11-18)])
-BRLTTY_TEXT_TABLE([da-lt], [Danish (LogText)])
-BRLTTY_TEXT_TABLE([de], [German])
-BRLTTY_TEXT_TABLE([dra], [Dravidian])
-BRLTTY_TEXT_TABLE([el], [Greek])
-BRLTTY_TEXT_TABLE([en], [English])
-BRLTTY_TEXT_TABLE([en_CA], [English (Canada)])
-BRLTTY_TEXT_TABLE([en_GB], [English (United Kingdom)])
-BRLTTY_TEXT_TABLE([en_US], [English (United States)])
-BRLTTY_TEXT_TABLE([en-nabcc], [English (North American Braille Computer Code)])
-BRLTTY_TEXT_TABLE([eo], [Esperanto])
-BRLTTY_TEXT_TABLE([es], [Spanish])
-BRLTTY_TEXT_TABLE([et], [Estonian])
-BRLTTY_TEXT_TABLE([fi], [Finnish])
-BRLTTY_TEXT_TABLE([fr], [French])
-BRLTTY_TEXT_TABLE([fr_CA], [French (Canada)])
-BRLTTY_TEXT_TABLE([fr_FR], [French (France)])
-BRLTTY_TEXT_TABLE([fr-2007], [French (unified 2007)])
-BRLTTY_TEXT_TABLE([fr-cbifs], [French (Code Braille Informatique Français Standard)])
-BRLTTY_TEXT_TABLE([fr-vs], [French (VisioBraille)])
-BRLTTY_TEXT_TABLE([ga], [Irish])
-BRLTTY_TEXT_TABLE([gd], [Gaelic])
-BRLTTY_TEXT_TABLE([gon], [Gondi])
-BRLTTY_TEXT_TABLE([gu], [Gujarati])
-BRLTTY_TEXT_TABLE([he], [Hebrew])
-BRLTTY_TEXT_TABLE([hi], [Hindi])
-BRLTTY_TEXT_TABLE([hr], [Croatian])
-BRLTTY_TEXT_TABLE([hu], [Hungarian])
-BRLTTY_TEXT_TABLE([hy], [Armenian])
-BRLTTY_TEXT_TABLE([is], [Icelandic])
-BRLTTY_TEXT_TABLE([it], [Italian])
-BRLTTY_TEXT_TABLE([kha], [Khasi])
-BRLTTY_TEXT_TABLE([kn], [Kannada])
-BRLTTY_TEXT_TABLE([kok], [Konkani])
-BRLTTY_TEXT_TABLE([kru], [Kurukh])
-BRLTTY_TEXT_TABLE([lt], [Lituanian])
-BRLTTY_TEXT_TABLE([lv], [Latvian])
-BRLTTY_TEXT_TABLE([mg], [Malagasy])
-BRLTTY_TEXT_TABLE([mi], [Maori])
-BRLTTY_TEXT_TABLE([ml], [Malayalam])
-BRLTTY_TEXT_TABLE([mni], [Manipuri])
-BRLTTY_TEXT_TABLE([mr], [Marathi])
-BRLTTY_TEXT_TABLE([mt], [Maltese])
-BRLTTY_TEXT_TABLE([mun], [Munda])
-BRLTTY_TEXT_TABLE([mwr], [Marwari])
-BRLTTY_TEXT_TABLE([ne], [Nepali])
-BRLTTY_TEXT_TABLE([new], [Newari])
-BRLTTY_TEXT_TABLE([nl], [Dutch])
-BRLTTY_TEXT_TABLE([nl_BE], [Dutch (Belgium)])
-BRLTTY_TEXT_TABLE([nl_NL], [Dutch (Netherlands)])
-BRLTTY_TEXT_TABLE([no], [Norwegian])
-BRLTTY_TEXT_TABLE([no-generic], [Norwegian (with support for other languages)])
-BRLTTY_TEXT_TABLE([no-oup], [Norwegian (Offentlig utvalg for punktskrift)])
-BRLTTY_TEXT_TABLE([nwc], [Newari (old)])
-BRLTTY_TEXT_TABLE([or], [Oriya])
-BRLTTY_TEXT_TABLE([pa], [Panjabi])
-BRLTTY_TEXT_TABLE([pi], [Pali])
-BRLTTY_TEXT_TABLE([pl], [Polish])
-BRLTTY_TEXT_TABLE([pt], [Portuguese])
-BRLTTY_TEXT_TABLE([ro], [Romanian])
-BRLTTY_TEXT_TABLE([ru], [Russian])
-BRLTTY_TEXT_TABLE([se], [Sami (Northern)])
-BRLTTY_TEXT_TABLE([sa], [Sanskrit])
-BRLTTY_TEXT_TABLE([sat], [Santali])
-BRLTTY_TEXT_TABLE([sd], [Sindhi])
-BRLTTY_TEXT_TABLE([sk], [Slovak])
-BRLTTY_TEXT_TABLE([sl], [Slovenian])
-BRLTTY_TEXT_TABLE([sv], [Swedish])
-BRLTTY_TEXT_TABLE([sv-1989], [Swedish (1989 standard)])
-BRLTTY_TEXT_TABLE([sv-1996], [Swedish (1996 standard)])
-BRLTTY_TEXT_TABLE([sw], [Swahili])
-BRLTTY_TEXT_TABLE([ta], [Tamil])
-BRLTTY_TEXT_TABLE([te], [Telugu])
-BRLTTY_TEXT_TABLE([tr], [Turkish])
-BRLTTY_TEXT_TABLE([uk], [Ukrainian])
-BRLTTY_TEXT_TABLE([vi], [Vietnamese])
 BRLTTY_ARG_TABLE([text], [en-nabcc], [ttb])
-
-BRLTTY_ATTRIBUTES_TABLE([left_right], [foreground colour in the left column and background colour in the right column])
-BRLTTY_ATTRIBUTES_TABLE([invleft_right], [inverse foreground colour in the left column and background colour in the right column])
-BRLTTY_ATTRIBUTES_TABLE([upper_lower], [foreground colour in the upper square and background colour in the lower square])
+BRLTTY_ARG_TABLE([contraction], [none], [ctb])
 BRLTTY_ARG_TABLE([attributes], [left_right], [atb])
 
 BRLTTY_ARG_DISABLE(
@@ -1964,9 +1892,25 @@ in
       ;;
 esac
 
+BRLTTY_SCREEN_DRIVER([fv], [FileViewer])
+
+all_brltty_pty=""
+install_brltty_pty=""
 AC_CHECK_HEADER([sys/shm.h], [dnl
    BRLTTY_SCREEN_DRIVER([sc], [Screen])
+
+   AC_CHECK_HEADER([sys/msg.h], [dnl
+      BRLTTY_SCREEN_DRIVER([em], [TerminalEmulator])
+
+      if test -n "${curses_package}"
+      then
+         all_brltty_pty="all-brltty-pty"
+         install_brltty_pty="install-brltty-pty"
+      fi
+   ])
 ])
+AC_SUBST([all_brltty_pty])
+AC_SUBST([install_brltty_pty])
 
 if test "${brltty_enabled_x}" = "yes"
 then
@@ -1976,14 +1920,15 @@ then
             BRLTTY_SCREEN_DRIVER([as], [AtSpi], [$(X11_LIBS) $(CSPI_LIBS)])
          ])
       ])
-   ])
+   ], [:])
 fi
 
-BRLTTY_HAVE_PACKAGE([dbus], ["dbus-1 >= 1.0"], [dnl
+BRLTTY_IF_DBUS([dnl
    AC_CHECK_HEADER([X11/keysym.h], [dnl
       BRLTTY_HAVE_PACKAGE([atspi2], [atspi-2], [dnl
          brltty_cppflags_save="${CPPFLAGS}"
          CPPFLAGS="${CPPFLAGS} ${atspi2_cflags}"
+         BRLTTY_SCREEN_DRIVER([a2], [AtSpi2], [$(DBUS_LIBS) $(ATSPI2_LIBS) $(GLIB2_LIBS) $(X11_LIBS) $(XFIXES_LIBS)])
 
          brltty_libs_save="${LIBS}"
          LIBS="${atspi2_libs} ${LIBS}"
@@ -1995,8 +1940,6 @@ BRLTTY_HAVE_PACKAGE([dbus], ["dbus-1 >= 1.0"], [dnl
 
          BRLTTY_HAVE_PACKAGE([glib2], [glib-2.0])
       ])
-
-      BRLTTY_SCREEN_DRIVER([a2], [AtSpi2], [$(DBUS_LIBS) $(ATSPI2_LIBS) $(GLIB2_LIBS) $(X11_LIBS) $(XFIXES_LIBS)])
    ])
 ])
 
@@ -2039,19 +1982,9 @@ test "${prefix}" = "NONE" && prefix=""
 original_exec_prefix="${exec_prefix}"
 test "${exec_prefix}" = "NONE" && exec_prefix="${prefix}"
 BRLTTY_VAR_EXPAND([brltty_reference_directory], [${execute_root}${program_directory}])
+
 BRLTTY_DEFINE_DIRECTORY([LOCALE_DIRECTORY], [${execute_root}${localedir}],
                         [Define this to be a string containing the path to the locale directory.])
-if test -n "${updatable_directory}"
-then
-   BRLTTY_DEFINE_DIRECTORY([UPDATABLE_DIRECTORY], [${updatable_directory}],
-                           [Define this to be a string containing the path to a directory which contains files that can be updated.])
-fi
-
-if test -n "${writable_directory}"
-then
-   BRLTTY_DEFINE_DIRECTORY([WRITABLE_DIRECTORY], [${writable_directory}],
-                           [Define this to be a string containing the path to a writable directory.])
-fi
 
 BRLTTY_DEFINE_DIRECTORY([TABLES_DIRECTORY], [${execute_root}${tables_directory}],
                         [Define this to be a string containing the path to the data files directory.])
@@ -2059,16 +1992,28 @@ BRLTTY_DEFINE_DIRECTORY([TABLES_DIRECTORY], [${execute_root}${tables_directory}]
 BRLTTY_DEFINE_DIRECTORY([DRIVERS_DIRECTORY], [${execute_root}${drivers_directory}],
                         [Define this to be a string containing the path to the drivers directory.])
 
-BRLTTY_DEFINE_DIRECTORY([SCRIPTS_DIRECTORY], [${execute_root}${scripts_directory}],
-                        [Define this to be a string containing the path to the scripts directory.])
+BRLTTY_DEFINE_DIRECTORY([COMMANDS_DIRECTORY], [${execute_root}${commands_directory}],
+                        [Define this to be a string containing the path to the helper commands directory.])
 
-BRLTTY_DEFINE_DIRECTORY([CONFIGURATION_DIRECTORY], [${sysconfdir}],
+BRLTTY_PUBLIC_DIRECTORY([CONFIGURATION_DIRECTORY], [${sysconfdir}],
                         [Define this to be a string containing the path to the configuration directory.])
 
-BRLTTY_DEFINE_DIRECTORY([BRLAPI_ETCDIR], [${CONFIGURATION_DIRECTORY}],
+if test -n "${updatable_directory}"
+then
+   BRLTTY_PUBLIC_DIRECTORY([UPDATABLE_DIRECTORY], [${updatable_directory}],
+                           [Define this to be a string containing the path to a directory which contains files that can be updated.])
+fi
+
+if test -n "${writable_directory}"
+then
+   BRLTTY_PUBLIC_DIRECTORY([WRITABLE_DIRECTORY], [${writable_directory}],
+                           [Define this to be a string containing the path to a writable directory.])
+fi
+
+BRLTTY_PUBLIC_DIRECTORY([BRLAPI_ETCDIR], [${CONFIGURATION_DIRECTORY}],
                         [Define this to be a string containing the path to BrlAPI's data files directory.])
 
-BRLTTY_DEFINE_DIRECTORY([BRLAPI_SOCKETPATH], [${api_socket_path}],
+BRLTTY_PUBLIC_DIRECTORY([BRLAPI_SOCKETPATH], [${api_socket_path}],
                         [Define this to be a string containing the path to BrlAPI's local sockets directory.])
 
 prefix="${original_prefix}"
@@ -2077,15 +2022,11 @@ exec_prefix="${original_exec_prefix}"
 AC_SUBST([install_drivers])
 BRLTTY_SUMMARY_END
 
-AC_CONFIG_COMMANDS([build-configure], [dnl
-   "${srcdir}/mk4build"
-])
-
 [brltty_make_files="`echo "${brltty_build_directories}" | sed -e '
 s%\([^ ][^ ]*\)%\1/Makefile:prologue.mk:\1/Makefile.in%g
 '`"]
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
    config.mk
    brltty.spec
    brltty-config.sh
@@ -2094,13 +2035,20 @@ AC_OUTPUT([
    Documents/brltty.1
    Documents/xbrlapi.1
    Documents/BrlAPIref.doxy
+   Bindings/Emacs/add_directory.el
    Bindings/Lisp/brlapi.asd
    Bindings/Lisp/brlapi_config.lisp
    Bindings/Python/setup.py
    Autostart/Systemd/brltty@.service
    Autostart/Systemd/tmpfiles
-   Autostart/Udev/device.rules
+   Autostart/Udev/usb-template.rules
    Autostart/X11/90xbrlapi
-   Android/Application/res/values/configured.xml:Android/Application/res.strings.in
+   Android/Gradle/config.properties
    ${brltty_make_files}
 ])
+
+AC_CONFIG_COMMANDS([build-configure], [dnl
+   "${srcdir}/mk4build"
+])
+
+AC_OUTPUT

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "log.h"
+#include "parse.h"
 #include "scr.h"
 #include "cmd_brlapi.h"
 #include "charset.h"
@@ -30,10 +31,11 @@
 #include "brlapi.h"
 
 typedef enum {
-  PARM_HOST=0,
-  PARM_AUTH=1
+  PARM_HOST,
+  PARM_AUTH,
+  PARM_SPEECH_CHANGES,
 } DriverParameter;
-#define BRLPARMS "host", "auth"
+#define BRLPARMS "host", "auth", "speechChanges"
 
 #include "brl_driver.h"
 
@@ -47,10 +49,12 @@ typedef enum {
 
 static brlapi_param_clientPriority_t currentPriority;
 static const brlapi_param_clientPriority_t qualityPriorities[] = {
-  [SCQ_GOOD] = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT + 10,
+  [SCQ_NONE] = BRLAPI_PARAM_CLIENT_PRIORITY_DISABLE,
+  [SCQ_LOW]  = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT - 40,
+  [SCQ_POOR] = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT - 25,
   [SCQ_FAIR] = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT - 10,
-  [SCQ_POOR] = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT - 20,
-  [SCQ_NONE] = 0,
+  [SCQ_GOOD] = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT + 10,
+  [SCQ_HIGH] = BRLAPI_PARAM_CLIENT_PRIORITY_DEFAULT + 30,
 };
 
 static int displaySize;
@@ -60,6 +64,24 @@ static int prevCursor;
 static int prevShown;
 
 static int restart;
+
+static int
+ignoreSpeechChangeCommands (void) {
+  static const brlapi_keyCode_t commands[] = {
+    BRLAPI_KEY_TYPE_CMD | BRLAPI_KEY_CMD_SAY_LOUDER,
+    BRLAPI_KEY_TYPE_CMD | BRLAPI_KEY_CMD_SAY_SOFTER,
+    BRLAPI_KEY_TYPE_CMD | BRLAPI_KEY_CMD_SAY_FASTER,
+    BRLAPI_KEY_TYPE_CMD | BRLAPI_KEY_CMD_SAY_SLOWER,
+    BRLAPI_KEY_TYPE_CMD | BRLAPI_KEY_CMD_SAY_HIGHER,
+    BRLAPI_KEY_TYPE_CMD | BRLAPI_KEY_CMD_SAY_LOWER,
+  };
+
+  CHECK(brlapi_ignoreKeys(brlapi_rangeType_command, commands, ARRAY_COUNT(commands))>=0, failed);
+  return 1;
+
+failed:
+  return 0;
+}
 
 /* Function : brl_construct */
 /* Opens a connection with BrlAPI's server */
@@ -73,16 +95,32 @@ static int brl_construct(BrailleDisplay *brl, char **parameters, const char *dev
 
   CHECK((brlapi_openConnection(&settings, &settings)>=0), out);
   logMessage(LOG_CATEGORY(BRAILLE_DRIVER),
-             "Connected to %s using %s", settings.host, settings.auth);
+    "connected to %s using %s", settings.host, settings.auth
+  );
 
   CHECK((brlapi_enterTtyModeWithPath(NULL, 0, NULL)>=0), out0);
   logMessage(LOG_CATEGORY(BRAILLE_DRIVER),
-             "Got tty successfully");
+    "got tty successfully"
+  );
 
   CHECK((brlapi_getDisplaySize(&brl->textColumns, &brl->textRows)==0), out1);
-  logMessage(LOG_CATEGORY(BRAILLE_DRIVER),
-             "Found out display size: %dx%d", brl->textColumns, brl->textRows);
   displaySize = brl->textColumns * brl->textRows;
+  logMessage(LOG_CATEGORY(BRAILLE_DRIVER),
+    "got display size: %dx%d", brl->textColumns, brl->textRows
+  );
+
+  {
+    unsigned int speechChanges = 1;
+    const char *parameter = parameters[PARM_SPEECH_CHANGES];
+
+    if (*parameter) {
+      if (!validateYesNo(&speechChanges, parameter)) {
+         logMessage(LOG_WARNING, "%s: %s", "invalid speech changes setting", parameter);
+      } else if (!speechChanges) {
+        ignoreSpeechChangeCommands();
+      }
+    }
+  }
 
   brl->hideCursor = 1;
 
@@ -183,7 +221,10 @@ static int brl_writeWindow(BrailleDisplay *brl, const wchar_t *text)
 
     if (brlapi_write(&arguments)==0) {
       memcpy(prevData,brl->buffer,displaySize);
-      wmemcpy(prevText,text,displaySize);
+      if (text)
+	wmemcpy(prevText,text,displaySize);
+      else
+	wmemset(prevText,0,displaySize);
       prevCursor = brl->cursor;
       prevShown = 1;
     } else {

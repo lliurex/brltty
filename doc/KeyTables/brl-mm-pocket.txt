@@ -1,0 +1,218 @@
+Key Table: Braille Memo Pocket
+==============================
+
+Notes
+* The six round keys along the top are a braille keyboard.
+  From left to right, their names are: Dot3, Dot2, Dot1, Dot4, Dot5, Dot6.
+* The two keys to the left of Dot3, from top to bottom, are named: Control, Alt.
+* The two keys to the right of Dot6, from top to bottom, are named: Select, Read.
+* The three keys below Dot1 and Dot4, from left to right, are named: Dot7, Extension, Dot8.
+* At the bottom left is a group of four keys arranged in a cross.
+  Starting with the leftmost key and moving clockwise, their names are:
+  ArrowLeft, ArrowUp, ArrowRight, ArrowDown.
+* A driver implementation constraint requires that some of the bindings
+  refer to the ArrowLeft and ArrowRight keys as PanLeft and PanRight.
+* Some keys are entered by pressing a set of keys simultaneously:
+  + Return: Dot7
+  + Space: Dot8
+  + ArrowUp: Extension + Dot1
+  + ArrowDown: Extension + Dot4
+  + ArrowLeft: Extension + Dot2
+  + ArrowRight: Extension + Dot5
+  + Insert: Extension + Dot3
+  + Change: Extension + Dot6
+  + Backspace: Extension + Dot7
+  + Delete: Extension + Dot8
+  + Escape: Extension + ArrowUp
+  + Info: Extension + ArrowDown
+  + Backward: Extension + ArrowRight + Dot1
+  + Forward: Extension + ArrowRight + Dot4
+  + ScrollLeft: Extension + ArrowRight + Dot2
+  + ScrollRight: Extension + ArrowRight + Dot5
+  + OK: Extension + ArrowRight + Dot7
+  + Set: Extension + ArrowRight + Dot8
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Read+dots125
+* enter/leave command learn mode: Read+dots123
+* enter/leave preferences menu: Read+dots1234
+* enter/leave status display:
+  + Alt
+  + Read+dots234
+* set display mode attributes/text: Read+dots145
+* set display mode attributes: Read+dots1458
+* set display mode text: Read+dots1457
+* set screen image frozen/unfrozen: Read+dots124
+* set screen image frozen: Read+dots1248
+* set screen image unfrozen: Read+dots1247
+* describe character: Select+Read+RoutingKey
+* show current date and time: Control
+
+Cursor Functions
+* go to screen cursor or go back after cursor tracking: PanLeft+PanRight
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line:
+  + ArrowUp+ArrowDown
+  + Read+dots1236
+
+Vertical Navigation
+* go up one line: ArrowUp
+* go down one line: ArrowDown
+* go to top line: Select+ArrowUp
+* go to bottom line: Select+ArrowDown
+* go to beginning of top line: Control+ArrowUp
+* go to beginning of bottom line: Control+ArrowDown
+* go up to nearest line with different content: Read+ArrowUp
+* go down to nearest line with different content: Read+ArrowDown
+* go up to nearest line with different highlighting: Alt+ArrowUp
+* go down to nearest line with different highlighting: Alt+ArrowDown
+* go up to first line of paragraph: Control+Alt+ArrowUp
+* go down to first line of next paragraph: Control+Alt+ArrowDown
+* go up to previous command prompt: Select+Read+ArrowUp
+* go down to next command prompt: Select+Read+ArrowDown
+
+Horizontal Navigation
+* go backward one braille window: PanLeft
+* go forward one braille window: PanRight
+* go backward skipping blank braille windows: Read+PanLeft
+* go forward skipping blank braille windows: Read+PanRight
+* go to beginning of line: Select+PanLeft
+* go to end of line: Select+PanRight
+* go left one character: Alt+PanLeft
+* go right one character: Alt+PanRight
+* place left end of braille window at character: Control+Alt+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: Control+RoutingKey
+* append to clipboard from character: Alt+RoutingKey
+* linear copy to character: Select+RoutingKey
+* rectangular copy to character: Read+RoutingKey
+* insert clipboard text after screen cursor:
+  + Control+Alt
+  + Read+dots1346
+* search backward for clipboard text: Control+PanLeft
+* search forward for clipboard text: Control+PanRight
+* save clipboard to disk: Read+dots13468
+* restore clipboard from disk: Read+dots13467
+
+Configuration Functions
+* set autorepeat on/off: Read+dots1235
+* set autorepeat on: Read+dots12358
+* set autorepeat off: Read+dots12357
+* set text style 6-dot/8-dot: ArrowDown+ArrowRight
+* set contracted/computer braille: Read+dots1245
+* set contracted braille: Read+dots12458
+* set computer braille: Read+dots12457
+* set six dot computer braille: Read+dots235
+* set eight dot computer braille: Read+dots236
+* set skipping of lines with identical content on/off: Read+dots24
+* set skipping of lines with identical content on: Read+dots248
+* set skipping of lines with identical content off: Read+dots247
+* set skipping of blank braille windows on/off: Read+dots12
+* set skipping of blank braille windows on: Read+dots128
+* set skipping of blank braille windows off: Read+dots127
+* set sliding braille window on/off: Read+dots2456
+* set sliding braille window on: Read+dots24568
+* set sliding braille window off: Read+dots24567
+* set track screen cursor on/off:
+  + ArrowDown+ArrowLeft
+  + Read+dots2345
+* set track screen cursor on: Read+dots23458
+* set track screen cursor off: Read+dots23457
+* set screen cursor visibility on/off:
+  + ArrowUp+ArrowLeft
+  + Read+dots14
+* set screen cursor visibility on: Read+dots148
+* set screen cursor visibility off: Read+dots147
+* set attribute underlining on/off:
+  + ArrowUp+ArrowRight
+  + Read+dots136
+* set attribute underlining on: Read+dots1368
+* set attribute underlining off: Read+dots1367
+
+Menu Operations
+* save preferences to disk: Read+dots12348
+* restore preferences from disk: Read+dots12347
+* reset preferences to defaults: Read+dots123478
+
+Keyboard Input
+* braille keyboard control: Control
+* braille keyboard meta: Alt
+* braille keyboard dot8: dot8
+* braille keyboard dot6: dot6
+* braille keyboard dot5: dot5
+* braille keyboard dot4: dot4
+* braille keyboard dot7: dot7
+* braille keyboard dot3: dot3
+* braille keyboard dot2: dot2
+* braille keyboard dot1: dot1
+* type braille dots [C]: dot8
+* type braille dots [7]: Read+dot7
+* type braille dots [8]: Read+dot8
+* backspace key: Backspace
+* escape key:
+  + Escape
+  + Read+dots26
+* cursor-left key:
+  + ArrowLeft
+  + Read+dot3
+* cursor-right key:
+  + ArrowRight
+  + Read+dot6
+* cursor-up key: Read+dot1
+* cursor-down key: Read+dot4
+* page-up key:
+  + ScrollLeft
+  + Read+dots23
+* page-down key:
+  + ScrollRight
+  + Read+dots56
+* home key:
+  + Backward
+  + Read+dot2
+* end key:
+  + Forward
+  + Read+dot5
+* insert key:
+  + Insert
+  + Read+dots35
+* delete key:
+  + Delete
+  + Read+dots256
+* function key: Extension+RoutingKey
+* enter key: dot7
+* tab key:
+  + Extension
+  + Read+dots45
+* clear all sticky input modifiers: Read+dots78
+* cycle the Upper sticky input modifier (next, on, off): Read+dots68
+* cycle the Shift sticky input modifier (next, on, off): Read+dots48
+* cycle the Control sticky input modifier (next, on, off): Read+dots38
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Read+dots28
+* cycle the AltGr (Right Alt) sticky input modifier (next, on, off): Read+dots58
+* cycle the GUI (Windows) sticky input modifier (next, on, off): Read+dots18
+* switch to the previous virtual terminal: Read+dots12367
+* switch to the next virtual terminal: Read+dots12368
+* set braille keyboard enabled: Read+dots138
+* set braille keyboard disabled: Read+dots137
+* set braille typing mode dots: Read+dots468
+* set braille typing mode text: Read+dots467
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: dot8
+
+Menu Operations
+* go up to previous item: dot1
+* go down to next item: dot4
+* go up to first item: dot2
+* go down to last item: dot5
+* select previous choice: dot3
+* select next choice: dot6
+* go to previous menu level: dot7
+

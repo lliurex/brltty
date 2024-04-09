@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,7 +23,7 @@
 #include <errno.h>
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "prefs.h"
 #include "log.h"
 #include "file.h"
@@ -39,19 +39,30 @@ static char *opt_tablesDirectory;
 static char *opt_contractionTable;
 static char *opt_textTable;
 static char *opt_verificationTable;
-static int opt_reformatText;
+
 static char *opt_outputWidth;
+static int opt_reformatText;
 static int opt_forceOutput;
 
 BEGIN_OPTION_TABLE(programOptions)
-  { .word = "tables-directory",
-    .letter = 'T',
-    .flags = OPT_Hidden,
-    .argument = strtext("directory"),
-    .setting.string = &opt_tablesDirectory,
-    .internal.setting = TABLES_DIRECTORY,
-    .internal.adjust = fixInstallPath,
-    .description = strtext("Path to directory containing tables.")
+  { .word = "output-width",
+    .letter = 'w',
+    .argument = "columns",
+    .setting.string = &opt_outputWidth,
+    .internal.setting = "",
+    .description = strtext("Maximum length of an output line.")
+  },
+
+  { .word = "reformat-text",
+    .letter = 'r',
+    .setting.flag = &opt_reformatText,
+    .description = strtext("Reformat input.")
+  },
+
+  { .word = "force-output",
+    .letter = 'f',
+    .setting.flag = &opt_forceOutput,
+    .description = strtext("Force immediate output.")
   },
 
   { .word = "contraction-table",
@@ -76,26 +87,15 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = strtext("Contraction verification table.")
   },
 
-  { .word = "reformat-text",
-    .letter = 'r',
-    .setting.flag = &opt_reformatText,
-    .description = strtext("Reformat input.")
+  { .word = "tables-directory",
+    .letter = 'T',
+    .argument = strtext("directory"),
+    .setting.string = &opt_tablesDirectory,
+    .internal.setting = TABLES_DIRECTORY,
+    .internal.adjust = fixInstallPath,
+    .description = strtext("Path to directory containing tables.")
   },
-
-  { .word = "output-width",
-    .letter = 'w',
-    .argument = "columns",
-    .setting.string = &opt_outputWidth,
-    .internal.setting = "",
-    .description = strtext("Maximum length of an output line.")
-  },
-
-  { .word = "force-output",
-    .letter = 'f',
-    .setting.flag = &opt_forceOutput,
-    .description = strtext("Force immediate output.")
-  },
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 static wchar_t *inputBuffer;
 static size_t inputSize;
@@ -186,7 +186,7 @@ writeCharacters (const wchar_t *inputLine, size_t inputLength, void *data) {
       }
     }
 
-    contractText(contractionTable,
+    contractText(contractionTable, NULL,
                  inputBuffer, &inputCount,
                  outputBuffer, &outputCount,
                  NULL, CTB_NO_CURSOR);
@@ -284,7 +284,7 @@ writeContractedBraille (const wchar_t *characters, size_t length, void *data) {
   const wchar_t *character = characters;
 
   while (1) {
-    const wchar_t *end = wmemchr(character, FF, length);
+    const wchar_t *end = wmemchr(character, ASCII_FF, length);
     size_t count;
 
     if (!end) break;
@@ -339,7 +339,7 @@ writeVerificationTableLine (const wchar_t *characters, size_t length, void *data
   int outputCount = length << 2;
   unsigned char outputBuffer[outputCount];
 
-  contractText(contractionTable,
+  contractText(contractionTable, NULL,
                characters, &inputCount,
                outputBuffer, &outputCount,
                NULL, CTB_NO_CURSOR);
@@ -369,7 +369,7 @@ static DATA_OPERANDS_PROCESSOR(processContractsOperands) {
       int outputCount = inputCount << 3;
       unsigned char outputBuffer[outputCount];
 
-      contractText(contractionTable,
+      contractText(contractionTable, NULL,
 		   text.characters, &inputCount,
 		   outputBuffer, &outputCount,
 		   NULL, CTB_NO_CURSOR);
@@ -441,11 +441,16 @@ main (int argc, char *argv[]) {
   prefs.expandCurrentWord = 0;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltty-ctb",
-      .argumentsSummary = "[{input-file | -} ...]"
+
+      .usage = {
+        .purpose = strtext("Check/validate a contraction (literary braille) table, or translate text into contracted braille."),
+        .parameters = "[{input-file | -} ...]",
+      }
     };
+
     PROCESS_OPTIONS(descriptor, argc, argv);
   }
 

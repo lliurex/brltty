@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -19,23 +19,25 @@
 all install uninstall install-documents:
 	cd $(PGM_DIR) && $(MAKE) $@
 
-install-messages uninstall-messages:
-	cd $(MSG_DIR) && $(MAKE) $(@:-messages=)
+install-extras: install-appstream install-messages install-polkit install-systemd install-udev
 
 install-appstream uninstall-appstream:
 	cd Autostart/AppStream && $(MAKE) $(@:-appstream=)
+
+install-dracut uninstall-dracut:
+	cd Initramfs/Dracut && $(MAKE) $(@:-dracut=)
+
+install-messages uninstall-messages:
+	cd $(MSG_DIR) && $(MAKE) $(@:-messages=)
+
+install-polkit uninstall-polkit:
+	cd Authorization/Polkit && $(MAKE) $(@:-polkit=)
 
 install-systemd uninstall-systemd:
 	cd Autostart/Systemd && $(MAKE) $(@:-systemd=)
 
 install-udev uninstall-udev:
 	cd Autostart/Udev && $(MAKE) $(@:-udev=)
-
-install-polkit uninstall-polkit:
-	cd Authorization/Polkit && $(MAKE) $(@:-polkit=)
-
-install-dracut uninstall-dracut:
-	cd Initramfs/Dracut && $(MAKE) $(@:-dracut=)
 
 ARCHIVE_NAME = $(PACKAGE_TARNAME)-$(PACKAGE_VERSION)
 TAR_EXTENSION = tar
@@ -108,14 +110,20 @@ ITERATE = \
    Autostart/X11 \
    Authorization/Polkit \
    Initramfs/Dracut \
-   Android/Application \
-   Android/Core \
+   Android/Gradle \
    ; do (cd $$directory && $(MAKE) $@); done
 
-clean::
+clean:: clean-archives
 	$(ITERATE)
-	-rm -f -- *.$(TAR_EXTENSION) *.$(GZIP_EXTENSION) *.$(BZIP2_EXTENSION) *.$(XZ_EXTENSION) *.$(ZIP_EXTENSION) *.rpm
 	-rm -f -r -- $(BIN_DIR)
+
+clean-archives:
+	-rm -f -- *.$(TAR_EXTENSION)
+	-rm -f -- *.$(GZIP_EXTENSION)
+	-rm -f -- *.$(BZIP2_EXTENSION)
+	-rm -f -- *.$(XZ_EXTENSION)
+	-rm -f -- *.$(ZIP_EXTENSION)
+	-rm -f -- *.rpm
 
 distclean:: clean
 	$(ITERATE)

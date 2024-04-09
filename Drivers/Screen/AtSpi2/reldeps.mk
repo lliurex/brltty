@@ -3,6 +3,9 @@ a2_screen.$O: $(SRC_DIR)/a2_screen.c
 a2_screen.$O: $(SRC_TOP)Headers/prologue.h
 a2_screen.$O: $(BLD_TOP)config.h
 a2_screen.$O: $(BLD_TOP)forbuild.h
+a2_screen.$O: $(SRC_TOP)Headers/embed.h
+a2_screen.$O: $(SRC_TOP)Headers/pid.h
+a2_screen.$O: $(SRC_TOP)Headers/program.h
 a2_screen.$O: $(SRC_TOP)Headers/gettime.h
 a2_screen.$O: $(SRC_TOP)Headers/win_pthread.h
 a2_screen.$O: $(SRC_TOP)Headers/xsel.h
@@ -17,11 +20,15 @@ a2_screen.$O: $(SRC_TOP)Headers/get_thread.h
 a2_screen.$O: $(SRC_TOP)Headers/thread.h
 a2_screen.$O: $(SRC_TOP)Headers/brl_cmds.h
 a2_screen.$O: $(SRC_TOP)Headers/brl_dots.h
-a2_screen.$O: $(SRC_TOP)Headers/async.h
+a2_screen.$O: $(SRC_TOP)Headers/async_handle.h
+a2_screen.$O: $(SRC_TOP)Headers/async_types_handle.h
 a2_screen.$O: $(SRC_TOP)Headers/async_io.h
+a2_screen.$O: $(SRC_TOP)Headers/async_types_io.h
 a2_screen.$O: $(SRC_TOP)Headers/async_alarm.h
-a2_screen.$O: $(SRC_TOP)Headers/timing.h
+a2_screen.$O: $(SRC_TOP)Headers/async_types_alarm.h
+a2_screen.$O: $(SRC_TOP)Headers/timing_types.h
 a2_screen.$O: $(SRC_TOP)Headers/async_event.h
+a2_screen.$O: $(SRC_TOP)Headers/async_types_event.h
 a2_screen.$O: $(SRC_TOP)Headers/driver.h
 a2_screen.$O: $(SRC_TOP)Headers/ktb_types.h
 a2_screen.$O: $(SRC_TOP)Headers/scr_base.h

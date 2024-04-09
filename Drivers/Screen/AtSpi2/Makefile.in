@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -18,22 +18,20 @@
 
 DRIVER_CODE = a2
 DRIVER_NAME = AtSpi2
-DRIVER_COMMENT = 
+DRIVER_USAGE = X11 desktop via AT-SPI 2
 DRIVER_VERSION = 
 DRIVER_DEVELOPERS = 
 SCR_OBJS = @screen_libraries_a2@
 include $(SRC_TOP)screen.mk
 
-SRC_FILES = a2_screen.c
+OBJECT_FILES = a2_screen.$O xsel.$O
 
-OBJ_FILES = $(SRC_FILES:.c=.$O) $(XSEL_OBJECT)
+screen.$O: $(OBJECT_FILES)
+	$(MKREL) $@ $(OBJECT_FILES)
 
-screen.$O: $(OBJ_FILES)
-	$(MKREL) $@ $(OBJ_FILES)
+a2_screen.$O:
+	$(CC) $(SCR_CFLAGS) $(ATSPI2_INCLUDES) $(DBUS_INCLUDES) $(GLIB2_INCLUDES) -c $(SRC_DIR)/a2_screen.c
 
-xsel.$O: $(SRC_TOP)$(PGM_DIR)/xsel.c
+%.$O: $(SRC_TOP)$(PGM_DIR)/%.c $(SRC_TOP)$(HDR_DIR)/%.h
 	$(CC) $(SCR_CFLAGS) -c $<
-
-%.$O: $(SRC_DIR)/%.c
-	$(CC) $(SCR_CFLAGS) $(DBUS_INCLUDES) $(ATSPI2_INCLUDES) $(GLIB2_INCLUDES) -c $<
 

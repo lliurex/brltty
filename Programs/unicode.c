@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -37,7 +37,6 @@
 static int
 isUcharCompatible (wchar_t character) {
   UChar uc = character;
-
   return uc == character;
 }
 
@@ -155,8 +154,8 @@ getCharacterWidth (wchar_t character) {
   if (category == U_UNASSIGNED) return -1;
   return 1;
 #else /* character width */
-  if (character == NUL) return 0;
-  if (character == DEL) return -1;
+  if (character == ASCII_NUL) return 0;
+  if (character == ASCII_DEL) return -1;
   if (!(character & 0X60)) return -1;
   return 1;
 #endif /* character width */
@@ -168,6 +167,15 @@ isBrailleCharacter (wchar_t character) {
 }
 
 int
+isIdeographicCharacter (wchar_t character) {
+#ifdef HAVE_ICU
+  if (u_hasBinaryProperty(character, UCHAR_IDEOGRAPHIC)) return 1;
+#endif /* HAVE_ICU */
+
+  return 0;
+}
+
+int
 isEmojiSequence (const wchar_t *characters, size_t count) {
 #ifdef HAVE_ICU
   const wchar_t *character = characters;
@@ -175,7 +183,11 @@ isEmojiSequence (const wchar_t *characters, size_t count) {
 
   while (character < end) {
     #if U_ICU_VERSION_MAJOR_NUM >= 57
-    if (u_hasBinaryProperty(*character, UCHAR_EMOJI)) return 1;
+    if (u_hasBinaryProperty(*character, UCHAR_EMOJI)) {
+      if (u_hasBinaryProperty(*character, UCHAR_EMOJI_PRESENTATION)) {
+        return 1;
+      }
+    }
     #endif /* U_ICU_VERSION_MAJOR_NUM >= 57 */
 
     character += 1;
@@ -190,12 +202,12 @@ getReplacementCharacter (void) {
 #ifdef HAVE_WCHAR_H
  return UNICODE_REPLACEMENT_CHARACTER;
 #else /* HAVE_WCHAR_H */
- return SUB;
+ return ASCII_SUB;
 #endif /* HAVE_WCHAR_H */
 }
 
 int
-normalizeCharacters (
+composeCharacters (
   size_t *length, const wchar_t *characters,
   wchar_t *buffer, unsigned int *map
 ) {
@@ -271,38 +283,63 @@ normalizeCharacters (
 #endif /* HAVE_ICU */
 }
 
-wchar_t
-getBaseCharacter (wchar_t character) {
+size_t
+decomposeCharacter (
+  wchar_t character, wchar_t *buffer, size_t length
+) {
 #ifdef HAVE_ICU
   if (isUcharCompatible(character)) {
-    UChar source[] = {character};
-    const unsigned int resultLength = 0X10;
-    UChar resultBuffer[resultLength];
-    UErrorCode error = U_ZERO_ERROR;
+    UChar source[1] = {character};
+    UChar target[length];
+    int32_t count;
+
+    {
+      UErrorCode error = U_ZERO_ERROR;
 
 #ifdef HAVE_UNICODE_UNORM2_H
-    static const UNormalizer2 *normalizer = NULL;
+      static const UNormalizer2 *normalizer = NULL;
 
-    if (!normalizer) {
-      normalizer = unorm2_getNFDInstance(&error);
+      if (!normalizer) {
+        normalizer = unorm2_getNFDInstance(&error);
+        if (!U_SUCCESS(error)) return 0;
+      }
+
+      count = unorm2_normalize(normalizer,
+                               source, ARRAY_COUNT(source),
+                               target, ARRAY_COUNT(target),
+                               &error);
+#else /* unorm */
+      count = unorm_normalize(source, ARRAY_COUNT(source),
+                              UNORM_NFD, 0,
+                              target, ARRAY_COUNT(target),
+                              &error);
+#endif /* unorm */
+
       if (!U_SUCCESS(error)) return 0;
     }
 
-    unorm2_normalize(normalizer,
-                     source, ARRAY_COUNT(source),
-                     resultBuffer, resultLength,
-                     &error);
-#else /* unorm */
-    unorm_normalize(source, ARRAY_COUNT(source),
-                    UNORM_NFD, 0,
-                    resultBuffer, resultLength,
-                    &error);
-#endif /* unorm */
+    {
+      const UChar *trg = target;
+      const UChar *end = target + count;
+      wchar_t *out = buffer;
 
-    if (U_SUCCESS(error)) return resultBuffer[0];
+      while (trg < end) {
+        *out++ = *trg++;
+      }
+    }
+
+    return count;
   }
 #endif /* HAVE_ICU */
 
+  return 0;
+}
+
+wchar_t
+getBaseCharacter (wchar_t character) {
+  wchar_t decomposed[0X10];
+  size_t count = decomposeCharacter(character, decomposed, sizeof(decomposed));
+  if (count) return decomposed[0];
   return 0;
 }
 

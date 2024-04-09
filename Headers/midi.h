@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,7 +25,7 @@ extern "C" {
 
 extern const char *const midiInstrumentTable[];
 extern const unsigned int midiInstrumentCount;
-extern const char *midiGetInstrumentType (unsigned char instrument);
+extern const char *midiGetInstrumentGroup (unsigned char instrument);
 
 typedef struct MidiDeviceStruct MidiDevice;
 typedef void (*MidiBufferFlusher) (unsigned char *buffer, int count);

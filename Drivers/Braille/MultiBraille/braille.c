@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -62,7 +62,7 @@
 #include "async_wait.h"
 #include "ascii.h"
 
-#define BRL_STATUS_FIELDS sfCursorAndWindowColumn, sfCursorAndWindowRow, sfStateDots
+#define BRL_STATUS_FIELDS sfCursorAndWindowColumn2, sfCursorAndWindowRow2, sfStateDots
 #define BRL_HAVE_STATUS_CELLS
 #include "brl_driver.h"
 #include "braille.h"
@@ -322,7 +322,7 @@ static struct KeyStroke getbrlkey (void) {
 	KeyStroke keystroke;
 		
 	while (serialReadData (MB_serialDevice, &c, 1, 0, 0) == 1) {
-		if (c != ESC) continue;	/* advance to next ESC-sequence */
+		if (c != ASCII_ESC) continue;	/* advance to next ESC-sequence */
 
 		serialReadData (MB_serialDevice, &c, 1, 0, 0);		/* read block number */
 		switch (c) {

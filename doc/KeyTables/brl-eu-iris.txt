@@ -1,0 +1,118 @@
+Key Table: EuroBraille Iris
+===========================
+
+Notes
+* The eight dot keys of the braille keyboard are behind the cursor routing keys.
+* From left to right, they are: Dot7, Dot3, Dot2, Dot1, Dot4, Dot5, Dot6, Dot8.
+* The two keys of the braille keyboard in front of the braille cells, from left to right, are: Backspace, Space.
+* The cursor routing keys are the small, round buttons just behind the braille cells.
+* RoutingKey1 means pressing a cursor routing key once (a single click).
+* RoutingKey2 means pressing a cursor routing key twice quickly (a double click).
+* The Menu key is the small, round button to the left of the cursor routing keys.
+* The Z key is the small, round button to the right of the cursor routing keys.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Down+Left, L4
+* enter/leave command learn mode: Down+Left, L5
+* enter/leave preferences menu:
+  + Down+Right, Up
+  + L4
+* enter/leave status display: L5
+* set screen image frozen/unfrozen: L3+L4
+* describe character: RoutingKey2
+
+Cursor Functions
+* go to screen cursor:
+  + Down+Left, Up
+  + L6+L7
+* go back after cursor tracking: Down+Left, Down
+* bring screen cursor to character: RoutingKey1
+
+Vertical Navigation
+* go up one line: L2
+* go down one line: L7
+* go to beginning of top line:
+  + Down+Left, L1
+  + L1+L2
+* go to beginning of bottom line:
+  + Down+Left, L8
+  + L7+L8
+* go up to previous command prompt: L3
+* go down to next command prompt: L6
+
+Horizontal Navigation
+* go backward one braille window: L1
+* go forward one braille window: L8
+* go to beginning of line: Down+Left, Left
+* go to end of line: Down+Left, Right
+
+Clipboard Functions
+* start new clipboard at character: Down+Right, L1, RoutingKey1
+* append to clipboard from character: Down+Right, L2, RoutingKey1
+* linear copy to character: Down+Right, L8, RoutingKey1
+* rectangular copy to character: Down+Right, L6, RoutingKey1
+* insert clipboard text after screen cursor: Down+Right, L7
+* search backward for clipboard text: Down+Left, L3
+* search forward for clipboard text: Down+Left, L6
+
+Configuration Functions
+* set track screen cursor on/off: Down+Right, Down
+* set screen cursor visibility on/off: Down+Right, L3
+* set alert tunes on/off: Down+Right, Right
+
+Keyboard Input
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot7: Dot7
+* braille keyboard dot8: Dot8
+* braille keyboard space: Space
+* backspace key: Backspace
+* escape key: Space+Dots1245
+* cursor-left key:
+  + Left
+  + Space+Dot2
+* cursor-right key:
+  + Right
+  + Space+Dot5
+* cursor-up key:
+  + Up
+  + Space+Dot4
+* cursor-down key:
+  + Down
+  + Space+Dot6
+* page-up key: Space+Dots13
+* page-down key: Space+Dots46
+* home key: Space+Dots123
+* end key: Space+Dots456
+* insert key: Space+Dots135
+* delete key: Space+Dots36
+* function key #1: Backspace+Dot1
+* function key #2: Backspace+Dots12
+* function key #3: Backspace+Dots14
+* function key #4: Backspace+Dots145
+* function key #5: Backspace+Dots15
+* function key #6: Backspace+Dots124
+* function key #7: Backspace+Dots1245
+* function key #8: Backspace+Dots125
+* function key #9: Backspace+Dots24
+* function key #10: Backspace+Dots245
+* function key #11: Backspace+Dots13
+* function key #12: Backspace+Dots123
+* enter key: Backspace+Space
+* tab key: Space+Dots256
+* tab key + shift: Space+Dots236
+* cycle the Shift sticky input modifier (next, on, off): Space+Dot7
+* cycle the Control sticky input modifier (next, on, off): Space+Dots78
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Space+Dot8
+
+Special Functions
+* restart braille driver: L1+L2+L3+L4
+* restart speech driver: L5+L6+L7+L8
+

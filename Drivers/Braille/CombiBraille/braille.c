@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -18,47 +18,54 @@
 
 #include "prologue.h"
 
-#include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include "log.h"
-#include "timing.h"
-#include "async_wait.h"
 #include "ascii.h"
 
-#define BRL_STATUS_FIELDS sfCursorAndWindowColumn, sfCursorAndWindowRow, sfStateDots
+#define BRL_STATUS_FIELDS sfCursorAndWindowColumn2, sfCursorAndWindowRow2, sfStateDots
 #define BRL_HAVE_STATUS_CELLS
 #include "brl_driver.h"
+
 #include "brldefs-cb.h"
 #include "braille.h"
-#include "io_serial.h"
 
-BEGIN_KEY_NAME_TABLE(all)
+BEGIN_KEY_NAME_TABLE(dot)
   KEY_NAME_ENTRY(CB_KEY_Dot1, "Dot1"),
   KEY_NAME_ENTRY(CB_KEY_Dot2, "Dot2"),
   KEY_NAME_ENTRY(CB_KEY_Dot3, "Dot3"),
   KEY_NAME_ENTRY(CB_KEY_Dot4, "Dot4"),
   KEY_NAME_ENTRY(CB_KEY_Dot5, "Dot5"),
   KEY_NAME_ENTRY(CB_KEY_Dot6, "Dot6"),
+END_KEY_NAME_TABLE
 
+BEGIN_KEY_NAME_TABLE(thumb)
   KEY_NAME_ENTRY(CB_KEY_Thumb1, "Thumb1"),
   KEY_NAME_ENTRY(CB_KEY_Thumb2, "Thumb2"),
   KEY_NAME_ENTRY(CB_KEY_Thumb3, "Thumb3"),
   KEY_NAME_ENTRY(CB_KEY_Thumb4, "Thumb4"),
   KEY_NAME_ENTRY(CB_KEY_Thumb5, "Thumb5"),
+END_KEY_NAME_TABLE
 
+BEGIN_KEY_NAME_TABLE(status)
   KEY_NAME_ENTRY(CB_KEY_Status1, "Status1"),
   KEY_NAME_ENTRY(CB_KEY_Status2, "Status2"),
   KEY_NAME_ENTRY(CB_KEY_Status3, "Status3"),
   KEY_NAME_ENTRY(CB_KEY_Status4, "Status4"),
   KEY_NAME_ENTRY(CB_KEY_Status5, "Status5"),
   KEY_NAME_ENTRY(CB_KEY_Status6, "Status6"),
+END_KEY_NAME_TABLE
 
+BEGIN_KEY_NAME_TABLE(routing)
   KEY_GROUP_ENTRY(CB_GRP_RoutingKeys, "RoutingKey"),
 END_KEY_NAME_TABLE
 
 BEGIN_KEY_NAME_TABLES(all)
-  KEY_NAME_TABLE(all),
+  KEY_NAME_TABLE(dot),
+  KEY_NAME_TABLE(thumb),
+  KEY_NAME_TABLE(status),
+  KEY_NAME_TABLE(routing),
 END_KEY_NAME_TABLES
 
 DEFINE_KEY_TABLE(all)
@@ -67,105 +74,200 @@ BEGIN_KEY_TABLE_LIST
   &KEY_TABLE_DEFINITION(all),
 END_KEY_TABLE_LIST
 
-SerialDevice *CB_serialDevice;			/* file descriptor for Braille display */
-int CB_charactersPerSecond;			/* file descriptor for Braille display */
+#define CONNECTION_TIMEOUT 1000
+#define CONNECTION_RETRIES 0
+#define MAX_INPUT_PACKET_SIZE 4
+#define MAX_TEXT_CELLS 80
+#define STATUS_CELLS 5
 
-static unsigned char *prevdata;
+BrailleDisplay *cbBrailleDisplay = NULL;
 
-#define MAX_STATUS_CELLS 5
-static unsigned char status[MAX_STATUS_CELLS];
-static unsigned char oldstatus[MAX_STATUS_CELLS];
+typedef struct {
+  char identifier;
+  char textColumns;
+} ModelEntry;
+
+static const ModelEntry modelTable[] = {
+  { .identifier = 0,
+    .textColumns = 20,
+  },
+
+  { .identifier = 1,
+    .textColumns = 40,
+  },
+
+  { .identifier = 2,
+    .textColumns = 80,
+  },
+
+  { .identifier = 7,
+    .textColumns = 20,
+  },
+
+  { .identifier = 8,
+    .textColumns = 40,
+  },
+
+  { .identifier = 9,
+    .textColumns = 80,
+  },
+
+  { .textColumns = 0 }
+};
+
+static const ModelEntry *
+findModelEntry (unsigned char identifier) {
+  const ModelEntry *model = modelTable;
+
+  while (model->textColumns) {
+    if (identifier == model->identifier) return model;
+    model += 1;
+  }
+          
+  return NULL;
+}
+
+struct BrailleDataStruct {
+  const ModelEntry *model;
+
+  struct {
+    unsigned char refresh;
+    unsigned char previous[MAX_TEXT_CELLS];
+  } text;
+
+  struct {
+    unsigned char refresh;
+    unsigned char current[STATUS_CELLS];
+    unsigned char previous[STATUS_CELLS];
+  } status;
+};
+
+static BraillePacketVerifierResult
+verifyPacket (
+  BrailleDisplay *brl,
+  unsigned char *bytes, size_t size,
+  size_t *length, void *data
+) {
+  unsigned char byte = bytes[size-1];
+
+  switch (size) {
+    case 1:
+      if (byte != ASCII_ESC) return BRL_PVR_INVALID;
+      *length = 2;
+      return BRL_PVR_INCLUDE;
+
+    case 2:
+      switch (byte) {
+        case CB_PKT_KeepAlive:
+          *length = 2;
+          return BRL_PVR_INCLUDE;
+
+        case CB_PKT_DeviceIdentity:
+        case CB_PKT_RoutingKey:
+          *length = 3;
+          return BRL_PVR_INCLUDE;
+
+        case CB_PKT_NavigationKeys:
+          *length = 4;
+          return BRL_PVR_INCLUDE;
+
+        default:
+          return BRL_PVR_INVALID;
+      }
+
+    default:
+      return BRL_PVR_INCLUDE;
+  }
+}
+
+static size_t
+readPacket (BrailleDisplay *brl, void *bytes, size_t size) {
+  return readBraillePacket(brl, NULL, bytes, size, verifyPacket, NULL);
+}
+
+static int
+writePacket (BrailleDisplay *brl, const void *bytes, size_t size) {
+  return writeBraillePacket(brl, NULL, bytes, size);
+}
+
+static int
+writeIdentifyRequest (BrailleDisplay *brl) {
+  static const unsigned char packet[] = {
+    ASCII_ESC, CB_PKT_DeviceIdentity
+  };
+
+  return writePacket(brl, packet, sizeof(packet));
+}
+
+static BrailleResponseResult
+isIdentityResponse (BrailleDisplay *brl, const void *packet, size_t size) {
+  const unsigned char *bytes = packet;
+  return (bytes[1] == CB_PKT_DeviceIdentity)? BRL_RSP_DONE: BRL_RSP_UNEXPECTED;
+}
+
+static int
+connectResource (BrailleDisplay *brl, const char *identifier) {
+  static const SerialParameters serialParameters = {
+    SERIAL_DEFAULT_PARAMETERS,
+    .baud = CB_SERIAL_BAUD,
+    .flowControl = SERIAL_FLOW_HARDWARE,
+  };
+
+  GioDescriptor descriptor;
+  gioInitializeDescriptor(&descriptor);
+
+  descriptor.serial.parameters = &serialParameters;
+
+  if (connectBrailleResource(brl, identifier, &descriptor, NULL)) {
+    return 1;
+  }
+
+  return 0;
+}
 
 static int
 brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
-  if (!isSerialDeviceIdentifier(&device)) {
-    unsupportedDeviceIdentifier(device);
-    return 0;
-  }
+  if ((brl->data = malloc(sizeof(*brl->data)))) {
+    memset(brl->data, 0, sizeof(*brl->data));
+    brl->data->text.refresh = 1;
+    brl->data->status.refresh = 1;
 
-  prevdata = NULL;		/* clear pointers */
+    if (connectResource(brl, device)) {
+      unsigned char response[MAX_INPUT_PACKET_SIZE];
 
-  if ((CB_serialDevice = serialOpenDevice(device))) {
-    if (serialRestartDevice(CB_serialDevice, BAUDRATE)) {
-      CB_charactersPerSecond = BAUDRATE / 10;
+      int detected = probeBrailleDisplay(
+        brl, CONNECTION_RETRIES, NULL, CONNECTION_TIMEOUT,
+        writeIdentifyRequest,
+        readPacket, response, sizeof(response),
+        isIdentityResponse
+      );
 
-      if (serialSetFlowControl(CB_serialDevice, SERIAL_FLOW_HARDWARE)) {
-        static const unsigned char init_seq[] = {ESC, '?'};
+      if (detected) {
+        unsigned char identifier = response[2];
 
-        if (serialWriteData(CB_serialDevice, init_seq, sizeof(init_seq)) == sizeof(init_seq)) {
-          static const unsigned char init_ack[] = {ESC, '?'};
-          unsigned int n = 0;
-          unsigned char c;
-          signed char id = -1;
-          TimePeriod period;
+        if ((brl->data->model = findModelEntry(identifier))) {
+          brl->textColumns = brl->data->model->textColumns;
+          brl->textRows = 1;
 
-          startTimePeriod(&period, ACK_TIMEOUT);		/* initialise timeout testing */
-          do {
-            asyncWait(20);
-            if (serialReadData(CB_serialDevice, &c, 1, 0, 0) != 1) continue;
+          brl->statusColumns = STATUS_CELLS;
+          brl->statusRows = 1;
 
-            if (n == sizeof(init_ack)) {
-              id = c;
-              break;
-            }
+          setBrailleKeyTable(brl, &KEY_TABLE_DEFINITION(all));
+          MAKE_OUTPUT_TABLE(0X01, 0X02, 0X04, 0X80, 0X40, 0X20, 0X08, 0X10);
 
-          testCharacter:
-            if (c != init_ack[n]) {
-              if (n == 0) continue;
-
-              n = 0;
-              goto testCharacter;
-            }
-
-            n += 1;
-          } while (!afterTimePeriod(&period, NULL));
-
-          if (id != -1) {
-            typedef struct {
-              char identifier;
-              char textColumns;
-            } ModelEntry;
-
-            static const ModelEntry modelTable[] = {
-              { .identifier = 0, .textColumns = 20 },
-              { .identifier = 1, .textColumns = 40 },
-              { .identifier = 2, .textColumns = 80 },
-              { .identifier = 7, .textColumns = 20 },
-              { .identifier = 8, .textColumns = 40 },
-              { .identifier = 9, .textColumns = 80 },
-              { .textColumns = 0 }
-            };
-            const ModelEntry *model = modelTable;
-
-            while (model->textColumns) {
-              if (id == model->identifier) break;
-              model += 1;
-            }
-              
-            if (model->textColumns) {
-              if ((prevdata = malloc(brl->textColumns))) {
-                brl->textColumns = model->textColumns;
-                brl->textRows = 1;
-
-                brl->statusColumns = 5;
-                brl->statusRows = 1;
-
-                setBrailleKeyTable(brl, &KEY_TABLE_DEFINITION(all));
-                MAKE_OUTPUT_TABLE(0X01, 0X02, 0X04, 0X80, 0X40, 0X20, 0X08, 0X10);
-                return 1;
-              } else {
-                logMallocError();
-              }
-            } else {
-              logMessage(LOG_ERR, "detected unknown CombiBraille model with ID %02X", id);
-            }
-          }
+          cbBrailleDisplay = brl;
+          return 1;
+        } else {
+          logMessage(LOG_ERR, "detected unknown CombiBraille model with ID %02X", identifier);
         }
       }
+
+      disconnectBrailleResource(brl, NULL);
     }
 
-    serialCloseDevice(CB_serialDevice);
-    CB_serialDevice = NULL;
+    free(brl->data);
+  } else {
+    logMallocError();
   }
 
   return 0;
@@ -173,53 +275,57 @@ brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
 
 static void
 brl_destruct (BrailleDisplay *brl) {
-  if (prevdata) {
-    free(prevdata);
-    prevdata = NULL;
-  }
-
-  if (CB_serialDevice) {
-    serialCloseDevice(CB_serialDevice);
-    CB_serialDevice = NULL;
-  }
+  cbBrailleDisplay = NULL;
+  disconnectBrailleResource(brl, NULL);
+  free(brl->data);
 }
 
 static int
 brl_writeStatus (BrailleDisplay *brl, const unsigned char *s) {
-  memcpy(status, s, brl->statusColumns);
+  memcpy(brl->data->status.current, s, brl->statusColumns);
   return 1;
 }
 
 static int
 brl_writeWindow (BrailleDisplay *brl, const wchar_t *text) {
-  int textChanged = cellsHaveChanged(prevdata, brl->buffer, brl->textColumns, NULL, NULL, NULL);
-  int statusChanged = cellsHaveChanged(oldstatus, status, brl->statusColumns, NULL, NULL, NULL);
+  int textChanged = cellsHaveChanged(
+    brl->data->text.previous, brl->buffer, brl->textColumns,
+    NULL, NULL, &brl->data->text.refresh
+  );
+
+  int statusChanged = cellsHaveChanged(
+    brl->data->status.previous,
+    brl->data->status.current,
+    brl->statusColumns,
+    NULL, NULL, &brl->data->status.refresh
+  );
 
   /* Only refresh display if the data has changed: */
   if (textChanged || statusChanged) {
-    static const unsigned char header[] = {ESC, 'B'};
-    unsigned char buffer[sizeof(header) + ((brl->statusColumns + brl->textColumns) * 2)];
-    unsigned char *byte = buffer;
-    int i;			/* loop counter */
+    static const unsigned char header[] = {
+      ASCII_ESC, CB_PKT_WriteCells
+    };
 
+    unsigned char buffer[sizeof(header) + ((brl->statusColumns + brl->textColumns) * 2)];
+
+    unsigned char *byte = buffer;
     byte = mempcpy(byte, header, sizeof(header));
 
-    for (i=0; i<brl->statusColumns; i+=1) {
-      const unsigned char c = translateOutputCell(status[i]);
-      if (c == ESC) *byte++ = c;
+    for (int i=0; i<brl->statusColumns; i+=1) {
+      const unsigned char c = translateOutputCell(brl->data->status.current[i]);
+      if (c == ASCII_ESC) *byte++ = c;
       *byte++ = c;
     }
 
-    for (i=0; i<brl->textColumns; i+=1) {
+    for (int i=0; i<brl->textColumns; i+=1) {
       const unsigned char c = translateOutputCell(brl->buffer[i]);
-      if (c == ESC) *byte++ = c;
+      if (c == ASCII_ESC) *byte++ = c;
       *byte++ = c;
     }
 
     {
       const size_t size = byte - buffer;
-      serialWriteData(CB_serialDevice, buffer, size);
-      brl->writeDelay += (size * 1000 / CB_charactersPerSecond) + 1;
+      if (!writePacket(brl, buffer, size)) return 0;
     }
   }
 
@@ -227,46 +333,36 @@ brl_writeWindow (BrailleDisplay *brl, const wchar_t *text) {
 }
 
 static int
-getKey (void) {
-  static short ptr = 0;		/* input queue pointer */
-  static unsigned char q[4];	/* input queue */
-  unsigned char c;		/* character buffer */
-
-  while (serialReadData (CB_serialDevice, &c, 1, 0, 0) == 1)
-    {
-      if (ptr == 0 && c != 27)
-	continue;
-      if (ptr == 1 && c != 'K' && c != 'C')
-	{
-	  ptr = 0;
-	  continue;
-	}
-      q[ptr++] = c;
-      if (ptr < 3 || (ptr == 3 && q[1] == 'K' && !q[2]))
-	continue;
-      ptr = 0;
-      if (q[1] == 'K')
-	return (q[2] ? q[2] : q[3] | 0x0060);
-      return ((int) q[2] | 0x80);
-    }
-  return EOF;
-}
-
-static int
 brl_readCommand (BrailleDisplay *brl, KeyTableCommandContext context) {
-  int key;
+  unsigned char packet[MAX_INPUT_PACKET_SIZE];
+  size_t length;
 
-  while ((key = getKey()) != EOF) {
-    if (key >= 0X86) {
-      enqueueKey(brl, CB_GRP_RoutingKeys, (key - 0X86));
-    } else if (key >= 0X80) {
-      enqueueKey(brl, CB_GRP_NavigationKeys, (CB_KEY_Status1 + (key - 0X80)));
-    } else if (key >= 0X60) {
-      enqueueKeys(brl, key & 0X1F, CB_GRP_NavigationKeys, CB_KEY_Thumb1);
-    } else if (key < 0X40) {
-      enqueueKeys(brl, key & 0X3F, CB_GRP_NavigationKeys, CB_KEY_Dot6);
+  while ((length = readPacket(brl, packet, sizeof(packet)))) {
+    switch (packet[1]) {
+      case CB_PKT_KeepAlive:
+        continue;
+
+      case CB_PKT_RoutingKey: {
+        char key = packet[2];
+
+        if (key < 6) {
+          enqueueKey(brl, CB_GRP_NavigationKeys, (CB_KEY_Status1 + key));
+        } else {
+          enqueueKey(brl, CB_GRP_RoutingKeys, (key - 6));
+        }
+
+        continue;
+      }
+
+      case CB_PKT_NavigationKeys: {
+        KeyNumberSet keys = packet[2] | (packet[3] << 8);
+        enqueueKeys(brl, keys, CB_GRP_NavigationKeys, CB_KEY_Dot6);
+        continue;
+      }
     }
+
+    logUnexpectedPacket(packet, length);
   }
 
-  return EOF;
+  return (errno == EAGAIN)? EOF: BRL_CMD_RESTARTBRL;
 }

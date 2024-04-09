@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,7 +22,7 @@
 #include <errno.h>
 
 #include "log.h"
-#include "options.h"
+#include "cmdline.h"
 #include "datafile.h"
 #include "utf8.h"
 #include "brlapi.h"
@@ -48,25 +48,25 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = "BrlAPI authorization/authentication schemes."
   },
 
-  { .word = "get",
+  { .word = "get-content",
     .letter = 'g',
     .setting.flag = &opt_getContent,
     .description = "Write the content of the clipboard to standard output."
   },
 
-  { .word = "set",
+  { .word = "set-content",
     .letter = 's',
     .argument = "content",
     .setting.string = &opt_setContent,
     .description = "Set the content of the clipboard."
   },
 
-  { .word = "remove",
+  { .word = "remove-newline",
     .letter = 'r',
     .setting.flag = &opt_removeNewline,
     .description = "Remove a trailing newline."
   },
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 static const brlapi_param_t apiParameter = BRLAPI_PARAM_CLIPBOARD_CONTENT;
 static const brlapi_param_subparam_t apiSubparam = 0;
@@ -146,10 +146,14 @@ main (int argc, char *argv[]) {
   ProgramExitStatus exitStatus = PROG_EXIT_FATAL;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltty-clip",
-      .argumentsSummary = "[{input-file | -} ...]"
+
+      .usage = {
+        .purpose = strtext("Manage brltty's clipboard from the command line."),
+        .parameters = "[{input-file | -} ...]",
+      }
     };
 
     PROCESS_OPTIONS(descriptor, argc, argv);

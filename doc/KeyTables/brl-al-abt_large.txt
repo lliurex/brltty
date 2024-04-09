@@ -1,0 +1,89 @@
+Key Table: Alva ABT 380 / Delphi 480
+====================================
+
+Notes
+* The two long keys are named Left and Right.
+* The small keys immediately to their left and right are named Up and Down.
+* The three small keys at the left are named Prog, Home, and Cursor.
+* The three small keys at the right are named Cursor2, Home2, and Prog2.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Prog
+* enter/leave preferences menu: Prog+Cursor
+* enter/leave status display: Prog+Up
+* set display mode attributes/text: Prog+Home
+* set screen image frozen/unfrozen: Prog+Down
+* describe character: Prog+Home+RoutingKey1
+
+Cursor Functions
+* go to screen cursor or go back after cursor tracking: Cursor
+* bring screen cursor to character: RoutingKey1
+
+Vertical Navigation
+* go up one line: Up
+* go down one line: Down
+* go to top line: Home+Up
+* go to bottom line: Home+Down
+* go to beginning of top line: Home
+* go up to nearest line with different content: Home+Cursor+Up
+* go down to nearest line with different content: Home+Cursor+Down
+* go up to nearest line with different highlighting: Cursor+Up
+* go down to nearest line with different highlighting: Cursor+Down
+* go up to previous command prompt: Prog+Home+Up
+
+Horizontal Navigation
+* go backward one braille window: Left
+* go forward one braille window: Right
+* go to beginning of line: Home+Left
+* go to end of line: Home+Right
+* go left one character: Prog+Left
+* go right one character: Prog+Right
+* go left half a braille window: Cursor+Left
+* go right half a braille window: Cursor+Right
+* place left end of braille window at character: Home+Cursor+RoutingKey1
+
+Clipboard Functions
+* start new clipboard at character: Prog+RoutingKey1
+* rectangular copy to character: Home+RoutingKey1
+* insert clipboard text after screen cursor: Prog+Home+Down
+
+Configuration Functions
+* set text style 6-dot/8-dot: Cursor+Status1A
+* set sliding braille window on/off: Cursor+Status1C
+* set track screen cursor on/off: Home+Cursor
+* set screen cursor style block/underline: Cursor+Status1B
+* set screen cursor visibility on/off: Status1B
+* set screen cursor blinking on/off: Status1C
+* set capital letter blinking on/off: Status1A
+
+Speech Functions
+* stop speaking: Home+Cursor+Left
+* speak current line: Home+Cursor+Right
+* speak from current line through bottom of screen: Prog+Home+Right
+
+Special Functions
+* restart speech driver: Prog+Home+Left
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: Prog
+
+Horizontal Navigation
+* go backward one braille window: Left
+* go forward one braille window: Right
+
+Menu Operations
+* go up to previous item: Up
+* go down to next item: Down
+* go up to first item: Home+Up
+* go down to last item: Home+Down
+* select previous choice: Home
+* select next choice: Cursor
+* save preferences to disk: Home+Right
+* restore preferences from disk: Home+Left
+

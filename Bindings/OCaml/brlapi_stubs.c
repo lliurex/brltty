@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2005-2021 by
+ * Copyright (C) 2005-2023 by
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  * All rights reserved.
@@ -493,7 +493,10 @@ CAMLprim value brlapiml_strerror(value camlError)
   error.libcerrno = Int_val(Field(camlError,1));
   error.gaierrno = Int_val(Field(camlError,2));
   error.errfun = String_val(Field(camlError,3));
-  CAMLreturn(caml_copy_string(brlapi_strerror(&error)));
+  size_t size = brlapi_strerror_r(&error, NULL, 0);
+  char buf[size+1];
+  brlapi_strerror_r(&error, buf, sizeof(buf));
+  CAMLreturn(caml_copy_string(buf));
 }
 
 /* Function : setExceptionHandler */

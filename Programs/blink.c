@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -18,8 +18,10 @@
 
 #include "prologue.h"
 
+#include "parameters.h"
 #include "blink.h"
 #include "prefs.h"
+#include "async_handle.h"
 #include "async_alarm.h"
 #include "update.h"
 #include "core.h"
@@ -36,28 +38,28 @@ struct BlinkDescriptorStruct {
 };
 
 BlinkDescriptor screenCursorBlinkDescriptor = {
-  .name = "screen cursor",
+  .name = "Screen Cursor",
   .isEnabled = &prefs.blinkingScreenCursor,
   .visibleTime = &prefs.screenCursorVisibleTime,
   .invisibleTime = &prefs.screenCursorInvisibleTime
 };
 
 BlinkDescriptor attributesUnderlineBlinkDescriptor = {
-  .name = "attributes underline",
+  .name = "Attributes Underline",
   .isEnabled = &prefs.blinkingAttributes,
   .visibleTime = &prefs.attributesVisibleTime,
   .invisibleTime = &prefs.attributesInvisibleTime
 };
 
 BlinkDescriptor uppercaseLettersBlinkDescriptor = {
-  .name = "uppercase letters",
+  .name = "Uppercase Letters",
   .isEnabled = &prefs.blinkingCapitals,
   .visibleTime = &prefs.capitalsVisibleTime,
   .invisibleTime = &prefs.capitalsInvisibleTime
 };
 
 BlinkDescriptor speechCursorBlinkDescriptor = {
-  .name = "speech cursor",
+  .name = "Speech Cursor",
   .isEnabled = &prefs.blinkingSpeechCursor,
   .visibleTime = &prefs.speechCursorVisibleTime,
   .invisibleTime = &prefs.speechCursorInvisibleTime
@@ -71,14 +73,29 @@ static BlinkDescriptor *const blinkDescriptors[] = {
   NULL
 };
 
-static int
+static inline int
+toPercentage (int numerator, int denominator) {
+  return (numerator * 100) / denominator;
+}
+
+const char *
+getBlinkName (BlinkDescriptor *blink) {
+  return blink->name;
+}
+
+int
 getBlinkVisibleTime (BlinkDescriptor *blink) {
   return PREFS2MSECS(*blink->visibleTime);
 }
 
-static int
+int
 getBlinkInvisibleTime (BlinkDescriptor *blink) {
   return PREFS2MSECS(*blink->invisibleTime);
+}
+
+int
+isBlinkEnabled (BlinkDescriptor *blink) {
+  return *blink->isEnabled;
 }
 
 int
@@ -87,24 +104,46 @@ getBlinkPeriod (BlinkDescriptor *blink) {
 }
 
 int
-getBlinkPercentage (BlinkDescriptor *blink) {
-  return (getBlinkVisibleTime(blink) * 100) / getBlinkPeriod(blink);
+getBlinkPercentVisible (BlinkDescriptor *blink) {
+  return toPercentage(getBlinkVisibleTime(blink), getBlinkPeriod(blink));
 }
 
 int
-setBlinkProperties (BlinkDescriptor *blink, int period, int percentage) {
+setBlinkProperties (BlinkDescriptor *blink, int period, int percentVisible) {
   if (period < 1) return 0;
-  period = MSECS2PREFS(period);
-  if (period > UINT8_MAX) return 0;
 
-  if (percentage < 0) return 0;
-  if (percentage > 100) return 0;
+  if (percentVisible < 1) return 0;
+  if (percentVisible > 99) return 0;
 
-  int visible = (period * percentage) / 100;
-  int invisible = period - visible;
+  const int minimumTime = SCREEN_UPDATE_SCHEDULE_DELAY;
+  period = MAX(period, (minimumTime * 2));
 
-  *blink->visibleTime = visible;
-  *blink->invisibleTime = invisible;
+  int visibleTime;
+  int invisibleTime;
+
+  // let the visible time round toward 50%
+  if (percentVisible < 50) {
+    invisibleTime = (period * (100 - percentVisible)) / 100;
+    visibleTime = period - invisibleTime;
+  } else {
+    visibleTime = (period * percentVisible) / 100;
+    invisibleTime = period - visibleTime;
+  }
+
+  if (visibleTime && (visibleTime < minimumTime)) {
+    visibleTime = minimumTime;
+    invisibleTime = period - visibleTime;
+  } else if (invisibleTime && (invisibleTime < minimumTime)) {
+    invisibleTime = minimumTime;
+    visibleTime = period - invisibleTime;
+  }
+
+  visibleTime = MSECS2PREFS(visibleTime);
+  invisibleTime = MSECS2PREFS(invisibleTime);
+  if ((visibleTime + invisibleTime) > UINT8_MAX) return 0;
+
+  *blink->visibleTime = visibleTime;
+  *blink->invisibleTime = invisibleTime;
   return 1;
 }
 

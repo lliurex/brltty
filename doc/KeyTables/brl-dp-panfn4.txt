@@ -1,0 +1,60 @@
+Key Table: DotPad with Panning Keys and 4 Function Keys
+=======================================================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: long FunctionKey.1+FunctionKey.2
+* enter/leave command learn mode: long FunctionKey.3+FunctionKey.4
+* enter/leave preferences menu: long FunctionKey.2+FunctionKey.3
+* show current date and time: FunctionKey.2+FunctionKey.3
+
+Cursor Functions
+* go to screen cursor: FunctionKey.1+FunctionKey.4
+* go back after cursor tracking: long FunctionKey.1+FunctionKey.4
+
+Vertical Navigation
+* go up one line: FunctionKey.1
+* go down one line: FunctionKey.4
+* go to top line: long FunctionKey.1
+* go to bottom line: long FunctionKey.4
+* go up to nearest line with different content: FunctionKey.2
+* go down to nearest line with different content: FunctionKey.3
+* go up to nearest line with different highlighting: long FunctionKey.2
+* go down to nearest line with different highlighting: long FunctionKey.3
+* go up to first line of paragraph: FunctionKey.3+FunctionKey.1
+* go down to first line of next paragraph: FunctionKey.3+FunctionKey.4
+* go up to previous command prompt: FunctionKey.1+FunctionKey.2
+* go down to next command prompt: FunctionKey.2+FunctionKey.4
+
+Horizontal Navigation
+* go backward one braille window: PanLeft
+* go forward one braille window: PanRight
+* go to beginning of line: long PanLeft
+* go to end of line: long PanRight
+
+Special Functions
+* refresh braille display: PanLeft+PanRight
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: long PanRight
+
+Horizontal Navigation
+* go backward one braille window: PanLeft
+* go forward one braille window: PanRight
+
+Menu Operations
+* go up to previous item: FunctionKey.1
+* go down to next item: FunctionKey.4
+* go up to first item: long FunctionKey.1
+* go down to last item: long FunctionKey.4
+* select previous choice: FunctionKey.2
+* select next choice: FunctionKey.3
+* go to previous menu level: long PanLeft
+* save preferences to disk: long FunctionKey.3
+* restore preferences from disk: long FunctionKey.2
+

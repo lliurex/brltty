@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -132,6 +132,8 @@ static const CommandListEntry commandList_feature[] = {
   { .code = BRL_CMD_TOUCH_NAV },
   { .code = BRL_CMD_AUTOREPEAT },
   { .code = BRL_CMD_SIXDOTS },
+  { .code = BRL_CMD_CONTRACTED },
+  { .code = BRL_CMD_COMPBRL6 },
   { .code = BRL_CMD_SKPIDLNS },
   { .code = BRL_CMD_SKPBLNKWINS },
   { .code = BRL_CMD_SLIDEWIN },
@@ -159,13 +161,15 @@ static const CommandListEntry commandList_menu[] = {
   { .code = BRL_CMD_MENU_PREV_SETTING },
   { .code = BRL_CMD_MENU_NEXT_SETTING },
   { .code = BRL_CMD_MENU_PREV_LEVEL },
-  { .code = BRL_CMD_PREFLOAD },
   { .code = BRL_CMD_PREFSAVE },
+  { .code = BRL_CMD_PREFLOAD },
+  { .code = BRL_CMD_PREFRESET },
 };
 
 static const CommandListEntry commandList_say[] = {
   { .code = BRL_CMD_MUTE },
   { .code = BRL_CMD_SAY_LINE },
+  { .code = BRL_CMD_SAY_ALL },
   { .code = BRL_CMD_SAY_ABOVE },
   { .code = BRL_CMD_SAY_BELOW },
   { .code = BRL_CMD_SPKHOME },
@@ -173,6 +177,8 @@ static const CommandListEntry commandList_say[] = {
   { .code = BRL_CMD_SAY_LOUDER },
   { .code = BRL_CMD_SAY_SLOWER },
   { .code = BRL_CMD_SAY_FASTER },
+  { .code = BRL_CMD_SAY_LOWER },
+  { .code = BRL_CMD_SAY_HIGHER },
   { .code = BRL_CMD_AUTOSPEAK },
   { .code = BRL_CMD_ASPK_SEL_LINE },
   { .code = BRL_CMD_ASPK_SEL_CHAR },
@@ -184,6 +190,7 @@ static const CommandListEntry commandList_say[] = {
 };
 
 static const CommandListEntry commandList_speak[] = {
+  { .code = BRL_CMD_BLK(ROUTE_SPEECH) },
   { .code = BRL_CMD_SPEAK_CURR_CHAR },
   { .code = BRL_CMD_DESC_CURR_CHAR },
   { .code = BRL_CMD_SPEAK_PREV_CHAR },
@@ -262,6 +269,8 @@ static const CommandListEntry commandList_internal[] = {
   { .code = BRL_CMD_BLK(PASSAT) },
   { .code = BRL_CMD_BLK(PASSPS2) },
   { .code = BRL_CMD_BLK(TOUCH_AT) },
+  { .code = BRL_CMD_BLK(MACRO) },
+  { .code = BRL_CMD_BLK(HOSTCMD) },
 };
 
 #define COMMAND_LIST(name) .commands = { \

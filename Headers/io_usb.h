@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -20,19 +20,15 @@
 #define BRLTTY_INCLUDED_IO_USB
 
 #include "prologue.h"
-
 #include "usb_types.h"
-#include "async_io.h"
+#include "async_types_io.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-extern void usbForgetDevices (void);
-
-typedef struct UsbChooseChannelDataStruct UsbChooseChannelData;
-typedef int UsbDeviceChooser (UsbDevice *device, UsbChooseChannelData *data);
 extern UsbDevice *usbFindDevice (UsbDeviceChooser *chooser, UsbChooseChannelData *data);
+extern void usbForgetDevices (void);
 
 extern void usbCloseDevice (UsbDevice *device);
 extern int usbDisableAutosuspend (UsbDevice *device);
@@ -225,77 +221,6 @@ extern ssize_t usbWriteData (
   unsigned char endpointNumber,
   const void *data,
   size_t length,
-  int timeout
-);
-
-typedef struct {
-  uint64_t defined;
-  uint32_t reportCount;
-  uint32_t reportSize;
-  uint32_t logicalMinimum;
-  uint32_t logicalMaximum;
-  unsigned char reportIdentifier;
-} UsbHidReportDescription;
-
-extern const unsigned char usbHidItemLengths[];
-
-extern const UsbHidDescriptor *usbHidDescriptor (UsbDevice *device);
-
-extern ssize_t usbHidGetItems (
-  UsbDevice *device,
-  unsigned char interface,
-  unsigned char number,
-  unsigned char **items,
-  int timeout
-);
-
-extern int usbHidFillReportDescription (
-  const unsigned char *items,
-  size_t size,
-  unsigned char identifier,
-  UsbHidReportDescription *description
-);
-
-extern int usbHidGetReportSize (
-  const unsigned char *items,
-  size_t length,
-  unsigned char identifier,
-  size_t *size
-);
-
-extern ssize_t usbHidGetReport (
-  UsbDevice *device,
-  unsigned char interface,
-  unsigned char report,
-  void *buffer,
-  uint16_t length,
-  int timeout
-);
-
-extern ssize_t usbHidSetReport (
-  UsbDevice *device,
-  unsigned char interface,
-  unsigned char report,
-  const void *buffer,
-  uint16_t length,
-  int timeout
-);
-
-extern ssize_t usbHidGetFeature (
-  UsbDevice *device,
-  unsigned char interface,
-  unsigned char report,
-  void *buffer,
-  uint16_t length,
-  int timeout
-);
-
-extern ssize_t usbHidSetFeature (
-  UsbDevice *device,
-  unsigned char interface,
-  unsigned char report,
-  const void *buffer,
-  uint16_t length,
   int timeout
 );
 

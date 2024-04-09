@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -18,6 +18,7 @@
 
 #include "prologue.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "log.h"
@@ -31,7 +32,9 @@
 #include "unicode.h"
 #include "ttb.h"
 #include "scr.h"
+#include "async_handle.h"
 #include "async_alarm.h"
+#include "prefs.h"
 #include "core.h"
 
 typedef struct {
@@ -39,8 +42,8 @@ typedef struct {
 
   struct {
     AsyncHandle timeout;
-    int on;
-    int next;
+    int once;
+    int lock;
   } modifiers;
 } InputCommandData;
 
@@ -59,14 +62,19 @@ cancelModifierTimeout (InputCommandData *icd) {
 
 static void
 initializeModifierFlags (InputCommandData *icd) {
-  icd->modifiers.on = 0;
-  icd->modifiers.next = 0;
+  icd->modifiers.once = 0;
+  icd->modifiers.lock = 0;
 }
 
 static void
 clearModifierFlags (InputCommandData *icd) {
   initializeModifierFlags(icd);
-  alert(ALERT_MODIFIER_OFF);
+
+  if (prefs.speakModifierKey) {
+    speakAlertMessage("modifiers reset");
+  } else {
+    alert(ALERT_MODIFIER_OFF);
+  }
 }
 
 ASYNC_ALARM_CALLBACK(handleStickyModifiersTimeout) {
@@ -80,7 +88,7 @@ ASYNC_ALARM_CALLBACK(handleStickyModifiersTimeout) {
 
 static int
 haveModifierFlags (InputCommandData *icd) {
-  return icd->modifiers.on || icd->modifiers.next;
+  return icd->modifiers.once || icd->modifiers.lock;
 }
 
 static int
@@ -100,9 +108,9 @@ setModifierTimeout (InputCommandData *icd) {
 
 static void
 applyModifierFlags (InputCommandData *icd, int *flags) {
-  *flags |= icd->modifiers.on;
-  *flags |= icd->modifiers.next;
-  icd->modifiers.next = 0;
+  *flags |= icd->modifiers.lock;
+  *flags |= icd->modifiers.once;
+  icd->modifiers.once = 0;
 
   setModifierTimeout(icd);
 }
@@ -115,6 +123,13 @@ insertKey (ScreenKey key, int flags) {
   if (flags & BRL_FLG_INPUT_META) key |= SCR_KEY_ALT_LEFT;
   if (flags & BRL_FLG_INPUT_ALTGR) key |= SCR_KEY_ALT_RIGHT;
   if (flags & BRL_FLG_INPUT_GUI) key |= SCR_KEY_GUI;
+
+  if (flags & BRL_FLG_INPUT_ESCAPED) {
+    if (!insertScreenKey(SCR_KEY_ESCAPE)) {
+      return 0;
+    }
+  }
+
   return insertScreenKey(key);
 }
 
@@ -158,46 +173,72 @@ handleInputCommands (int command, void *data) {
     }
 
     {
-      int flag;
+      int modifierFlag;
+      const char *modifierName;
 
     case BRL_CMD_SHIFT:
-      flag = BRL_FLG_INPUT_SHIFT;
+      modifierFlag = BRL_FLG_INPUT_SHIFT;
+      modifierName = "shift";
       goto doModifier;
 
     case BRL_CMD_UPPER:
-      flag = BRL_FLG_INPUT_UPPER;
+      modifierFlag = BRL_FLG_INPUT_UPPER;
+      modifierName = "uppercase";
       goto doModifier;
 
     case BRL_CMD_CONTROL:
-      flag = BRL_FLG_INPUT_CONTROL;
+      modifierFlag = BRL_FLG_INPUT_CONTROL;
+      modifierName = "control";
       goto doModifier;
 
     case BRL_CMD_META:
-      flag = BRL_FLG_INPUT_META;
+      modifierFlag = BRL_FLG_INPUT_META;
+      modifierName = "left alt";
       goto doModifier;
 
     case BRL_CMD_ALTGR:
-      flag = BRL_FLG_INPUT_ALTGR;
+      modifierFlag = BRL_FLG_INPUT_ALTGR;
+      modifierName = "right alt";
       goto doModifier;
 
     case BRL_CMD_GUI:
-      flag = BRL_FLG_INPUT_GUI;
+      modifierFlag = BRL_FLG_INPUT_GUI;
+      modifierName = "graphic";
       goto doModifier;
 
     doModifier:
       cancelModifierTimeout(icd);
 
-      if (icd->modifiers.on & flag) {
-        icd->modifiers.on &= ~flag;
-        icd->modifiers.next &= ~flag;
-        alert(ALERT_MODIFIER_OFF);
-      } else if (icd->modifiers.next & flag) {
-        icd->modifiers.on |= flag;
-        icd->modifiers.next &= ~flag;
-        alert(ALERT_MODIFIER_ON);
+      AlertIdentifier modifierAlert;
+      const char *modifierState;
+
+      if (icd->modifiers.lock & modifierFlag) {
+        icd->modifiers.once &= ~modifierFlag;
+        icd->modifiers.lock &= ~modifierFlag;
+        modifierAlert = ALERT_MODIFIER_OFF;
+        modifierState = "off";
+      } else if (icd->modifiers.once & modifierFlag) {
+        icd->modifiers.once &= ~modifierFlag;
+        icd->modifiers.lock |= modifierFlag;
+        modifierAlert = ALERT_MODIFIER_LOCK;
+        modifierState = "lock";
       } else {
-        icd->modifiers.next |= flag;
-        alert(ALERT_MODIFIER_NEXT);
+        icd->modifiers.once |= modifierFlag;
+        modifierAlert = ALERT_MODIFIER_ONCE;
+        modifierState = "once";
+      }
+
+      if (prefs.speakModifierKey) {
+        char message[strlen(modifierName) + 2 + strlen(modifierState) + 1];
+
+        snprintf(
+          message, sizeof(message),
+          "%s: %s", modifierName, modifierState
+        );
+
+        speakAlertMessage(message);
+      } else {
+        alert(modifierAlert);
       }
 
       setModifierTimeout(icd);
@@ -323,21 +364,7 @@ handleInputCommands (int command, void *data) {
 
         case BRL_CMD_BLK(PASSDOTS): {
           applyModifierFlags(icd, &flags);
-          wchar_t character;
-
-          switch (prefs.brailleTypingMode) {
-            case BRL_TYPING_TEXT:
-              character = convertDotsToCharacter(textTable, arg);
-              break;
-
-            default:
-              logMessage(LOG_WARNING, "unknown braille typing mode: %u", prefs.brailleTypingMode);
-              /* fall through */
-
-            case BRL_TYPING_DOTS:
-              character = UNICODE_BRAILLE_ROW | arg;
-              break;
-          }
+          wchar_t character = convertInputToCharacter(arg);
 
           if (!insertKey(character, flags)) {
             alert(ALERT_COMMAND_REJECTED);

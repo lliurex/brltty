@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2006-2021 by
+ * Copyright (C) 2006-2023 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -45,5 +45,13 @@ public abstract class Component {
 
   public static String toOperandName (String string) {
     return string.replace(' ', '-').toLowerCase();
+  }
+
+  public static String getObjectName (Class<? extends Object> type) {
+    return type.getSimpleName();
+  }
+
+  public final String getObjectName () {
+    return getObjectName(getClass());
   }
 }

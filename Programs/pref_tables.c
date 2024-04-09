@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -38,103 +38,169 @@ PREFERENCE_STRING_TABLE(boolean,
 )
 
 PREFERENCE_STRING_TABLE(textStyle,
-  "8dot", "contracted", "6dot", "literary"
+  [bvComputer8] = "8dot",
+  [bvContracted6] = "contracted",
+  [bvComputer6] = "6dot",
+  [bvContracted8] = "literary"
 )
 
 PREFERENCE_STRING_TABLE(brailleVariant,
-  "computer8", "contracted6", "computer6", "contracted8"
+  [bvComputer8] = "computer8",
+  [bvContracted6] = "contracted6",
+  [bvComputer6] = "computer6",
+  [bvContracted8] = "contracted8"
 )
 
 PREFERENCE_STRING_TABLE(capitalizationMode,
-  "none", "sign", "dot7"
+  [CTB_CAP_NONE] = "none",
+  [CTB_CAP_SIGN] = "sign",
+  [CTB_CAP_DOT7] = "dot7",
 )
 
 PREFERENCE_STRING_TABLE(skipBlankWindowsMode,
-  "all", "end", "rest"
+  [sbwAll] = "all",
+  [sbwEndOfLine] = "end",
+  [sbwRestOfLine] = "rest",
 )
 
 PREFERENCE_STRING_TABLE(cursorTrackingDelay,
-  "0", "25", "50", "100", "200"
+  [ctdNone] = "0",
+  [ctd250ms] = "25",
+  [ctd500ms] = "50",
+  [ctd1s] = "100",
+  [ctd2s] = "200",
 )
 
 PREFERENCE_STRING_TABLE(autoreleaseTime,
-  "0", "5", "10", "20", "40"
+  [atOff] = "0",
+  [at5s] = "5",
+  [at10s] = "10",
+  [at20s] = "20",
+  [at40s] = "40",
 )
 
 PREFERENCE_STRING_TABLE(cursorStyle,
-  "underline", "block", "dot7", "dot8"
+  [csBottomDots] = "underline",
+  [csAllDots] = "block",
+  [csLowerLeftDot] = "dot7",
+  [csLowerRightDot] = "dot8",
+  [csNoDots] = "hide",
 )
 
 PREFERENCE_STRING_TABLE(brailleFirmness,
-  "minimum", "low", "medium", "high", "maximum"
+  [BRL_FIRMNESS_MINIMUM] = "minimum",
+  [BRL_FIRMNESS_LOW] = "low",
+  [BRL_FIRMNESS_MEDIUM] = "medium",
+  [BRL_FIRMNESS_HIGH] = "high",
+  [BRL_FIRMNESS_MAXIMUM] = "maximum",
 )
 
 PREFERENCE_STRING_TABLE(touchSensitivity,
-  "minimum", "low", "medium", "high", "maximum"
+  [BRL_SENSITIVITY_MINIMUM] = "minimum",
+  [BRL_SENSITIVITY_LOW] = "low",
+  [BRL_SENSITIVITY_MEDIUM] = "medium",
+  [BRL_SENSITIVITY_HIGH] = "high",
+  [BRL_SENSITIVITY_MAXIMUM] = "maximum"
 )
 
 PREFERENCE_STRING_TABLE(brailleTypingMode,
-  "text", "dots"
+  [BRL_TYPING_TEXT] = "text",
+  [BRL_TYPING_DOTS] = "dots",
 )
 
 PREFERENCE_STRING_TABLE(tuneDevice,
-  "beeper", "pcm", "midi", "fm"
+  [tdBeeper] = "beeper",
+  [tdPcm] = "pcm",
+  [tdMidi] = "midi",
+  [tdFm] = "fm",
 )
 
 PREFERENCE_STRING_TABLE(speechPunctuation,
-  "none", "some", "all"
+  [SPK_PUNCTUATION_NONE] = "none",
+  [SPK_PUNCTUATION_SOME] = "some",
+  [SPK_PUNCTUATION_ALL] = "all",
 )
 
 PREFERENCE_STRING_TABLE(speechUppercaseIndicator,
-  "none", "cap", "higher"
+  [sucNone] = "none",
+  [sucSayCap] = "cap",
+  [sucRaisePitch] = "higher",
 )
 
 PREFERENCE_STRING_TABLE(speechWhitespaceIndicator,
-  "none", "space"
+  [swsNone] = "none",
+  [swsSaySpace] = "space",
 )
 
 PREFERENCE_STRING_TABLE(sayLineMode,
-  "immediate", "enqueue"
+  [sayImmediate] = "immediate",
+  [sayEnqueue] = "enqueue",
 )
 
 PREFERENCE_STRING_TABLE(timeFormat,
-  "24hour", "12hour"
+  [tf24Hour] = "24hour",
+  [tf12Hour] = "12hour",
 )
 
 PREFERENCE_STRING_TABLE(timeSeparator,
-  "colon", "dot"
+  [tsColon] = "colon",
+  [tsDot] = "dot",
 )
 
 PREFERENCE_STRING_TABLE(datePosition,
-  "no", "before", "after"
+  [dpNone] = "no",
+  [dpBeforeTime] = "before",
+  [dpAfterTime] = "after",
 )
 
 PREFERENCE_STRING_TABLE(dateFormat,
-  "ymd", "mdy", "dmy"
+  [dfYearMonthDay] = "ymd",
+  [dfMonthDayYear] = "mdy",
+  [dfDayMonthYear] = "dmy",
 )
 
 PREFERENCE_STRING_TABLE(dateSeparator,
-  "dash", "slash", "dot"
+  [dsDash] = "dash",
+  [dsSlash] = "slash",
+  [dsDot] = "dot",
 )
 
 PREFERENCE_STRING_TABLE(statusPosition,
-  "none", "left", "right"
+  [spNone] = "none",
+  [spLeft] = "left",
+  [spRight] = "right",
 )
 
 PREFERENCE_STRING_TABLE(statusSeparator,
-  "none", "space", "block", "status", "text"
+  [ssNone] = "none",
+  [ssSpace] = "space",
+  [ssBlock] = "block",
+  [ssStatusSide] = "status",
+  [ssTextSide] = "text",
 )
 
 PREFERENCE_STRING_TABLE(statusField,
-  "end",
-  "wxy", "wx", "wy",
-  "cxy", "cx", "cy",
-  "cwx", "cwy",
-  "sn",
-  "dots", "letter",
-  "time",
-  "wxya", "cxya",
-  "generic"
+  [sfEnd] = "end",
+  [sfWindowCoordinates2] = "wxy",
+  [sfWindowColumn] = "wx",
+  [sfWindowRow] = "wy",
+  [sfCursorCoordinates2] = "cxy",
+  [sfCursorColumn] = "cx",
+  [sfCursorRow] = "cy",
+  [sfCursorAndWindowColumn2] = "cwx",
+  [sfCursorAndWindowRow2] = "cwy",
+  [sfScreenNumber] = "sn",
+  [sfStateDots] = "dots",
+  [sfStateLetter] = "letter",
+  [sfTime] = "time",
+  [sfAlphabeticWindowCoordinates] = "wxya",
+  [sfAlphabeticCursorCoordinates] = "cxya",
+  [sfGeneric] = "generic",
+  [sfCursorCoordinates3] = "cxy3",
+  [sfWindowCoordinates3] = "wxy3",
+  [sfCursorAndWindowColumn3] = "cwx3",
+  [sfCursorAndWindowRow3] = "cwy3",
+  [sfSpace] = "space",
 )
 
 const PreferenceDefinition preferenceDefinitionTable[] = {
@@ -412,6 +478,18 @@ const PreferenceDefinition preferenceDefinitionTable[] = {
     .defaultValue = DEFAULT_KEYBOARD_LED_ALERTS,
     .settingNames = &preferenceStringTable_boolean,
     .setting = &prefs.keyboardLedAlerts
+  },
+
+  { .name = "speak-key-context",
+    .defaultValue = DEFAULT_SPEAK_KEY_CONTEXT,
+    .settingNames = &preferenceStringTable_boolean,
+    .setting = &prefs.speakKeyContext
+  },
+
+  { .name = "speak-modifier-key",
+    .defaultValue = DEFAULT_SPEAK_MODIFIER_KEY,
+    .settingNames = &preferenceStringTable_boolean,
+    .setting = &prefs.speakModifierKey
   },
 
   { .name = "alert-tunes",

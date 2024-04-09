@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  Copyright (C) 1995-2021 by The BRLTTY Developers.
+  Copyright (C) 1995-2023 by The BRLTTY Developers.
  
   This file is provided, free of charge and as-is, under the terms of the
   All Permissive License as published by the Free Software Foundation.
@@ -36,11 +36,11 @@
   <project_license>GPL-2.0</project_license>
 
   <provides>
-    <!-- BEGIN_USB_DEVICES -->
+    <!-- BEGIN_USB_BRAILLE_DEVICES -->
 
     <!-- Device: 0403:6001 -->
     <!-- Generic Identifier -->
-    <!-- Vendor: Future Technology Devices International, Ltd -->
+    <!-- Vendor: Future Technology Devices International, Ltd. -->
     <!-- Product: FT232 USB-Serial (UART) IC -->
     <!-- Albatross [all models] -->
     <!-- Cebra [all models] -->
@@ -49,6 +49,13 @@
     <!-- Hedo [MobilLine] -->
     <!-- MDV [all models] -->
     <modalias>usb:v0403p6001*</modalias>
+
+    <!-- Device: 0403:6010 -->
+    <!-- Generic Identifier -->
+    <!-- Vendor: Future Technology Devices International, Ltd -->
+    <!-- Product: FT2232C/D/H Dual UART/FIFO IC -->
+    <!-- DotPad [all models] -->
+    <modalias>usb:v0403p6010*</modalias>
 
     <!-- Device: 0403:DE58 -->
     <!-- Hedo [MobilLine] -->
@@ -105,12 +112,16 @@
     <modalias>usb:v045Ep930A*</modalias>
 
     <!-- Device: 045E:930B -->
-    <!-- HIMS [Braille Edge] -->
+    <!-- HIMS [Braille Edge and QBrailleXL] -->
     <modalias>usb:v045Ep930B*</modalias>
 
     <!-- Device: 0483:A1D3 -->
-    <!-- Baum [Orbit 20 (20 cells)] -->
+    <!-- Baum [Orbit Reader 20 (20 cells)] -->
     <modalias>usb:v0483pA1D3*</modalias>
+
+    <!-- Device: 0483:A366 -->
+    <!-- Baum [Orbit Reader 40 (40 cells)] -->
+    <modalias>usb:v0483pA366*</modalias>
 
     <!-- Device: 06B0:0001 -->
     <!-- Alva [Satellite (5nn)] -->
@@ -294,7 +305,7 @@
     <modalias>usb:v0F4Ep0112*</modalias>
 
     <!-- Device: 0F4E:0114 -->
-    <!-- FreedomScientific [Focus Blue] -->
+    <!-- FreedomScientific [Focus 3+] -->
     <modalias>usb:v0F4Ep0114*</modalias>
 
     <!-- Device: 10C4:EA60 -->
@@ -324,6 +335,13 @@
     <!-- Canute [all models] -->
     <modalias>usb:v16C0p05E1*</modalias>
 
+    <!-- Device: 1A86:7523 -->
+    <!-- Generic Identifier -->
+    <!-- Vendor: Jiangsu QinHeng, Ltd. -->
+    <!-- Product: CH341 USB Bridge Controller -->
+    <!-- Baum [NLS eReader Zoomax (20 cells)] -->
+    <modalias>usb:v1A86p7523*</modalias>
+
     <!-- Device: 1C71:C004 -->
     <!-- BrailleNote [HumanWare APEX] -->
     <modalias>usb:v1C71pC004*</modalias>
@@ -345,7 +363,8 @@
     <modalias>usb:v1C71pC021*</modalias>
 
     <!-- Device: 1C71:C101 -->
-    <!-- HumanWare [APH Chameleon 20 (HID protocol)] -->
+    <!-- HumanWare [APH Chameleon 20 (HID protocol, firmware 1.0)] -->
+    <!-- HumanWare [APH Chameleon 20 (HID protocol, firmware 1.1)] -->
     <modalias>usb:v1C71pC101*</modalias>
 
     <!-- Device: 1C71:C104 -->
@@ -353,7 +372,8 @@
     <modalias>usb:v1C71pC104*</modalias>
 
     <!-- Device: 1C71:C111 -->
-    <!-- HumanWare [APH Mantis Q40 (HID protocol)] -->
+    <!-- HumanWare [APH Mantis Q40 (HID protocol, firmware 1.0)] -->
+    <!-- HumanWare [APH Mantis Q40 (HID protocol, firmware 1.1)] -->
     <modalias>usb:v1C71pC111*</modalias>
 
     <!-- Device: 1C71:C114 -->
@@ -361,15 +381,27 @@
     <modalias>usb:v1C71pC114*</modalias>
 
     <!-- Device: 1C71:C121 -->
-    <!-- HumanWare [Humanware BrailleOne (HID protocol)] -->
+    <!-- HumanWare [Humanware BrailleOne (HID protocol, firmware 1.0)] -->
+    <!-- HumanWare [Humanware BrailleOne (HID protocol, firmware 1.1)] -->
     <modalias>usb:v1C71pC121*</modalias>
 
     <!-- Device: 1C71:C124 -->
     <!-- HumanWare [Humanware BrailleOne (serial protocol)] -->
     <modalias>usb:v1C71pC124*</modalias>
 
+    <!-- Device: 1C71:C131 -->
+    <!-- HumanWare [Humanware Brailliant BI 40X (HID protocol, firmware 1.0)] -->
+    <!-- HumanWare [Humanware Brailliant BI 40X (HID protocol, firmware 1.1)] -->
+    <modalias>usb:v1C71pC131*</modalias>
+
+    <!-- Device: 1C71:C141 -->
+    <!-- HumanWare [Humanware Brailliant BI 20X (HID protocol, firmware 1.0)] -->
+    <!-- HumanWare [Humanware Brailliant BI 20X (HID protocol, firmware 1.1)] -->
+    <modalias>usb:v1C71pC141*</modalias>
+
     <!-- Device: 1C71:CE01 -->
-    <!-- HumanWare [NLS eReader (HID protocol)] -->
+    <!-- HumanWare [NLS eReader (HID protocol, firmware 1.0)] -->
+    <!-- HumanWare [NLS eReader (HID protocol, firmware 1.1)] -->
     <modalias>usb:v1C71pCE01*</modalias>
 
     <!-- Device: 1C71:CE04 -->
@@ -513,6 +545,6 @@
     <!-- EuroBraille [reserved] -->
     <modalias>usb:vC251p1132*</modalias>
 
-    <!-- END_USB_DEVICES -->
+    <!-- END_USB_BRAILLE_DEVICES -->
   </provides>
 </component>

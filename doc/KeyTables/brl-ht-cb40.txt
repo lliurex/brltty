@@ -1,0 +1,173 @@
+Key Table: HandyTech Connect Braille 40
+=======================================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: B8
+* enter/leave command learn mode: B4+B5
+* enter/leave preferences menu: B7+B1
+* enter/leave status display: B7+B6
+* set display mode attributes/text: B6
+* set screen image frozen/unfrozen: B8+B6
+* describe character: B2+RoutingKey
+* show current date and time: B2+B3+B5+B6
+* switch to Default Bindings: B1+B8+SpaceLeft
+* switch to Braille Input Mode: B1+B8+SpaceRight
+
+Cursor Functions
+* go to screen cursor:
+  + B1
+  + RightRockerTop+RightRockerBottom+B6
+  + LeftRockerTop+LeftRockerBottom+B3
+  + LeftRockerTop+LeftRockerBottom+RightRockerTop+RightRockerBottom
+* go back after cursor tracking: B3
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line:
+  + RightRockerTop
+  + B4
+* go down one line:
+  + RightRockerBottom
+  + B5
+* go to top line:
+  + RightRockerTop+B6
+  + B2+SpaceLeft
+  + LeftRockerTop+LeftRockerBottom+RightRockerTop
+  + LeftRockerTop+LeftRockerBottom+B4
+* go to bottom line:
+  + B2+SpaceRight
+  + RightRockerBottom+B6
+  + LeftRockerTop+LeftRockerBottom+B2
+  + LeftRockerTop+LeftRockerBottom+RightRockerBottom
+* go to beginning of top line:
+  + B2
+  + LeftRockerTop+B3
+  + RightRockerTop+RightRockerBottom+LeftRockerTop
+  + RightRockerTop+RightRockerBottom+B5
+* go to beginning of bottom line:
+  + LeftRockerBottom+B3
+  + RightRockerTop+RightRockerBottom+LeftRockerBottom
+  + RightRockerTop+RightRockerBottom+B7
+* go up to nearest line with different content:
+  + LeftRockerTop+RightRockerTop
+  + RightRockerTop+B5
+  + LeftRockerTop+B4
+  + B8+B4
+* go down to nearest line with different content:
+  + LeftRockerTop+B2
+  + LeftRockerTop+RightRockerBottom
+  + RightRockerBottom+B5
+  + B8+B5
+* go up to nearest line with different highlighting:
+  + LeftRockerBottom+RightRockerTop
+  + RightRockerTop+B7
+  + LeftRockerBottom+B4
+  + B6+B4
+* go down to nearest line with different highlighting:
+  + LeftRockerBottom+B2
+  + LeftRockerBottom+RightRockerBottom
+  + RightRockerBottom+B7
+  + B6+B5
+* go up to first line of paragraph: B1+B4
+* go down to first line of next paragraph: B1+B5
+* go up to previous command prompt: B2+B4
+* go down to next command prompt: B2+B5
+* go up several lines: B7+B4
+* go down several lines: B7+B5
+* go up to nearest line with less indent than character: SpaceLeft+RoutingKey
+* go down to nearest line with less indent than character: SpaceRight+RoutingKey
+
+Horizontal Navigation
+* go backward one braille window:
+  + SpaceLeft
+  + LeftRockerTop+LeftRockerBottom
+* go forward one braille window:
+  + SpaceRight
+  + RightRockerTop+RightRockerBottom
+* go to beginning of line: B1+SpaceLeft
+* go to end of line: B1+SpaceRight
+* go left one character: B6+SpaceLeft
+* go right one character: B6+SpaceRight
+* go left half a braille window: B3+SpaceLeft
+* go right half a braille window: B3+SpaceRight
+* place left end of braille window at character: B1+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character:
+  + LeftRockerTop+RoutingKey
+  + B4+RoutingKey
+* append to clipboard from character:
+  + B3+RoutingKey
+  + LeftRockerBottom+RoutingKey
+* linear copy to character:
+  + RightRockerTop+RoutingKey
+  + B6+RoutingKey
+* rectangular copy to character:
+  + RightRockerBottom+RoutingKey
+  + B5+RoutingKey
+* copy characters to clipboard: RoutingKey+RoutingKey
+* insert clipboard text after screen cursor: SpaceLeft+SpaceRight
+* search backward for clipboard text: B3+B4
+* search forward for clipboard text: B3+B5
+
+Configuration Functions
+* set text style 6-dot/8-dot: B7
+* set skipping of lines with identical content on/off: B6+B1
+* set skipping of blank braille windows on/off: B6+B2
+* set sliding braille window on/off: B6+B3
+* set track screen cursor on/off: B8+B1
+* set screen cursor visibility on/off: B8+B2
+* set attribute underlining on/off: B8+B3
+* set alert tunes on/off: B8+B7
+
+Menu Operations
+* save preferences to disk: B7+B3
+* restore preferences from disk: B7+B2
+
+Speech Functions
+* stop speaking: B2+B3+SpaceLeft
+* speak current line: B2+B3+SpaceRight
+
+Keyboard Input
+* cursor-up key: LeftRockerTop
+* cursor-down key: LeftRockerBottom
+* function key: LeftRockerTop+LeftRockerBottom+RoutingKey
+* switch to specific virtual terminal: RightRockerTop+RightRockerBottom+RoutingKey
+
+Special Functions
+* remember current braille window position: B7+RoutingKey
+* go to remembered braille window position: B8+RoutingKey
+
+Menu Bindings
+-------------
+
+Menu Operations
+* go up to previous item: RightRockerTop
+* go down to next item: RightRockerBottom
+* select previous choice: LeftRockerTop
+* select next choice: LeftRockerBottom
+
+Braille Input Mode
+------------------
+
+Special Modes
+* switch to Default Bindings: B1+B8+SpaceLeft
+
+Keyboard Input
+* braille keyboard dot7: B1
+* braille keyboard dot3: B2
+* braille keyboard dot2: B3
+* braille keyboard dot1: B4
+* braille keyboard control: SpaceLeft
+* braille keyboard dot4: B5
+* braille keyboard dot5: B6
+* braille keyboard meta: SpaceRight
+* braille keyboard dot6: B7
+* braille keyboard dot8: B8
+* type braille dots [space]: SpaceLeft
+* backspace key: SpaceLeft+B1
+* enter key: SpaceRight
+

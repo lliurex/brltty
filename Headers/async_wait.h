@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,14 +19,11 @@
 #ifndef BRLTTY_INCLUDED_ASYNC_WAIT
 #define BRLTTY_INCLUDED_ASYNC_WAIT
 
-#include "async.h"
+#include "async_types_wait.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-#define ASYNC_CONDITION_TESTER(name) int name (void *data)
-typedef ASYNC_CONDITION_TESTER(AsyncConditionTester);
 
 extern int asyncAwaitCondition (int timeout, AsyncConditionTester *testCondition, void *data);
 extern void asyncWait (int duration);

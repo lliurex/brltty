@@ -1,0 +1,228 @@
+Key Table: Seika Note Takers
+============================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display:
+  + LeftJoystickPress
+  + Space+Dots125
+* enter/leave command learn mode:
+  + RightJoystickPress
+  + Space+Dots123
+* enter/leave preferences menu:
+  + LeftJoystickPress+RightJoystickDown
+  + Space+Dots1234
+* enter/leave status display:
+  + LeftJoystickPress+RightJoystickUp
+  + Space+Dots234
+* set display mode attributes/text: Space+Dots145
+* set display mode attributes: Space+Dots1458
+* set display mode text: Space+Dots1457
+* set screen image frozen/unfrozen: Space+Dots124
+* set screen image frozen: Space+Dots1248
+* set screen image unfrozen: Space+Dots1247
+* describe character: RightButton+RoutingKey
+
+Cursor Functions
+* go to screen cursor: LeftButton+RightButton
+* go back after cursor tracking: LeftJoystickDown+RightJoystickLeft
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line:
+  + LeftJoystickDown+RightJoystickRight
+  + Space+Dots1236
+
+Vertical Navigation
+* go up one line: RightJoystickUp
+* go down one line: RightJoystickDown
+* go to top line: LeftJoystickUp
+* go to bottom line: LeftJoystickDown
+* go up to nearest line with different content: LeftJoystickRight+RightJoystickUp
+* go down to nearest line with different content: LeftJoystickRight+RightJoystickDown
+* go up to nearest line with different highlighting: LeftJoystickLeft+RightJoystickUp
+* go down to nearest line with different highlighting: LeftJoystickLeft+RightJoystickDown
+* go up to first line of paragraph: LeftJoystickDown+RightJoystickUp
+* go down to first line of next paragraph: LeftJoystickDown+RightJoystickDown
+* go up to previous command prompt: LeftJoystickUp+RightJoystickUp
+* go down to next command prompt: LeftJoystickUp+RightJoystickDown
+* go up to nearest line with less indent than character: RightJoystickUp+RoutingKey
+* go down to nearest line with less indent than character: RightJoystickDown+RoutingKey
+* go up to nearest line with different character: RightJoystickLeft+RoutingKey
+* go down to nearest line with different character: RightJoystickRight+RoutingKey
+
+Horizontal Navigation
+* go backward one braille window: LeftButton
+* go forward one braille window: RightButton
+* go backward skipping blank braille windows: LeftJoystickRight+RightJoystickLeft
+* go forward skipping blank braille windows: LeftJoystickRight+RightJoystickRight
+* go to beginning of line: LeftJoystickLeft
+* go to end of line: LeftJoystickRight
+* go left one character: RightJoystickLeft
+* go right one character: RightJoystickRight
+* go left half a braille window: LeftJoystickLeft+RightJoystickLeft
+* go right half a braille window: LeftJoystickLeft+RightJoystickRight
+* place left end of braille window at character: LeftButton+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: LeftJoystickLeft+RoutingKey
+* append to clipboard from character: LeftJoystickUp+RoutingKey
+* linear copy to character: LeftJoystickRight+RoutingKey
+* rectangular copy to character: LeftJoystickDown+RoutingKey
+* copy characters to clipboard: RoutingKey+RoutingKey
+* append characters to clipboard: LeftJoystickUp+RoutingKey+RoutingKey
+* insert clipboard text after screen cursor:
+  + LeftJoystickPress+RightJoystickPress
+  + Space+Dots1346
+* search backward for clipboard text: LeftJoystickUp+RightJoystickLeft
+* search forward for clipboard text: LeftJoystickUp+RightJoystickRight
+* save clipboard to disk: Space+Dots13468
+* restore clipboard from disk: Space+Dots13467
+
+Configuration Functions
+* set autorepeat on/off: Space+Dots1235
+* set autorepeat on: Space+Dots12358
+* set autorepeat off: Space+Dots12357
+* set contracted/computer braille: Space+Dots1245
+* set contracted braille: Space+Dots12458
+* set computer braille: Space+Dots12457
+* set six dot computer braille: Space+Dots235
+* set eight dot computer braille: Space+Dots236
+* set skipping of lines with identical content on/off: Space+Dots24
+* set skipping of lines with identical content on: Space+Dots248
+* set skipping of lines with identical content off: Space+Dots247
+* set skipping of blank braille windows on/off: Space+Dots12
+* set skipping of blank braille windows on: Space+Dots128
+* set skipping of blank braille windows off: Space+Dots127
+* set sliding braille window on/off: Space+Dots2456
+* set sliding braille window on: Space+Dots24568
+* set sliding braille window off: Space+Dots24567
+* set track screen cursor on/off: Space+Dots2345
+* set track screen cursor on: Space+Dots23458
+* set track screen cursor off: Space+Dots23457
+* set screen cursor visibility on/off: Space+Dots14
+* set screen cursor visibility on: Space+Dots148
+* set screen cursor visibility off: Space+Dots147
+* set attribute underlining on/off: Space+Dots136
+* set attribute underlining on: Space+Dots1368
+* set attribute underlining off: Space+Dots1367
+
+Menu Operations
+* save preferences to disk:
+  + LeftJoystickPress+RightJoystickRight
+  + Space+Dots12348
+* restore preferences from disk:
+  + LeftJoystickPress+RightJoystickLeft
+  + Space+Dots12347
+* reset preferences to defaults: Space+Dots123478
+
+Speech Functions
+* stop speaking: Backspace+RightJoystickLeft
+* speak current line: Backspace+RightJoystickRight
+* speak from top of screen through current line: Backspace+RightJoystickUp
+* speak from current line through bottom of screen: Backspace+RightJoystickDown
+* go to current speaking position: Backspace+RightJoystickPress
+* decrease speaking volume: Backspace+LeftJoystickDown
+* increase speaking volume: Backspace+LeftJoystickUp
+* decrease speaking rate: Backspace+LeftJoystickLeft
+* increase speaking rate: Backspace+LeftJoystickRight
+* set autospeak on/off: Backspace+LeftJoystickPress
+
+Keyboard Input
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot7: Dot7
+* braille keyboard dot8: Dot8
+* braille keyboard meta: Backspace
+* braille keyboard space: Space
+* type braille dots [7]: Space+Dot7
+* type braille dots [8]: Space+Dot8
+* backspace key: Dot7
+* escape key: Space+Dots26
+* cursor-left key:
+  + Space+Dot3
+  + Space+RightJoystickLeft
+* cursor-right key:
+  + Space+Dot6
+  + Space+RightJoystickRight
+* cursor-up key:
+  + Space+Dot1
+  + Space+RightJoystickUp
+* cursor-down key:
+  + Space+Dot4
+  + Space+RightJoystickDown
+* page-up key:
+  + Space+LeftJoystickUp
+  + Space+Dots23
+* page-down key:
+  + Space+LeftJoystickDown
+  + Space+Dots56
+* home key:
+  + Space+Dot2
+  + Space+LeftJoystickLeft
+* end key:
+  + Space+Dot5
+  + Space+LeftJoystickRight
+* insert key:
+  + Space+LeftJoystickPress
+  + Space+Dots35
+* delete key:
+  + Space+RightJoystickPress
+  + Space+Dots256
+* function key: Space+RoutingKey
+* enter key: Dot8
+* tab key: Space+Dots45
+* clear all sticky input modifiers: Space+Dots78
+* cycle the Upper sticky input modifier (next, on, off): Space+Dots68
+* cycle the Shift sticky input modifier (next, on, off): Space+Dots48
+* cycle the Control sticky input modifier (next, on, off): Space+Dots38
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Space+Dots28
+* cycle the AltGr (Right Alt) sticky input modifier (next, on, off): Space+Dots58
+* cycle the GUI (Windows) sticky input modifier (next, on, off): Space+Dots18
+* switch to specific virtual terminal: Backspace+RoutingKey
+* switch to the previous virtual terminal: Space+Dots12367
+* switch to the next virtual terminal: Space+Dots12368
+* set braille keyboard enabled: Space+Dots138
+* set braille keyboard disabled: Space+Dots137
+* set braille typing mode dots: Space+Dots468
+* set braille typing mode text: Space+Dots467
+
+Special Functions
+* remember current braille window position: LeftJoystickPress+RoutingKey
+* go to remembered braille window position: RightJoystickPress+RoutingKey
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu:
+  + Dot8
+  + RightJoystickPress
+
+Menu Operations
+* go up to previous item:
+  + Dot1
+  + RightJoystickUp
+* go down to next item:
+  + Dot4
+  + RightJoystickDown
+* go up to first item:
+  + Dot2
+  + LeftJoystickUp
+* go down to last item:
+  + Dot5
+  + LeftJoystickDown
+* select previous choice:
+  + Dot3
+  + RightJoystickLeft
+* select next choice:
+  + Dot6
+  + RightJoystickRight
+* go to previous menu level: Dot7
+* save preferences to disk: LeftJoystickRight
+* restore preferences from disk: LeftJoystickLeft
+

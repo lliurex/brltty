@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -26,7 +26,7 @@
 #endif /* HAVE_(GET|SET)TIMEOFDAY */
 
 #ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
+#include <poll.h>
 #endif /* HAVE_SYS_POLL_H */
 
 #ifdef HAVE_SELECT
@@ -73,7 +73,7 @@ getCurrentTime (TimeValue *now) {
     now->nanoseconds = (milliseconds % MSECS_PER_SEC) * NSECS_PER_MSEC;
   }
 
-#elif defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_REALTIME)
+#elif defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_REALTIME) && !defined(__MINGW32__)
   struct timespec ts;
 
   if (clock_gettime(CLOCK_REALTIME, &ts) != -1) {
@@ -86,7 +86,12 @@ getCurrentTime (TimeValue *now) {
 #elif defined(HAVE_GETTIMEOFDAY)
   struct timeval tv;
 
-  if (gettimeofday(&tv, NULL) != -1) {
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  int result = gettimeofday(&tv, NULL);
+  #pragma GCC diagnostic pop
+
+  if (result != -1) {
     now->seconds = tv.tv_sec;
     now->nanoseconds = tv.tv_usec * NSECS_PER_USEC;
   } else {
@@ -114,7 +119,7 @@ setCurrentTime (const TimeValue *now) {
   }
 
 #elif defined(HAVE_SETTIMEOFDAY)
-  const struct timeval tv = {
+  struct timeval tv = {
     .tv_sec = now->seconds,
     .tv_usec = now->nanoseconds / NSECS_PER_USEC
   };
@@ -178,26 +183,26 @@ makeTimeValue (TimeValue *value, const TimeComponents *components) {
 void
 expandTimeValue (const TimeValue *value, TimeComponents *components) {
   time_t seconds = value->seconds;
-  struct tm time;
-
-  localtime_r(&seconds, &time);
   components->nanosecond = value->nanoseconds;
 
+  struct tm *time = &components->time;
+  localtime_r(&seconds, time);
+
 #if defined(GRUB_RUNTIME)
-  components->year = time.tm.year;
-  components->month = time.tm.month - 1;
-  components->day = time.tm.day - 1;
-  components->hour = time.tm.hour;
-  components->minute = time.tm.minute;
-  components->second = time.tm.second;
+  components->year = time->tm.year;
+  components->month = time->tm.month - 1;
+  components->day = time->tm.day - 1;
+  components->hour = time->tm.hour;
+  components->minute = time->tm.minute;
+  components->second = time->tm.second;
 
 #else /* expand seconds */
-  components->year = time.tm_year + 1900;
-  components->month = time.tm_mon;
-  components->day = time.tm_mday - 1;
-  components->hour = time.tm_hour;
-  components->minute = time.tm_min;
-  components->second = time.tm_sec;
+  components->year = time->tm_year + 1900;
+  components->month = time->tm_mon;
+  components->day = time->tm_mday - 1;
+  components->hour = time->tm_hour;
+  components->minute = time->tm_min;
+  components->second = time->tm_sec;
 #endif /* expand seconds */
 }
 

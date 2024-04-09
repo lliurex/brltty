@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -35,7 +35,7 @@
 #include "spk_thread.h"
 
 void
-constructSpeechSynthesizer (volatile SpeechSynthesizer *spk) {
+constructSpeechSynthesizer (SpeechSynthesizer *spk) {
   spk->canAutospeak = 1;
 
   spk->track.isActive = 0;
@@ -57,21 +57,21 @@ constructSpeechSynthesizer (volatile SpeechSynthesizer *spk) {
 }
 
 void
-destructSpeechSynthesizer (volatile SpeechSynthesizer *spk) {
+destructSpeechSynthesizer (SpeechSynthesizer *spk) {
 }
 
 int
-startSpeechDriverThread (volatile SpeechSynthesizer *spk, char **parameters) {
+startSpeechDriverThread (SpeechSynthesizer *spk, char **parameters) {
   return constructSpeechDriverThread(spk, parameters);
 }
 
 void
-stopSpeechDriverThread (volatile SpeechSynthesizer *spk) {
+stopSpeechDriverThread (SpeechSynthesizer *spk) {
   destroySpeechDriverThread(spk);
 }
 
 int
-muteSpeech (volatile SpeechSynthesizer *spk, const char *reason) {
+muteSpeech (SpeechSynthesizer *spk, const char *reason) {
   int result;
 
   logMessage(LOG_CATEGORY(SPEECH_EVENTS), "mute: %s", reason);
@@ -83,7 +83,7 @@ muteSpeech (volatile SpeechSynthesizer *spk, const char *reason) {
 
 int
 sayUtf8Characters (
-  volatile SpeechSynthesizer *spk,
+  SpeechSynthesizer *spk,
   const char *text, const unsigned char *attributes,
   size_t length, size_t count,
   SayOptions options
@@ -98,7 +98,7 @@ sayUtf8Characters (
 
 int
 sayWideCharacters (
-  volatile SpeechSynthesizer *spk,
+  SpeechSynthesizer *spk,
   const wchar_t *characters, const unsigned char *attributes,
   size_t count, SayOptions options
 ) {
@@ -118,7 +118,7 @@ sayWideCharacters (
 
 int
 sayString (
-  volatile SpeechSynthesizer *spk,
+  SpeechSynthesizer *spk,
   const char *string, SayOptions options
 ) {
   return sayUtf8Characters(spk, string, NULL, strlen(string), countUtf8Characters(string), options);
@@ -126,7 +126,7 @@ sayString (
 
 static int
 sayStringSetting (
-  volatile SpeechSynthesizer *spk,
+  SpeechSynthesizer *spk,
   const char *name, const char *string
 ) {
   char statement[0X40];
@@ -137,7 +137,7 @@ sayStringSetting (
 
 static int
 sayIntegerSetting (
-  volatile SpeechSynthesizer *spk,
+  SpeechSynthesizer *spk,
   const char *name, int integer
 ) {
   char string[0X10];
@@ -147,12 +147,12 @@ sayIntegerSetting (
 }
 
 int
-canDrainSpeech (volatile SpeechSynthesizer *spk) {
+canDrainSpeech (SpeechSynthesizer *spk) {
   return spk->drain != NULL;
 }
 
 int
-drainSpeech (volatile SpeechSynthesizer *spk) {
+drainSpeech (SpeechSynthesizer *spk) {
   if (!canDrainSpeech(spk)) return 0;
   logMessage(LOG_CATEGORY(SPEECH_EVENTS), "drain speech");
   speechRequest_drainSpeech(spk->driver.thread);
@@ -160,54 +160,90 @@ drainSpeech (volatile SpeechSynthesizer *spk) {
 }
 
 int
-canSetSpeechVolume (volatile SpeechSynthesizer *spk) {
+canSetSpeechVolume (SpeechSynthesizer *spk) {
   return spk->setVolume != NULL;
 }
 
 int
-setSpeechVolume (volatile SpeechSynthesizer *spk, int setting, int say) {
+toNormalizedSpeechVolume (unsigned char volume) {
+  return rescaleInteger(volume, SPK_VOLUME_DEFAULT, 100);
+}
+
+int
+setSpeechVolume (SpeechSynthesizer *spk, int setting, int say) {
   if (!canSetSpeechVolume(spk)) return 0;
   logMessage(LOG_CATEGORY(SPEECH_EVENTS), "set volume: %d", setting);
   speechRequest_setVolume(spk->driver.thread, setting);
-  if (say) sayIntegerSetting(spk, gettext("volume"), setting);
+
+  if (say) {
+    sayIntegerSetting(
+      spk, gettext("volume"),
+      toNormalizedSpeechVolume(setting)
+    );
+  }
+
   return 1;
 }
 
 int
-canSetSpeechRate (volatile SpeechSynthesizer *spk) {
+canSetSpeechRate (SpeechSynthesizer *spk) {
   return spk->setRate != NULL;
 }
 
 int
-setSpeechRate (volatile SpeechSynthesizer *spk, int setting, int say) {
+toNormalizedSpeechRate (unsigned char rate) {
+  return rate - SPK_RATE_DEFAULT;
+}
+
+int
+setSpeechRate (SpeechSynthesizer *spk, int setting, int say) {
   if (!canSetSpeechRate(spk)) return 0;
   logMessage(LOG_CATEGORY(SPEECH_EVENTS), "set rate: %d", setting);
   speechRequest_setRate(spk->driver.thread, setting);
-  if (say) sayIntegerSetting(spk, gettext("rate"), setting);
+
+  if (say) {
+    sayIntegerSetting(
+      spk, gettext("rate"),
+      toNormalizedSpeechRate(setting)
+    );
+  }
+
   return 1;
 }
 
 int
-canSetSpeechPitch (volatile SpeechSynthesizer *spk) {
+canSetSpeechPitch (SpeechSynthesizer *spk) {
   return spk->setPitch != NULL;
 }
 
 int
-setSpeechPitch (volatile SpeechSynthesizer *spk, int setting, int say) {
+toNormalizedSpeechPitch (unsigned char pitch) {
+  return pitch - SPK_PITCH_DEFAULT;
+}
+
+int
+setSpeechPitch (SpeechSynthesizer *spk, int setting, int say) {
   if (!canSetSpeechPitch(spk)) return 0;
   logMessage(LOG_CATEGORY(SPEECH_EVENTS), "set pitch: %d", setting);
   speechRequest_setPitch(spk->driver.thread, setting);
-  if (say) sayIntegerSetting(spk, gettext("pitch"), setting);
+
+  if (say) {
+    sayIntegerSetting(
+      spk, gettext("pitch"),
+      toNormalizedSpeechPitch(setting)
+    );
+  }
+
   return 1;
 }
 
 int
-canSetSpeechPunctuation (volatile SpeechSynthesizer *spk) {
+canSetSpeechPunctuation (SpeechSynthesizer *spk) {
   return spk->setPunctuation != NULL;
 }
 
 int
-setSpeechPunctuation (volatile SpeechSynthesizer *spk, SpeechPunctuation setting, int say) {
+setSpeechPunctuation (SpeechSynthesizer *spk, SpeechPunctuation setting, int say) {
   if (!canSetSpeechPunctuation(spk)) return 0;
   logMessage(LOG_CATEGORY(SPEECH_EVENTS), "set punctuation: %d", setting);
   speechRequest_setPunctuation(spk->driver.thread, setting);

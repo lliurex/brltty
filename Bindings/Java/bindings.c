@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2006-2021 by
+ * Copyright (C) 2006-2023 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -153,7 +153,15 @@ getJavaEnvironment (brlapi_handle_t *handle) {
           .group = NULL
         };
 
-        if ((result = (*vm)->AttachCurrentThread(vm, &env, &args)) == JNI_OK) {
+        #ifdef __ANDROID__
+          JNIEnv *e = env;
+          result = (*vm)->AttachCurrentThread(vm, &e, &args);
+          env = e;
+        #else /* __ANDROID__ */
+          result = (*vm)->AttachCurrentThread(vm, &env, &args);
+        #endif /* __ANDROID__ */
+
+        if (result == JNI_OK) {
           setThreadExitHandler(env);
         } else {
           logJavaVirtualMachineError(result, "AttachCurrentThread");
@@ -176,10 +184,12 @@ throwJavaError (JNIEnv *env, const char *object, const char *message) {
 
 static void
 logBrlapiError (const char *label) {
+  size_t size = brlapi_strerror_r(&brlapi_error, NULL, 0);
+  char msg[size+1];
+  brlapi_strerror_r(&brlapi_error, msg, sizeof(msg));
   fprintf(stderr,
     "%s: API=%d Libc=%d GAI=%d: %s\n",
-    label, brlapi_errno, brlapi_libcerrno, brlapi_gaierrno,
-    brlapi_strerror(&brlapi_error)
+    label, brlapi_errno, brlapi_libcerrno, brlapi_gaierrno, msg
   );
 }
 
@@ -192,6 +202,9 @@ throwAPIError (JNIEnv *env) {
     const char *object = NULL;
 
     switch (brlapi_errno) {
+      case BRLAPI_ERROR_SUCCESS:
+        break;
+
       case BRLAPI_ERROR_NOMEM:
         object = JAVA_OBJ_OUT_OF_MEMORY_ERROR;
         break;
@@ -209,6 +222,9 @@ throwAPIError (JNIEnv *env) {
 
         break;
       }
+
+      default:
+        break;
     }
 
     if (object) {
@@ -264,6 +280,9 @@ throwConnectError (JNIEnv *env, const brlapi_connectionSettings_t *settings) {
   }
 
   switch (brlapi_errno) {
+    case BRLAPI_ERROR_SUCCESS:
+      break;
+
     case BRLAPI_ERROR_CONNREFUSED:
       object = BRLAPI_OBJECT("UnavailableServiceException");
       message = host;
@@ -283,7 +302,10 @@ throwConnectError (JNIEnv *env, const brlapi_connectionSettings_t *settings) {
           object = JAVA_OBJ_OUT_OF_MEMORY_ERROR;
           break;
 
-        case EAI_NODATA:
+        #ifdef EAI_NODATA
+        case EAI_NODATA: // obsoleted on RFC 2553bis-02
+        #endif /* EAI_NODATA */
+
         case EAI_NONAME:
           object = BRLAPI_OBJECT("UnknownHostException");
           message = host;
@@ -300,6 +322,9 @@ throwConnectError (JNIEnv *env, const brlapi_connectionSettings_t *settings) {
 
       break;
     }
+
+    default:
+      break;
   }
 
   if (object) {
@@ -1468,26 +1493,11 @@ JAVA_INSTANCE_METHOD(
     }
   }
 
-  const char *cMessage = brlapi_strerror(&error);
+  size_t size = brlapi_strerror_r(&error, NULL, 0);
+  char cMessage[size+1];
+
+  brlapi_strerror_r(&error, cMessage, sizeof(cMessage));
   if (jFunction) (*env)->ReleaseStringUTFChars(env, jFunction, error.errfun);
-  if (!cMessage) return NULL;
-
-  size_t length = strlen(cMessage);
-  char buffer[length + 1];
-  int copy = 0;
-
-  while (length > 0) {
-    size_t last = length - 1;
-    if (cMessage[last] != '\n') break;
-    length = last;
-    copy = 1;
-  }
-
-  if (copy) {
-    memcpy(buffer, cMessage, length);
-    buffer[length] = 0;
-    cMessage = buffer;
-  }
 
   return (*env)->NewStringUTF(env, cMessage);
 }

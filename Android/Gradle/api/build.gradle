@@ -1,0 +1,37 @@
+plugins {
+  id "com.android.library"
+  id "maven-publish"
+}
+
+description = """
+"${project.name}" provides the Java client bindings for "${rootProject.name}" code.
+"""
+
+apply from: "brltty.gradle"
+
+dependencies {
+  api files("src/main/libs/brlapi.jar")
+}
+
+android {
+  compileSdkVersion "android-31"
+  buildToolsVersion "29.0.3"
+
+  defaultConfig {
+    targetSdkVersion 30
+    minSdkVersion 24
+  }
+}
+
+afterEvaluate {
+  publishing {
+    publications {
+      release(MavenPublication) {
+        from components.release
+        groupId = "org.a11y.brltty"
+        artifactId = "brlapi-android"
+        version = brltty.config.apiRelease
+      }
+    }
+  }
+}

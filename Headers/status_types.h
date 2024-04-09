@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,22 +24,36 @@ extern "C" {
 #endif /* __cplusplus */
 
 typedef enum {
-  sfEnd,
-  sfWindowCoordinates,
+  sfEnd = 0,
+  sfWindowCoordinates2,
   sfWindowColumn,
   sfWindowRow,
-  sfCursorCoordinates,
+  sfCursorCoordinates2,
   sfCursorColumn,
   sfCursorRow,
-  sfCursorAndWindowColumn,
-  sfCursorAndWindowRow,
+  sfCursorAndWindowColumn2,
+  sfCursorAndWindowRow2,
   sfScreenNumber,
   sfStateDots,
   sfStateLetter,
   sfTime,
   sfAlphabeticWindowCoordinates,
   sfAlphabeticCursorCoordinates,
-  sfGeneric
+  sfGeneric,
+
+  /*****************************************************************************/
+  /* No fields above this point should be added, removed, or reordered so that */
+  /* backward compatibility with old binary preference files will be retained. */
+  /*                                                                           */
+  /* Fields below this point may be modified as desired.                       */
+  /*****************************************************************************/
+
+  sfCursorCoordinates3,
+  sfWindowCoordinates3,
+  sfCursorAndWindowColumn3,
+  sfCursorAndWindowRow3,
+
+  sfSpace,
 } StatusField;
 
 #define GSC_MARKER 0XFF /* must be in GSC_FIRST */
@@ -56,7 +70,7 @@ typedef enum {
   /* flags */
   gscFrozenScreen,
   gscDisplayMode,
-  gscSixDotBraille,
+  gscSixDotComputerBraille,
   gscContractedBraille,
   gscSlidingBrailleWindow,
   gscSkipIdenticalLines,

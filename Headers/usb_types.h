@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -251,67 +251,21 @@ typedef struct {
   uint16_t wLength;     /* Data length in bytes. */
 } PACKED UsbSetupPacket;
 
-typedef enum {
-  UsbHidRequest_GetReport   = 0X01,
-  UsbHidRequest_GetIdle     = 0X02,
-  UsbHidRequest_GetProtocol = 0X03,
-  UsbHidRequest_SetReport   = 0X09,
-  UsbHidRequest_SetIdle     = 0X0A,
-  UsbHidRequest_SetProtocol = 0X0B
-} UsbHidRequest;
-
-typedef enum {
-  UsbHidReportType_Input   = 0X01,
-  UsbHidReportType_Output  = 0X02,
-  UsbHidReportType_Feature = 0X03
-} UsbHidReportType;
-
-typedef enum {
-  UsbHidItemType_UsagePage         = 0X04,
-  UsbHidItemType_Usage             = 0X08,
-  UsbHidItemType_LogicalMinimum    = 0X14,
-  UsbHidItemType_UsageMinimum      = 0X18,
-  UsbHidItemType_LogicalMaximum    = 0X24,
-  UsbHidItemType_UsageMaximum      = 0X28,
-  UsbHidItemType_PhysicalMinimum   = 0X34,
-  UsbHidItemType_DesignatorIndex   = 0X38,
-  UsbHidItemType_PhysicalMaximum   = 0X44,
-  UsbHidItemType_DesignatorMinimum = 0X48,
-  UsbHidItemType_UnitExponent      = 0X54,
-  UsbHidItemType_DesignatorMaximum = 0X58,
-  UsbHidItemType_Unit              = 0X64,
-  UsbHidItemType_ReportSize        = 0X74,
-  UsbHidItemType_StringIndex       = 0X78,
-  UsbHidItemType_Input             = 0X80,
-  UsbHidItemType_ReportID          = 0X84,
-  UsbHidItemType_StringMinimum     = 0X88,
-  UsbHidItemType_Output            = 0X90,
-  UsbHidItemType_ReportCount       = 0X94,
-  UsbHidItemType_StringMaximum     = 0X98,
-  UsbHidItemType_Collection        = 0XA0,
-  UsbHidItemType_Push              = 0XA4,
-  UsbHidItemType_Delimiter         = 0XA8,
-  UsbHidItemType_Feature           = 0XB0,
-  UsbHidItemType_Pop               = 0XB4,
-  UsbHidItemType_EndCollection     = 0XC0,
-  UsbHidItemType_Mask              = 0XFC
-} UsbHidItemType;
-#define USB_HID_ITEM_TYPE(item) ((item) & UsbHidItemType_Mask)
-#define USB_HID_ITEM_LENGTH(item) ((item) & ~UsbHidItemType_Mask)
-#define USB_HID_ITEM_BIT(type) (UINT64_C(1) << ((type) >> 2))
-
 #define BEGIN_USB_STRING_LIST(name) static const char *const name[] = {
 #define END_USB_STRING_LIST NULL};
 
 typedef struct {
   const void *data;
   const SerialParameters *serial;
+
   const char *const *manufacturers;
   const char *const *products;
 
+  uint16_t version;
   uint16_t vendor;
   uint16_t product;
-  uint16_t version;
+  uint16_t parentVendor;
+  uint16_t parentProduct;
 
   unsigned char configuration;
   unsigned char interface;
@@ -319,17 +273,18 @@ typedef struct {
   unsigned char inputEndpoint;
   unsigned char outputEndpoint;
 
-  unsigned disableAutosuspend:1;
-  unsigned disableEndpointReset:1;
-  unsigned verifyInterface:1;
-  unsigned resetDevice:1;
+  unsigned char disableAutosuspend:1;
+  unsigned char disableEndpointReset:1;
+  unsigned char verifyInterface:1;
+  unsigned char resetDevice:1;
 } UsbChannelDefinition;
 
 #define BEGIN_USB_CHANNEL_DEFINITIONS static const UsbChannelDefinition usbChannelDefinitions[] = {
 #define END_USB_CHANNEL_DEFINITIONS { .vendor=0 } };
 
 typedef struct UsbDeviceStruct UsbDevice;
-typedef struct UsbSerialDataStruct UsbSerialData;
+typedef struct UsbChooseChannelDataStruct UsbChooseChannelData;
+typedef int UsbDeviceChooser (UsbDevice *device, UsbChooseChannelData *data);
 
 typedef struct {
   void *const buffer;
@@ -338,10 +293,14 @@ typedef struct {
   ssize_t length;
 } UsbInputFilterData;
 
+typedef struct UsbSerialDataStruct UsbSerialData;
 typedef int UsbInputFilter (UsbInputFilterData *data);
 
 typedef struct {
   const char *name;
+
+  int (*enableAdapter) (UsbDevice *device);
+  void (*disableAdapter) (UsbDevice *device);
 
   int (*makeData) (UsbDevice *device, UsbSerialData **serialData);
   void (*destroyData) (UsbSerialData *usd);
@@ -354,9 +313,6 @@ typedef struct {
 
   int (*setDtrState) (UsbDevice *device, int state);
   int (*setRtsState) (UsbDevice *device, int state);
-
-  int (*enableAdapter) (UsbDevice *device);
-  void (*disableAdapter) (UsbDevice *device);
 
   UsbInputFilter *inputFilter;
   ssize_t (*writeData) (UsbDevice *device, const void *data, size_t size);

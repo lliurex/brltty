@@ -1,0 +1,50 @@
+Key Table: HandyTech Bookworm
+=============================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Backward+Forward
+* enter/leave preferences menu: Escape+Enter
+* set display mode attributes/text: Escape+Forward
+* set screen image frozen/unfrozen: Backward+Forward+Enter
+
+Cursor Functions
+* go back after cursor tracking: Escape+Backward
+* bring screen cursor to character #1: Enter
+
+Vertical Navigation
+* go up one line: Enter+Backward
+* go down one line: Enter+Forward
+
+Horizontal Navigation
+* go backward one braille window: Backward
+* go forward one braille window: Forward
+* go to beginning of line: Escape+Enter+Backward
+* go to end of line: Escape+Enter+Forward
+
+Configuration Functions
+* set track screen cursor on/off: Escape
+* set screen cursor style block/underline: Backward+Forward+Escape
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: Enter
+
+Horizontal Navigation
+* go backward one braille window: Backward
+* go forward one braille window: Forward
+
+Menu Operations
+* go up to previous item: Enter+Backward
+* go down to next item: Enter+Forward
+* go up to first item: Escape+Enter+Backward
+* go down to last item: Escape+Enter+Forward
+* select previous choice: Escape+Backward
+* select next choice: Escape+Forward
+* save preferences to disk: Escape+Enter
+* restore preferences from disk: Escape
+

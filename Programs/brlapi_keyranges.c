@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -105,7 +105,10 @@ int addKeyrange(KeyrangeElem x0, KeyrangeElem y0, KeyrangeList **l)
   KeyrangeElem min = KeyrangeElem(minFlags, minVal);
   KeyrangeElem max = KeyrangeElem(maxFlags, maxVal);
 
-  logMessage(LOG_DEBUG, "adding range [%"PRIx32"(%"PRIx32")..%"PRIx32"(%"PRIx32")]", minVal, minFlags, maxVal, maxFlags);
+  logMessage(LOG_CATEGORY(SERVER_EVENTS) | LOG_DEBUG,
+    "adding range [%"PRIx32"(%"PRIx32")..%"PRIx32"(%"PRIx32")]",
+    minVal, minFlags, maxVal, maxFlags
+  );
 
   c = *l;
   while (c) {
@@ -142,11 +145,13 @@ int removeKeyrange(KeyrangeElem x0, KeyrangeElem y0, KeyrangeList **l)
   uint32_t minVal   = MIN(KeyrangeVal(x0), KeyrangeVal(y0));
   uint32_t maxVal   = MAX(KeyrangeVal(x0), KeyrangeVal(y0));
   KeyrangeList *c, **p, *tmp;
-  int i;
 
   if ((l==NULL) || (*l==NULL)) return 0;
 
-  logMessage(LOG_DEBUG, "removing range [%"PRIx32"(%"PRIx32")..%"PRIx32"(%"PRIx32")]", minVal, minFlags, maxVal, maxFlags);
+  logMessage(LOG_CATEGORY(SERVER_EVENTS) | LOG_DEBUG,
+    "removing range [%"PRIx32"(%"PRIx32")..%"PRIx32"(%"PRIx32")]",
+    minVal, minFlags, maxVal, maxFlags
+  );
 
   /* Need to intersect with every range */
   p = l; c = *p;
@@ -184,45 +189,21 @@ int removeKeyrange(KeyrangeElem x0, KeyrangeElem y0, KeyrangeList **l)
       c->maxVal = maxVal;
     }
 
-    /* Now values are the same, tinker with flags */
-    for (i=0; i<32; i++) {
-      uint32_t mask = 1<<i;
+    /* Now values are contained in suppression, intersect against flags */
 
-      if ((!(c->maxFlags & mask) &&  (minFlags & mask)) ||
-          ( (c->minFlags & mask) && !(maxFlags & mask)))
-	/* don't intersect on this flag */
-	continue;
-
-      if (!(c->minFlags & mask) &&  (minFlags & mask)) {
-        /* && (c->maxFlags & mask) */
-	/* part without flag i should be kept intact, save it */
-        p = createKeyrange(p, c->minFlags, c->minVal, c->maxFlags & ~mask, c->maxVal, c);
-        if (p == NULL) return -1;
-	/* now handling part with flag i */
-        c->minFlags |= mask;
-      }
-
-      if ( (c->maxFlags & mask) && !(maxFlags & mask)) {
-        /* && !(c->minFlags & mask) */
-	/* part with flag i should be kept intact, save it */
-        p = createKeyrange(p, c->minFlags | mask, c->minVal, c->maxFlags, c->maxVal, c);
-        if (p == NULL) return -1;
-	/* now handling part without flag i */
-        c->maxFlags &= ~mask;
-      }
-
-      if (!(c->maxFlags | ~minFlags) || !(~c->minFlags | maxFlags))
-        /* don't intersect any more*/
-	break;
-    }
-    if (i<32) {
-      /* don't intersect any more, keep it */
-      break;
-    } else {
-      /* remaining intersection, drop it */
+    if (~minFlags & maxFlags) {
+      /* At least some flag must now be neither cleared nor set, drop range */
       tmp = c; c = c->next;
       freeKeyrange(p,tmp);
+      continue;
     }
+
+    /* Clamp flags on the value interval */
+    c->minFlags |= ~maxFlags;
+    c->maxFlags &= ~minFlags;
+
+    p = &c->next;
+    c = *p;
   }
 
   return 0;

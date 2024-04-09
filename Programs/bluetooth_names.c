@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -113,6 +113,9 @@ const BluetoothNameEntry bluetoothNameTable[] = {
   // Baum: Conny
   BLUETOOTH_NAME_ENTRY("Conny", "bm"),
 
+  // DotPad
+  BLUETOOTH_NAME_ENTRY("DotPad", "dp"),
+
   // HandyTech: Easy Braille
   BLUETOOTH_NAME_ENTRY("Easy Braille EBR", "ht"),
 
@@ -135,8 +138,11 @@ const BluetoothNameEntry bluetoothNameTable[] = {
   // MDV
   BLUETOOTH_NAME_ENTRY("MB248", "md"),
 
-  // HumanWare: NLS eReader
-  BLUETOOTH_NAME_ENTRY("NLS eReader", "hw"),
+  // NLS eReader: HumanWare
+  BLUETOOTH_NAME_ENTRY("NLS eReader H", "hw"),
+
+  // NLS eReader: Zoomax
+  BLUETOOTH_NAME_ENTRY("NLS eReader Z", "bm"),
 
   // American Printing House: Orbit Reader
   BLUETOOTH_NAME_ENTRY("Orbit Reader", "bm"),

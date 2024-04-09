@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -18,14 +18,17 @@
 
 [Unit]
 Description=Default BRLTTY Instance
+Documentation=man:brltty(1)
 
+DefaultDependencies=no
+After=local-fs.target
 Requires=brltty@-etc-brltty.conf.service
-Before=getty.target display-manager.service
+
 
 [Path]
 PathExists=/etc/brltty.conf
 Unit=brltty@-etc-brltty.conf.service
 
+
 [Install]
 WantedBy=default.target multi-user.target rescue.target emergency.target
-

@@ -4,7 +4,7 @@ braille.$O: $(SRC_TOP)Headers/prologue.h
 braille.$O: $(BLD_TOP)config.h
 braille.$O: $(BLD_TOP)forbuild.h
 braille.$O: $(SRC_TOP)Headers/log.h
-braille.$O: $(SRC_TOP)Headers/async.h
+braille.$O: $(SRC_TOP)Headers/async_types_handle.h
 braille.$O: $(SRC_TOP)Headers/brl_types.h
 braille.$O: $(SRC_TOP)Headers/cmd.h
 braille.$O: $(SRC_TOP)Headers/cmd_types.h
@@ -12,6 +12,7 @@ braille.$O: $(SRC_TOP)Headers/ctb.h
 braille.$O: $(SRC_TOP)Headers/ctb_types.h
 braille.$O: $(SRC_TOP)Headers/driver.h
 braille.$O: $(SRC_TOP)Headers/gio_types.h
+braille.$O: $(SRC_TOP)Headers/hid_types.h
 braille.$O: $(SRC_TOP)Headers/ktb.h
 braille.$O: $(SRC_TOP)Headers/ktb_types.h
 braille.$O: $(SRC_TOP)Headers/pid.h
@@ -29,7 +30,7 @@ braille.$O: $(SRC_TOP)Programs/brl.h
 braille.$O: $(SRC_TOP)Programs/core.h
 braille.$O: $(SRC_TOP)Programs/profile_types.h
 braille.$O: $(SRC_TOP)Programs/ses.h
-braille.$O: $(SRC_TOP)Headers/async_io.h
+braille.$O: $(SRC_TOP)Headers/async_types_io.h
 braille.$O: $(SRC_TOP)Headers/brl_base.h
 braille.$O: $(SRC_TOP)Headers/brl_cmds.h
 braille.$O: $(SRC_TOP)Headers/brl_dots.h

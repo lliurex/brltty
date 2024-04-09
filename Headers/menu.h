@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -36,10 +36,25 @@ extern void destroyMenu (Menu *menu);
 
 extern MenuItem *newTextMenuItem (Menu *menu, const MenuString *name, const char *text);
 
+typedef void NumericMenuItemFormatter (
+  Menu *menu, unsigned char value,
+  char *buffer, size_t size
+);
+
 extern MenuItem *newNumericMenuItem (
   Menu *menu, unsigned char *setting, const MenuString *name,
-  unsigned char minimum, unsigned char maximum, unsigned char divisor,
-  const char *unit
+  unsigned char minimum, unsigned char maximum, unsigned char step,
+  const char *unit, NumericMenuItemFormatter *formatter
+);
+
+extern MenuItem *newTimeMenuItem (
+  Menu *menu, unsigned char *setting,
+  const MenuString *name
+);
+
+extern MenuItem *newPercentMenuItem (
+  Menu *menu, unsigned char *setting,
+  const MenuString *name, unsigned char step
 );
 
 extern MenuItem *newStringsMenuItem (

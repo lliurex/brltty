@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,6 +24,7 @@
 #include "log.h"
 #include "usb_serial.h"
 #include "usb_cp2110.h"
+#include "usb_hid.h"
 #include "bitfield.h"
 
 typedef enum {
@@ -82,7 +83,7 @@ usbSetLineConfiguration_CP2110 (UsbDevice *device, unsigned int baud, unsigned i
   if ((baud >= 300) && (baud <= 500000)) {
     putBigEndian32(&report.baudRate, baud);
   } else {
-    logMessage(LOG_WARNING, "unsupported CP2110 baud: %u", baud);
+    logUnsupportedBaud(baud);
     errno = EINVAL;
     return 0;
   }
@@ -105,7 +106,7 @@ usbSetLineConfiguration_CP2110 (UsbDevice *device, unsigned int baud, unsigned i
       break;
 
     default:
-      logMessage(LOG_WARNING, "unsupported CP2110 data bits: %u", dataBits);
+      logUnsupportedDataBits(dataBits);
       errno = EINVAL;
       return 0;
   }
@@ -115,7 +116,7 @@ usbSetLineConfiguration_CP2110 (UsbDevice *device, unsigned int baud, unsigned i
   } else if (stopBits == ((dataBits > 5)? SERIAL_STOP_2: SERIAL_STOP_1_5)) {
     report.stopBits = USB_CP2110_STOP_LONG;
   } else {
-    logMessage(LOG_WARNING, "unsupported CP2110 stop bits: %u", stopBits);
+    logUnsupportedStopBits(stopBits);
     errno = EINVAL;
     return 0;
   }
@@ -142,7 +143,7 @@ usbSetLineConfiguration_CP2110 (UsbDevice *device, unsigned int baud, unsigned i
       break;
 
     default:
-      logMessage(LOG_WARNING, "unsupported CP2110 parity: %u", parity);
+      logUnsupportedParity(parity);
       errno = EINVAL;
       return 0;
   }
@@ -157,7 +158,7 @@ usbSetLineConfiguration_CP2110 (UsbDevice *device, unsigned int baud, unsigned i
       break;
 
     default:
-      logMessage(LOG_WARNING, "unsupported CP2110 flow control: %u", flowControl);
+      logUnsupportedFlowControl(flowControl);
       errno = EINVAL;
       return 0;
   }

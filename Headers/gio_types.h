@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,6 +21,7 @@
 
 #include "serial_types.h"
 #include "usb_types.h"
+#include "hid_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,14 +62,10 @@ typedef struct {
   int inputTimeout;
   int outputTimeout;
   int requestTimeout;
-  unsigned ignoreWriteTimeouts:1;
+  unsigned char ignoreWriteTimeouts:1;
 } GioOptions;
 
 typedef struct {
-  struct {
-    GioOptions options;
-  } null;
-
   struct {
     const SerialParameters *parameters;
     GioOptions options;
@@ -82,9 +79,18 @@ typedef struct {
 
   struct {
     uint8_t channelNumber;
-    unsigned discoverChannel:1;
+    unsigned char discoverChannel:1;
     GioOptions options;
   } bluetooth;
+
+  struct {
+    const HidModelEntry *modelTable;
+    GioOptions options;
+  } hid;
+
+  struct {
+    GioOptions options;
+  } null;
 } GioDescriptor;
 
 typedef struct GioEndpointStruct GioEndpoint;
@@ -93,10 +99,11 @@ typedef int GioTestIdentifierMethod (const char **identifier);
 
 typedef enum {
   GIO_TYPE_UNSPECIFIED = 0,
-  GIO_TYPE_NULL,
   GIO_TYPE_SERIAL,
   GIO_TYPE_USB,
-  GIO_TYPE_BLUETOOTH
+  GIO_TYPE_BLUETOOTH,
+  GIO_TYPE_HID,
+  GIO_TYPE_NULL,
 } GioTypeIdentifier;
 
 typedef struct {

@@ -1,7 +1,12 @@
 @echo off
 
 setlocal
-set programFolder=%~dp0
+set programDirectory=%~dp0
 
-net stop BrlAPI
-"%programFolder%bin\brltty" -R
+call "%programDirectory%setvars-brlapi"
+net stop %serviceName%
+
+set programName=disable
+call "%programDirectory%run-brltty" -R %*
+
+exit /B 0

@@ -102,6 +102,8 @@ context.
    secondary command is autorepeated if it has been defined, else the primary
    command is autorepeated.
 
+   For a list of commands, see |README.CommandReference|.
+
 .. _Bind Command Modifiers:
 
 One or more modifiers may be optionally appended to a command name by using a 
@@ -179,20 +181,25 @@ The Context Directive
 .. parsed-literal:: context *name* *title*
 
 Use this directive to define alternate ways to interpret certain key events
-and/or combinations. A context contains definitions created by any of:
+and/or combinations.
+Switching to another context is done via the BRLTTY command CONTEXT+name.
+
+A context contains definitions created by any of:
 
 *  `The Bind Directive`_
 *  `The Hotkey Directive`_
 *  `The Ignore Directive`_
+*  `The Macro Directive`_
 *  `The Map Directive`_
+*  `The Run Directive`_
 *  `The Superimpose Directive`_
 
 *name*
    Which context subsequent definitions are to be created within.
 
 *title*
-   A person-readable description of the context. It may contain spaces, and
-   standard capitalization conventions should be used. This operand is
+   A person-readable description of the context. It may contain spaces.
+   Standard capitalization conventions should be used. This operand is
    optional. If supplied when selecting a context which already has a title
    then the two must match. Special contexts already have internally-assigned
    titles.
@@ -203,7 +210,11 @@ number of times thereafter. These special contexts are predefined:
 ``default``
    The default context. If a definition can't be found within the current
    context then it's looked up within the default context. This only applies
-   to definitions created by `The Bind Directive`_.
+   to definitions created by:
+
+   *  `The Bind Directive`_.
+   *  `The Macro Directive`_.
+   *  `The Run Directive`_.
 
 ``menu``
    This context is used when within BRLTTY's Preferences Menu.
@@ -383,6 +394,36 @@ Examples::
 
    ignore Key1
 
+The Isolated Directive
+----------------------
+
+.. parsed-literal:: isolated
+
+Use this directive to isolate the current context.
+If a key binding can't be found within an isolated context
+then it won't be looked up within the default context.
+
+Examples::
+
+   isolated
+
+The Macro Directive
+-------------------
+
+.. parsed-literal:: macro *keys* *command* ...
+
+Use this directive to bind a sequence of BRLTY commands to a key combination.
+
+*keys*
+   The key combination being defined.
+
+*command* ...
+   The BRLTTY commands that are to be executed.
+
+Examples::
+
+   macro Key1+Key2 TOP LNEND
+
 The Map Directive
 -----------------
 
@@ -497,6 +538,26 @@ The above example would be rendered as:
 
    The third line of the second outer list element.
 
+The Run Directive
+-----------------
+
+.. parsed-literal:: run *keys* *name* [*argument* ...]
+
+Use this directive to bind a host command to a key combination.
+
+*keys*
+   The key combination being defined.
+
+<name*
+   The name of the host command. It may also be the path.
+
+*argument* ...
+   The arguments to be passed to the host command.
+
+Examples::
+
+   run Key1+Key2 pkill --exact brltty
+
 The Superimpose Directive
 -------------------------
 
@@ -541,13 +602,13 @@ Keyboard Table List
 ===================
 
 .. csv-table::
-   :header: "Name", "Description"
+   :header-rows: 1
    :file: keyboard-table.csv
 
 Braille Driver List
 ===================
 
 .. csv-table::
-   :header: "Code", "Name"
+   :header-rows: 1
    :file: braille-driver.csv
 

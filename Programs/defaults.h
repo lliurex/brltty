@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -51,7 +51,7 @@ extern "C" {
 #define DEFAULT_BRAILLE_FIRMNESS BRL_FIRMNESS_MEDIUM
 
 #define DEFAULT_SHOW_SCREEN_CURSOR 1		/* 1 for yes, 0 for no */
-#define DEFAULT_SCREEN_CURSOR_STYLE csUnderline
+#define DEFAULT_SCREEN_CURSOR_STYLE csBottomDots
 #define DEFAULT_BLINKING_SCREEN_CURSOR 0		/* 1 for on, 0 for off */
 #define DEFAULT_SCREEN_CURSOR_VISIBLE_TIME 40
 #define DEFAULT_SCREEN_CURSOR_INVISIBLE_TIME 40
@@ -95,6 +95,9 @@ extern "C" {
 
 #define DEFAULT_CONSOLE_BELL_ALERT 0 /* 1 for on, 0 for off */
 #define DEFAULT_KEYBOARD_LED_ALERTS 0 /* 1 for on, 0 for off */
+
+#define DEFAULT_SPEAK_KEY_CONTEXT 0 /* 1 for on, 0 for off */
+#define DEFAULT_SPEAK_MODIFIER_KEY 0 /* 1 for on, 0 for off */
 
 #define DEFAULT_ALERT_TUNES 1		/* 1 for on, 0 for off */
 #define DEFAULT_ALERT_DOTS 0		/* 1 for on, 0 for off */

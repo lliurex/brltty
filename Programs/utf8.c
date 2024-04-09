@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -37,96 +37,118 @@ allocateCharacters (size_t count) {
 }
 
 size_t
-convertWcharToUtf8 (wchar_t wc, Utf8Buffer utf8) {
-  size_t utfs;
+convertCodepointToUtf8 (uint32_t codepoint, Utf8Buffer utf8) {
+  size_t length = 0;
 
-  if (!(wc & ~0X7F)) {
-    *utf8 = wc;
-    utfs = 1;
+  if (!(codepoint & ~0X7F)) {
+    utf8[length++] = codepoint;
   } else {
-    Utf8Buffer buffer;
-    char *end = &buffer[0] + sizeof(buffer);
-    char *byte = end;
-    static const wchar_t mask = (1 << ((sizeof(wchar_t) * 8) - 6)) - 1;
+    char *end = &utf8[2];
 
-    do {
-      *--byte = (wc & 0X3F) | 0X80;
-    } while ((wc = (wc >> 6) & mask));
+    {
+      uint32_t value = codepoint;
+      uint32_t mask = ~((1 << 11) - 1);
 
-    utfs = end - byte;
-    if ((*byte & 0X7F) >= (1 << (7 - utfs))) {
-      *--byte = 0;
-      utfs++;
+      while ((value &= mask)) {
+        mask <<= 5;
+        end += 1;
+      }
+
+      length = end - utf8;
     }
 
-    *byte |= ~((1 << (8 - utfs)) - 1);
-    memcpy(utf8, byte, utfs);
+    {
+      uint32_t value = codepoint;
+
+      do {
+        *--end = (value & 0X3F) | 0X80;
+        value >>= 6;
+      } while (end > utf8);
+    }
+
+    *end |= ~((1 << (8 - length)) - 1);
   }
 
-  utf8[utfs] = 0;
-  return utfs;
+  utf8[length] = 0;
+  return length;
 }
 
-wint_t
-convertUtf8ToWchar (const char **utf8, size_t *utfs) {
-  const uint32_t initial = UINT32_MAX;
-  uint32_t character = initial;
+int
+convertUtf8ToCodepoint (uint32_t *codepoint, const char **utf8, size_t *utfs) {
+  int ok = 0;
+  uint32_t cp = 0;
+
+  int first = 1;
   int state = 0;
 
   while (*utfs) {
-    const int first = character == initial;
-
     unsigned char byte = *(*utf8)++;
-    (*utfs) -= 1;
+    *utfs -= 1;
 
     if (!(byte & 0X80)) {
-      if (!first) goto truncated;
-      character = byte;
+      if (!first) goto unexpected;
+      cp = byte;
+      ok = 1;
       break;
     }
 
     if (!(byte & 0X40)) {
       if (first) break;
-      character = (character << 6) | (byte & 0X3F);
-      if (!--state) break;
-    } else if (!first) {
-      goto truncated;
-    } else {
-      if (!(byte & 0X20)) {
-        state = 1;
-      } else if (!(byte & 0X10)) {
-        state = 2;
-      } else if (!(byte & 0X08)) {
-        state = 3;
-      } else if (!(byte & 0X04)) {
-        state = 4;
-      } else if (!(byte & 0X02)) {
-        state = 5;
-      } else {
-        character = initial;
+      cp = (cp << 6) | (byte & 0X3F);
+
+      if (!--state) {
+        ok = 1;
         break;
       }
+    } else {
+      if (!first) goto unexpected;
 
-      character = byte & ((1 << (6 - state)) - 1);
+      state = 1;
+      uint8_t bit = 0X20;
+
+      while (byte & bit) {
+        if (!(bit >>= 1)) break;
+        state += 1;
+      }
+
+      cp = byte & ((1 << (6 - state)) - 1);
     }
+
+    first = 0;
   }
 
   while (*utfs) {
     if ((**utf8 & 0XC0) != 0X80) break;
-    (*utf8) += 1;
-    (*utfs) -= 1;
-    character = initial;
+    ok = 0;
+
+    *utf8 += 1;
+    *utfs -= 1;
   }
 
-  if (character == initial) goto error;
-  if (character > WCHAR_MAX) character = UNICODE_REPLACEMENT_CHARACTER;
-  return character;
+  if (!ok) goto error;
+  *codepoint = cp;
+  return 1;
 
-truncated:
-  (*utf8) -= 1;
-  (*utfs) += 1;
+unexpected:
+  *utf8 -= 1;
+  *utfs += 1;
 error:
-  return WEOF;
+  return 0;
+}
+
+size_t
+convertWcharToUtf8 (wchar_t character, Utf8Buffer utf8) {
+  return convertCodepointToUtf8(character, utf8);
+}
+
+wint_t
+convertUtf8ToWchar (const char **utf8, size_t *utfs) {
+  uint32_t codepoint;
+  int ok = convertUtf8ToCodepoint(&codepoint, utf8, utfs);
+  if (!ok) return WEOF;
+
+  if (codepoint > WCHAR_MAX) codepoint = UNICODE_REPLACEMENT_CHARACTER;
+  return codepoint;
 }
 
 void
@@ -245,7 +267,13 @@ writeUtf8Characters (FILE *stream, const wchar_t *characters, size_t count) {
 
 int
 writeUtf8ByteOrderMark (FILE *stream) {
-  return writeUtf8Character(stream, UNICODE_BYTE_ORDER_MARK);
+#if UNICODE_BYTE_ORDER_MARK <= WCHAR_MAX
+  if (!writeUtf8Character(stream, UNICODE_BYTE_ORDER_MARK)) {
+    return 0;
+  }
+#endif /* UNICODE_BYTE_ORDER_MARK <= WCHAR_MAX */
+
+  return 1;
 }
 
 int

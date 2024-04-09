@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -69,12 +69,13 @@ extern void makeInputTable (void);
 extern void *translateInputCells (unsigned char *target, const unsigned char *source, size_t count);
 extern unsigned char translateInputCell (unsigned char cell);
 
-#define MAKE_OUTPUT_TABLE(dot1, dot2, dot3, dot4, dot5, dot6, dot7, dot8) { \
+#define MAKE_OUTPUT_TABLE(dot1, dot2, dot3, dot4, dot5, dot6, dot7, dot8) \
+do { \
   static const DotsTable dots = { \
     (dot1), (dot2), (dot3), (dot4), (dot5), (dot6), (dot7), (dot8) \
   }; \
   makeOutputTable(dots); \
-}
+} while (0)
 
 extern int awaitBrailleInput (BrailleDisplay *brl, int timeout);
 
@@ -121,11 +122,22 @@ extern int writeBraillePacket (
 
 extern int writeBrailleMessage (
   BrailleDisplay *brl, GioEndpoint *endpoint,
-  int type,
+  unsigned int type,
   const void *packet, size_t size
 );
 
 extern int acknowledgeBrailleMessage (BrailleDisplay *brl);
+extern void endBrailleMessages (BrailleDisplay *brl);
+
+typedef struct {
+  size_t *input;
+  size_t *output;
+  size_t *feature;
+  unsigned char identifier;
+} BrailleReportSizeEntry;
+
+extern int getBrailleReportSizes (BrailleDisplay *brl, const BrailleReportSizeEntry *table);
+extern int getBrailleReportSize (BrailleDisplay *brl, unsigned char identifier, HidReportSize *size);
 
 typedef int BrailleRequestWriter (BrailleDisplay *brl);
 

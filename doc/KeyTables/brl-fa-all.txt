@@ -1,0 +1,126 @@
+Key Table: Frank Audiodata
+==========================
+
+Notes
+* RoutingKey means any of the small keys just behind each of the text cells.
+* From left to right:
+  + The three convex keys to the left of the routing keys are: F1, F2, F3.
+  + The three convex keys to the right of the routing keys are: F4, F5, F6.
+  + The three concave keys at the left along the front are: K1, K2, K3.
+  + The three concave keys in the middle along the front are: K4, K5, K6.
+  + The three concave keys at the right along the front are: K7, K8, K9.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: F1
+* enter/leave command learn mode: F3
+* enter/leave preferences menu: F2
+* enter/leave status display: F1+F3
+* set display mode attributes/text: F5+F6
+* set screen image frozen/unfrozen: F4+F5+F6
+* describe character: F4+RoutingKey
+* show current date and time: F1+F2+F3
+
+Cursor Functions
+* go to screen cursor: K5
+* go back after cursor tracking: long K5
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: K4+K5+K6
+
+Vertical Navigation
+* go up one line: K7
+* go down one line: K9
+* go to top line: K8+K7
+* go to bottom line: K8+K9
+* go to beginning of top line: K1+K8+K7
+* go to beginning of bottom line: K1+K8+K9
+* go up to nearest line with different content: K2+K7
+* go down to nearest line with different content: K2+K9
+* go up to nearest line with different highlighting: K2+K8+K7
+* go down to nearest line with different highlighting: K2+K8+K9
+* go up to first line of paragraph: K3+K7
+* go down to first line of next paragraph: K3+K9
+* go up to previous command prompt: K1+K7
+* go down to next command prompt: K1+K9
+* go up to nearest line with less indent than character: K7+RoutingKey
+* go down to nearest line with less indent than character: K9+RoutingKey
+* go up to nearest line with different character: K8+K7+RoutingKey
+* go down to nearest line with different character: K8+K9+RoutingKey
+* go to selected line + scaled: Slider
+
+Horizontal Navigation
+* go backward one braille window: K4
+* go forward one braille window: K6
+* go backward skipping blank braille windows: K2+K4
+* go forward skipping blank braille windows: K2+K6
+* go backward to nearest non-blank braille window: K3+K4
+* go forward to nearest non-blank braille window: K3+K6
+* go to beginning of line: K5+K4
+* go to end of line: K5+K6
+* go left one character: K1+K5+K4
+* go right one character: K1+K5+K6
+* go left half a braille window: K1+K4
+* go right half a braille window: K1+K6
+* place left end of braille window at character: F3+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: F1+RoutingKey
+* linear copy to character: F6+RoutingKey
+* rectangular copy to character: F5+RoutingKey
+* copy characters to clipboard: RoutingKey+RoutingKey
+* append characters to clipboard: F2+RoutingKey
+* insert clipboard text after screen cursor: K7+K8+K9
+* search backward for clipboard text: K3+K5+K4
+* search forward for clipboard text: K3+K5+K6
+* save clipboard to disk: K2+K5+K6
+* restore clipboard from disk: K2+K5+K4
+
+Configuration Functions
+* set autorepeat on/off: F4+F6
+* set text style 6-dot/8-dot: F6
+* set skipping of lines with identical content on/off: K7+K9
+* set skipping of blank braille windows on/off: K4+K6
+* set track screen cursor on/off: F5
+* set screen cursor visibility on/off: F4
+* set attribute underlining on/off: F5+F4
+
+Menu Operations
+* save preferences to disk: F2+F3
+* restore preferences from disk: F2+F1
+
+Speech Functions
+* stop speaking: long K8
+* speak current line: K8
+* speak from top of screen through current line: K8+K4
+* speak from current line through bottom of screen: K8+K6
+* go to current speaking position: K8+K5
+* decrease speaking volume: K8+K1
+* increase speaking volume: K8+K3
+* decrease speaking rate: K8+K2+K1
+* increase speaking rate: K8+K2+K3
+* set autospeak on/off: K8+K2
+
+Keyboard Input
+* function key: F4+F5+F6+RoutingKey
+* switch to specific virtual terminal: F4+F6+RoutingKey
+* switch to the previous virtual terminal: F4+F6+F1
+* switch to the next virtual terminal: F4+F6+F3
+
+Special Functions
+* remember current braille window position: F4+F5+RoutingKey
+* go to remembered braille window position: F5+F6+RoutingKey
+
+Menu Bindings
+-------------
+
+Menu Operations
+* go up to previous item: F4
+* go down to next item: F6
+* go up to first item: F5+F4
+* go down to last item: F5+F6
+* select previous choice: F4+F6
+* select next choice: F5
+* go to previous menu level: F4+F5+F6
+

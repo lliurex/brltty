@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,8 +19,8 @@
 #ifndef BRLTTY_INCLUDED_IO_BLUETOOTH
 #define BRLTTY_INCLUDED_IO_BLUETOOTH
 
+#include "async_types_io.h"
 #include "strfmth.h"
-#include "async_io.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,22 +30,23 @@ typedef struct BluetoothConnectionStruct BluetoothConnection;
 
 extern void bthForgetDevices (void);
 
-extern char *bthGetNameOfDevice (BluetoothConnection *connection, int timeout);
-extern char *bthGetNameAtAddress (const char *address, int timeout);
+extern const char *bthGetNameOfDevice (BluetoothConnection *connection, int timeout);
+extern const char *bthGetNameAtAddress (const char *address, int timeout);
 extern const char *const *bthGetDriverCodes (const char *address, int timeout);
 
 typedef struct {
   const char *driver;
-  const char *identifier;
+  uint64_t address;
   int timeout;
   uint8_t channel;
-  unsigned discover:1;
+  unsigned char discover:1;
 } BluetoothConnectionRequest;
 
 extern void bthInitializeConnectionRequest (BluetoothConnectionRequest *request);
+extern int bthApplyParameters (BluetoothConnectionRequest *request, const char *identifier);
+
 extern int bthParseAddress (uint64_t *address, const char *string);
 extern int bthParseChannelNumber (uint8_t *channel, const char *string);
-
 extern STR_DECLARE_FORMATTER (bthFormatAddress, uint64_t address);
 
 extern BluetoothConnection *bthOpenConnection (const BluetoothConnectionRequest *request);

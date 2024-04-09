@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,7 +23,7 @@
 
 #include "log.h"
 #include "crc_generate.h"
-#include "async.h"
+#include "async_handle.h"
 #include "async_alarm.h"
 #include "timing.h"
 
@@ -71,10 +71,12 @@ BEGIN_KEY_TABLE_LIST
 END_KEY_TABLE_LIST
 
 typedef struct {
-  unsigned char hasChanged:1;
-
   unsigned char force;
-  unsigned char cells[];
+  unsigned char haveOldCells:1;
+  unsigned char haveNewCells:1;
+
+  unsigned char *oldCells;
+  unsigned char newCells[];
 } RowEntry;
 
 typedef BrailleResponseResult ProbeResponseHandler (
@@ -313,7 +315,8 @@ allocateRowEntries (BrailleDisplay *brl) {
 
   for (unsigned int index=0; index<brl->textRows; index+=1) {
     RowEntry **row = &(*rowEntries)[index];
-    size_t size = sizeof(**row) + brl->textColumns;
+    size_t rowLength = brl->textColumns;
+    size_t size = sizeof(**row) + (rowLength * 2);
 
     if (!(*row = malloc(size))) {
       logMallocError();
@@ -323,6 +326,7 @@ allocateRowEntries (BrailleDisplay *brl) {
 
     memset(*row, 0, size);
     (*row)->force = 1;
+    (*row)->oldCells = (*row)->newCells + rowLength;
   }
 
   return 1;
@@ -330,15 +334,18 @@ allocateRowEntries (BrailleDisplay *brl) {
 
 static void
 setRowHasChanged (BrailleDisplay *brl, unsigned int index) {
-  getRowEntry(brl, index)->hasChanged = 1;
+  getRowEntry(brl, index)->haveNewCells = 1;
+  logMessage(LOG_CATEGORY(BRAILLE_DRIVER), "row has changed: %u", index);
 
   if (index < brl->data->window.firstChangedRow) {
+    logMessage(LOG_CATEGORY(BRAILLE_DRIVER), "first changed row: %u", index);
     brl->data->window.firstChangedRow = index;
   }
 }
 
 static void
 resendRow (BrailleDisplay *brl) {
+  logMessage(LOG_CATEGORY(BRAILLE_DRIVER), "resending row: %u", brl->data->window.lastRowSent);
   setRowHasChanged(brl, brl->data->window.lastRowSent);
 }
 
@@ -606,7 +613,7 @@ brl_writeWindow (BrailleDisplay *brl, const wchar_t *text) {
   for (unsigned int index=0; index<brl->textRows; index+=1) {
     RowEntry *row = getRowEntry(brl, index);
 
-    if (cellsHaveChanged(row->cells, cells, length, NULL, NULL, &row->force)) {
+    if (cellsHaveChanged(row->newCells, cells, length, NULL, NULL, &row->force)) {
       setRowHasChanged(brl, index);
     }
 
@@ -625,7 +632,9 @@ startUpdate (BrailleDisplay *brl) {
     brl->data->window.firstChangedRow = 0;
 
     for (unsigned int index=0; index<brl->textRows; index+=1) {
-      getRowEntry(brl, index)->hasChanged = 1;
+      RowEntry *row = getRowEntry(brl, index);
+      row->haveNewCells = 1;
+      row->haveOldCells = 0;
     }
 
     writeSimpleCommand(brl, CN_CMD_RESET_CELLS);
@@ -635,21 +644,34 @@ startUpdate (BrailleDisplay *brl) {
   while (brl->data->window.firstChangedRow < brl->textRows) {
     RowEntry *row = getRowEntry(brl, brl->data->window.firstChangedRow);
 
-    if (row->hasChanged) {
+    if (row->haveNewCells) {
       unsigned int length = brl->textColumns;
-      unsigned char packet[2 + length];
-      unsigned char *byte = packet;
 
-      *byte++ = CN_CMD_SEND_ROW;
-      *byte++ = brl->data->window.firstChangedRow;
-      byte = translateOutputCells(byte, row->cells, length);
-
-      if (writePacket(brl, packet, (byte - packet))) {
-        row->hasChanged = 0;
-        brl->data->window.lastRowSent = brl->data->window.firstChangedRow++;
+      if (row->haveOldCells) {
+        if (memcmp(row->newCells, row->oldCells, length) == 0) {
+          row->haveNewCells = 0;
+        }
       }
 
-      return 1;
+      if (row->haveNewCells) {
+        unsigned char packet[2 + length];
+        unsigned char *byte = packet;
+
+        *byte++ = CN_CMD_SEND_ROW;
+        *byte++ = brl->data->window.firstChangedRow;
+        byte = translateOutputCells(byte, row->newCells, length);
+
+        size_t size = byte - packet;
+        logBytes(LOG_CATEGORY(BRAILLE_DRIVER), "sending row: %u", packet, size, brl->data->window.firstChangedRow);
+
+        if (writePacket(brl, packet, size)) {
+          row->haveNewCells = 0;
+          brl->data->window.lastRowSent = brl->data->window.firstChangedRow++;
+          memcpy(row->oldCells, row->newCells, length);
+        }
+
+        return 1;
+      }
     }
 
     brl->data->window.firstChangedRow += 1;
@@ -692,9 +714,17 @@ brl_readCommand (BrailleDisplay *brl, KeyTableCommandContext context) {
         brl->data->status.flags = result;
         continue;
 
-      case CN_CMD_SEND_ROW:
-        motorsTime = ROW_UPDATE_TIME;
+      case CN_CMD_SEND_ROW: {
+        RowEntry *row = getRowEntry(brl, brl->data->window.lastRowSent);
+
+        if (row->haveOldCells) {
+          motorsTime = ROW_UPDATE_TIME;
+        } else {
+          row->haveOldCells = 1;
+        }
+
         break;
+      }
 
       case CN_CMD_RESET_CELLS:
         motorsTime = CELLS_RESET_TIME;

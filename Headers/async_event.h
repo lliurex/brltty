@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,21 +19,11 @@
 #ifndef BRLTTY_INCLUDED_ASYNC_EVENT
 #define BRLTTY_INCLUDED_ASYNC_EVENT
 
-#include "async.h"
+#include "async_types_event.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-typedef struct AsyncEventStruct AsyncEvent;
-
-typedef struct {
-  void *eventData;
-  void *signalData;
-} AsyncEventCallbackParameters;
-
-#define ASYNC_EVENT_CALLBACK(name) void name (const AsyncEventCallbackParameters *parameters)
-typedef ASYNC_EVENT_CALLBACK(AsyncEventCallback);
 
 extern AsyncEvent *asyncNewEvent (AsyncEventCallback *callback, void *data);
 extern void asyncDiscardEvent (AsyncEvent *event);

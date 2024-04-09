@@ -1,0 +1,90 @@
+Key Table: Hedo ProfiLine
+=========================
+
+Notes
+* The keys behind the text cells are named routing keys.
+* The rectangular navigation keys are named K1 through K3.
+* The square navigation keys are named B1 through B8.
+* From left to right, the navigation keys are: K1 B7 B3 B2 B1 K1 K2 K3 B4 B5 B6 B8 K3
+* Both K1 keys are hard-wired together.
+* Both K3 keys are hard-wired together.
+* The K2 and B1 keys are hard-wired together.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: K2+K1
+* enter/leave command learn mode: K2+K3
+* enter/leave preferences menu: K1+K3
+* enter/leave status display: B6+K3
+* set display mode attributes/text: B7+K2
+* set display mode attributes: B7+K2+K3
+* set display mode text: B7+K2+K1
+* set screen image frozen/unfrozen: B5+K2
+* set screen image frozen: B5+K2+K3
+* set screen image unfrozen: B5+K2+K1
+* describe character: K2+RoutingKey
+* show current date and time: B6+K1
+
+Cursor Functions
+* go to screen cursor: K2
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: B5+K3
+
+Vertical Navigation
+* go up one line: B3
+* go down one line: B6
+* go to top line: B7
+* go to bottom line: B8
+* go up to nearest line with different content: B2
+* go down to nearest line with different content: B5
+* go up to nearest line with different highlighting: B2+B7
+* go down to nearest line with different highlighting: B5+B8
+* go up to first line of paragraph: B2+B3
+* go down to first line of next paragraph: B5+B6
+* go up to previous command prompt: B3+B7
+* go down to next command prompt: B6+B8
+* go up to nearest line with less indent than character: B2+RoutingKey
+* go down to nearest line with less indent than character: B5+RoutingKey
+
+Horizontal Navigation
+* go backward one braille window: K1
+* go forward one braille window: K3
+* go backward skipping blank braille windows: B3+K1
+* go forward skipping blank braille windows: B3+K3
+* go to beginning of line: B7+K1
+* go to end of line: B7+K3
+* go left one character: B2+K1
+* go right one character: B2+K3
+* place left end of braille window at character: K1+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: B7+RoutingKey
+* append to clipboard from character: B3+RoutingKey
+* linear copy to character: B8+RoutingKey
+* rectangular copy to character: B6+RoutingKey
+* insert clipboard text after screen cursor: B5+K1
+* search backward for clipboard text: B2+B3+B7
+* search forward for clipboard text: B5+B6+B8
+* save clipboard to disk: B8+K3
+* restore clipboard from disk: B8+K1
+
+Configuration Functions
+* set text style 6-dot/8-dot: B2+K2
+* set text style 6-dot: B2+K2+K3
+* set text style 8-dot: B2+K2+K1
+* set track screen cursor on/off: B3+K2
+* set track screen cursor on: B3+K2+K3
+* set track screen cursor off: B3+K2+K1
+* set screen cursor visibility on/off: B6+K2
+* set screen cursor visibility on: B6+K2+K3
+* set screen cursor visibility off: B6+K2+K1
+* set attribute underlining on/off: B8+K2
+* set attribute underlining on: B8+K2+K3
+* set attribute underlining off: B8+K2+K1
+
+Menu Operations
+* save preferences to disk: K1+K3+B5
+* restore preferences from disk: K1+K3+B2
+

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,6 +23,7 @@
 #include "log.h"
 #include "charset_internal.h"
 #include "lock.h"
+#include "file.h"
 #include "program.h"
 
 int
@@ -182,4 +183,54 @@ void
 unlockCharset (void) {
   LockDescriptor *lock = getCharsetLock();
   if (lock) releaseLock(lock);
+}
+
+static int
+testFileExists (const char *directory, char *name, PathMaker *pathMaker) {
+  int exists = 0;
+  char *path;
+
+  if ((path = pathMaker(directory, name))) {
+    if (testFilePath(path)) exists = 1;
+    free(path);
+  }
+
+  return exists;
+}
+
+char *
+getFileForLocale (const char *directory, PathMaker *pathMaker) {
+  char *locale = getLocaleName();
+
+  if (locale) {
+    char name[strlen(locale) + 1];
+
+    {
+      size_t length = strcspn(locale, ".@");
+      strncpy(name, locale, length);
+      name[length] = 0;
+    }
+
+    free(locale);
+    locale = NULL;
+
+    if (isPosixLocale(name)) {
+      name[0] = 0;
+    } else if (!testFileExists(directory, name, pathMaker)) {
+      char *delimiter = strchr(name, '_');
+
+      if (delimiter) {
+        *delimiter = 0;
+        if (!testFileExists(directory, name, pathMaker)) name[0] = 0;
+      }
+    }
+
+    if (name[0]) {
+      char *file = strdup(name);
+      if (file) return file;
+      logMallocError();
+    }
+  }
+
+  return NULL;
 }

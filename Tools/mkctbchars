@@ -1,0 +1,91 @@
+#!/usr/bin/env tclsh
+###############################################################################
+# BRLTTY - A background process providing access to the console screen (when in
+#          text mode) for a blind person using a refreshable braille display.
+#
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
+#
+# BRLTTY comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+source [file join [file dirname [info script]] ".." "prologue.tcl"]
+source [file join $scriptDirectory braille.tcl]
+
+set optionDefinitions {
+}
+
+set inputStream stdin
+set outputStream stdout
+processProgramArguments optionValues $optionDefinitions
+
+proc processCharacter {text braille description} {
+   if {[string length $text] == 1} {
+      set codepoint [brlCharacterToCodepoint $text]
+   } else {
+      set codepoint [brlHexadecimalToDecimal $text]
+      set text [brlCodepointToCharacter $codepoint]
+   }
+
+   set numbers ""
+   set cells ""
+
+   foreach character [split $braille ""] {
+      if {[string length $numbers] > 0} {
+         append numbers "-"
+      }
+
+      set dots [brlCharacterToDots $character]
+      append numbers $dots
+      append cells [brlDotsToCharacter $dots]
+   }
+
+   global outputStream
+   puts $outputStream "always\t[brlFormatCodepoint $codepoint]\t$numbers\t# $text $cells\t$description"
+}
+
+proc processInput {} {
+   global inputStream
+
+   while {[gets $inputStream line] >= 0} {
+      set line [string trim $line]
+
+      if {[string length $line] == 0} {
+         continue
+      }
+
+      if {[string index $line 0] == "#"} {
+         continue
+      }
+
+      regsub -all {\s+} $line " " line
+      set description [join [lassign [split $line " "] text braille] " "]
+
+      if {[string length $text] == 0} {
+         set problem "missing textual representation"
+      } elseif {[string length $braille] == 0} {
+         set problem "missing braille representation"
+      } elseif {[string length $description] == 0} {
+         set problem "missing character description"
+      } else {
+         try {
+            processCharacter $text $braille $description
+            continue
+         } trap [list $::brlErrorCategory] {problem} {
+         }
+      }
+
+      writeProgramMessage "$problem: $line"
+   }
+}
+
+processInput
+exit 0

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,8 +19,9 @@
 #ifndef BRLTTY_INCLUDED_USB_INTERNAL
 #define BRLTTY_INCLUDED_USB_INTERNAL
 
-#include "bitfield.h"
+#include "usb_types.h"
 #include "queue.h"
+#include "async_io.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +37,7 @@ typedef struct UsbEndpointExtensionStruct UsbEndpointExtension;
 
 struct UsbEndpointStruct {
   UsbDevice *device;
+  const UsbInterfaceDescriptor *interface;
   const UsbEndpointDescriptor *descriptor;
   UsbEndpointExtension *extension;
   int (*prepare) (UsbEndpoint *endpoint);
@@ -81,9 +83,14 @@ struct UsbDeviceStruct {
   const UsbInterfaceDescriptor *interface;
   Queue *endpoints;
   Queue *inputFilters;
+
   uint16_t language;
-  unsigned resetDevice:1;
-  unsigned disableEndpointReset:1;
+  unsigned char resetDevice:1;
+  unsigned char disableEndpointReset:1;
+
+  struct {
+    const UsbInterfaceDescriptor *endpointInterfaceDescriptor;
+  } scratch;
 };
 
 extern UsbDevice *usbTestDevice (

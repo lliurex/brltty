@@ -1,0 +1,283 @@
+Key Table: Alva BC680
+=====================
+
+Notes
+* There are four ETouch keys, two at each end of the text cell area.
+  Each is subnamed according to the side it's on (Left, Right),
+  and according to its position on that side (Rear, Front).
+  The two Rear keys are identified by two vertical bars.
+  The two Front keys are identified by one horizontal bar.
+* There are two Smartpads in front of the text cell area.
+  The outer key on the left, identified by three horizontal bars, is subnamed F1.
+  The inner key on the left, identified by one horizontal bar, is subnamed F2.
+  The inner key on the right, identified by one vertical bar, is subnamed F3.
+  The outer key on the right, identified by three vertical bars, is subnamed F4.
+  The keys in the middle form a five-way directional pad:
+  + The round key in the middle is subnamed Enter.
+  + The short, thin keys that form a square around it are subnamed Left, Right, Up, and Down.
+* There's a group of five Thumb keys at each end of the front.
+  The outer key of each group is subnamed Home.
+  The four inner keys of each group, from left to right, are subnamed:
+  Left, Up, Down, Right.
+  The Home key is identified by a vertical bar in the middle.
+  The Left key is identified by a vertical bar near its left edge.
+  The Right key is identified by a vertical bar near its right edge.
+  The Up key is identified by a horizontal bar along its top edge.
+  The Down key is identified by a horizontal bar along its bottom edge.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display:
+  + ETouchLeftRear+ETouchRightRear
+  + Space+Dots125
+* enter/leave command learn mode:
+  + ETouchLeftRear+ETouchRightFront
+  + Space+Dots123
+* enter/leave preferences menu:
+  + ETouchLeftFront+ETouchRightFront
+  + Space+Dots1234
+* enter/leave status display:
+  + ETouchLeftFront+ETouchRightRear
+  + Space+Dots234
+* set display mode attributes/text:
+  + ETouchLeftRear+ETouchRightRear+ETouchRightFront
+  + Space+Dots145
+* set display mode attributes: Space+Dots1458
+* set display mode text: Space+Dots1457
+* set screen image frozen/unfrozen:
+  + ETouchLeftRear+ETouchLeftFront+ETouchRightRear
+  + Space+Dots124
+* set screen image frozen: Space+Dots1248
+* set screen image unfrozen: Space+Dots1247
+* describe character: ETouchLeftRear+ETouchLeftFront+RoutingKey1
+* show current date and time: SmartpadF2
+
+Cursor Functions
+* go to screen cursor or go back after cursor tracking: ThumbHome
+* bring screen cursor to character: RoutingKey1
+* bring screen cursor to current line:
+  + ThumbLeft+ThumbRight
+  + Space+Dots1236
+
+Vertical Navigation
+* go up one line: ThumbUp
+* go down one line: ThumbDown
+* go to beginning of top line: ThumbLeft+ThumbUp
+* go to beginning of bottom line: ThumbLeft+ThumbDown
+* go up to nearest line with different content: ThumbHome+ThumbUp
+* go down to nearest line with different content: ThumbHome+ThumbDown
+* go up to nearest line with different highlighting: ThumbRight+ThumbUp
+* go down to nearest line with different highlighting: ThumbRight+ThumbDown
+* go up to first line of paragraph: ETouchLeftFront+ThumbUp
+* go down to first line of next paragraph: ETouchLeftFront+ThumbDown
+* go up to previous command prompt: ETouchLeftRear+ThumbUp
+* go down to next command prompt: ETouchLeftRear+ThumbDown
+* go up to nearest line with less indent than character: ThumbLeft+RoutingKey1
+* go down to nearest line with less indent than character: ThumbRight+RoutingKey1
+* go up to nearest line with different character: ThumbUp+RoutingKey1
+* go down to nearest line with different character: ThumbDown+RoutingKey1
+
+Horizontal Navigation
+* go backward one braille window: ThumbLeft
+* go forward one braille window: ThumbRight
+* go backward skipping blank braille windows: ThumbHome+ThumbLeft
+* go forward skipping blank braille windows: ThumbHome+ThumbRight
+* go to beginning of line: ETouchLeftRear
+* go to end of line: ETouchRightRear
+* go left one character: ETouchLeftFront
+* go right one character: ETouchRightFront
+* place left end of braille window at character: ThumbHome+RoutingKey1
+
+Clipboard Functions
+* start new clipboard at character: ETouchLeftRear+RoutingKey1
+* append to clipboard from character: ETouchLeftFront+RoutingKey1
+* linear copy to character: ETouchRightRear+RoutingKey1
+* rectangular copy to character: ETouchRightFront+RoutingKey1
+* copy characters to clipboard: RoutingKey1+RoutingKey1
+* insert clipboard text after screen cursor:
+  + SmartpadEnter
+  + ETouchRightRear+ETouchRightFront
+  + Space+Dots1346
+* search backward for clipboard text: ETouchRightRear+ThumbUp
+* search forward for clipboard text: ETouchRightRear+ThumbDown
+* save clipboard to disk: Space+Dots13468
+* restore clipboard from disk: Space+Dots13467
+
+Configuration Functions
+* set autorepeat on/off: Space+Dots1235
+* set autorepeat on: Space+Dots12358
+* set autorepeat off: Space+Dots12357
+* set text style 6-dot/8-dot: ThumbLeft+ETouchRightFront
+* set contracted/computer braille: Space+Dots1245
+* set contracted braille: Space+Dots12458
+* set computer braille: Space+Dots12457
+* set six dot computer braille: Space+Dots235
+* set eight dot computer braille: Space+Dots236
+* set skipping of lines with identical content on/off: Space+Dots24
+* set skipping of lines with identical content on: Space+Dots248
+* set skipping of lines with identical content off: Space+Dots247
+* set skipping of blank braille windows on/off: Space+Dots12
+* set skipping of blank braille windows on: Space+Dots128
+* set skipping of blank braille windows off: Space+Dots127
+* set sliding braille window on/off: Space+Dots2456
+* set sliding braille window on: Space+Dots24568
+* set sliding braille window off: Space+Dots24567
+* set track screen cursor on/off: Space+Dots2345
+* set track screen cursor on:
+  + ThumbUp+ThumbDown
+  + Space+Dots23458
+* set track screen cursor off:
+  + ThumbDown+ThumbUp
+  + Space+Dots23457
+* set screen cursor visibility on/off:
+  + ThumbLeft+ETouchLeftRear
+  + Space+Dots14
+* set screen cursor visibility on: Space+Dots148
+* set screen cursor visibility off: Space+Dots147
+* set attribute underlining on/off:
+  + ThumbLeft+ETouchLeftFront
+  + Space+Dots136
+* set attribute underlining on: Space+Dots1368
+* set attribute underlining off: Space+Dots1367
+
+Menu Operations
+* save preferences to disk: Space+Dots12348
+* restore preferences from disk: Space+Dots12347
+* reset preferences to defaults: Space+Dots123478
+
+Speech Functions
+* stop speaking: SmartpadF3+SmartpadF4
+* speak current line: SmartpadF3+SmartpadRight
+* speak from top of screen through current line: SmartpadF3+SmartpadUp
+* speak from current line through bottom of screen: SmartpadF3+SmartpadDown
+* go to current speaking position: SmartpadF3+SmartpadEnter
+* decrease speaking volume: SmartpadF4+SmartpadDown
+* increase speaking volume: SmartpadF4+SmartpadUp
+* decrease speaking rate: SmartpadF4+SmartpadLeft
+* increase speaking rate: SmartpadF4+SmartpadRight
+* set autospeak on/off: SmartpadF4+SmartpadEnter
+
+Keyboard Input
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot7: Dot7
+* braille keyboard dot8: Dot8
+* braille keyboard control: Control
+* braille keyboard space: Space
+* braille keyboard meta: Alt
+* type braille dots [7]: Space+Dot7
+* type braille dots [8]: Space+Dot8
+* backspace key: Dot7
+* escape key:
+  + Windows
+  + Space+Dots26
+* cursor-left key:
+  + SmartpadLeft
+  + Space+Dot3
+* cursor-right key:
+  + SmartpadRight
+  + Space+Dot6
+* cursor-up key:
+  + SmartpadUp
+  + Space+Dot1
+* cursor-down key:
+  + SmartpadDown
+  + Space+Dot4
+* page-up key:
+  + SmartpadF2+SmartpadUp
+  + Space+Dots23
+* page-down key:
+  + SmartpadF2+SmartpadDown
+  + Space+Dots56
+* home key:
+  + SmartpadF2+SmartpadLeft
+  + Space+Dot2
+* end key:
+  + SmartpadF2+SmartpadRight
+  + Space+Dot5
+* insert key:
+  + SmartpadF1+SmartpadEnter
+  + Space+Dots35
+* delete key:
+  + SmartpadF2+SmartpadEnter
+  + Space+Dots256
+* function key: SmartpadF2+RoutingKey1
+* enter key:
+  + Dot8
+  + Enter
+* tab key: Space+Dots45
+* clear all sticky input modifiers: Space+Dots78
+* cycle the Upper sticky input modifier (next, on, off): Space+Dots68
+* cycle the Shift sticky input modifier (next, on, off): Space+Dots48
+* cycle the Control sticky input modifier (next, on, off): Space+Dots38
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Space+Dots28
+* cycle the AltGr (Right Alt) sticky input modifier (next, on, off): Space+Dots58
+* cycle the GUI (Windows) sticky input modifier (next, on, off): Space+Dots18
+* switch to specific virtual terminal: SmartpadF1+RoutingKey1
+* switch to the previous virtual terminal:
+  + SmartpadF1+SmartpadLeft
+  + Space+Dots12367
+* switch to the next virtual terminal:
+  + SmartpadF1+SmartpadRight
+  + Space+Dots12368
+* set braille keyboard enabled: Space+Dots138
+* set braille keyboard disabled: Space+Dots137
+* set braille typing mode dots: Space+Dots468
+* set braille typing mode text: Space+Dots467
+
+Special Functions
+* restart braille driver: SmartpadF1+SmartpadF2+SmartpadEnter
+* restart speech driver: SmartpadF3+SmartpadF4+SmartpadEnter
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu:
+  + SmartpadF1
+  + ThumbHome
+  + Dot8
+
+Horizontal Navigation
+* go backward one braille window: ThumbLeft
+* go forward one braille window: ThumbRight
+
+Menu Operations
+* go up to previous item:
+  + SmartpadUp
+  + ThumbUp
+  + Dot1
+* go down to next item:
+  + SmartpadDown
+  + ThumbDown
+  + Dot4
+* go up to first item:
+  + ETouchLeftRear
+  + Dot2
+* go down to last item:
+  + ETouchLeftFront
+  + Dot5
+* select previous choice:
+  + ETouchRightRear
+  + SmartpadLeft
+  + Dot3
+* select next choice:
+  + ETouchRightFront
+  + SmartpadRight
+  + Dot6
+* go to previous menu level:
+  + SmartpadF2
+  + Dot7
+* save preferences to disk:
+  + SmartpadEnter
+  + ETouchRightRear+ETouchRightFront
+* restore preferences from disk:
+  + SmartpadF4
+  + ETouchLeftRear+ETouchLeftFront
+

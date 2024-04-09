@@ -1,0 +1,98 @@
+Key Table: Navigator 40
+=======================
+
+Notes
+* The keys of the four-key pad on the left are named:
+* CursorLeft, CursorRight, CursorUp, CursorDown.
+* The keys of the four-key pad on the right are named:
+* NavLeft, NavRight, NavUp, NavDown.
+* The keys in between the pads are named: ThumbLeft, ThumbRight.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: CursorLeft+CursorRight
+* enter/leave command learn mode: CursorLeft+CursorRight+CursorUp+CursorDown
+* enter/leave preferences menu: NavLeft+NavRight
+* enter/leave status display: CursorUp+NavDown
+* set display mode attributes/text: CursorDown+NavUp+ThumbLeft
+* set screen image frozen/unfrozen: ThumbLeft+ThumbRight
+
+Cursor Functions
+* go to screen cursor: ThumbRight
+* go back after cursor tracking: ThumbRight+CursorUp
+* bring screen cursor to current line: CursorDown+NavDown
+
+Vertical Navigation
+* go up one line: NavUp
+* go down one line: NavDown
+* go to beginning of top line: NavLeft+NavUp
+* go to beginning of bottom line: NavLeft+NavDown
+* go up to nearest line with different content: ThumbRight+NavUp
+* go down to nearest line with different content: ThumbRight+NavDown
+* go up to nearest line with different highlighting: ThumbLeft+NavUp
+* go down to nearest line with different highlighting: ThumbLeft+NavDown
+* go up several lines: ThumbLeft+CursorUp
+* go down several lines: ThumbLeft+CursorDown
+
+Horizontal Navigation
+* go backward one braille window: NavLeft
+* go forward one braille window: NavRight
+* go to beginning of line: CursorUp+NavLeft
+* go to end of line: CursorUp+NavRight
+* go left one character: ThumbLeft+CursorLeft
+* go right one character: ThumbLeft+CursorRight
+* go left half a braille window: CursorUp+CursorLeft
+* go right half a braille window: CursorUp+CursorRight
+
+Configuration Functions
+* set text style 6-dot/8-dot: NavLeft+NavRight+CursorDown
+* set skipping of lines with identical content on/off:
+  + NavLeft+NavRight+NavDown+ThumbRight
+  + NavLeft+NavRight+NavDown+ThumbLeft
+* set sliding braille window on/off: NavLeft+NavRight+CursorLeft
+* set track screen cursor on/off: ThumbLeft
+* set screen cursor visibility on/off: NavLeft+NavRight+CursorUp
+* set screen cursor blinking on/off: NavLeft+NavRight+CursorUp+ThumbLeft
+* set attribute underlining on/off: CursorDown+NavUp
+* set attribute blinking on/off:
+  + NavLeft+NavRight+NavUp+ThumbLeft
+  + NavLeft+NavRight+CursorRight+ThumbLeft
+* set capital letter blinking on/off: NavLeft+NavRight+CursorDown+ThumbLeft
+* set alert tunes on/off: NavLeft+NavRight+CursorLeft+ThumbLeft
+
+Menu Operations
+* save preferences to disk: NavLeft+NavRight+ThumbRight
+* restore preferences from disk: NavLeft+NavRight+ThumbLeft+ThumbRight
+
+Speech Functions
+* stop speaking:
+  + NavRight+NavUp
+  + CursorRight+CursorUp+NavLeft+NavUp
+* speak current line:
+  + CursorRight+NavLeft
+  + NavRight+NavDown
+* speak from current line through bottom of screen: NavLeft+NavRight+NavDown
+* go to current speaking position: ThumbRight+NavRight
+
+Keyboard Input
+* cursor-left key: CursorLeft
+* cursor-right key: CursorRight
+* cursor-up key: CursorUp
+* cursor-down key: CursorDown
+
+Special Functions
+* restart speech driver: CursorUp+NavUp+NavLeft+NavRight
+
+Menu Bindings
+-------------
+
+Menu Operations
+* select previous choice:
+  + CursorUp
+  + ThumbLeft
+* select next choice:
+  + ThumbRight
+  + CursorDown
+

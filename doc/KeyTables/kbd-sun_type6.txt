@@ -1,0 +1,92 @@
+Key Table: Bindings for Sun Microsystems, Inc. Type 6 Keyboards
+===============================================================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display:
+  + ACTION_Help
+  + ControlLeft+ShiftLeft+KP0+KP7
+* enter/leave command learn mode:
+  + ControlLeft+ShiftLeft+KP0+KP9
+  + ControlLeft+ACTION_Help
+* enter/leave preferences menu: ControlLeft+ShiftLeft+KP0+KP2
+* enter/leave status display: ControlLeft+ShiftLeft+KP0+KP8
+* set screen image frozen/unfrozen: ACTION_Stop+ACTION_Again
+* set screen image frozen: ACTION_Stop
+* set screen image unfrozen: ACTION_Again
+* describe character at cursor: ControlLeft+KP0+KP5
+* show current date and time: KP0+T
+
+Cursor Functions
+* go to screen cursor: KP0+KPEnter
+* go back after cursor tracking: ControlLeft+ACTION_Undo
+* go to screen cursor or go back after cursor tracking: ACTION_Undo
+
+Vertical Navigation
+* go up one line: KP0+KP8
+* go down one line: KP0+KP2
+* go to beginning of top line: KP0+KP7
+* go to beginning of bottom line: KP0+KP1
+* go up to first line of paragraph: ControlLeft+KP0+KP8
+* go down to first line of next paragraph: ControlLeft+KP0+KP2
+* go up to previous command prompt: ShiftLeft+KP0+KP8
+* go down to next command prompt: ShiftLeft+KP0+KP2
+
+Horizontal Navigation
+* go to beginning of line: ShiftLeft+KP0+KP7
+* go to end of line: ShiftLeft+KP0+KP1
+
+Clipboard Functions
+* start new clipboard at character at cursor: KP0+KPDivide
+* append to clipboard from character at cursor: ControlLeft+KP0+KPPlus
+* linear copy to character at cursor: KP0+KPMultiply
+* rectangular copy to character at cursor: KP0+KPMinus
+* insert clipboard text after screen cursor:
+  + ACTION_Paste
+  + KP0+KPPlus
+* search backward for clipboard text: ControlLeft+ACTION_Find
+* search forward for clipboard text: ACTION_Find
+* save clipboard to disk: ShiftLeft+ACTION_Paste
+* restore clipboard from disk: ControlLeft+ACTION_Paste
+
+Configuration Functions
+* set track screen cursor on/off: KP0+KPPeriod
+* set alert tunes on/off: ControlLeft+MEDIA_Mute
+
+Menu Operations
+* save preferences to disk: ControlLeft+ShiftLeft+KP0+KP6
+* restore preferences from disk: ControlLeft+ShiftLeft+KP0+KP4
+
+Speech Functions
+* stop speaking:
+  + KP0+KP4
+  + MEDIA_Mute
+  + ControlLeft
+  + ControlRight
+* speak current line: KP0+KP5
+* speak from top of screen through current line: KP0+KP9
+* speak from current line through bottom of screen: KP0+KP3
+* decrease speaking volume: MEDIA_VolumeDown
+* increase speaking volume: MEDIA_VolumeUp
+* set autospeak on/off: KP0+KP6
+
+Special Functions
+* remember current braille window position #1: KP0+S
+* remember current braille window position #2: ControlRight+KP0+One
+* remember current braille window position #3: ControlRight+KP0+Two
+* remember current braille window position #4: ControlRight+KP0+Three
+* remember current braille window position #5: ControlRight+KP0+Four
+* go to remembered braille window position #1: KP0+G
+* go to remembered braille window position #2: KP0+One
+* go to remembered braille window position #3: KP0+Two
+* go to remembered braille window position #4: KP0+Three
+* go to remembered braille window position #5: KP0+Four
+* restart braille driver:
+  + ControlLeft+ShiftLeft+KP0+KP1
+  + ACTION_Power
+* restart speech driver:
+  + ControlLeft+ACTION_Power
+  + ControlLeft+ShiftLeft+KP0+KP3
+

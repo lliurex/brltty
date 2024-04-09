@@ -16,7 +16,7 @@ speech.$O: $(SRC_TOP)Headers/note_types.h
 speech.$O: $(SRC_TOP)Headers/notes.h
 speech.$O: $(SRC_TOP)Headers/pcm.h
 speech.$O: $(SRC_TOP)Headers/dynld.h
-speech.$O: $(SRC_TOP)Headers/async.h
+speech.$O: $(SRC_TOP)Headers/async_types_handle.h
 speech.$O: $(SRC_TOP)Headers/brl_types.h
 speech.$O: $(SRC_TOP)Headers/cmd.h
 speech.$O: $(SRC_TOP)Headers/cmd_types.h
@@ -24,6 +24,7 @@ speech.$O: $(SRC_TOP)Headers/ctb.h
 speech.$O: $(SRC_TOP)Headers/ctb_types.h
 speech.$O: $(SRC_TOP)Headers/driver.h
 speech.$O: $(SRC_TOP)Headers/gio_types.h
+speech.$O: $(SRC_TOP)Headers/hid_types.h
 speech.$O: $(SRC_TOP)Headers/ktb.h
 speech.$O: $(SRC_TOP)Headers/ktb_types.h
 speech.$O: $(SRC_TOP)Headers/pid.h

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,6 +25,7 @@
 #include "report.h"
 #include "api_control.h"
 #include "queue.h"
+#include "async_handle.h"
 #include "async_alarm.h"
 #include "brl_base.h"
 #include "brl_utils.h"
@@ -263,9 +264,9 @@ writeBraillePacket (
 
 typedef struct {
   GioEndpoint *endpoint;
-  int type;
+  unsigned int type;
   size_t size;
-  unsigned char packet[0];
+  unsigned char packet[];
 } BrailleMessage;
 
 static void
@@ -276,6 +277,14 @@ logBrailleMessage (BrailleMessage *msg, const char *action) {
 static void
 deallocateBrailleMessage (BrailleMessage *msg) {
   free(msg);
+}
+
+static void
+cancelBrailleMessageAlarm (BrailleDisplay *brl) {
+  if (brl->acknowledgements.alarm) {
+    asyncCancelRequest(brl->acknowledgements.alarm);
+    brl->acknowledgements.alarm = NULL;
+  }
 }
 
 static void setBrailleMessageAlarm (BrailleDisplay *brl);
@@ -305,11 +314,7 @@ writeNextBrailleMessage (BrailleDisplay *brl) {
     }
   }
 
-  if (brl->acknowledgements.alarm) {
-    asyncCancelRequest(brl->acknowledgements.alarm);
-    brl->acknowledgements.alarm = NULL;
-  }
-
+  cancelBrailleMessageAlarm(brl);
   return ok;
 }
 
@@ -363,7 +368,7 @@ deallocateBrailleMessageItem (void *item, void *data) {
 int
 writeBrailleMessage (
   BrailleDisplay *brl, GioEndpoint *endpoint,
-  int type,
+  unsigned int type,
   const void *packet, size_t size
 ) {
   if (brl->acknowledgements.alarm) {
@@ -407,6 +412,39 @@ writeBrailleMessage (
   }
 
   return 0;
+}
+
+void
+endBrailleMessages (BrailleDisplay *brl) {
+  cancelBrailleMessageAlarm(brl);
+
+  if (brl->acknowledgements.messages) {
+    deallocateQueue(brl->acknowledgements.messages);
+    brl->acknowledgements.messages = NULL;
+  }
+}
+
+int
+getBrailleReportSize (BrailleDisplay *brl, unsigned char identifier, HidReportSize *size) {
+  return gioGetHidReportSize(brl->gioEndpoint, identifier, size);
+}
+
+int
+getBrailleReportSizes (BrailleDisplay *brl, const BrailleReportSizeEntry *table) {
+  const BrailleReportSizeEntry *entry = table;
+
+  while (entry->identifier) {
+    HidReportSize size;
+    if (!getBrailleReportSize(brl, entry->identifier, &size)) return 0;
+
+    if (entry->input) *entry->input = size.input;
+    if (entry->output) *entry->output = size.output;
+    if (entry->feature) *entry->feature = size.feature;
+
+    entry += 1;
+  }
+
+  return 1;
 }
 
 int

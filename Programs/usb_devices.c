@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,11 +25,11 @@
 }
 
 const UsbDeviceEntry usbDeviceTable[] = {
-// BEGIN_USB_DEVICES
+// BEGIN_USB_BRAILLE_DEVICES
 
 // Device: 0403:6001
 // Generic Identifier
-// Vendor: Future Technology Devices International, Ltd
+// Vendor: Future Technology Devices International, Ltd.
 // Product: FT232 USB-Serial (UART) IC
 // Albatross [all models]
 // Cebra [all models]
@@ -38,6 +38,13 @@ const UsbDeviceEntry usbDeviceTable[] = {
 // Hedo [MobilLine]
 // MDV [all models]
 USB_DEVICE_ENTRY(0X0403, 0X6001, "at", "ce", "hd", "hm", "ht", "md"),
+
+// Device: 0403:6010
+// Generic Identifier
+// Vendor: Future Technology Devices International, Ltd
+// Product: FT2232C/D/H Dual UART/FIFO IC
+// DotPad [all models]
+USB_DEVICE_ENTRY(0X0403, 0X6010, "dp"),
 
 // Device: 0403:DE58
 // Hedo [MobilLine]
@@ -94,12 +101,16 @@ USB_DEVICE_ENTRY(0X0452, 0X0100, "mt"),
 USB_DEVICE_ENTRY(0X045E, 0X930A, "hm"),
 
 // Device: 045E:930B
-// HIMS [Braille Edge]
+// HIMS [Braille Edge and QBrailleXL]
 USB_DEVICE_ENTRY(0X045E, 0X930B, "hm"),
 
 // Device: 0483:A1D3
-// Baum [Orbit 20 (20 cells)]
+// Baum [Orbit Reader 20 (20 cells)]
 USB_DEVICE_ENTRY(0X0483, 0XA1D3, "bm"),
+
+// Device: 0483:A366
+// Baum [Orbit Reader 40 (40 cells)]
+USB_DEVICE_ENTRY(0X0483, 0XA366, "bm"),
 
 // Device: 06B0:0001
 // Alva [Satellite (5nn)]
@@ -283,7 +294,7 @@ USB_DEVICE_ENTRY(0X0F4E, 0X0111, "fs"),
 USB_DEVICE_ENTRY(0X0F4E, 0X0112, "fs"),
 
 // Device: 0F4E:0114
-// FreedomScientific [Focus Blue]
+// FreedomScientific [Focus 3+]
 USB_DEVICE_ENTRY(0X0F4E, 0X0114, "fs"),
 
 // Device: 10C4:EA60
@@ -313,6 +324,13 @@ USB_DEVICE_ENTRY(0X1209, 0XABC0, "ic"),
 // Canute [all models]
 USB_DEVICE_ENTRY(0X16C0, 0X05E1, "cn"),
 
+// Device: 1A86:7523
+// Generic Identifier
+// Vendor: Jiangsu QinHeng, Ltd.
+// Product: CH341 USB Bridge Controller
+// Baum [NLS eReader Zoomax (20 cells)]
+USB_DEVICE_ENTRY(0X1A86, 0X7523, "bm"),
+
 // Device: 1C71:C004
 // BrailleNote [HumanWare APEX]
 USB_DEVICE_ENTRY(0X1C71, 0XC004, "bn"),
@@ -334,7 +352,8 @@ USB_DEVICE_ENTRY(0X1C71, 0XC00A, "hw"),
 USB_DEVICE_ENTRY(0X1C71, 0XC021, "hw"),
 
 // Device: 1C71:C101
-// HumanWare [APH Chameleon 20 (HID protocol)]
+// HumanWare [APH Chameleon 20 (HID protocol, firmware 1.0)]
+// HumanWare [APH Chameleon 20 (HID protocol, firmware 1.1)]
 USB_DEVICE_ENTRY(0X1C71, 0XC101, "hw"),
 
 // Device: 1C71:C104
@@ -342,7 +361,8 @@ USB_DEVICE_ENTRY(0X1C71, 0XC101, "hw"),
 USB_DEVICE_ENTRY(0X1C71, 0XC104, "hw"),
 
 // Device: 1C71:C111
-// HumanWare [APH Mantis Q40 (HID protocol)]
+// HumanWare [APH Mantis Q40 (HID protocol, firmware 1.0)]
+// HumanWare [APH Mantis Q40 (HID protocol, firmware 1.1)]
 USB_DEVICE_ENTRY(0X1C71, 0XC111, "hw"),
 
 // Device: 1C71:C114
@@ -350,15 +370,27 @@ USB_DEVICE_ENTRY(0X1C71, 0XC111, "hw"),
 USB_DEVICE_ENTRY(0X1C71, 0XC114, "hw"),
 
 // Device: 1C71:C121
-// HumanWare [Humanware BrailleOne (HID protocol)]
+// HumanWare [Humanware BrailleOne (HID protocol, firmware 1.0)]
+// HumanWare [Humanware BrailleOne (HID protocol, firmware 1.1)]
 USB_DEVICE_ENTRY(0X1C71, 0XC121, "hw"),
 
 // Device: 1C71:C124
 // HumanWare [Humanware BrailleOne (serial protocol)]
 USB_DEVICE_ENTRY(0X1C71, 0XC124, "hw"),
 
+// Device: 1C71:C131
+// HumanWare [Humanware Brailliant BI 40X (HID protocol, firmware 1.0)]
+// HumanWare [Humanware Brailliant BI 40X (HID protocol, firmware 1.1)]
+USB_DEVICE_ENTRY(0X1C71, 0XC131, "hw"),
+
+// Device: 1C71:C141
+// HumanWare [Humanware Brailliant BI 20X (HID protocol, firmware 1.0)]
+// HumanWare [Humanware Brailliant BI 20X (HID protocol, firmware 1.1)]
+USB_DEVICE_ENTRY(0X1C71, 0XC141, "hw"),
+
 // Device: 1C71:CE01
-// HumanWare [NLS eReader (HID protocol)]
+// HumanWare [NLS eReader (HID protocol, firmware 1.0)]
+// HumanWare [NLS eReader (HID protocol, firmware 1.1)]
 USB_DEVICE_ENTRY(0X1C71, 0XCE01, "hw"),
 
 // Device: 1C71:CE04
@@ -502,7 +534,7 @@ USB_DEVICE_ENTRY(0XC251, 0X1131, "eu"),
 // EuroBraille [reserved]
 USB_DEVICE_ENTRY(0XC251, 0X1132, "eu"),
 
-// END_USB_DEVICES
+// END_USB_BRAILLE_DEVICES
 };
 
 const uint16_t usbDeviceCount = ARRAY_COUNT(usbDeviceTable);

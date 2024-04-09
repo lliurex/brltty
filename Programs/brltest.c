@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,7 +24,7 @@
 #include <errno.h>
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "parameters.h"
 #include "log.h"
 #include "parse.h"
@@ -48,36 +48,6 @@ static char *opt_tablesDirectory;
 static char *opt_writableDirectory;
 
 BEGIN_OPTION_TABLE(programOptions)
-  { .word = "drivers-directory",
-    .letter = 'D',
-    .flags = OPT_Hidden,
-    .argument = "directory",
-    .setting.string = &opt_driversDirectory,
-    .internal.setting = DRIVERS_DIRECTORY,
-    .internal.adjust = fixInstallPath,
-    .description = "Path to directory for loading drivers."
-  },
-
-  { .word = "tables-directory",
-    .letter = 'T',
-    .flags = OPT_Hidden,
-    .argument = strtext("directory"),
-    .setting.string = &opt_tablesDirectory,
-    .internal.setting = TABLES_DIRECTORY,
-    .internal.adjust = fixInstallPath,
-    .description = strtext("Path to directory containing tables.")
-  },
-
-  { .word = "writable-directory",
-    .letter = 'W',
-    .flags = OPT_Hidden,
-    .argument = strtext("directory"),
-    .setting.string = &opt_writableDirectory,
-    .internal.setting = WRITABLE_DIRECTORY,
-    .internal.adjust = fixInstallPath,
-    .description = strtext("Path to directory which can be written to.")
-  },
-
   { .word = "device",
     .letter = 'd',
     .argument = "device",
@@ -85,7 +55,34 @@ BEGIN_OPTION_TABLE(programOptions)
     .internal.setting = BRAILLE_DEVICE,
     .description = "Path to device for accessing braille display."
   },
-END_OPTION_TABLE
+
+  { .word = "tables-directory",
+    .letter = 'T',
+    .argument = strtext("directory"),
+    .setting.string = &opt_tablesDirectory,
+    .internal.setting = TABLES_DIRECTORY,
+    .internal.adjust = fixInstallPath,
+    .description = strtext("Path to directory containing tables.")
+  },
+
+  { .word = "drivers-directory",
+    .letter = 'D',
+    .argument = "directory",
+    .setting.string = &opt_driversDirectory,
+    .internal.setting = DRIVERS_DIRECTORY,
+    .internal.adjust = fixInstallPath,
+    .description = "Path to directory for loading drivers."
+  },
+
+  { .word = "writable-directory",
+    .letter = 'W',
+    .argument = strtext("directory"),
+    .setting.string = &opt_writableDirectory,
+    .internal.setting = WRITABLE_DIRECTORY,
+    .internal.adjust = fixInstallPath,
+    .description = strtext("Path to directory which can be written to.")
+  },
+END_OPTION_TABLE(programOptions)
 
 int
 main (int argc, char *argv[]) {
@@ -95,10 +92,14 @@ main (int argc, char *argv[]) {
   void *object;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltest",
-      .argumentsSummary = "[driver [parameter=value ...]]"
+
+      .usage = {
+        .purpose = strtext("Test a braille driver."),
+        .parameters = "[driver [parameter=value ...]]",
+      }
     };
 
     PROCESS_OPTIONS(descriptor, argc, argv);
@@ -299,6 +300,10 @@ getScreenCommandContext (void) {
 
 void
 alert (AlertIdentifier identifier) {
+}
+
+void
+speakAlertText (const wchar_t *text) {
 }
 
 #include "api_control.h"

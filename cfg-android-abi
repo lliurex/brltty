@@ -1,0 +1,203 @@
+#!/bin/bash
+###############################################################################
+# BRLTTY - A background process providing access to the console screen (when in
+#          text mode) for a blind person using a refreshable braille display.
+#
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
+#
+# BRLTTY comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+. "`dirname "${0}"`/brltty-prologue.sh"
+
+showProgramUsagePurpose() {
+cat <<END_OF_PROGRAM_USAGE_PURPOSE
+Configure a BRLTTY build for a specific ABI (application binary interface) of the Android platform.
+END_OF_PROGRAM_USAGE_PURPOSE
+}
+
+showProgramUsageNotes() {
+cat <<END_OF_PROGRAM_USAGE_NOTES
+This script is used by cfg-android, and is for internal use only.
+END_OF_PROGRAM_USAGE_NOTES
+}
+
+# Braille drivers already disabled:
+# lb (by --without-libbraille)
+# xw (by --disable-x)
+readonly configureOptions=(
+   --disable-expat
+   --disable-gpm
+   --disable-iconv
+   --disable-icu
+   --disable-liblouis
+   --disable-polkit
+   --disable-x
+
+   --without-libbraille
+   --with-braille-driver=-ba,-bg,-tt,-vr,al,at,bm,bn,ce,eu,fs,hm,ht,hw,ic,ir,md,mm,mt,np,pg,pm,sk,vo
+
+   --without-espeak
+   --without-espeak-ng
+   --without-flite
+   --without-mikropuhe
+   --without-speechd
+   --without-swift
+   --without-theta
+   --with-speech-driver=an,-all
+
+   --with-screen-driver=an,-all
+
+   --without-pgmpath-package
+   --without-pgmprivs-package
+   --without-service-package
+   --without-params-package
+   --without-charset-package
+   --without-rgx-package
+   --without-hostcmd-package
+   --without-mntpt-package
+   --without-mntfs-package
+   --without-bell-package
+   --without-leds-package
+   --without-beep-package
+   --without-midi-package
+   --without-fm-package
+   --without-hid-package
+   --without-ports-package
+
+   --disable-emacs-bindings
+   --disable-lua-bindings
+)
+
+setProperties() {
+   declare -g -A properties
+   local ok=true
+   local property
+
+   for property in ARCH -CFLAGS -LDFLAGS NDK PLATFORM SOURCE SYSTEM TOOLCHAIN
+   do
+      local optional=false
+
+      [ "${property:0:1}" != "-" ] || {
+         optional=true
+         property="${property:1}"
+      }
+
+      local variable="BRLTTY_ANDROID_${property}"
+      local value="${!variable}"
+
+      "${optional}" || {
+         [ -n "${value}" ] || {
+            logError "property not set: ${property}"
+            ok=false
+         }
+      }
+
+      properties["${property}"]="${value}"
+   done
+
+   "${ok}" || exit 9
+}
+
+makeToolChain() {
+   [ -d "${properties[TOOLCHAIN]}" ] || {
+      logMessage task "installing tool chain for ABI: ${abiName}"
+
+      VERBOSE=no "${properties[NDK]}/build/tools/make-standalone-toolchain.sh" \
+         --platform="${properties[PLATFORM]}" \
+         --arch="${properties[ARCH]}" \
+         --install-dir="${properties[TOOLCHAIN]}" || exit "${?}"
+   }
+}
+
+linkMissingHeaders() {
+   local buildInclude="/usr/include"
+   local hostInclude="${properties[TOOLCHAIN]}/sysroot${buildInclude}"
+   local header
+
+   for header in bluetooth
+   do
+      local hostHeader="${hostInclude}/${header}"
+      [ ! -e "${hostHeader}" ] || continue
+
+      local buildHeader="${buildInclude}/${header}"
+      [ -e "${buildHeader}" ] || continue
+
+      logNote "adding symbolic link for header: ${abiName}: ${header}"
+      ln -s "${buildHeader}" "${hostHeader}" || exit "${?}"
+   done
+}
+
+findTool() {
+   local variable="${1}"
+   local name="${2}"
+
+   logDetail "finding tool: ${name}"
+   local path="${toolsDirectory}/${properties["SYSTEM"]}-${name}"
+
+   [ -f "${path}" ] || {
+      logError "tool not found: ${path}"
+      exit 8
+   }
+
+   logNote "tool found: ${path}"
+   setVariable "${variable}" "${path}"
+   export "${variable}"
+}
+
+addProgramOption f flag forceReconfigure "force a reconfigure"
+addProgramParameter ABI abiName "name of ABI to configure" "the source tree"
+parseProgramArguments "${@}"
+set -e
+
+abiRoot="${programDirectory}/Android/ABI/${abiName}"
+abiPropertiesFile="${abiRoot}/build.properties"
+[ -f "${abiPropertiesFile}" ] || syntaxError "unrecognized ABI: ${abiName}"
+. "${abiPropertiesFile}"
+setProperties
+
+makeToolChain
+linkMissingHeaders
+
+buildDirectory="$(pwd)"
+buildMakeFile="${buildDirectory}/Makefile"
+
+if [ -f "${buildMakeFile}" ]
+then
+   if "${forceReconfigure}"
+   then
+      logWarning "reconfiguring build: ${buildDirectory}"
+   else
+      logNote "build already configured: ${buildDirectory}"
+      exit 0
+   fi
+else
+   logMessage task "configuring build: ${buildDirectory}"
+fi
+
+toolsDirectory="${properties[TOOLCHAIN]}/bin"
+export PATH="${PATH}:${toolsDirectory}"
+findTool CC gcc
+findTool LD ld
+findTool STRIP strip
+findTool RANLIB ranlib
+
+sysrootDirectory="${properties[TOOLCHAIN]}/sysroot"
+export PKG_CONFIG_SYSROOT_DIR="${sysrootDirectory}"
+export PKG_CONFIG_LIBDIR="${sysrootDirectory}/usr/lib/pkgconfig:${sysrootDirectory}/usr/share/pkgconfig"
+export PKG_CONFIG_PATH=""
+
+export CFLAGS="${properties[CFLAGS]}"
+export LDFLAGS="${properties[LDFLAGS]}"
+
+"${properties[SOURCE]}/configure" --quiet --host="${properties[SYSTEM]}" "${configureOptions[@]}"
+exit 0

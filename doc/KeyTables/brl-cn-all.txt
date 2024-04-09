@@ -1,0 +1,56 @@
+Key Table: Canute
+=================
+
+Notes
+* The keys on the front, from left to right, are: Back, Menu, Forward.
+* The triangular keys to the left of each row of cells are selection keys.
+  + From top to bottom, they're named Line1 through Line9.
+  + The round key above them (labelled H) is named Help.
+  + The square key below them (labelled 0) is named Refresh.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Help
+* enter/leave preferences menu: Help+Menu
+
+Cursor Functions
+* go to screen cursor: Menu
+* bring screen cursor to line #1: Line1
+* bring screen cursor to line #2: Line2
+* bring screen cursor to line #3: Line3
+* bring screen cursor to line #4: Line4
+* bring screen cursor to line #5: Line5
+* bring screen cursor to line #6: Line6
+* bring screen cursor to line #7: Line7
+* bring screen cursor to line #8: Line8
+* bring screen cursor to line #9: Line9
+
+Vertical Navigation
+* go to beginning of top line: Refresh+Back
+* go to beginning of bottom line: Refresh+Forward
+* go up several lines: Back
+* go down several lines: Forward
+
+Horizontal Navigation
+* go backward one braille window: Menu+Back
+* go forward one braille window: Menu+Forward
+* go to beginning of line: Refresh+Menu
+
+Menu Operations
+* save preferences to disk: Help+Forward
+* restore preferences from disk: Help+Back
+
+Special Functions
+* refresh braille display: Refresh+Help
+* refresh braille line #1: Refresh+Line1
+* refresh braille line #2: Refresh+Line2
+* refresh braille line #3: Refresh+Line3
+* refresh braille line #4: Refresh+Line4
+* refresh braille line #5: Refresh+Line5
+* refresh braille line #6: Refresh+Line6
+* refresh braille line #7: Refresh+Line7
+* refresh braille line #8: Refresh+Line8
+* refresh braille line #9: Refresh+Line9
+

@@ -1,0 +1,1474 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="Docutils 0.16: http://docutils.sourceforge.net/" />
+<title>Key Tables</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7952 2016-07-26 18:15:59Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left, table.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right, table.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table.align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+.align-top    {
+  vertical-align: top }
+
+.align-middle {
+  vertical-align: middle }
+
+.align-bottom {
+  vertical-align: bottom }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math, pre.code {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="key-tables">
+<h1 class="title">Key Tables</h1>
+
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#description" id="id2">Description</a></li>
+<li><a class="reference internal" href="#directives" id="id3">Directives</a><ul>
+<li><a class="reference internal" href="#the-bind-directive" id="id4">The Bind Directive</a></li>
+<li><a class="reference internal" href="#the-context-directive" id="id5">The Context Directive</a></li>
+<li><a class="reference internal" href="#the-hide-directive" id="id6">The Hide Directive</a></li>
+<li><a class="reference internal" href="#the-hotkey-directive" id="id7">The Hotkey Directive</a></li>
+<li><a class="reference internal" href="#the-ifkey-directive" id="id8">The IfKey Directive</a></li>
+<li><a class="reference internal" href="#the-ifnotkey-directive" id="id9">The IfNotKey Directive</a></li>
+<li><a class="reference internal" href="#the-ifplatform-directive" id="id10">The IfPlatform Directive</a></li>
+<li><a class="reference internal" href="#the-ifnotplatform-directive" id="id11">The IfNotPlatform Directive</a></li>
+<li><a class="reference internal" href="#the-ignore-directive" id="id12">The Ignore Directive</a></li>
+<li><a class="reference internal" href="#the-isolated-directive" id="id13">The Isolated Directive</a></li>
+<li><a class="reference internal" href="#the-macro-directive" id="id14">The Macro Directive</a></li>
+<li><a class="reference internal" href="#the-map-directive" id="id15">The Map Directive</a></li>
+<li><a class="reference internal" href="#the-note-directive" id="id16">The Note Directive</a></li>
+<li><a class="reference internal" href="#the-run-directive" id="id17">The Run Directive</a></li>
+<li><a class="reference internal" href="#the-superimpose-directive" id="id18">The Superimpose Directive</a></li>
+<li><a class="reference internal" href="#the-title-directive" id="id19">The Title Directive</a></li>
+<li><a class="reference internal" href="#the-include-directive" id="id20">The Include Directive</a></li>
+<li><a class="reference internal" href="#the-assign-directive" id="id21">The Assign Directive</a></li>
+<li><a class="reference internal" href="#the-assigndefault-directive" id="id22">The AssignDefault Directive</a></li>
+<li><a class="reference internal" href="#the-ifvar-directive" id="id23">The IfVar Directive</a></li>
+<li><a class="reference internal" href="#the-ifnotvar-directive" id="id24">The IfNotVar Directive</a></li>
+<li><a class="reference internal" href="#the-beginvariables-directive" id="id25">The BeginVariables Directive</a></li>
+<li><a class="reference internal" href="#the-endvariables-directive" id="id26">The EndVariables Directive</a></li>
+<li><a class="reference internal" href="#the-listvariables-directive" id="id27">The ListVariables Directive</a></li>
+<li><a class="reference internal" href="#the-endif-directive" id="id28">The EndIf Directive</a></li>
+<li><a class="reference internal" href="#the-else-directive" id="id29">The Else Directive</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#keyboard-table-list" id="id30">Keyboard Table List</a></li>
+<li><a class="reference internal" href="#braille-driver-list" id="id31">Braille Driver List</a></li>
+</ul>
+</div>
+<div class="section" id="description">
+<h2><a class="toc-backref" href="#id2">Description</a></h2>
+<p>Files with names of the form <tt class="docutils literal">*.ktb</tt> are key tables, and with names of the
+form <tt class="docutils literal">*.kti</tt> are key subtables. They are used to bind braille device and
+computer keyboard key combinations to BRLTTY commands.</p>
+<ul class="simple">
+<li>Braille device key tables can usually be found in the
+<tt class="docutils literal">/etc/brltty/Input/xx/</tt> directory, where <tt class="docutils literal">xx</tt> is the two-letter braille
+driver identification code (see <a class="reference internal" href="#braille-driver-list">Braille Driver List</a>). The name of a
+braille device key table identifies the model(s) for which it is used. The
+driver selects which key table is to be used.</li>
+<li>Computer keyboard key tables can usually be found in the
+<tt class="docutils literal">/etc/brltty/Keyboard/</tt> directory. The name of a keyboard key table
+describes the kind of keyboard for which it has been designed. See
+<a class="reference internal" href="#keyboard-table-list">Keyboard Table List</a> for a list of BRLTTY's keyboard tables.</li>
+<li>See <a class="reference external" href="Customize.html">Local Customization</a> for more details regarding key table locations.</li>
+</ul>
+<p>A key table consists of a sequence of directives, one per line, which define
+how keys and key combinations are to be interpreted. UTF-8 character encoding
+must be used. Whitespace (blanks, tabs) at the beginning of a line, as well as
+before and/or after any operand, is ignored. Lines containing only whitespace
+are ignored. If the first non-whitespace character of a line is <tt class="docutils literal">#</tt> then
+that line is a comment and is ignored.</p>
+<p>The precedence for resolving each key press/release event is as follows:</p>
+<ol class="arabic simple">
+<li>A hotkey press or release defined within the current context.</li>
+<li>A key combination defined within the current context.</li>
+<li>A braille keyboard command defined within the current context.</li>
+<li>A key combination defined within the default context.</li>
+</ol>
+</div>
+<div class="section" id="directives">
+<h2><a class="toc-backref" href="#id3">Directives</a></h2>
+<div class="section" id="the-bind-directive">
+<h3><a class="toc-backref" href="#id4">The Bind Directive</a></h3>
+<pre class="literal-block">
+bind <em>keys</em> <em>commands</em>
+</pre>
+<p>Use this directive to define which BRLTTY command is executed when a particular
+combination of keys is pressed. The binding is defined within the current
+context.</p>
+<dl class="docutils">
+<dt><em>keys</em></dt>
+<dd><p class="first">The key combination which is to be bound. It's a sequence of one or more key
+and/or key group names separated by plus (<tt class="docutils literal">+</tt>) signs. The final (or only)
+key name may be optionally prefixed with an exclamation (<tt class="docutils literal">!</tt>) point. For
+example:</p>
+<pre class="literal-block">
+key1
+group1
+key1+key2
+key1+key2+group1
+!group1
+key1+!key2
+</pre>
+<p>A key group name refers to any key within the named group. A specific key
+within the group may be identified by appending a dot (<tt class="docutils literal">.</tt>) and a number
+to the group's name. The first key within a group is key #1 (e.g.
+<tt class="docutils literal">keyGroupName.1</tt>).</p>
+<p class="last">The keys may be pressed in any order, with the exception that if the final
+key name is prefixed with an exclamation point then it must be pressed last.
+The exclamation point prefix means that the primary command (see below) is
+executed as soon as that key is pressed. If not used, the primary command is
+executed as soon as any of the keys is released.</p>
+</dd>
+<dt><em>commands</em></dt>
+<dd><p class="first">The primary and secondary BRLTTY commands that are to be bound to the key
+combination. The two commands (primary first and secondary last) are
+separated from one another by a colon (<tt class="docutils literal">:</tt>). Both commands are optional.
+If just a primary command is being bound then the colon needn't be supplied.
+All of these are valid:</p>
+<ul class="simple">
+<li>bind key primaryCommand</li>
+<li>bind key primaryCommand:</li>
+<li>bind key primaryCommand:secondaryCommand</li>
+<li>bind key :secondaryCommand</li>
+<li>bind key :</li>
+</ul>
+<p>The primary command is executed as described above. The secondary command is
+executed if the key combination is held for a while (i.e. when a long key
+press is detected). If the <strong>autorepeat</strong> feature is enabled then the
+secondary command is autorepeated if it has been defined, else the primary
+command is autorepeated.</p>
+<p class="last">For a list of commands, see <a class="reference external" href="CommandReference.html">The Command Reference</a>.</p>
+</dd>
+</dl>
+<p id="bind-command-modifiers">One or more modifiers may be optionally appended to a command name by using a
+plus (<tt class="docutils literal">+</tt>) sign as the separator. For example:</p>
+<pre class="literal-block">
+bind key command
+bind key command+modifier1
+bind key command+modifier1+modifier2
+</pre>
+<p>For commands which enable/disable a feature:</p>
+<ul class="simple">
+<li>If the modifier <tt class="docutils literal">+on</tt> is specified then the feature is enabled.</li>
+<li>If the modifier <tt class="docutils literal">+off</tt> is specified then the feature is disabled.</li>
+<li>If neither <tt class="docutils literal">+on</tt> nor <tt class="docutils literal">+off</tt> is specified then the state of the feature
+is toggled on/off.</li>
+</ul>
+<p>For commands which move the braille window:</p>
+<ul class="simple">
+<li>If the modifier <tt class="docutils literal">+route</tt> is specified then, if necessary, the screen
+cursor is automatically routed so that it's always visible on the braille
+display.</li>
+</ul>
+<p>For commands which move the braille window to a specific line on the screen:</p>
+<ul class="simple">
+<li>If the modifier <tt class="docutils literal">+toleft</tt> is specified then the braille window is also
+moved to the beginning of that line.</li>
+<li>If the modifier <tt class="docutils literal">+scaled</tt> is specified then the key group bound to the
+command is interpreted as though it were a scroll bar. If it isn't
+specified then there's a one-to-one correspondence between keys and lines.</li>
+</ul>
+<p>For commands which require an offset:</p>
+<ul class="simple">
+<li>The modifier <tt class="docutils literal">+offset</tt>, where <tt class="docutils literal">offset</tt> is a non-negative integer, may be
+specified. If it isn't specified then <tt class="docutils literal">+0</tt> is assumed.</li>
+</ul>
+<p>For commands which input any keyboard key (print or braille):</p>
+<ul class="simple">
+<li>The <tt class="docutils literal">+shift</tt> modifier adds the shift key.</li>
+<li>The <tt class="docutils literal">+control</tt> modifier adds the control key.</li>
+<li>The <tt class="docutils literal">+meta</tt> modifier adds the left alt (or meta) key.</li>
+<li>The <tt class="docutils literal">+altgr</tt> modifier adds the right alt (or altgr) key.</li>
+<li>The <tt class="docutils literal">+gui</tt> modifier adds the gui (or windows) key.</li>
+</ul>
+<p>For commands which input characters (print or braille):</p>
+<ul class="simple">
+<li>The modifier <tt class="docutils literal">+upper</tt> converts a lowercase character to uppercase.</li>
+</ul>
+<p>For commands which input braille characters:</p>
+<ul class="simple">
+<li>The modifiers <tt class="docutils literal">+dot1</tt> through <tt class="docutils literal">+dot8</tt> add those dots to the character.</li>
+<li>The modifier <tt class="docutils literal">+space</tt> adds the space bar (or &quot;chord&quot; key) to the
+character.</li>
+</ul>
+<p>For commands which input keyboard scancodes:</p>
+<ul class="simple">
+<li>The <tt class="docutils literal">+release</tt> modifier means that it's a key release scancode. If it
+isn't specified then it's a key press scancode (unless, of course, the
+scancode itself indicates something else).</li>
+<li>The <tt class="docutils literal">+emul0</tt> modifier means that it's an emulation mode 0 scancode.</li>
+<li>The <tt class="docutils literal">+emul1</tt> modifier means that it's an emulation mode 1 scancode.</li>
+</ul>
+<p>Examples:</p>
+<pre class="literal-block">
+bind Key1 CSRTRK
+bind Key1+Key2 CSRTRK+off
+bind Key1+Key3 CSRTRK+on
+bind Key4 TOP
+bind Key5 TOP+route
+bind VerticalSensor GOTOLINE+toleft+scaled
+bind Key6 CONTEXT+context1
+</pre>
+</div>
+<div class="section" id="the-context-directive">
+<h3><a class="toc-backref" href="#id5">The Context Directive</a></h3>
+<pre class="literal-block">
+context <em>name</em> <em>title</em>
+</pre>
+<p>Use this directive to define alternate ways to interpret certain key events
+and/or combinations.
+Switching to another context is done via the BRLTTY command CONTEXT+name.</p>
+<p>A context contains definitions created by any of:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#the-bind-directive">The Bind Directive</a></li>
+<li><a class="reference internal" href="#the-hotkey-directive">The Hotkey Directive</a></li>
+<li><a class="reference internal" href="#the-ignore-directive">The Ignore Directive</a></li>
+<li><a class="reference internal" href="#the-macro-directive">The Macro Directive</a></li>
+<li><a class="reference internal" href="#the-map-directive">The Map Directive</a></li>
+<li><a class="reference internal" href="#the-run-directive">The Run Directive</a></li>
+<li><a class="reference internal" href="#the-superimpose-directive">The Superimpose Directive</a></li>
+</ul>
+<dl class="docutils">
+<dt><em>name</em></dt>
+<dd>Which context subsequent definitions are to be created within.</dd>
+<dt><em>title</em></dt>
+<dd>A person-readable description of the context. It may contain spaces.
+Standard capitalization conventions should be used. This operand is
+optional. If supplied when selecting a context which already has a title
+then the two must match. Special contexts already have internally-assigned
+titles.</dd>
+</dl>
+<p>A context is created the first time it's selected. It may be reselected any
+number of times thereafter. These special contexts are predefined:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal">default</tt></dt>
+<dd><p class="first">The default context. If a definition can't be found within the current
+context then it's looked up within the default context. This only applies
+to definitions created by:</p>
+<ul class="last simple">
+<li><a class="reference internal" href="#the-bind-directive">The Bind Directive</a>.</li>
+<li><a class="reference internal" href="#the-macro-directive">The Macro Directive</a>.</li>
+<li><a class="reference internal" href="#the-run-directive">The Run Directive</a>.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">menu</tt></dt>
+<dd>This context is used when within BRLTTY's Preferences Menu.</dd>
+</dl>
+<p>All subsequent definitions until either the next <tt class="docutils literal">context</tt> directive or the
+end of the current include level are created within the selected context. The
+initial context of the top-level key table is <tt class="docutils literal">default</tt>. The initial context
+of an included key subtable is the context which was selected when it was
+included. Context changes within included key subtables don't affect the
+context of the including key table or subtable.</p>
+<p>If a context has a title then it is persistent. When a key event causes a
+persistent context to be activated, that context remains current until a
+subsequent key event causes a different persistent context to be activated.</p>
+<p>If a context doesn't have a title then it is temporary. When a key event causes
+a temporary context to be activated, that context is only used to interpret the
+very next key event.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+context menu
+context braille Braille Input
+context DESCCHAR
+</pre>
+</div>
+<div class="section" id="the-hide-directive">
+<h3><a class="toc-backref" href="#id6">The Hide Directive</a></h3>
+<pre class="literal-block">
+hide <em>state</em>
+</pre>
+<p>Use this directive to specify whether or not definitions created by:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#the-bind-directive">The Bind Directive</a></li>
+<li><a class="reference internal" href="#the-hotkey-directive">The Hotkey Directive</a></li>
+<li><a class="reference internal" href="#the-map-directive">The Map Directive</a></li>
+<li><a class="reference internal" href="#the-superimpose-directive">The Superimpose Directive</a></li>
+</ul>
+<p>and text added by:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#the-note-directive">The Note Directive</a></li>
+</ul>
+<p>are to be included within the key table's help text.</p>
+<dl class="docutils">
+<dt><em>state</em></dt>
+<dd><p class="first">One of these keywords:</p>
+<dl class="last docutils">
+<dt><tt class="docutils literal">on</tt></dt>
+<dd>They're excluded.</dd>
+<dt><tt class="docutils literal">off</tt></dt>
+<dd>They're included.</dd>
+</dl>
+</dd>
+</dl>
+<p>The specified hide state applies to all subsequent definitions and notes until
+either the next <tt class="docutils literal">hide</tt> directive or the end of the current include level. The
+initial hide state of the top-level key table is <tt class="docutils literal">off</tt>. The initial hide
+state of an included key subtable is the hide state that was in effect when it
+was included. Hide State changes within included key subtables don't affect the
+hide state of the including key table or subtable.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+hide on
+</pre>
+</div>
+<div class="section" id="the-hotkey-directive">
+<h3><a class="toc-backref" href="#id7">The Hotkey Directive</a></h3>
+<pre class="literal-block">
+hotkey <em>key</em> <em>press</em> <em>release</em>
+</pre>
+<p>Use this directive to bind the press and release events of a specific key to
+two separate BRLTTY commands. The bindings are defined within the current
+context.</p>
+<dl class="docutils">
+<dt><em>key</em></dt>
+<dd>The name of the key which is to be bound.</dd>
+<dt><em>press</em></dt>
+<dd>The name of the BRLTTY command which is to be executed whenever the key is
+pressed.</dd>
+<dt><em>release</em></dt>
+<dd>The name of the BRLTTY command which is to be executed whenever the key is
+released.</dd>
+</dl>
+<p>Modifiers may be appended to the command names. See
+<a class="reference internal" href="#bind-command-modifiers">Bind Command Modifiers</a> for details.</p>
+<p>Specify the <tt class="docutils literal">NOOP</tt> command if no command is to be executed. Specifying the
+<tt class="docutils literal">NOOP</tt> command for both events effectively disables the key.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+hotkey Key1 CSRVIS+off CSRVIS+on
+hotkey Key2 NOOP NOOP
+</pre>
+</div>
+<div class="section" id="the-ifkey-directive">
+<h3><a class="toc-backref" href="#id8">The IfKey Directive</a></h3>
+<pre class="literal-block">
+ifKey <em>key</em> <em>directive</em>
+</pre>
+<p>Use this directive to only process one or more directives if the device has a
+particular key.</p>
+<dl class="docutils">
+<dt><em>key</em></dt>
+<dd>The name of the key whose availability is to be tested.</dd>
+<dt><em>directive</em></dt>
+<dd>The directive that is to be conditionally processed.
+It may contain spaces.
+This operand is optional.
+If it isn't supplied then this directive applies to all subsequent lines
+until <a class="reference internal" href="#the-endif-directive">The EndIf Directive</a> or <a class="reference internal" href="#the-else-directive">The Else Directive</a>
+that is at the same conditional nesting level.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+ifKey Key1 ifkey Key2 bind Key1+Key2 HOME
+</pre>
+</div>
+<div class="section" id="the-ifnotkey-directive">
+<h3><a class="toc-backref" href="#id9">The IfNotKey Directive</a></h3>
+<pre class="literal-block">
+ifNotKey <em>key</em> <em>directive</em>
+</pre>
+<p>Use this directive to only process one or more directives if the device doesn't
+have a particular key.</p>
+<dl class="docutils">
+<dt><em>key</em></dt>
+<dd>The name of the key whose availability is to be tested.</dd>
+<dt><em>directive</em></dt>
+<dd>The directive that is to be conditionally processed.
+It may contain spaces.
+This operand is optional.
+If it isn't supplied then this directive applies to all subsequent lines
+until <a class="reference internal" href="#the-endif-directive">The EndIf Directive</a> or <a class="reference internal" href="#the-else-directive">The Else Directive</a>
+that is at the same conditional nesting level.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+ifNotKey Key2 bind Key1 HOME
+</pre>
+</div>
+<div class="section" id="the-ifplatform-directive">
+<h3><a class="toc-backref" href="#id10">The IfPlatform Directive</a></h3>
+<pre class="literal-block">
+ifPlatform <em>platform</em> <em>directive</em>
+</pre>
+<p>Use this directive to only process one or more directives if running on the
+named host platform.</p>
+<dl class="docutils">
+<dt><em>platform</em></dt>
+<dd>The name of a host platform.
+The following platform names are recognized:
+android, apple, cygwin, dos, grub, linux,
+mingw32, mingw64, openbsd, sun, windows.</dd>
+<dt><em>directive</em></dt>
+<dd>The directive that is to be conditionally processed.
+It may contain spaces.
+This operand is optional.
+If it isn't supplied then this directive applies to all subsequent lines
+until <a class="reference internal" href="#the-endif-directive">The EndIf Directive</a> or <a class="reference internal" href="#the-else-directive">The Else Directive</a>
+that is at the same conditional nesting level.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+ifPlatform android include android.kti
+</pre>
+</div>
+<div class="section" id="the-ifnotplatform-directive">
+<h3><a class="toc-backref" href="#id11">The IfNotPlatform Directive</a></h3>
+<pre class="literal-block">
+ifNotPlatform <em>platform</em> <em>directive</em>
+</pre>
+<p>Use this directive to only process one or more directives if not running on
+the named host platform.</p>
+<dl class="docutils">
+<dt><em>platform</em></dt>
+<dd>The name of a host platform.
+The following platform names are recognized:
+android, apple, cygwin, dos, grub, linux,
+mingw32, mingw64, openbsd, sun, windows.</dd>
+<dt><em>directive</em></dt>
+<dd>The directive that is to be conditionally processed.
+It may contain spaces.
+This operand is optional.
+If it isn't supplied then this directive applies to all subsequent lines
+until <a class="reference internal" href="#the-endif-directive">The EndIf Directive</a> or <a class="reference internal" href="#the-else-directive">The Else Directive</a>
+that is at the same conditional nesting level.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+ifNotPlatform grub include advanced.kti
+</pre>
+</div>
+<div class="section" id="the-ignore-directive">
+<h3><a class="toc-backref" href="#id12">The Ignore Directive</a></h3>
+<pre class="literal-block">
+ignore <em>key</em>
+</pre>
+<p>Use this directive to ignore a specific key while within the current context.</p>
+<dl class="docutils">
+<dt><em>key</em></dt>
+<dd>The name of the key which is to be ignored.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+ignore Key1
+</pre>
+</div>
+<div class="section" id="the-isolated-directive">
+<h3><a class="toc-backref" href="#id13">The Isolated Directive</a></h3>
+<pre class="literal-block">
+isolated
+</pre>
+<p>Use this directive to isolate the current context.
+If a key binding can't be found within an isolated context
+then it won't be looked up within the default context.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+isolated
+</pre>
+</div>
+<div class="section" id="the-macro-directive">
+<h3><a class="toc-backref" href="#id14">The Macro Directive</a></h3>
+<pre class="literal-block">
+macro <em>keys</em> <em>command</em> ...
+</pre>
+<p>Use this directive to bind a sequence of BRLTY commands to a key combination.</p>
+<dl class="docutils">
+<dt><em>keys</em></dt>
+<dd>The key combination being defined.</dd>
+<dt><em>command</em> ...</dt>
+<dd>The BRLTTY commands that are to be executed.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+macro Key1+Key2 TOP LNEND
+</pre>
+</div>
+<div class="section" id="the-map-directive">
+<h3><a class="toc-backref" href="#id15">The Map Directive</a></h3>
+<pre class="literal-block">
+map <em>key</em> <em>function</em>
+</pre>
+<p>Use this directive to map a key to a braille keyboard function. The mapping is
+defined within the current context.</p>
+<dl class="docutils">
+<dt><em>key</em></dt>
+<dd>The name of the key that is to be mapped. More than one key may be mapped to
+the same braille keyboard function.</dd>
+</dl>
+<dl class="docutils" id="the-map-function-operand">
+<dt><em>function</em></dt>
+<dd><p class="first">The name of the braille keyboard function. It may be one of the following
+keywords:</p>
+<dl class="last docutils">
+<dt><tt class="docutils literal">DOT1</tt></dt>
+<dd>The upper-left standard braille dot key.</dd>
+<dt><tt class="docutils literal">DOT2</tt></dt>
+<dd>The middle-left standard braille dot key.</dd>
+<dt><tt class="docutils literal">DOT3</tt></dt>
+<dd>The lower-left standard braille dot key.</dd>
+<dt><tt class="docutils literal">DOT4</tt></dt>
+<dd>The upper-right standard braille dot key.</dd>
+<dt><tt class="docutils literal">DOT5</tt></dt>
+<dd>The middle-right standard braille dot key.</dd>
+<dt><tt class="docutils literal">DOT6</tt></dt>
+<dd>The lower-right standard braille dot key.</dd>
+<dt><tt class="docutils literal">DOT7</tt></dt>
+<dd>The lower-left computer braille dot key.</dd>
+<dt><tt class="docutils literal">DOT8</tt></dt>
+<dd>The lower-right computer braille dot key.</dd>
+<dt><tt class="docutils literal">SPACE</tt></dt>
+<dd>The space bar.</dd>
+<dt><tt class="docutils literal">SHIFT</tt></dt>
+<dd>The shift key.</dd>
+<dt><tt class="docutils literal">UPPER</tt></dt>
+<dd>If a lowercase letter is being entered then translate it to its
+uppercase equivalent.</dd>
+<dt><tt class="docutils literal">CONTROL</tt></dt>
+<dd>The control key.</dd>
+<dt><tt class="docutils literal">META</tt></dt>
+<dd>The left alt (or meta) key.</dd>
+<dt><tt class="docutils literal">ALTGR</tt></dt>
+<dd>The right alt (or altgr) key.</dd>
+<dt><tt class="docutils literal">GUI</tt></dt>
+<dd>The gui (or windows) key.</dd>
+</dl>
+</dd>
+</dl>
+<p>If a key combination consists only of keys which have been mapped to braille
+keyboard functions, and if those functions, when combined, form a valid braille
+keyboard command, then that command is executed as soon as any of the keys is
+released. A valid braille keyboard command must include either any combination
+of dot keys or the space bar (but not both). If at least one dot key is
+included then the braille keyboard functions specified by
+<a class="reference internal" href="#the-superimpose-directive">The Superimpose Directive</a> within the same context are also implicitly
+included.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+map Key1 DOT1
+</pre>
+</div>
+<div class="section" id="the-note-directive">
+<h3><a class="toc-backref" href="#id16">The Note Directive</a></h3>
+<pre class="literal-block">
+note <em>text</em>
+</pre>
+<p>Use this directive to add a person-readable explanation to the key table's help
+text. Notes are commonly used, for example, to describe the placement, sizes,
+and shapes of the keys on the device.</p>
+<dl class="docutils">
+<dt><em>text</em></dt>
+<dd>The explanation that is to be added. It may contain spaces, and should be
+grammatically correct.</dd>
+</dl>
+<p>Each note specifies exactly one line of explanatory text. Leading space is
+ignored so indentation cannot be specified.</p>
+<p>There's no limit to the number of notes that may be added. All of them are
+gathered together and presented in a single block at the start of the key
+table's help text.</p>
+<ul class="simple">
+<li>A note that doesn't have a special prefix begins a new outer bulleted list
+element.</li>
+<li>A note that is prefixed with an asterisk (<tt class="docutils literal">*</tt>) continues the current outer
+bulleted list element.</li>
+<li>A note that is prefixed with a plus (<tt class="docutils literal">+</tt>) sign is an inner bulletged list
+element.</li>
+</ul>
+<p>Examples:</p>
+<pre class="literal-block">
+note This is the first outer list element.
+note This is the second outer list element.
+note * Continue the second outer list element.
+note + The first element of an inner list.
+note + The second element of an inner list.
+note * The third line of the second outer list element.
+</pre>
+<p>The above example would be rendered as:</p>
+<ul>
+<li><p class="first">This is the first outer list element.</p>
+</li>
+<li><p class="first">This is the second outer list element.
+Continue the second outer list element.</p>
+<ul class="simple">
+<li>The first element of an inner list.</li>
+<li>The second element of an inner list.</li>
+</ul>
+<p>The third line of the second outer list element.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="the-run-directive">
+<h3><a class="toc-backref" href="#id17">The Run Directive</a></h3>
+<pre class="literal-block">
+run <em>keys</em> <em>name</em> [<em>argument</em> ...]
+</pre>
+<p>Use this directive to bind a host command to a key combination.</p>
+<dl class="docutils">
+<dt><em>keys</em></dt>
+<dd>The key combination being defined.</dd>
+<dt>&lt;name*</dt>
+<dd>The name of the host command. It may also be the path.</dd>
+<dt><em>argument</em> ...</dt>
+<dd>The arguments to be passed to the host command.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+run Key1+Key2 pkill --exact brltty
+</pre>
+</div>
+<div class="section" id="the-superimpose-directive">
+<h3><a class="toc-backref" href="#id18">The Superimpose Directive</a></h3>
+<pre class="literal-block">
+superimpose <em>function</em>
+</pre>
+<p>Use this directive to implicitly include a braille keyboard function whenever a
+braille keyboard command consisting of at least one dot is executed. Only
+implicit inclusions defined within the current context are performed. Any
+number of these directives may be specified.</p>
+<dl class="docutils">
+<dt><em>function</em></dt>
+<dd>The name of the braille keyboard function that is to be implicitly included.
+See <a class="reference internal" href="#the-map-function-operand">The Map Function Operand</a> for details.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+superimpose DOT7
+</pre>
+</div>
+<div class="section" id="the-title-directive">
+<h3><a class="toc-backref" href="#id19">The Title Directive</a></h3>
+<pre class="literal-block">
+title &lt;text&gt;
+</pre>
+<p>Use this directive to specify a person-readable, one-line summary of the key
+table's purpose.</p>
+<dl class="docutils">
+<dt><em>text</em></dt>
+<dd>A brief summary of what the key table is used for. It may contain spaces,
+and standard capitalization conventions should be used.</dd>
+</dl>
+<p>The title of the key table may be specified only once.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+title Bindings for Keypad-based Navigation
+</pre>
+</div>
+<div class="section" id="the-include-directive">
+<h3><a class="toc-backref" href="#id20">The Include Directive</a></h3>
+<pre class="literal-block">
+include <em>file</em> # <em>comment</em>
+</pre>
+<p>Use this directive to include the content of another file. It is recursive,
+which means that an included file can itself include yet another file.
+Care must be taken to ensure that an &quot;include loop&quot; is not created.</p>
+<dl class="docutils">
+<dt><em>file</em></dt>
+<dd>The file to be included. It may be either a relative or an absolute path. If
+relative, it is anchored at the directory containing the including file.</dd>
+</dl>
+</div>
+<div class="section" id="the-assign-directive">
+<h3><a class="toc-backref" href="#id21">The Assign Directive</a></h3>
+<pre class="literal-block">
+assign <em>variable</em> <em>value</em>
+</pre>
+<p>Use this directive to create or update a variable associated with
+the current nesting level (see <a class="reference internal" href="#the-beginvariables-directive">The BeginVariables Directive</a>)
+of the current include level (see <a class="reference internal" href="#the-include-directive">The Include Directive</a>).
+The variable is visible to the current and to lower include levels,
+but not to higher include levels.</p>
+<dl class="docutils">
+<dt><em>variable</em></dt>
+<dd>The name of the variable. If the variable doesn't already exist at the
+current include level then it is created.</dd>
+<dt><em>value</em></dt>
+<dd>The value that is to be assigned to the variable. If it's not supplied then
+a zero-length (null) value is assigned.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+assign nullValue
+assign shortValue word
+assign longValue a\svalue\swith\sspaces
+assign IndirectValue \{variableName}
+</pre>
+</div>
+<div class="section" id="the-assigndefault-directive">
+<h3><a class="toc-backref" href="#id22">The AssignDefault Directive</a></h3>
+<pre class="literal-block">
+assignDefault <em>variable</em> <em>value</em>
+</pre>
+<p>Use this directive to assign a default value to a variable associated with
+the current nesting level (see <a class="reference internal" href="#the-beginvariables-directive">The BeginVariables Directive</a>)
+of the current include level (see <a class="reference internal" href="#the-include-directive">The Include Directive</a>).
+It's functionally equivalent to:</p>
+<pre class="literal-block">
+ifNotVar <em>variable</em> assign <em>variable</em> <em>value</em>
+</pre>
+<p>See <a class="reference internal" href="#the-assign-directive">The Assign Directive</a> and <a class="reference internal" href="#the-ifnotvar-directive">The IfNotVar Directive</a> for more details.</p>
+<dl class="docutils">
+<dt><em>variable</em></dt>
+<dd>The name of the variable. If the variable doesn't already exist at the
+current include level then it is created. If it does already exist then it
+is <strong>not</strong> modified.</dd>
+<dt><em>value</em></dt>
+<dd>The value that is to be assigned to the variable if it doesn't already
+exist. If it's not supplied then a zero-length (null) value is assigned.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+assignDefault format plain\stext
+</pre>
+</div>
+<div class="section" id="the-ifvar-directive">
+<h3><a class="toc-backref" href="#id23">The IfVar Directive</a></h3>
+<pre class="literal-block">
+ifVar <em>variable</em> <em>directive</em>
+</pre>
+<p>Use this directive to only process one or more directives if a variable exists.</p>
+<dl class="docutils">
+<dt><em>variable</em></dt>
+<dd>The name of the variable whose existence is to be tested.</dd>
+<dt><em>directive</em></dt>
+<dd>The directive that is to be conditionally processed.
+It may contain spaces.
+This operand is optional.
+If it isn't supplied then this directive applies to all subsequent lines
+until <a class="reference internal" href="#the-endif-directive">The EndIf Directive</a> or <a class="reference internal" href="#the-else-directive">The Else Directive</a>
+that is at the same conditional nesting level.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+ifVar var1 ifVar var2 assign concatenation \{var1}\{var2}
+</pre>
+</div>
+<div class="section" id="the-ifnotvar-directive">
+<h3><a class="toc-backref" href="#id24">The IfNotVar Directive</a></h3>
+<pre class="literal-block">
+ifNotVar <em>variable</em> <em>directive</em>
+</pre>
+<p>Use this directive to only process one or more directives if a variable doesn't
+exist.</p>
+<dl class="docutils">
+<dt><em>variable</em></dt>
+<dd>The name of the variable whose existence is to be tested.</dd>
+<dt><em>directive</em></dt>
+<dd>The directive that is to be conditionally processed.
+It may contain spaces.
+This operand is optional.
+If it isn't supplied then this directive applies to all subsequent lines
+until <a class="reference internal" href="#the-endif-directive">The EndIf Directive</a> or <a class="reference internal" href="#the-else-directive">The Else Directive</a>
+that is at the same conditional nesting level.</dd>
+</dl>
+<p>Examples:</p>
+<pre class="literal-block">
+ifNotVar var1 assign var1 default\svalue
+</pre>
+</div>
+<div class="section" id="the-beginvariables-directive">
+<h3><a class="toc-backref" href="#id25">The BeginVariables Directive</a></h3>
+<pre class="literal-block">
+beginVariables
+</pre>
+<p>Use this directive to open a new variable nesting level.
+<a class="reference internal" href="#the-assign-directive">The Assign Directive</a>) will define variables at this new nesting level,
+and will hide variables with the same names in any previous nesting level.
+These variables will remain defined until <a class="reference internal" href="#the-endvariables-directive">The EndVariables Directive</a>
+that is at the same variable nesting level.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+assign x 1
+# \{x} evaluates to 1
+beginVariables
+# \{x} still evaluates to 1
+assign x 2
+# \{x} now evaluates to 2
+endVariables
+# \{x} evaluates to 1 again
+</pre>
+</div>
+<div class="section" id="the-endvariables-directive">
+<h3><a class="toc-backref" href="#id26">The EndVariables Directive</a></h3>
+<pre class="literal-block">
+endVariables
+</pre>
+<p>Use this directive to close the current variable nesting level.
+See <a class="reference internal" href="#the-beginvariables-directive">The BeginVariables Directive</a> for details.</p>
+</div>
+<div class="section" id="the-listvariables-directive">
+<h3><a class="toc-backref" href="#id27">The ListVariables Directive</a></h3>
+<pre class="literal-block">
+listVariables
+</pre>
+<p>Use this directive to list all of the currently defiined variables.
+It can be helpful when debugging.</p>
+</div>
+<div class="section" id="the-endif-directive">
+<h3><a class="toc-backref" href="#id28">The EndIf Directive</a></h3>
+<pre class="literal-block">
+endIf
+</pre>
+<p>Use this directive to terminate the current conditional nesting level.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+ifVar x
+   These lines will be processed if a variable named x exists.
+endIf
+</pre>
+</div>
+<div class="section" id="the-else-directive">
+<h3><a class="toc-backref" href="#id29">The Else Directive</a></h3>
+<pre class="literal-block">
+else
+</pre>
+<p>Use this directive to negate the test associated with the current conditional
+nesting level.</p>
+<p>Examples:</p>
+<pre class="literal-block">
+assign x some\svalue
+ifVar x
+   These lines will be processed.
+else
+   These lines won't be processed.
+endIf
+</pre>
+</div>
+</div>
+<div class="section" id="keyboard-table-list">
+<h2><a class="toc-backref" href="#id30">Keyboard Table List</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">name</th>
+<th class="head">description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>off</td>
+<td>no keyboard table</td>
+</tr>
+<tr><td>braille</td>
+<td>bindings for braille keyboards</td>
+</tr>
+<tr><td>desktop</td>
+<td>bindings for full keyboards</td>
+</tr>
+<tr><td>keypad</td>
+<td>bindings for keypad-based navigation</td>
+</tr>
+<tr><td>laptop</td>
+<td>bindings for keyboards without a keypad</td>
+</tr>
+<tr><td>sun_type6</td>
+<td>bindings for Sun Type 6 keyboards</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="braille-driver-list">
+<h2><a class="toc-backref" href="#id31">Braille Driver List</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">code</th>
+<th class="head">name</th>
+<th class="head">aliases</th>
+<th class="head">others</th>
+<th class="head">usage</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>auto</td>
+<td>autodetect</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>al</td>
+<td>Alva</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>ABT(3nn), Delphi(4nn), Satellite(5nn), Braille System 40, Braille Controller 640/680, Easy Link 12</td>
+</tr>
+<tr><td>at</td>
+<td>Albatross</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>46/80</td>
+</tr>
+<tr><td>ba</td>
+<td>BrlAPI</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>BrlAPI client</td>
+</tr>
+<tr><td>bc</td>
+<td>BrailComm</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>III</td>
+</tr>
+<tr><td>bd</td>
+<td>Braudi</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>Pro</td>
+</tr>
+<tr><td>bl</td>
+<td>BrailleLite</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>18/40/M20/M40</td>
+</tr>
+<tr><td>bm</td>
+<td>Baum</td>
+<td>&nbsp;</td>
+<td>Refreshabraille, Orbit, NLS eReader Zoomax, NBP B2G</td>
+<td>BrailleConnect 12/24/32/40/64/80, Brailliant 24/32/40/64/80, Conny 12, DM80 Plus, EcoVario 24/32/40/64/80, Inka, NLS eReader Zoomax, Orbit Reader 20/40, PocketVario 24, Pronto! V3 18/40, Pronto! V4 18/40, RBT 40/80, Refreshabraille 18, SuperVario 32/40/64/80, Vario 40/80, VarioConnect 12/24/32/40/64/80, VarioPro 40/64/80, VarioUltra 20/32/40</td>
+</tr>
+<tr><td>bn</td>
+<td>BrailleNote</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>18/32, Apex</td>
+</tr>
+<tr><td>cb</td>
+<td>CombiBraille</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>25/45/85</td>
+</tr>
+<tr><td>ce</td>
+<td>Cebra</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>20/40/60/80/100/120/140</td>
+</tr>
+<tr><td>cn</td>
+<td>Canute</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>360 (40x9)</td>
+</tr>
+<tr><td>dp</td>
+<td>DotPad</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>ec</td>
+<td>EcoBraille</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>20/40/80</td>
+</tr>
+<tr><td>eu</td>
+<td>EuroBraille</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>AzerBraille, Clio, Esys, Iris, NoteBraille, Scriba</td>
+</tr>
+<tr><td>fa</td>
+<td>FrankAudiodata</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>B2K84</td>
+</tr>
+<tr><td>fs</td>
+<td>FreedomScientific</td>
+<td>VFO, Vispero</td>
+<td>&nbsp;</td>
+<td>Focus 1 44/70/84, Focus 2 40/80, Focus 3+ (Blue) 14/40/80, PAC Mate 20/40</td>
+</tr>
+<tr><td>hd</td>
+<td>Hedo</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>ProfiLine, MobilLine</td>
+</tr>
+<tr><td>hm</td>
+<td>HIMS</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>Braille Sense, SyncBraille, Braille Edge, Smart Beetle, QBrailleXL</td>
+</tr>
+<tr><td>ht</td>
+<td>HandyTech</td>
+<td>HelpTech</td>
+<td>&nbsp;</td>
+<td>Modular 20/40/80, Modular Evolution 64/88, Modular Connect 88, Active Braille, Active Braille S, Active Star 40, Actilino, Activator, Basic Braille 16/20/32/40/48/64/80, Braillino, Braille Wave, Easy Braille, Braille Star 40/80, Connect Braille 40, Bookworm</td>
+</tr>
+<tr><td>hw</td>
+<td>HumanWare</td>
+<td>&nbsp;</td>
+<td>APH Chameleon, APH Mantis, NLS eReader</td>
+<td>Brailliant BI 14/32/40, Brailliant BI 20X/40X, Brailliant B 80, BrailleNote Touch, BrailleOne, APH Chameleon 20, APH Mantis Q40, NLS eReader</td>
+</tr>
+<tr><td>ic</td>
+<td>Inceptor</td>
+<td>Innovision</td>
+<td>&nbsp;</td>
+<td>BrailleMe (20)</td>
+</tr>
+<tr><td>ir</td>
+<td>Iris</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>KB</td>
+</tr>
+<tr><td>lb</td>
+<td>Libbraille</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>Libbraille</td>
+</tr>
+<tr><td>lt</td>
+<td>LogText</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>32</td>
+</tr>
+<tr><td>mb</td>
+<td>MultiBraille</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>MB125CR, MB145CR, MB185CR</td>
+</tr>
+<tr><td>md</td>
+<td>MDV</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>MB208, MB248, MB408L, MB408L+, Lilli Blu</td>
+</tr>
+<tr><td>mm</td>
+<td>BrailleMemo</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>Pocket (16), Smart (16), 32, 40</td>
+</tr>
+<tr><td>mn</td>
+<td>MiniBraille</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>20</td>
+</tr>
+<tr><td>mt</td>
+<td>Metec</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>BD-40</td>
+</tr>
+<tr><td>np</td>
+<td>NinePoint</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>8</td>
+</tr>
+<tr><td>pg</td>
+<td>Pegasus</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>20/27/40/80</td>
+</tr>
+<tr><td>pm</td>
+<td>Papenmeier</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>Compact 486, Compact/Tiny, IB 80 CR Soft, 2D Lite (plus), 2D Screen Soft, EL 80, EL 2D 40/66/80, EL 40/66/70/80 S, EL 40/60/80 C, EL 2D 80 S, EL 40 P, EL 80 II, Elba 20/32, Trio 40/Elba20/Elba32, Live 20/40</td>
+</tr>
+<tr><td>sk</td>
+<td>Seika</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>3/4/5 (40), 80, Mini (16)</td>
+</tr>
+<tr><td>tn</td>
+<td>TechniBraille</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>Manager 40</td>
+</tr>
+<tr><td>ts</td>
+<td>TSI</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>Navigator 20/40/80, PowerBraille 40/65/80</td>
+</tr>
+<tr><td>vd</td>
+<td>VideoBraille</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>40</td>
+</tr>
+<tr><td>vo</td>
+<td>Voyager</td>
+<td>&nbsp;</td>
+<td>Braille Pen, Easy Link</td>
+<td>44/70, Part232 (serial adapter), BraillePen/EasyLink</td>
+</tr>
+<tr><td>vs</td>
+<td>VisioBraille</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>20/40</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

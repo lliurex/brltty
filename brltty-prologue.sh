@@ -1,8 +1,9 @@
+#!/bin/sh
 ###############################################################################
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -16,17 +17,16 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
+testMode=false
+
 readonly initialDirectory="$(pwd)"
 readonly programName="$(basename "${0}")"
 
-resolveDirectory() {
-   local path="${1}"
+programMessage() {
+   local message="${1}"
 
-   (cd "${path}" && pwd)
+   [ -z "${message}" ] || echo >&2 "${programName}: ${message}"
 }
-
-programDirectory="$(dirname "${0}")"
-readonly programDirectory="$(resolveDirectory "${programDirectory}")"
 
 setVariable() {
    eval "${1}"'="${2}"'
@@ -55,6 +55,101 @@ defineEnumeration() {
       value=$((value + 1))
    done
 }
+
+defineEnumeration programLogLevel_ error warning notice task note detail
+programLogLevel=$((${programLogLevel_task}))
+
+logMessage() {
+   local level="${1}"
+   local message="${2}"
+
+   local variable="programLogLevel_${level}"
+   local value=$((${variable}))
+
+   [ "${value}" -gt 0 ] || programMessage "unknown log level: ${level}"
+   [ "${value}" -gt "${programLogLevel}" ] || programMessage "${message}"
+}
+
+logError() {
+   logMessage error "${@}"
+}
+
+logWarning() {
+   logMessage warning "${@}"
+}
+
+logNotice() {
+   logMessage notice "${@}"
+}
+
+logTask() {
+   logMessage task "${@}"
+}
+
+logNote() {
+   logMessage note "${@}"
+}
+
+logDetail() {
+   logMessage detail "${@}"
+}
+
+programTerminationCommandCount=0
+
+runProgramTerminationCommands() {
+   set +e
+
+   while [ "${programTerminationCommandCount}" -gt 0 ]
+   do
+      set -- $(getVariable "programTerminationCommand${programTerminationCommandCount}")
+      programTerminationCommandCount=$((programTerminationCommandCount - 1))
+
+      local process="${1}"
+      local directory="${2}"
+      shift 2
+
+      [ "${process}" = "${$}" ] && {
+         cd "${directory}"
+         "${@}"
+      }
+   done
+}
+
+pushProgramTerminationCommand() {
+   [ "${programTerminationCommandCount}" -gt 0 ] || trap runProgramTerminationCommands exit
+   setVariable "programTerminationCommand$((programTerminationCommandCount += 1))" "${$} $(pwd) ${*}"
+}
+
+needTemporaryDirectory() {
+   local variable="${1:-temporaryDirectory}"
+
+   local _directory
+   getVariable "${variable}" _directory
+
+   [ -n "${_directory}" ] || {
+      [ -n "${TMPDIR}" -a -d "${TMPDIR}" -a -r "${TMPDIR}" -a -w "${TMPDIR}" -a -x "${TMPDIR}" ] || export TMPDIR="/tmp"
+      _directory="$(mktemp -d "${TMPDIR}/${programName}.$(date +"%Y%m%d-%H%M%S").XXXXXX")"
+      pushProgramTerminationCommand rm -f -r -- "${_directory}"
+      cd "${_directory}"
+      setVariable "${variable}" "${_directory}"
+   }
+}
+
+resolveDirectory() {
+   local path="${1}"
+   local variable="${2}"
+   local absolute="$(cd "${path}" && pwd)"
+
+   if [ -n "${variable}" ]
+   then
+      setVariable "${variable}" "${absolute}"
+   else
+      echo "${absolute}"
+   fi
+}
+
+programDirectory="$(dirname "${0}")"
+readonly programDirectory="$(resolveDirectory "${programDirectory}")"
 
 parseParameterString() {
    local valuesArray="${1}"
@@ -86,14 +181,15 @@ stringHead() {
    local string="${1}"
    local length="${2}"
 
-   expr substr "${string}" 1 "${length}"
+   [ "${length}" -eq 0 ] || expr substr "${string}" 1 "${length}"
 }
 
 stringTail() {
    local string="${1}"
    local start="${2}"
 
-   expr substr "${string}" $((start + 1)) $((${#string} - start))
+   local length=$((${#string} - start))
+   [ "${length}" -eq 0 ] || expr substr "${string}" $((start + 1)) "${length}"
 }
 
 stringReplace() {
@@ -127,64 +223,187 @@ stringWrapped() {
    local width="${2}"
 
    local result=""
+   local paragraph=""
 
-   while [ "${#string}" -gt "${width}" ]
+   while true
    do
-      local head="$(stringHead "${string}" $((width + 1)))"
-      head="${head% *}"
+      local length="$(expr "${string}" : $'[^\n]*\n')"
+      local line
 
-      [ "${#head}" -le "${width}" ] || {
-         head="${string%% *}"
-         [ "${head}" != "${string}" ] || break
+      if [ "${length}" -eq 0 ]
+      then
+         line="${string}"
+         string=""
+      else
+         line="$(stringHead "${string}" $((length - 1)))"
+         string="$(stringTail "${string}" "${length}")"
+      fi
+
+      [ -z "${line}" ] || [ "${line}" != "${line# }" ] || {
+         [ -z "${paragraph}" ] || paragraph="${paragraph} "
+         paragraph="${paragraph}${line}"
+         continue
       }
 
-      result="${result} $(stringQuoted "${head}")"
-      string="$(stringTail "${string}" $((${#head} + 1)))"
+      while [ "${#paragraph}" -gt "${width}" ]
+      do
+         local head="$(stringHead "${paragraph}" $((width + 1)))"
+         head="${head% *}"
+
+         [ "${#head}" -le "${width}" ] || {
+            head="${paragraph%% *}"
+            [ "${head}" != "${paragraph}" ] || break
+         }
+
+         result="${result} $(stringQuoted "${head}")"
+         paragraph="$(stringTail "${paragraph}" $((${#head} + 1)))"
+      done
+
+      [ -z "${paragraph}" ] || {
+         result="${result} $(stringQuoted "${paragraph}")"
+         paragraph=""
+      }
+
+      [ -n "${string}" ] || {
+         [ -z "${line}" ] || result="${result} $(stringQuoted "${line}")"
+         break
+      }
+
+      result="${result} $(stringQuoted "${line}")"
    done
 
-   result="${result} $(stringQuoted "${string}")"
    echo "${result}"
-}
-
-programMessage() {
-   local message="${1}"
-
-   [ -z "${message}" ] || echo >&2 "${programName}: ${message}"
-}
-
-defineEnumeration programLogLevel_ error warning task step detail
-programLogLevel=$((${programLogLevel_task}))
-
-logMessage() {
-   local level="${1}"
-   local message="${2}"
-
-   local variable="programLogLevel_${level}"
-   local value=$((${variable}))
-
-   [ "${value}" -gt 0 ] || programMessage "unknown log level: ${level}"
-   [ "${value}" -gt "${programLogLevel}" ] || programMessage "${message}"
 }
 
 syntaxError() {
    local message="${1}"
 
-   logMessage error "${message}"
+   logError "${message}"
    exit 2
 }
 
 semanticError() {
    local message="${1}"
 
-   logMessage error "${message}"
+   logError "${message}"
    exit 3
 }
 
 internalError() {
    local message="${1}"
 
-   logMessage error "${message}"
+   logError "${message}"
    exit 4
+}
+
+findSiblingCommand() {
+   local resultVariable="${1}"
+   shift 1
+
+   local command
+   for command in "${@}"
+   do
+      local path="${programDirectory}/${command}"
+      [ -f "${path}" ] || continue
+      [ -x "${path}" ] || continue
+
+      setVariable "${resultVariable}" "${path}"
+      return 0
+   done
+
+   return 1
+}
+
+findHostCommand() {
+   local pathVariable="${1}"
+   local command="${2}"
+
+   local path="$(which "${command}")"
+   [ -n "${path}" ] || return 1
+
+   setVariable "${pathVariable}" "${path}"
+   return 0
+}
+
+verifyHostCommand() {
+   local pathVariable="${1}"
+   local command="${2}"
+
+   findHostCommand "${pathVariable}" "${command}" || {
+      semanticError "host command not found: ${command}"
+   }
+}
+
+executeHostCommand() {
+   logDetail "executing host command: ${*}"
+
+   "${testMode}" || "${@}" || {
+      local status="${?}"
+      logWarning "host command failed with exit status ${status}: ${*}"
+      return "${status}"
+   }
+}
+
+verifyActionFlags() {
+   local allFlag="${1}"
+   shift 1
+
+   local allRequested
+   getVariable "${allFlag}" allRequested
+   local actionFlag
+
+   for actionFlag in "${@}"
+   do
+      local actionRequested
+      getVariable "${actionFlag}" actionRequested
+
+      "${actionRequested}" && {
+         "${allRequested}" && syntaxError "conflicting actions"
+         return
+      }
+   done
+
+   "${allRequested}" || syntaxError "no actions"
+
+   for actionFlag in "${@}"
+   do
+      setVariable "${actionFlag}" true
+   done
+}
+
+testInteger() {
+   local value="${1}"
+
+   [ "${value}" = "0" ] || {
+      value="${value#-}"
+      [ -n "${value}" ] || return 1
+      [ "$(expr "${value}" : '^[1-9][0-9]*$')" -eq "${#value}" ] || return 1
+   }
+
+   return 0
+}
+
+verifyInteger() {
+   local label="${1}"
+   local value="${2}"
+   local minimum="${3}"
+   local maximum="${4}"
+
+   testInteger "${value}" || {
+      semanticError "${label} not an integer: ${value}"
+   }
+
+   [ -n "${minimum}" ] && {
+      [ "${value}" -lt "${minimum}" ] && {
+         semanticError "${label} out of range: ${value} < ${minimum}"
+      }
+   }
+
+   [ -n "${maximum}" ] && {
+      [ "${value}" -gt "${maximum}" ] && {
+         semanticError "${label} out of range: ${value} > ${maximum}"
+      }
+   }
 }
 
 testContainingDirectory() {
@@ -220,20 +439,52 @@ findContainingDirectory() {
    export "${variable}"="${directory}"
 }
 
-verifyExecutable() {
-   local path="${1}"
-
-   [ -e "${path}" ] || semanticError "file not found: ${path}"
-   [ -f "${path}" ] || semanticError "not a file: ${path}"
-   [ -x "${path}" ] || semanticError "file not executable: ${path}"
-}
-
 testDirectory() {
    local path="${1}"
 
    [ -e "${path}" ] || return 1
    [ -d "${path}" ] || semanticError "not a directory: ${path}"
    return 0
+}
+
+verifyWritableDirectory() {
+   local path="${1}"
+
+   testDirectory "${path}" || semanticError "directory not found: ${path}"
+   [ -w "${path}" ] || semanticError "directory not writable: ${path}"
+}
+
+testFile() {
+   local path="${1}"
+
+   [ -e "${path}" ] || return 1
+   [ -f "${path}" ] || semanticError "not a file: ${path}"
+   return 0
+}
+
+verifyInputFile() {
+   local path="${1}"
+
+   testFile "${path}" || semanticError "file not found: ${path}"
+   [ -r "${path}" ] || semanticError "file not readable: ${path}"
+}
+
+verifyOutputFile() {
+   local path="${1}"
+
+   if testFile "${path}"
+   then
+      [ -w "${path}" ] || semanticError "file not writable: ${path}"
+   else
+      verifyWritableDirectory "$(dirname "${path}")"
+   fi
+}
+
+verifyExecutableFile() {
+   local path="${1}"
+
+   testFile "${path}" || semanticError "file not found: ${path}"
+   [ -x "${path}" ] || semanticError "file not executable: ${path}"
 }
 
 verifyInputDirectory() {
@@ -252,19 +503,6 @@ verifyOutputDirectory() {
    else
       mkdir -p "${path}"
    fi
-}
-
-needTemporaryDirectory() {
-   cleanup() {
-      set +e
-      cd /
-      [ -z "${temporaryDirectory}" ] || rm -f -r -- "${temporaryDirectory}"
-   }
-   trap "cleanup" 0
-
-   umask 022
-   [ -n "${TMPDIR}" -a -d "${TMPDIR}" -a -r "${TMPDIR}" -a -w "${TMPDIR}" -a -x "${TMPDIR}" ] || export TMPDIR="/tmp"
-   temporaryDirectory="$(mktemp -d "${TMPDIR}/${programName}.XXXXXX")" && cd "${temporaryDirectory}" || exit "${?}"
 }
 
 programParameterCount=0
@@ -293,9 +531,15 @@ optionalProgramParameters() {
    if [ "${programParameterCountMinimum}" -lt 0 ]
    then
       programParameterCountMinimum="${programParameterCount}"
+      optionalProgramParameterLabel="${1}"
+      optionalProgramParameterUsage="${2}"
    else
-      logMessage warning "program parameters are already optional"
+      logWarning "program parameters are already optional"
    fi
+}
+
+tooManyProgramParameters() {
+   syntaxError "too many parameters"
 }
 
 programOptionLetters=""
@@ -350,6 +594,13 @@ addProgramOption() {
    [ "${length}" -eq 0 ] || programOptionString="${programOptionString}:"
 }
 
+addTestModeOption() {
+   addProgramOption t flag testMode "test mode - log (but don't execute) the host commands"
+}
+
+programUsageLineCount=0
+programUsageLineWidth="${COLUMNS:-72}"
+
 addProgramUsageLine() {
    local line="${1}"
 
@@ -359,10 +610,9 @@ addProgramUsageLine() {
 
 addProgramUsageText() {
    local text="${1}"
-   local width="${2}"
-   local prefix="${3}"
+   local prefix="${2}"
 
-   width=$((width - ${#prefix}))
+   local width=$((programUsageLineWidth - ${#prefix}))
 
    while [ "${width}" -lt 1 ]
    do
@@ -380,7 +630,7 @@ addProgramUsageText() {
       width=1
    }
 
-   eval set -- $(stringWrapped "${text}" "${width}")
+   eval set -- "$(stringWrapped "${text}" "${width}")"
    for line
    do
       addProgramUsageLine "${prefix}${line}"
@@ -388,12 +638,26 @@ addProgramUsageText() {
    done
 }
 
-showProgramUsageSummary() {
-   programUsageLineCount=0
-   set ${programOptionLetters}
-   local width="${COLUMNS:-72}"
+writeProgramUsageLines() {
+   local index=0
 
-   local line="Usage: ${programName}"
+   while [ "${index}" -lt "${programUsageLineCount}" ]
+   do
+      getVariable "programUsageLine_${index}"
+      index=$((index + 1))
+   done
+}
+
+showProgramUsageSummary() {
+   set -- ${programOptionLetters}
+
+   local purpose="$(showProgramUsagePurpose)"
+   [ -z "${purpose}" ] || {
+      addProgramUsageText "${purpose}"
+      addProgramUsageLine
+   }
+
+   local line="Syntax: ${programName}"
    [ "${#}" -eq 0 ] || line="${line} [-option ...]"
 
    local index=0
@@ -412,10 +676,19 @@ showProgramUsageSummary() {
       index=$((index + 1))
    done
 
+   [ -z "${optionalProgramParameterLabel}" ] || {
+      line="${line} [${optionalProgramParameterLabel} ...]"
+
+      [ -z "${optionalProgramParameterUsage}" ] || {
+         addProgramParameter "${optionalProgramParameterLabel} ..." optionalProgramParameterVariable "${optionalProgramParameterUsage}"
+      }
+   }
+
    line="${line}${suffix}"
    addProgramUsageLine "${line}"
 
    [ "${programParameterCount}" -eq 0 ] || {
+      addProgramUsageLine
       addProgramUsageLine "Parameters:"
 
       local indent=$((programParameterLabelWidth + 2))
@@ -432,14 +705,15 @@ showProgramUsageSummary() {
 
          local usage="$(getVariable "programParameterUsage_${index}")"
          local default="$(getVariable "programParameterDefault_${index}")"
-         [ -z "${default}" ] || usage="${usage} (default is ${default})"
-         addProgramUsageText "${usage}" "${width}" "  ${line}"
+         [ -z "${default}" ] || usage="${usage} - the default is ${default}"
+         addProgramUsageText "${usage}" "  ${line}"
 
          index=$((index + 1))
       done
    }
 
    [ "${#}" -eq 0 ] || {
+      addProgramUsageLine
       addProgramUsageLine "Options:"
 
       local indent=$((3 + programOptionOperandWidth + 2))
@@ -456,22 +730,21 @@ showProgramUsageSummary() {
 
          usage="$(getVariable "programOptionUsage_${letter}")"
          local default="$(getVariable "programOptionDefault_${letter}")"
-         [ -z "${default}" ] || usage="${usage} (default is ${default})"
-         addProgramUsageText "${usage}" "${width}" "  ${line}"
+         [ -z "${default}" ] || usage="${usage} - the default is ${default}"
+         addProgramUsageText "${usage}" "  ${line}"
       done
    }
 
-   local index=0
-   while [ "${index}" -lt "${programUsageLineCount}" ]
-   do
-      getVariable "programUsageLine_${index}"
-      index=$((index + 1))
-   done
+   local notes="$(showProgramUsageNotes)"
+   [ -z "${notes}" ] || {
+      addProgramUsageLine
+      addProgramUsageText "${notes}"
+   }
 
-   showProgramUsageNotes
+   writeProgramUsageLines
 }
 
-addProgramOption h flag programOption_showUsageSummary "show usage summary (this output), and then exit"
+addProgramOption h flag programOption_showUsageSummary "show this usage summary, and then exit"
 addProgramOption q counter programOption_quietCount "decrease output verbosity"
 addProgramOption v counter programOption_verboseCount "increase output verbosity"
 
@@ -517,22 +790,49 @@ parseProgramArguments() {
    local programParameterIndex=0
    while [ "${#}" -gt 0 ]
    do
-      [ "${programParameterIndex}" -lt "${programParameterCount}" ] || syntaxError "too many parameters"
+      [ "${programParameterIndex}" -lt "${programParameterCount}" ] || break
       setVariable "$(getVariable "programParameterVariable_${programParameterIndex}")" "${1}"
       shift 1
       programParameterIndex=$((programParameterIndex + 1))
    done
 
-   [ "${programParameterIndex}" -ge "${programParameterCountMinimum}" ] || syntaxError "$(getVariable "programParameterLabel_${programParameterIndex}") not specified"
+   [ "${programParameterIndex}" -ge "${programParameterCountMinimum}" ] || {
+      syntaxError "$(getVariable "programParameterLabel_${programParameterIndex}") not specified"
+   }
+
    readonly programLogLevel=$((programLogLevel + programOption_verboseCount - programOption_quietCount))
+   processExtraProgramParameters "${@}"
 }
 
-##############################################################################
-# The following functions are stubs that can be copied into the main script. #
-##############################################################################
+handleInitialHelpOption() {
+   if [ "${#}" -gt 0 ]
+   then
+      if [ "${1}" = "-h" ]
+      then
+         addProgramUsageText "$(cat)"
+         writeProgramUsageLines
+         exit 0
+      fi
+   fi
+}
+
+####################################################################
+# The following functions are stubs that may be copied into the    #
+# main script and augmented. They need to be defined after this    #
+# prologue is embeded and before the program arguments are parsed. #
+####################################################################
+
+showProgramUsagePurpose() {
+cat <<END_OF_PROGRAM_USAGE_PURPOSE
+END_OF_PROGRAM_USAGE_PURPOSE
+}
 
 showProgramUsageNotes() {
 cat <<END_OF_PROGRAM_USAGE_NOTES
 END_OF_PROGRAM_USAGE_NOTES
+}
+
+processExtraProgramParameters() {
+   [ "${#}" -eq 0 ] || tooManyProgramParameters
 }
 

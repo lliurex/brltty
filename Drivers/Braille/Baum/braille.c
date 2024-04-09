@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -88,36 +88,41 @@ BEGIN_KEY_NAME_TABLE(back)
 END_KEY_NAME_TABLE
 
 BEGIN_KEY_NAME_TABLE(entry)
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+0, "B9"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+1, "B10"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+2, "B11"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+4, "F1"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+5, "F2"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+6, "F3"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+7, "F4"),
+  KEY_NAME_ENTRY(BM_KEY_B9, "B9"),
+  KEY_NAME_ENTRY(BM_KEY_B10, "B10"),
+  KEY_NAME_ENTRY(BM_KEY_B11, "B11"),
+
+  KEY_NAME_ENTRY(BM_KEY_F1, "F1"),
+  KEY_NAME_ENTRY(BM_KEY_F2, "F2"),
+  KEY_NAME_ENTRY(BM_KEY_F3, "F3"),
+  KEY_NAME_ENTRY(BM_KEY_F4, "F4"),
 END_KEY_NAME_TABLE
 
 BEGIN_KEY_NAME_TABLE(dots)
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+8, "Dot1"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+9, "Dot2"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+10, "Dot3"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+11, "Dot4"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+12, "Dot5"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+13, "Dot6"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+14, "Dot7"),
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+15, "Dot8"),
+  KEY_NAME_ENTRY(BM_KEY_DOT1, "Dot1"),
+  KEY_NAME_ENTRY(BM_KEY_DOT2, "Dot2"),
+  KEY_NAME_ENTRY(BM_KEY_DOT3, "Dot3"),
+  KEY_NAME_ENTRY(BM_KEY_DOT4, "Dot4"),
+  KEY_NAME_ENTRY(BM_KEY_DOT5, "Dot5"),
+  KEY_NAME_ENTRY(BM_KEY_DOT6, "Dot6"),
+  KEY_NAME_ENTRY(BM_KEY_DOT7, "Dot7"),
+  KEY_NAME_ENTRY(BM_KEY_DOT8, "Dot8"),
 END_KEY_NAME_TABLE
 
 BEGIN_KEY_NAME_TABLE(joystick)
-  KEY_NAME_ENTRY(BM_KEY_JOYSTICK+0, "Up"),
-  KEY_NAME_ENTRY(BM_KEY_JOYSTICK+1, "Left"),
-  KEY_NAME_ENTRY(BM_KEY_JOYSTICK+2, "Down"),
-  KEY_NAME_ENTRY(BM_KEY_JOYSTICK+3, "Right"),
-  KEY_NAME_ENTRY(BM_KEY_JOYSTICK+4, "Press"),
+  KEY_NAME_ENTRY(BM_KEY_UP, "Up"),
+  KEY_NAME_ENTRY(BM_KEY_LEFT, "Left"),
+  KEY_NAME_ENTRY(BM_KEY_DOWN, "Down"),
+  KEY_NAME_ENTRY(BM_KEY_RIGHT, "Right"),
+  KEY_NAME_ENTRY(BM_KEY_PRESS, "Press"),
 END_KEY_NAME_TABLE
 
-BEGIN_KEY_NAME_TABLE(orbit)
-  KEY_NAME_ENTRY(BM_KEY_ENTRY+0, "Space"),
+BEGIN_KEY_NAME_TABLE(navpad)
+  KEY_NAME_ENTRY(BM_KEY_UP, "Up"),
+  KEY_NAME_ENTRY(BM_KEY_LEFT, "Left"),
+  KEY_NAME_ENTRY(BM_KEY_DOWN, "Down"),
+  KEY_NAME_ENTRY(BM_KEY_RIGHT, "Right"),
+  KEY_NAME_ENTRY(BM_KEY_PRESS, "Select"),
 END_KEY_NAME_TABLE
 
 BEGIN_KEY_NAME_TABLE(wheels)
@@ -165,6 +170,20 @@ BEGIN_KEY_NAME_TABLE(vertical)
   KEY_GROUP_ENTRY(BM_GRP_ScaledRightSensors, "ScaledRightSensor"),
 END_KEY_NAME_TABLE
 
+BEGIN_KEY_NAME_TABLE(NLS_Zoomax)
+  KEY_NAME_ENTRY(BM_KEY_B9, "BL"),
+  KEY_NAME_ENTRY(BM_KEY_B10, "Space"),
+
+  KEY_NAME_ENTRY(BM_KEY_F1, "S1"),
+  KEY_NAME_ENTRY(BM_KEY_F2, "S2"),
+  KEY_NAME_ENTRY(BM_KEY_F3, "S3"),
+  KEY_NAME_ENTRY(BM_KEY_F4, "S4"),
+END_KEY_NAME_TABLE
+
+BEGIN_KEY_NAME_TABLE(orbit)
+  KEY_NAME_ENTRY(BM_KEY_B9, "Space"),
+END_KEY_NAME_TABLE
+
 BEGIN_KEY_NAME_TABLES(default)
   KEY_NAME_SUBTABLE(display,6),
   KEY_NAME_TABLE(entry),
@@ -173,7 +192,7 @@ BEGIN_KEY_NAME_TABLES(default)
   KEY_NAME_TABLE(routing),
 END_KEY_NAME_TABLES
 
-BEGIN_KEY_NAME_TABLES(connect)
+BEGIN_KEY_NAME_TABLES(rb)
   KEY_NAME_SUBTABLE(display,6),
   KEY_NAME_TABLE(entry),
   KEY_NAME_TABLE(dots),
@@ -181,7 +200,31 @@ BEGIN_KEY_NAME_TABLES(connect)
   KEY_NAME_TABLE(routing),
 END_KEY_NAME_TABLES
 
+BEGIN_KEY_NAME_TABLES(orbit)
+  KEY_NAME_TABLE(orbit),
+  KEY_NAME_TABLE(dots),
+  KEY_NAME_TABLE(navpad),
+  KEY_NAME_SUBTABLE(display,6),
+  KEY_NAME_TABLE(routing),
+END_KEY_NAME_TABLES
+
+BEGIN_KEY_NAME_TABLES(NLS_Zoomax)
+  KEY_NAME_TABLE(NLS_Zoomax),
+  KEY_NAME_TABLE(dots),
+  KEY_NAME_TABLE(navpad),
+  KEY_NAME_SUBTABLE(display,6),
+  KEY_NAME_TABLE(routing),
+END_KEY_NAME_TABLES
+
 BEGIN_KEY_NAME_TABLES(b2g)
+  KEY_NAME_SUBTABLE(display,6),
+  KEY_NAME_TABLE(entry),
+  KEY_NAME_TABLE(dots),
+  KEY_NAME_TABLE(navpad),
+  KEY_NAME_TABLE(routing),
+END_KEY_NAME_TABLES
+
+BEGIN_KEY_NAME_TABLES(connect)
   KEY_NAME_SUBTABLE(display,6),
   KEY_NAME_TABLE(entry),
   KEY_NAME_TABLE(dots),
@@ -197,13 +240,6 @@ BEGIN_KEY_NAME_TABLES(conny)
   KEY_NAME_TABLE(routing),
 END_KEY_NAME_TABLES
 
-BEGIN_KEY_NAME_TABLES(orbit)
-  KEY_NAME_TABLE(orbit),
-  KEY_NAME_TABLE(dots),
-  KEY_NAME_TABLE(joystick),
-  KEY_NAME_SUBTABLE(display,8),
-END_KEY_NAME_TABLES
-
 BEGIN_KEY_NAME_TABLES(pronto)
   KEY_NAME_SUBTABLE(display,6),
   KEY_NAME_TABLE(entry),
@@ -213,14 +249,6 @@ BEGIN_KEY_NAME_TABLES(pronto)
 END_KEY_NAME_TABLES
 
 BEGIN_KEY_NAME_TABLES(pv)
-  KEY_NAME_SUBTABLE(display,6),
-  KEY_NAME_TABLE(entry),
-  KEY_NAME_TABLE(dots),
-  KEY_NAME_TABLE(joystick),
-  KEY_NAME_TABLE(routing),
-END_KEY_NAME_TABLES
-
-BEGIN_KEY_NAME_TABLES(rb)
   KEY_NAME_SUBTABLE(display,6),
   KEY_NAME_TABLE(entry),
   KEY_NAME_TABLE(dots),
@@ -278,13 +306,14 @@ BEGIN_KEY_NAME_TABLES(vk)
 END_KEY_NAME_TABLES
 
 DEFINE_KEY_TABLE(default)
-DEFINE_KEY_TABLE(connect)
-DEFINE_KEY_TABLE(b2g)
-DEFINE_KEY_TABLE(conny)
+DEFINE_KEY_TABLE(rb)
 DEFINE_KEY_TABLE(orbit)
+DEFINE_KEY_TABLE(NLS_Zoomax)
+DEFINE_KEY_TABLE(b2g)
+DEFINE_KEY_TABLE(connect)
+DEFINE_KEY_TABLE(conny)
 DEFINE_KEY_TABLE(pronto)
 DEFINE_KEY_TABLE(pv)
-DEFINE_KEY_TABLE(rb)
 DEFINE_KEY_TABLE(sv)
 DEFINE_KEY_TABLE(ultra)
 DEFINE_KEY_TABLE(inka)
@@ -296,13 +325,14 @@ DEFINE_KEY_TABLE(vk)
 
 BEGIN_KEY_TABLE_LIST
   &KEY_TABLE_DEFINITION(default),
-  &KEY_TABLE_DEFINITION(connect),
-  &KEY_TABLE_DEFINITION(b2g),
-  &KEY_TABLE_DEFINITION(conny),
+  &KEY_TABLE_DEFINITION(rb),
   &KEY_TABLE_DEFINITION(orbit),
+  &KEY_TABLE_DEFINITION(NLS_Zoomax),
+  &KEY_TABLE_DEFINITION(b2g),
+  &KEY_TABLE_DEFINITION(connect),
+  &KEY_TABLE_DEFINITION(conny),
   &KEY_TABLE_DEFINITION(pronto),
   &KEY_TABLE_DEFINITION(pv),
-  &KEY_TABLE_DEFINITION(rb),
   &KEY_TABLE_DEFINITION(sv),
   &KEY_TABLE_DEFINITION(ultra),
   &KEY_TABLE_DEFINITION(inka),
@@ -611,7 +641,10 @@ typedef enum {
   BAUM_RSP_ServiceRegisters     = 0X52,
   BAUM_RSP_DeviceIdentity       = 0X84,
   BAUM_RSP_SerialNumber         = 0X8A,
-  BAUM_RSP_BluetoothName        = 0X8C
+  BAUM_RSP_BluetoothName        = 0X8C,
+  BAUM_RSP_NLS_ZMX_BD           = 0XBD,
+  BAUM_RSP_NLS_ZMX_BE           = 0XBE,
+  BAUM_RSP_NLS_ZMX_BF           = 0XBF,
 } BaumResponseCode;
 
 typedef enum {
@@ -834,13 +867,16 @@ typedef union {
 } PACKED BaumResponsePacket;
 
 typedef enum {
-  BAUM_DEVICE_Default,
-  BAUM_DEVICE_B2G,
-  BAUM_DEVICE_Conny,
+  BAUM_DEVICE_Default = 0,
+
+  BAUM_DEVICE_Refreshabraille,
   BAUM_DEVICE_Orbit,
+  BAUM_DEVICE_NLS_Zoomax,
+  BAUM_DEVICE_B2G,
+
+  BAUM_DEVICE_Conny,
   BAUM_DEVICE_PocketVario,
   BAUM_DEVICE_Pronto,
-  BAUM_DEVICE_Refreshabraille,
   BAUM_DEVICE_SuperVario,
   BAUM_DEVICE_VarioConnect,
   BAUM_DEVICE_VarioUltra,
@@ -858,6 +894,22 @@ typedef struct {
 } BaumDeviceIdentityEntry;
 
 static const BaumDeviceIdentityEntry baumDeviceIdentityTable[] = {
+  { .string = "Refreshabraille",
+    .type = BAUM_DEVICE_Refreshabraille
+  },
+
+  { .string = "Orbit",
+    .type = BAUM_DEVICE_Orbit
+  },
+
+  { .string = "NLS eReader Zoomax",
+    .type = BAUM_DEVICE_NLS_Zoomax
+  },
+
+  { .string = "Conny (NBP B2G)",
+    .type = BAUM_DEVICE_B2G
+  },
+
   { .string = "BrailleConnect",
     .type = BAUM_DEVICE_VarioConnect
   },
@@ -866,16 +918,8 @@ static const BaumDeviceIdentityEntry baumDeviceIdentityTable[] = {
     .type = BAUM_DEVICE_SuperVario
   },
 
-  { .string = "Conny (NBP B2G)",
-    .type = BAUM_DEVICE_B2G
-  },
-
   { .string = "Conny",
     .type = BAUM_DEVICE_Conny
-  },
-
-  { .string = "Orbit",
-    .type = BAUM_DEVICE_Orbit
   },
 
   { .string = "PocketVario",
@@ -884,10 +928,6 @@ static const BaumDeviceIdentityEntry baumDeviceIdentityTable[] = {
 
   { .string = "Pronto",
     .type = BAUM_DEVICE_Pronto
-  },
-
-  { .string = "Refreshabraille",
-    .type = BAUM_DEVICE_Refreshabraille
   },
 
   { .string = "SuperVario",
@@ -1139,6 +1179,8 @@ adjustPacketLength (const unsigned char *bytes, size_t size, size_t *length) {
       if (size == 17) {
         if (memcmp(&bytes[1], "Refreshabraille ", (size - 1)) == 0) {
           *length += 2;
+        } else if (memcmp(&bytes[1], "NLS eReader Zoom", (size - 1)) == 0) {
+          *length += 2;
         }
       }
       break;
@@ -1166,7 +1208,7 @@ verifyBaumPacket (
 ) {
   BaumPacketVerificationData *pvd = data;
   unsigned char byte = bytes[size-1];
-  int escape = byte == ESC;
+  int escape = byte == ASCII_ESC;
 
   switch (pvd->state) {
     case BAUM_PVS_WAITING:
@@ -1261,6 +1303,15 @@ verifyBaumPacket (
         *length = KEY_GROUP_SIZE(brl->textColumns) + 1;
         break;
 
+      case BAUM_RSP_NLS_ZMX_BD:
+      case BAUM_RSP_NLS_ZMX_BE:
+        *length = 2;
+        break;
+
+      case BAUM_RSP_NLS_ZMX_BF:
+        *length = 2;
+        break;
+
       default:
         pvd->state = BAUM_PVS_WAITING;
         return BRL_PVR_INVALID;
@@ -1272,6 +1323,11 @@ verifyBaumPacket (
       case BAUM_RSP_ServiceRegisters:
         if (byte < 4) return BRL_PVR_INVALID;
         *length += byte;
+        break;
+
+      case BAUM_RSP_NLS_ZMX_BD:
+      case BAUM_RSP_NLS_ZMX_BE:
+        if (byte != ASCII_CR) return BRL_PVR_EXCLUDE;
         break;
 
       default:
@@ -1302,13 +1358,13 @@ static int
 writeBaumPacket (BrailleDisplay *brl, const unsigned char *packet, int length) {
   unsigned char buffer[1 + (length * 2)];
   unsigned char *byte = buffer;
-  *byte++ = ESC;
+  *byte++ = ASCII_ESC;
 
   {
     int index = 0;
     while (index < length)
-      if ((*byte++ = packet[index++]) == ESC)
-        *byte++ = ESC;
+      if ((*byte++ = packet[index++]) == ASCII_ESC)
+        *byte++ = ASCII_ESC;
   }
 
   return writeBraillePacket(brl, NULL, buffer, (byte - buffer));
@@ -1422,6 +1478,21 @@ static const BaumDeviceOperations baumDeviceOperations[] = {
     .writeAllCells = writeBaumCells_all
   },
 
+  [BAUM_DEVICE_Refreshabraille] = {
+    .keyTableDefinition = &KEY_TABLE_DEFINITION(rb),
+    .writeAllCells = writeBaumCells_all
+  },
+
+  [BAUM_DEVICE_Orbit] = {
+    .keyTableDefinition = &KEY_TABLE_DEFINITION(orbit),
+    .writeAllCells = writeBaumCells_all
+  },
+
+  [BAUM_DEVICE_NLS_Zoomax] = {
+    .keyTableDefinition = &KEY_TABLE_DEFINITION(NLS_Zoomax),
+    .writeAllCells = writeBaumCells_all
+  },
+
   [BAUM_DEVICE_B2G] = {
     .keyTableDefinition = &KEY_TABLE_DEFINITION(b2g),
     .writeAllCells = writeBaumCells_all
@@ -1432,11 +1503,6 @@ static const BaumDeviceOperations baumDeviceOperations[] = {
     .writeAllCells = writeBaumCells_all
   },
 
-  [BAUM_DEVICE_Orbit] = {
-    .keyTableDefinition = &KEY_TABLE_DEFINITION(orbit),
-    .writeAllCells = writeBaumCells_all
-  },
-
   [BAUM_DEVICE_PocketVario] = {
     .keyTableDefinition = &KEY_TABLE_DEFINITION(pv),
     .writeAllCells = writeBaumCells_all
@@ -1444,11 +1510,6 @@ static const BaumDeviceOperations baumDeviceOperations[] = {
 
   [BAUM_DEVICE_Pronto] = {
     .keyTableDefinition = &KEY_TABLE_DEFINITION(pronto),
-    .writeAllCells = writeBaumCells_all
-  },
-
-  [BAUM_DEVICE_Refreshabraille] = {
-    .keyTableDefinition = &KEY_TABLE_DEFINITION(rb),
     .writeAllCells = writeBaumCells_all
   },
 
@@ -1725,6 +1786,9 @@ probeBaumDevice (BrailleDisplay *brl) {
 
       if (size) {
         switch (response.data.code) {
+          case BAUM_RSP_VersionNumber:
+            continue;
+
           case BAUM_RSP_RoutingKeys: /* Inka */
             setInkaSwitches(brl, response.data.values.switches, 1);
             return 1;
@@ -1972,6 +2036,11 @@ processBaumPackets (BrailleDisplay *brl) {
       case BAUM_RSP_ErrorCode:
         if (packet.data.values.errorCode != BAUM_ERR_PacketType) goto unexpectedPacket;
         logMessage(LOG_DEBUG, "unsupported request");
+        continue;
+
+      case BAUM_RSP_NLS_ZMX_BD:
+      case BAUM_RSP_NLS_ZMX_BE:
+      case BAUM_RSP_NLS_ZMX_BF:
         continue;
 
       default:
@@ -2927,8 +2996,15 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
       .data=&baumEscapeOperations
     },
 
-    { /* Orbit 20 (20 cells) */
+    { /* Orbit Reader 20 (20 cells) */
       .vendor=0X0483, .product=0XA1D3,
+      .configuration=1, .interface=0, .alternative=0,
+      .inputEndpoint=1, .outputEndpoint=1,
+      .data=&baumHid1Operations,
+    },
+
+    { /* Orbit Reader 40 (40 cells) */
+      .vendor=0X0483, .product=0Xa366,
       .configuration=1, .interface=0, .alternative=0,
       .inputEndpoint=1, .outputEndpoint=1,
       .data=&baumHid1Operations,
@@ -3184,6 +3260,14 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
       .configuration=1, .interface=0, .alternative=0,
       .inputEndpoint=1, .outputEndpoint=2,
       .data=&baumHid2Operations
+    },
+
+    { /* NLS eReader Zoomax (20 cells) */
+      .vendor=0X1A86, .product=0X7523,
+      .parentVendor=0X1A40, .parentProduct=0X0101,
+      .configuration=1, .interface=0, .alternative=0,
+      .inputEndpoint=2, .outputEndpoint=2,
+      .data=&baumEscapeOperations
     },
   END_USB_CHANNEL_DEFINITIONS
 

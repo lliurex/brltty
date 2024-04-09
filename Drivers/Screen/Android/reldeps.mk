@@ -22,13 +22,14 @@ screen.$O: $(SRC_TOP)Headers/scr_types.h
 screen.$O: $(SRC_TOP)Headers/scr_utils.h
 screen.$O: $(SRC_TOP)Headers/common_java.h
 screen.$O: $(SRC_TOP)Headers/system_java.h
-screen.$O: $(SRC_TOP)Headers/async.h
+screen.$O: $(SRC_TOP)Headers/async_types_handle.h
 screen.$O: $(SRC_TOP)Headers/brl_types.h
 screen.$O: $(SRC_TOP)Headers/cmd.h
 screen.$O: $(SRC_TOP)Headers/cmd_types.h
 screen.$O: $(SRC_TOP)Headers/ctb.h
 screen.$O: $(SRC_TOP)Headers/ctb_types.h
 screen.$O: $(SRC_TOP)Headers/gio_types.h
+screen.$O: $(SRC_TOP)Headers/hid_types.h
 screen.$O: $(SRC_TOP)Headers/ktb.h
 screen.$O: $(SRC_TOP)Headers/pid.h
 screen.$O: $(SRC_TOP)Headers/prefs.h

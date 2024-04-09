@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,6 +25,10 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
+#ifdef HAVE_LANGINFO_H
+#include <langinfo.h>
+#endif /* HAVE_LANGINFO_H */
+
 #undef CAN_GLOB
 #if defined(HAVE_GLOB)
 #define CAN_GLOB
@@ -40,7 +44,9 @@
 
 #include "log.h"
 #include "menu.h"
+#include "strfmt.h"
 #include "prefs.h"
+#include "timing.h"
 #include "parse.h"
 #include "file.h"
 
@@ -113,7 +119,7 @@ struct MenuItemStruct {
 
   unsigned char minimum;                  /* lowest valid value */
   unsigned char maximum;                  /* highest valid value */
-  unsigned char divisor;                  /* present only multiples of this value */
+  unsigned char step;                  /* present only multiples of this value */
 
   union {
     const char *text;
@@ -123,6 +129,7 @@ struct MenuItemStruct {
 
     struct {
       const char *unit;
+      NumericMenuItemFormatter *formatter;
     } numeric;
 
     struct {
@@ -332,7 +339,7 @@ newMenuItem (Menu *menu, unsigned char *setting, const MenuString *name) {
 
     item->minimum = 0;
     item->maximum = 0;
-    item->divisor = 1;
+    item->step = 1;
 
     return item;
   }
@@ -371,7 +378,14 @@ newTextMenuItem (Menu *menu, const MenuString *name, const char *text) {
 
 static const char *
 getValue_numeric (const MenuItem *item) {
-  return formatValue(item->menu, "%u", *item->setting);
+  Menu *menu = item->menu;
+
+  item->data.numeric.formatter(
+    menu, *item->setting,
+    menu->valueBuffer, sizeof(menu->valueBuffer)
+  );
+
+  return menu->valueBuffer;
 }
 
 static const char *
@@ -384,23 +398,83 @@ static const MenuItemMethods menuItemMethods_numeric = {
   .getComment = getComment_numeric
 };
 
+static void
+defaultNumericMenuItemFormatter (
+  Menu *menu, unsigned char value,
+  char *buffer, size_t size
+) {
+  snprintf(buffer, size, "%u", value);
+}
+
 MenuItem *
 newNumericMenuItem (
   Menu *menu, unsigned char *setting, const MenuString *name,
-  unsigned char minimum, unsigned char maximum, unsigned char divisor,
-  const char *unit
+  unsigned char minimum, unsigned char maximum, unsigned char step,
+  const char *unit, NumericMenuItemFormatter *formatter
 ) {
+  if (!formatter) formatter = defaultNumericMenuItemFormatter;
+
   MenuItem *item = newMenuItem(menu, setting, name);
 
   if (item) {
     item->methods = &menuItemMethods_numeric;
     item->minimum = minimum;
     item->maximum = maximum;
-    item->divisor = divisor;
+    item->step = step;
     item->data.numeric.unit = unit;
+    item->data.numeric.formatter = formatter;
   }
 
   return item;
+}
+
+static void
+formatTime (Menu *menu, unsigned char time, char *buffer, size_t size) {
+  unsigned int milliseconds = PREFS2MSECS(time);
+
+  unsigned int seconds = milliseconds / MSECS_PER_SEC;
+  milliseconds %= MSECS_PER_SEC;
+
+  const char *decimalPoint;
+#ifdef HAVE_NL_LANGINFO
+  decimalPoint = nl_langinfo(RADIXCHAR);
+#else /* HAVE_NL_LANGINFO */
+  decimalPoint = NULL;
+#endif /* HAVE_NL_LANGINFO */
+  if (!decimalPoint) decimalPoint = ".";
+
+  size_t end;
+  size_t decimalFrom;
+  size_t decimalTo;
+
+  STR_BEGIN(buffer, size);
+  STR_PRINTF("%u", seconds);
+  decimalFrom = STR_LENGTH;
+  STR_PRINTF("%s", decimalPoint);
+  decimalTo = STR_LENGTH;
+  STR_PRINTF("%03u", milliseconds);
+  end = STR_LENGTH;
+  STR_END;
+
+  while (buffer[--end] == '0');
+  if (++end == decimalTo) end = decimalFrom;
+  buffer[end] = 0;
+}
+
+MenuItem *
+newTimeMenuItem (
+  Menu *menu, unsigned char *setting,
+  const MenuString *name
+) {
+  return newNumericMenuItem(menu, setting, name, 10, 250, 10, strtext("seconds"), formatTime);
+}
+
+MenuItem *
+newPercentMenuItem (
+  Menu *menu, unsigned char *setting,
+  const MenuString *name, unsigned char step
+) {
+  return newNumericMenuItem(menu, setting, name, 0, 100, step, "%", NULL);
 }
 
 static const char *
@@ -426,7 +500,7 @@ setMenuItemStrings (MenuItem *item, const MenuString *strings, unsigned char cou
   item->data.strings = strings;
   item->minimum = 0;
   item->maximum = count - 1;
-  item->divisor = 1;
+  item->step = 1;
 }
 
 MenuItem *
@@ -588,9 +662,7 @@ endItem_files (MenuItem *item, int deallocating) {
   }
 #elif defined(__MINGW32__)
   if (files->names) {
-    int i;
-
-    for (i=files->offset; i<files->count; i+=1) free(files->names[i]);
+    for (int i=files->offset; i<files->count; i+=1) free(files->names[i]);
     free(files->names);
     files->names = NULL;
   }
@@ -609,13 +681,6 @@ getValue_files (const MenuItem *item) {
   }
 
   if (!path) path = "";
-  return path;
-}
-
-static const char *
-getText_files (const MenuItem *item) {
-  const FileData *files = item->data.files;
-  const char *path = getMenuItemValue(item);
   const char *name = locatePathName(path);
 
   if (name == path) {
@@ -625,14 +690,21 @@ getText_files (const MenuItem *item) {
       int length = strlen(path) - strlen(extension);
       Menu *menu = item->menu;
 
-      snprintf(menu->valueBuffer, sizeof(menu->valueBuffer),
-               "%.*s", length, name);
+      snprintf(
+        menu->valueBuffer, sizeof(menu->valueBuffer),
+        "%.*s", length, name
+      );
 
-      return menu->valueBuffer;
+      path = menu->valueBuffer;
     }
   }
 
   return path;
+}
+
+static const char *
+getText_files (const MenuItem *item) {
+  return item->methods->getValue(item);
 }
 
 static const MenuItemMethods menuItemMethods_files = {
@@ -651,12 +723,11 @@ newFilesMenuItem (
   FileData *files;
 
   if ((files = malloc(sizeof(*files)))) {
-    char *pattern;
-
     memset(files, 0, sizeof(*files));
     files->extension = extension;
     files->none = !!none;
 
+    char *pattern;
     {
       const char *strings[] = {"*", extension};
       pattern = joinStrings(strings, ARRAY_COUNT(strings));
@@ -972,7 +1043,7 @@ adjustMenuSetting (const MenuItem *item, int (*adjust) (const MenuItem *item, in
       *item->setting = setting;
       return 0;
     }
-  } while ((*item->setting % item->divisor) || (item->changed && !item->changed(item, *item->setting)));
+  } while ((*item->setting % item->step) || (item->changed && !item->changed(item, *item->setting)));
 
   return 1;
 }

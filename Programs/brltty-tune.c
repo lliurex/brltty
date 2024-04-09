@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,10 +22,10 @@
 #include <string.h>
 
 #include "log.h"
-#include "options.h"
+#include "cmdline.h"
 #include "prefs.h"
 #include "tune_utils.h"
-#include "tune_build.h"
+#include "tune_builder.h"
 #include "notes.h"
 #include "datafile.h"
 
@@ -61,7 +61,6 @@ BEGIN_OPTION_TABLE(programOptions)
 #ifdef HAVE_PCM_SUPPORT
   { .word = "pcm-device",
     .letter = 'p',
-    .flags = OPT_Hidden,
     .argument = "device",
     .setting.string = &opt_pcmDevice,
     .description = "Device specifier for soundcard digital audio."
@@ -71,7 +70,6 @@ BEGIN_OPTION_TABLE(programOptions)
 #ifdef HAVE_MIDI_SUPPORT
   { .word = "midi-device",
     .letter = 'm',
-    .flags = OPT_Hidden,
     .argument = "device",
     .setting.string = &opt_midiDevice,
     .description = "Device specifier for the Musical Instrument Digital Interface."
@@ -84,7 +82,14 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = "Name of MIDI instrument."
   },
 #endif /* HAVE_MIDI_SUPPORT */
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
+
+static
+BEGIN_USAGE_NOTES(usageNotes)
+  "If the tune is specified on the command line then each argument contains a command group.",
+  "If it's read from a file then each line contains a command group.",
+  "Each specified file contains a different tune.",
+END_USAGE_NOTES
 
 static void
 beginTuneStream (const char *name, void *data) {
@@ -145,11 +150,17 @@ DATA_OPERANDS_PROCESSOR(processTuneLine) {
 int
 main (int argc, char *argv[]) {
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltty-tune",
-      .argumentsSummary = "note... | -f [{file | -}...]"
+
+      .usage = {
+        .purpose = strtext("Compose a tune with the tune builder and play it with the tone generator."),
+        .parameters = "commands ... | -f [{file | -} ...]",
+        .notes = USAGE_NOTES(usageNotes, tuneBuilderUsageNotes),
+      }
     };
+
     PROCESS_OPTIONS(descriptor, argc, argv);
   }
 

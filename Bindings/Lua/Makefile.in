@@ -1,0 +1,51 @@
+###############################################################################
+# libbrlapi - A library providing access to braille terminals for applications.
+#
+# Copyright (C) 2006-2023 by Dave Mielke <dave@mielke.cc>
+#
+# libbrlapi comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+include $(SRC_TOP)bindings.mk
+
+LUA_OK = @LUA_OK@
+LUA = @LUA@
+
+LUA_INCLUDES = @lua_includes@
+LUA_API_DIRECTORY = $(INSTALL_ROOT)@LUA_LIBRARY_DIRECTORY@
+
+LUA_API_NAME = $(API_NAME)
+LUA_API_OBJECT = bindings.$O
+LUA_API_LIBRARY = $(LUA_API_NAME).$(LIB_EXT)
+LUA_COMMANDS_HEADER=cmd.auto.h
+
+all: $(LUA_API_LIBRARY)
+
+$(LUA_API_LIBRARY): $(LUA_API_OBJECT)
+	$(MKLIB:<name>=$(LUA_API_LIBRARY).$(API_VERSION)) $@ $(LUA_API_OBJECT) $(API_LDFLAGS)
+
+$(LUA_API_OBJECT): $(LUA_COMMANDS_HEADER) | $(API_NAME)
+	$(CC) $(LIBCFLAGS) $(LUA_INCLUDES) -o $@ -c $(SRC_DIR)/bindings.c
+
+$(LUA_COMMANDS_HEADER): $(CONSTANTS_DEPENDENCIES)
+	$(AWK) >$@ $(CONSTANTS_ARGUMENTS)
+
+clean::
+	-rm -f -- $(LUA_API_LIBRARY)
+
+install: all
+	$(INSTALL_DIRECTORY) $(LUA_API_DIRECTORY)
+	$(INSTALL_PROGRAM) $(LUA_API_LIBRARY) $(LUA_API_DIRECTORY)
+
+uninstall:
+	-rm -f $(LUA_API_DIRECTORY)/$(LUA_API_LIBRARY)
+

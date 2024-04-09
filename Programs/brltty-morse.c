@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 #include "log.h"
-#include "options.h"
+#include "cmdline.h"
 #include "prefs.h"
 #include "parse.h"
 #include "tune_utils.h"
@@ -84,7 +84,6 @@ BEGIN_OPTION_TABLE(programOptions)
 #ifdef HAVE_PCM_SUPPORT
   { .word = "pcm-device",
     .letter = 'p',
-    .flags = OPT_Hidden,
     .argument = "device",
     .setting.string = &opt_pcmDevice,
     .description = "Device specifier for soundcard digital audio."
@@ -94,7 +93,6 @@ BEGIN_OPTION_TABLE(programOptions)
 #ifdef HAVE_MIDI_SUPPORT
   { .word = "midi-device",
     .letter = 'm',
-    .flags = OPT_Hidden,
     .argument = "device",
     .setting.string = &opt_midiDevice,
     .description = "Device specifier for the Musical Instrument Digital Interface."
@@ -107,7 +105,7 @@ BEGIN_OPTION_TABLE(programOptions)
     .description = "Name of MIDI instrument."
   },
 #endif /* HAVE_MIDI_SUPPORT */
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 static
 DATA_OPERANDS_PROCESSOR(processMorseLine) {
@@ -130,11 +128,16 @@ exitMorseObject (void *data) {
 int
 main (int argc, char *argv[]) {
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltty-morse",
-      .argumentsSummary = "text... | -f [{file | -}...]"
+
+      .usage = {
+        .purpose = strtext("Translate text into Morse Code tones."),
+        .parameters = "text ... | -f [{file | -} ...]",
+      }
     };
+
     PROCESS_OPTIONS(descriptor, argc, argv);
   }
 

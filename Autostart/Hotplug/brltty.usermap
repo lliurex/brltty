@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -16,11 +16,11 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-# BEGIN_USB_DEVICES
+# BEGIN_USB_BRAILLE_DEVICES
 
 # Device: 0403:6001
 # Generic Identifier
-# Vendor: Future Technology Devices International, Ltd
+# Vendor: Future Technology Devices International, Ltd.
 # Product: FT232 USB-Serial (UART) IC
 # Albatross [all models]
 # Cebra [all models]
@@ -29,6 +29,13 @@
 # Hedo [MobilLine]
 # MDV [all models]
 brltty 0x0003 0x0403 0x6001
+
+# Device: 0403:6010
+# Generic Identifier
+# Vendor: Future Technology Devices International, Ltd
+# Product: FT2232C/D/H Dual UART/FIFO IC
+# DotPad [all models]
+brltty 0x0003 0x0403 0x6010
 
 # Device: 0403:DE58
 # Hedo [MobilLine]
@@ -85,12 +92,16 @@ brltty 0x0003 0x0452 0x0100
 brltty 0x0003 0x045e 0x930a
 
 # Device: 045E:930B
-# HIMS [Braille Edge]
+# HIMS [Braille Edge and QBrailleXL]
 brltty 0x0003 0x045e 0x930b
 
 # Device: 0483:A1D3
-# Baum [Orbit 20 (20 cells)]
+# Baum [Orbit Reader 20 (20 cells)]
 brltty 0x0003 0x0483 0xa1d3
+
+# Device: 0483:A366
+# Baum [Orbit Reader 40 (40 cells)]
+brltty 0x0003 0x0483 0xa366
 
 # Device: 06B0:0001
 # Alva [Satellite (5nn)]
@@ -274,7 +285,7 @@ brltty 0x0003 0x0f4e 0x0111
 brltty 0x0003 0x0f4e 0x0112
 
 # Device: 0F4E:0114
-# FreedomScientific [Focus Blue]
+# FreedomScientific [Focus 3+]
 brltty 0x0003 0x0f4e 0x0114
 
 # Device: 10C4:EA60
@@ -304,6 +315,13 @@ brltty 0x0003 0x1209 0xabc0
 # Canute [all models]
 brltty 0x0003 0x16c0 0x05e1
 
+# Device: 1A86:7523
+# Generic Identifier
+# Vendor: Jiangsu QinHeng, Ltd.
+# Product: CH341 USB Bridge Controller
+# Baum [NLS eReader Zoomax (20 cells)]
+brltty 0x0003 0x1a86 0x7523
+
 # Device: 1C71:C004
 # BrailleNote [HumanWare APEX]
 brltty 0x0003 0x1c71 0xc004
@@ -325,7 +343,8 @@ brltty 0x0003 0x1c71 0xc00a
 brltty 0x0003 0x1c71 0xc021
 
 # Device: 1C71:C101
-# HumanWare [APH Chameleon 20 (HID protocol)]
+# HumanWare [APH Chameleon 20 (HID protocol, firmware 1.0)]
+# HumanWare [APH Chameleon 20 (HID protocol, firmware 1.1)]
 brltty 0x0003 0x1c71 0xc101
 
 # Device: 1C71:C104
@@ -333,7 +352,8 @@ brltty 0x0003 0x1c71 0xc101
 brltty 0x0003 0x1c71 0xc104
 
 # Device: 1C71:C111
-# HumanWare [APH Mantis Q40 (HID protocol)]
+# HumanWare [APH Mantis Q40 (HID protocol, firmware 1.0)]
+# HumanWare [APH Mantis Q40 (HID protocol, firmware 1.1)]
 brltty 0x0003 0x1c71 0xc111
 
 # Device: 1C71:C114
@@ -341,15 +361,27 @@ brltty 0x0003 0x1c71 0xc111
 brltty 0x0003 0x1c71 0xc114
 
 # Device: 1C71:C121
-# HumanWare [Humanware BrailleOne (HID protocol)]
+# HumanWare [Humanware BrailleOne (HID protocol, firmware 1.0)]
+# HumanWare [Humanware BrailleOne (HID protocol, firmware 1.1)]
 brltty 0x0003 0x1c71 0xc121
 
 # Device: 1C71:C124
 # HumanWare [Humanware BrailleOne (serial protocol)]
 brltty 0x0003 0x1c71 0xc124
 
+# Device: 1C71:C131
+# HumanWare [Humanware Brailliant BI 40X (HID protocol, firmware 1.0)]
+# HumanWare [Humanware Brailliant BI 40X (HID protocol, firmware 1.1)]
+brltty 0x0003 0x1c71 0xc131
+
+# Device: 1C71:C141
+# HumanWare [Humanware Brailliant BI 20X (HID protocol, firmware 1.0)]
+# HumanWare [Humanware Brailliant BI 20X (HID protocol, firmware 1.1)]
+brltty 0x0003 0x1c71 0xc141
+
 # Device: 1C71:CE01
-# HumanWare [NLS eReader (HID protocol)]
+# HumanWare [NLS eReader (HID protocol, firmware 1.0)]
+# HumanWare [NLS eReader (HID protocol, firmware 1.1)]
 brltty 0x0003 0x1c71 0xce01
 
 # Device: 1C71:CE04
@@ -493,4 +525,4 @@ brltty 0x0003 0xc251 0x1131
 # EuroBraille [reserved]
 brltty 0x0003 0xc251 0x1132
 
-# END_USB_DEVICES
+# END_USB_BRAILLE_DEVICES

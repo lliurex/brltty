@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -29,37 +29,72 @@
 #include "ttb.h"
 
 static void
+renderCharacter (unsigned char *cell, char character) {
+  *cell = convertCharacterToDots(textTable, character);
+}
+
+static void
 renderDigitUpper (unsigned char *cell, int digit) {
-  *cell |= portraitDigits[digit];
+  *cell |= portraitDigits[digit % 10];
 }
 
 static void
 renderDigitLower (unsigned char *cell, int digit) {
-  *cell |= toLowerDigit(portraitDigits[digit]);
-}
-
-static void
-renderNumberUpper (unsigned char *cells, int number) {
-  renderDigitUpper(&cells[0], (number / 10) % 10);
-  renderDigitUpper(&cells[1], number % 10);
-}
-
-static void
-renderNumberLower (unsigned char *cells, int number) {
-  renderDigitLower(&cells[0], (number / 10) % 10);
-  renderDigitLower(&cells[1], number % 10);
+  *cell |= toLowerDigit(portraitDigits[digit % 10]);
 }
 
 static void
 renderNumberVertical (unsigned char *cell, int number) {
-  renderDigitUpper(cell, (number / 10) % 10);
-  renderDigitLower(cell, number % 10);
+  renderDigitUpper(cell, number/10);
+  renderDigitLower(cell, number);
 }
 
 static void
-renderCoordinatesVertical (unsigned char *cells, int column, int row) {
-  renderNumberUpper(&cells[0], row);
-  renderNumberLower(&cells[0], column);
+renderNumberUpper2 (unsigned char *cells, int number) {
+  renderDigitUpper(&cells[0], number/10);
+  renderDigitUpper(&cells[1], number);
+}
+
+static void
+renderNumberLower2 (unsigned char *cells, int number) {
+  renderDigitLower(&cells[0], number/10);
+  renderDigitLower(&cells[1], number);
+}
+
+static void
+renderNumbers2 (unsigned char *cells, int upper, int lower) {
+  renderNumberUpper2(&cells[0], upper);
+  renderNumberLower2(&cells[0], lower);
+}
+
+static void
+renderNumberUpper3 (unsigned char *cells, int number) {
+  renderDigitUpper(&cells[0], number/100);
+  renderDigitUpper(&cells[1], number/10);
+  renderDigitUpper(&cells[2], number);
+}
+
+static void
+renderNumberLower3 (unsigned char *cells, int number) {
+  renderDigitLower(&cells[0], number/100);
+  renderDigitLower(&cells[1], number/10);
+  renderDigitLower(&cells[2], number);
+}
+
+static void
+renderNumbers3 (unsigned char *cells, int upper, int lower) {
+  renderNumberUpper3(&cells[0], upper);
+  renderNumberLower3(&cells[0], lower);
+}
+
+static void
+renderCoordinates2 (unsigned char *cells, int column, int row) {
+  renderNumbers2(&cells[0], row, column);
+}
+
+static void
+renderCoordinates3 (unsigned char *cells, int column, int row) {
+  renderNumbers3(&cells[0], row, column);
 }
 
 static void
@@ -93,8 +128,13 @@ renderCoordinatesAlphabetic (unsigned char *cell, int column, int row) {
 typedef void (*RenderStatusField) (unsigned char *cells);
 
 static void
-renderStatusField_windowCoordinates (unsigned char *cells) {
-  renderCoordinatesVertical(cells, SCR_COLUMN_NUMBER(ses->winx), SCR_ROW_NUMBER(ses->winy));
+renderStatusField_cursorColumn (unsigned char *cells) {
+  renderNumberVertical(cells, SCR_COLUMN_NUMBER(scr.posx));
+}
+
+static void
+renderStatusField_cursorRow (unsigned char *cells) {
+  renderNumberVertical(cells, SCR_ROW_NUMBER(scr.posy));
 }
 
 static void
@@ -108,71 +148,106 @@ renderStatusField_windowRow (unsigned char *cells) {
 }
 
 static void
-renderStatusField_cursorCoordinates (unsigned char *cells) {
-  renderCoordinatesVertical(cells, SCR_COLUMN_NUMBER(scr.posx), SCR_ROW_NUMBER(scr.posy));
+renderStatusField_cursorCoordinates2 (unsigned char *cells) {
+  renderCoordinates2(cells, SCR_COLUMN_NUMBER(scr.posx), SCR_ROW_NUMBER(scr.posy));
 }
 
 static void
-renderStatusField_cursorColumn (unsigned char *cells) {
-  renderNumberVertical(cells, SCR_COLUMN_NUMBER(scr.posx));
+renderStatusField_windowCoordinates2 (unsigned char *cells) {
+  renderCoordinates2(cells, SCR_COLUMN_NUMBER(ses->winx), SCR_ROW_NUMBER(ses->winy));
 }
 
 static void
-renderStatusField_cursorRow (unsigned char *cells) {
-  renderNumberVertical(cells, SCR_ROW_NUMBER(scr.posy));
+renderStatusField_cursorCoordinates3 (unsigned char *cells) {
+  renderCoordinates3(cells, SCR_COLUMN_NUMBER(scr.posx), SCR_ROW_NUMBER(scr.posy));
 }
 
 static void
-renderStatusField_cursorAndWindowColumn (unsigned char *cells) {
-  renderNumberUpper(cells, SCR_COLUMN_NUMBER(scr.posx));
-  renderNumberLower(cells, SCR_COLUMN_NUMBER(ses->winx));
+renderStatusField_windowCoordinates3 (unsigned char *cells) {
+  renderCoordinates3(cells, SCR_COLUMN_NUMBER(ses->winx), SCR_ROW_NUMBER(ses->winy));
 }
 
 static void
-renderStatusField_cursorAndWindowRow (unsigned char *cells) {
-  renderNumberUpper(cells, SCR_ROW_NUMBER(scr.posy));
-  renderNumberLower(cells, SCR_ROW_NUMBER(ses->winy));
+renderStatusField_cursorAndWindowColumn2 (unsigned char *cells) {
+  renderNumbers2(cells,
+    SCR_COLUMN_NUMBER(scr.posx),
+    SCR_COLUMN_NUMBER(ses->winx)
+  );
+}
+
+static void
+renderStatusField_cursorAndWindowRow2 (unsigned char *cells) {
+  renderNumbers2(cells,
+    SCR_ROW_NUMBER(scr.posy),
+    SCR_ROW_NUMBER(ses->winy)
+  );
+}
+
+static void
+renderStatusField_cursorAndWindowColumn3 (unsigned char *cells) {
+  renderNumbers3(cells,
+    SCR_COLUMN_NUMBER(scr.posx),
+    SCR_COLUMN_NUMBER(ses->winx)
+  );
+}
+
+static void
+renderStatusField_cursorAndWindowRow3 (unsigned char *cells) {
+  renderNumbers3(cells,
+    SCR_ROW_NUMBER(scr.posy),
+    SCR_ROW_NUMBER(ses->winy)
+  );
 }
 
 static void
 renderStatusField_screenNumber (unsigned char *cells) {
-  renderNumberVertical(cells, scr.number);
+  char character =
+    isSpecialScreen(SCR_HELP)  ? 'h':
+    isSpecialScreen(SCR_MENU)  ? 'm':
+    isSpecialScreen(SCR_FROZEN)? 'f':
+    0;
+
+  if (character) {
+    renderCharacter(cells, character);
+  } else {
+    renderNumberVertical(cells, scr.number);
+  }
 }
 
 static void
 renderStatusField_stateDots (unsigned char *cells) {
-  *cells = (isSpecialScreen(SCR_FROZEN) ? BRL_DOT_1: 0) |
-           (prefs.showScreenCursor      ? BRL_DOT_4: 0) |
-           (ses->displayMode            ? BRL_DOT_2: 0) |
-           (prefs.screenCursorStyle     ? BRL_DOT_5: 0) |
-           (prefs.alertTunes            ? BRL_DOT_3: 0) |
-           (prefs.blinkingScreenCursor  ? BRL_DOT_6: 0) |
-           (ses->trackScreenCursor      ? BRL_DOT_7: 0) |
-           (prefs.slidingBrailleWindow  ? BRL_DOT_8: 0);
+  cells[0] = (isSpecialScreen(SCR_FROZEN)  ? BRL_DOT_1: 0)
+           | (prefs.showScreenCursor       ? BRL_DOT_4: 0)
+           | (ses->displayMode             ? BRL_DOT_2: 0)
+           | (prefs.showAttributes         ? BRL_DOT_5: 0)
+           | (prefs.alertTunes             ? BRL_DOT_3: 0)
+           | (prefs.brailleTypingMode      ? BRL_DOT_6: 0)
+           | (ses->trackScreenCursor       ? BRL_DOT_7: 0)
+           | (prefs.brailleKeyboardEnabled ? BRL_DOT_8: 0)
+           ;
 }
 
 static void
 renderStatusField_stateLetter (unsigned char *cells) {
-  *cells = convertCharacterToDots(textTable,
-                                  ses->displayMode            ? WC_C('a'):
-                                  isSpecialScreen(SCR_HELP)   ? WC_C('h'):
-                                  isSpecialScreen(SCR_MENU)   ? WC_C('m'):
-                                  isSpecialScreen(SCR_FROZEN) ? WC_C('f'):
-                                  ses->trackScreenCursor      ? WC_C('t'):
-                                                                WC_C(' '));
+  renderCharacter(cells,
+    ses->displayMode            ? WC_C('a'):
+    isSpecialScreen(SCR_HELP)   ? WC_C('h'):
+    isSpecialScreen(SCR_MENU)   ? WC_C('m'):
+    isSpecialScreen(SCR_FROZEN) ? WC_C('f'):
+    ses->trackScreenCursor      ? WC_C('t'):
+    WC_C(' ')
+  );
 }
 
 static void
 renderStatusField_time (unsigned char *cells) {
   TimeValue value;
-  TimeComponents components;
-
   getCurrentTime(&value);
   scheduleUpdateIn("time status field", millisecondsTillNextMinute(&value));
 
+  TimeComponents components;
   expandTimeValue(&value, &components);
-  renderNumberUpper(cells, components.hour);
-  renderNumberLower(cells, components.minute);
+  renderNumbers2(cells, components.hour, components.minute);
 }
 
 static void
@@ -195,7 +270,7 @@ renderStatusField_generic (unsigned char *cells) {
   cells[gscScreenNumber] = scr.number;
   cells[gscFrozenScreen] = isSpecialScreen(SCR_FROZEN);
   cells[gscDisplayMode] = ses->displayMode;
-  cells[gscSixDotBraille] = isSixDotBraille();
+  cells[gscSixDotComputerBraille] = isSixDotComputerBraille();
   cells[gscContractedBraille] = isContractedBraille();
   cells[gscSlidingBrailleWindow] = prefs.slidingBrailleWindow;
   cells[gscSkipIdenticalLines] = prefs.skipIdenticalLines;
@@ -214,6 +289,11 @@ renderStatusField_generic (unsigned char *cells) {
   cells[gscBrailleTypingMode] = prefs.brailleTypingMode;
 }
 
+static void
+renderStatusField_space (unsigned char *cells) {
+  cells[0] = 0;
+}
+
 typedef struct {
   RenderStatusField render;
   unsigned char length;
@@ -225,8 +305,8 @@ static const StatusFieldEntry statusFieldTable[] = {
     .length = 0
   }
   ,
-  [sfWindowCoordinates] = {
-    .render = renderStatusField_windowCoordinates,
+  [sfWindowCoordinates2] = {
+    .render = renderStatusField_windowCoordinates2,
     .length = 2
   }
   ,
@@ -240,8 +320,8 @@ static const StatusFieldEntry statusFieldTable[] = {
     .length = 1
   }
   ,
-  [sfCursorCoordinates] = {
-    .render = renderStatusField_cursorCoordinates,
+  [sfCursorCoordinates2] = {
+    .render = renderStatusField_cursorCoordinates2,
     .length = 2
   }
   ,
@@ -255,13 +335,13 @@ static const StatusFieldEntry statusFieldTable[] = {
     .length = 1
   }
   ,
-  [sfCursorAndWindowColumn] = {
-    .render = renderStatusField_cursorAndWindowColumn,
+  [sfCursorAndWindowColumn2] = {
+    .render = renderStatusField_cursorAndWindowColumn2,
     .length = 2
   }
   ,
-  [sfCursorAndWindowRow] = {
-    .render = renderStatusField_cursorAndWindowRow,
+  [sfCursorAndWindowRow2] = {
+    .render = renderStatusField_cursorAndWindowRow2,
     .length = 2
   }
   ,
@@ -298,7 +378,32 @@ static const StatusFieldEntry statusFieldTable[] = {
   [sfGeneric] = {
     .render = renderStatusField_generic,
     .length = GSC_COUNT
+  },
+
+  [sfCursorCoordinates3] = {
+    .render = renderStatusField_cursorCoordinates3,
+    .length = 3
   }
+  ,
+  [sfWindowCoordinates3] = {
+    .render = renderStatusField_windowCoordinates3,
+    .length = 3
+  }
+  ,
+  [sfCursorAndWindowColumn3] = {
+    .render = renderStatusField_cursorAndWindowColumn3,
+    .length = 3
+  }
+  ,
+  [sfCursorAndWindowRow3] = {
+    .render = renderStatusField_cursorAndWindowRow3,
+    .length = 3
+  }
+  ,
+  [sfSpace] = {
+    .render = renderStatusField_space,
+    .length = 1
+  },
 };
 
 static const unsigned int statusFieldCount = ARRAY_COUNT(statusFieldTable);

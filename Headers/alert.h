@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -60,8 +60,8 @@ typedef enum {
   ALERT_ROUTING_SUCCEEDED,
   ALERT_ROUTING_FAILED,
 
-  ALERT_MODIFIER_NEXT,
-  ALERT_MODIFIER_ON,
+  ALERT_MODIFIER_ONCE,
+  ALERT_MODIFIER_LOCK,
   ALERT_MODIFIER_OFF,
 
   ALERT_CONSOLE_BELL,
@@ -77,6 +77,9 @@ typedef enum {
 extern void alert (AlertIdentifier identifier);
 
 extern int showDotPattern (unsigned char dots, unsigned char duration);
+
+extern void speakAlertMessage (const char *message);
+extern void speakAlertText (const wchar_t *text);
 
 #ifdef __cplusplus
 }

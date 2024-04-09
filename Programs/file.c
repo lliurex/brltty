@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -44,41 +44,71 @@
 #include "log.h"
 #include "strfmt.h"
 #include "file.h"
+#include "lock.h"
 #include "parse.h"
 #include "async_wait.h"
 #include "utf8.h"
 #include "program.h"
 
 
+static inline int
+allowBackslashAsPathSeparator (void) {
+#if defined(__MINGW32__) || defined(__MSDOS__)
+  return 1;
+#else /* allow backslash */
+  return 0;
+#endif /* allow backslash */
+}
+
+static int
+isDriveLetter (char character) {
+  return !!strchr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", toupper(character));
+}
+
 int
 isPathSeparator (const char character) {
-  return character == PATH_SEPARATOR_CHARACTER;
+  if (character == PATH_SEPARATOR_CHARACTER) return 1;
+
+  if (allowBackslashAsPathSeparator()) {
+    if (character == '\\') {
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 int
 isAbsolutePath (const char *path) {
   if (isPathSeparator(path[0])) return 1;
 
-#if defined(__MINGW32__) || defined(__MSDOS__)
-  if (strchr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", toupper(path[0])) && (path[1] == ':')) return 1;
-#endif /* defined(__MINGW32__) || defined(__MSDOS__) */
+  if (allowBackslashAsPathSeparator()) {
+    if (isDriveLetter(path[0])) {
+      if (path[1] == ':') {
+        if (isPathSeparator(path[2])) {
+          return 1;
+        }
+      }
+    }
+  }
 
   return 0;
 }
 
 static size_t
-stripPathDelimiter (const char *path, size_t length) {
+stripPathSeparator (const char *path, size_t length) {
   while (length) {
     if (!isPathSeparator(path[length-1])) break;
     length -= 1;
   }
+
   return length;
 }
 
 char *
 getPathDirectory (const char *path) {
   size_t length = strlen(path);
-  size_t end = stripPathDelimiter(path, length);
+  size_t end = stripPathSeparator(path, length);
 
   if (end) {
     while (--end) {
@@ -88,7 +118,7 @@ getPathDirectory (const char *path) {
     }
 
     if ((length = end)) {
-      if ((end = stripPathDelimiter(path, length))) {
+      if ((end = stripPathSeparator(path, length))) {
         length = end;
       }
     }
@@ -331,6 +361,22 @@ testDirectoryPath (const char *path) {
   return 0;
 }
 
+static LockDescriptor *
+getUmaskLock (void) {
+  static LockDescriptor *lock = NULL;
+  return getLockDescriptor(&lock, "umask");
+}
+
+void
+lockUmask (void) {
+  obtainExclusiveLock(getUmaskLock());
+}
+
+void
+unlockUmask (void) {
+  releaseLock(getUmaskLock());
+}
+
 int
 createDirectory (const char *path, int worldWritable) {
 #if defined(GRUB_RUNTIME)
@@ -340,9 +386,36 @@ createDirectory (const char *path, int worldWritable) {
 #ifdef __MINGW32__
   if (mkdir(path) != -1) return 1;
 #else /* __MINGW32__ */
-  if (mkdir(path, (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)) != -1) {
+  lockUmask();
+  int created = mkdir(path, (S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)) != -1;
+  unlockUmask();
+
+  if (created) {
     if (!worldWritable) return 1;
-    if (chmod(path, (S_IRWXU | S_IRWXG | S_IRWXO | S_ISVTX)) != -1) return 1;
+    mode_t mode = 0;
+
+    #ifdef S_IRWXU
+    mode |= S_IRWXU;
+    #endif /* S_IRWXU */
+
+    #ifdef S_IRWXG
+    mode |= S_IRWXG;
+    #endif /* S_IRWXG */
+
+    #ifdef S_IRWXO
+    mode |= S_IRWXO;
+    #endif /* S_IRWXO */
+
+    #ifdef S_ISVTX
+    mode |= S_ISVTX;
+    #endif /* S_ISVTX */
+
+    {
+      lockUmask();
+      int changed = chmod(path, mode) != -1;
+      unlockUmask();
+      if (changed) return 1;
+    }
 
     logMessage(LOG_WARNING,
       "%s: %s: %s",
@@ -374,14 +447,16 @@ ensureDirectory (const char *path, int worldWritable) {
     logMessage(LOG_ERR, "cannot access directory: %s: %s", path, strerror(errno));
   } else {
     {
-      char *directory = getPathDirectory(path);
-      if (!directory) return 0;
+      char *parent = getPathDirectory(path);
+      if (!parent) return 0;
+      int exists = 0;
 
-      {
-         int exists = ensureDirectory(directory, 0);
-         free(directory);
-         if (!exists) return 0;
+      if (strcmp(parent, path) != 0) {
+        exists = ensureDirectory(parent, 0);
       }
+
+      free(parent);
+      if (!exists) return 0;
     }
 
     if (createDirectory(path, worldWritable)) {
@@ -1008,7 +1083,68 @@ STR_BEGIN_FORMATTER(formatInputError, const char *file, const int *line, const c
   STR_VPRINTF(format, arguments);
 STR_END_FORMATTER
 
+static void
+detachStandardStream (FILE *stream, const char *name, int output) {
+  const char *nullDevice = "/dev/null";
+
+  if (output) {
+    fflush(stream);
+  }
+
+  if (!freopen(nullDevice, (output? "a": "r"), stream)) {
+    if (errno != ENOENT) {
+      char action[0X40];
+      snprintf(action, sizeof(action), "freopen[%s]", name);
+      logSystemError(action);
+    }
+  }
+}
+
+void
+detachStandardInput (void) {
+  detachStandardStream(stdin, "stdin", 0);
+}
+
+void
+detachStandardOutput (void) {
+  detachStandardStream(stdout, "stdout", 1);
+}
+
+void
+detachStandardError (void) {
+  detachStandardStream(stderr, "stderr", 1);
+}
+
+void
+detachStandardStreams (void) {
+  detachStandardInput();
+  detachStandardOutput();
+  detachStandardError();
+}
+
 #ifdef __MINGW32__
+int
+getConsoleSize (size_t *width, size_t *height) {
+  HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+  if (handle) {
+    if (handle != INVALID_HANDLE_VALUE) {
+      if (GetFileType(handle) == FILE_TYPE_CHAR) {
+        CONSOLE_SCREEN_BUFFER_INFO info;
+
+        if (GetConsoleScreenBufferInfo(handle, &info)) {
+          COORD size = info.dwSize;
+          if (width) *width = size.X;
+          if (height) *height = size.Y;
+          return 1;
+        }
+      }
+    }
+  }
+
+  return 0;
+}
+
 const char *
 getConsoleEncoding (void) {
   static char encoding[0X10];
@@ -1076,6 +1212,18 @@ createAnonymousPipe (FileDescriptor *pipeInput, FileDescriptor *pipeOutput) {
 }
 
 #else /* unix file/socket descriptor operations */
+#include <sys/ioctl.h>
+
+int
+getConsoleSize (size_t *width, size_t *height) {
+  struct winsize size;
+  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &size) == -1) return 0;
+
+  if (width) *width = size.ws_col;
+  if (height) *height = size.ws_row;
+  return 1;
+}
+
 const char *
 getConsoleEncoding (void) {
   static const char *encoding = NULL;
@@ -1133,26 +1281,30 @@ createAnonymousPipe (FileDescriptor *pipeInput, FileDescriptor *pipeOutput) {
 
 void
 writeWithConsoleEncoding (FILE *stream, const char *bytes, size_t count) {
-  const char *consoleEncoding = getConsoleEncoding();
+  static const char *consoleEncoding = NULL;
+  if (!consoleEncoding) consoleEncoding = getConsoleEncoding();
 
   if (!consoleEncoding || isCharsetUTF8(consoleEncoding)) {
     consoleEncoding = "";
   }
 
-  if (*consoleEncoding) {
 #ifdef HAVE_ICONV_H
-    static const char internalEncoding[] = "UTF-8";
+  if (*consoleEncoding) {
     static iconv_t iconvHandle = (iconv_t)-1;
 
     if (iconvHandle == (iconv_t)-1) {
-      if ((iconvHandle = iconv_open(consoleEncoding, internalEncoding)) == (iconv_t)-1) {
+      static const char internalEncoding[] = "UTF-8";
+      const char *externalEncoding = consoleEncoding;
+
+      if ((iconvHandle = iconv_open(externalEncoding, internalEncoding)) == (iconv_t)-1) {
+        consoleEncoding = "";
+
         logMessage(LOG_WARNING,
           "iconv open error: %s -> %s: %s",
-          internalEncoding, consoleEncoding, strerror(errno)
+          internalEncoding, externalEncoding, strerror(errno)
         );
 
-        consoleEncoding = "";
-        goto noTranslation;
+        goto ENCODING_NOT_SUPPORTED;
       }
     }
 
@@ -1176,10 +1328,10 @@ writeWithConsoleEncoding (FILE *stream, const char *bytes, size_t count) {
     }
 
     return;
-#endif /* HAVE_ICONV_H */
   }
+ENCODING_NOT_SUPPORTED:
+#endif /* HAVE_ICONV_H */
 
-noTranslation:
   fwrite(bytes, 1, count, stream);
 }
 
@@ -1194,3 +1346,48 @@ writeSocketDescriptor (SocketDescriptor socketDescriptor, const void *buffer, si
   return send(socketDescriptor, buffer, size, 0);
 }
 #endif /* GOT_SOCKETS */
+
+char *
+readSymbolicLink (const char *path) {
+  char *content = NULL;
+  size_t size = 0X80;
+  char *buffer = NULL;
+
+  while (1) {
+    {
+      char *newBuffer = realloc(buffer, size<<=1);
+
+      if (!newBuffer) {
+        logMallocError();
+        break;
+      }
+
+      buffer = newBuffer;
+    }
+
+    {
+      int length;
+
+      #ifdef HAVE_READLINK
+      length = readlink(path, buffer, size);
+      #else /* HAVE_READLINK */
+      length = -1;
+      errno = ENOSYS;
+      #endif /* HAVE_READLINK */
+
+      if (length == -1) {
+        if (errno != ENOENT) logSystemError("readlink");
+        break;
+      }
+
+      if (length < size) {
+        buffer[length] = 0;
+        if (!(content = strdup(buffer))) logMallocError();
+        break;
+      }
+    }
+  }
+
+  if (buffer) free(buffer);
+  return content;
+}

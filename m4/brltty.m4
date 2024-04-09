@@ -1,7 +1,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 1995-2021 by Dave Mielke <dave@mielke.cc>
+# Copyright (C) 1995-2023 by Dave Mielke <dave@mielke.cc>
 #
 # libbrlapi comes with ABSOLUTELY NO WARRANTY.
 #
@@ -72,16 +72,22 @@ AC_DEFUN([BRLTTY_DEFINE_DIRECTORY], [dnl
 BRLTTY_VAR_EXPAND([$1], [$2])
 brltty_path="${$1}"
 
-test "${brltty_enabled_relocatable_install}" = "yes" && {
-   test "${$1}" = "${$1#\\}" && {
-      BRLTTY_RELATIVE_PATH([brltty_path], [${$1}], [${brltty_reference_directory}])
-   }
-}
+ifelse([$4], [public], [], [dnl
+  test "${brltty_enabled_relocatable_install}" = "yes" && {
+     test "${$1}" = "${$1#\\}" && {
+        BRLTTY_RELATIVE_PATH([brltty_path], [${$1}], [${brltty_reference_directory}])
+     }
+  }
+])
 
 BRLTTY_DEFINE_EXPANDED([$1], [${brltty_path}], [$3])
 # resolve escaped characters
 eval '$1="'"${$1}"'"'
 AC_SUBST([$1])
+])
+
+AC_DEFUN([BRLTTY_PUBLIC_DIRECTORY], [dnl
+BRLTTY_DEFINE_DIRECTORY([$1], [$2], [$3], [public])
 ])
 
 AC_DEFUN([BRLTTY_ARG_WITH], [dnl
@@ -102,8 +108,8 @@ BRLTTY_SUMMARY_ITEM([$1], [$4])])
 AC_DEFUN([BRLTTY_ARG_TABLE], [dnl
 brltty_default_table="$2"
 BRLTTY_ARG_WITH(
-   [$1-table], [FILE],
-   [built-in (fallback) $1 table]brltty_tables_$1,
+   [$1-table], [NAME],
+   [built-in $1 table],
    [$1_table], ["${brltty_default_table}"]
 )
 install_$1_tables=install-$1-tables
@@ -138,6 +144,12 @@ AC_SUBST([$1_parameters])
 AC_DEFINE_UNQUOTED(BRLTTY_UPPERCASE_TRANSLATE([$1_parameters]), ["${$1_parameters}"],
                    [Define this to be a string containing the default parameters for the $2.])
 BRLTTY_SUMMARY_ITEM([$1-parameters], [$1_parameters])])
+
+AC_DEFUN([BRLTTY_HAVE_HEADER], [
+AC_PREPROC_IFELSE([AC_LANG_SOURCE([[@%:@include <$1>]])], [$2], [$3])
+])
+
+AC_DEFUN([BRLTTY_HAVE_LIBRARY], [AC_CHECK_LIB([$1], [main], [$2], [$3])])
 
 AC_DEFUN([BRLTTY_ARG_PACKAGE], [dnl
 $1_package=""
@@ -259,7 +271,7 @@ ifelse(len([$5]), 0, [], [dnl
 fi])
 
 AC_DEFUN([BRLTTY_HELP_STRING], [dnl
-AC_HELP_STRING([$1], patsubst([$2], [
+AS_HELP_STRING([$1], patsubst([$2], [
 .*$]), m4_defn([brltty_help_prefix]))dnl
 patsubst(patsubst([$2], [\`[^
 ]*]), [
@@ -498,14 +510,6 @@ AC_SUBST([$1_drivers])
 AC_SUBST([$1_help])
 ])
 
-AC_DEFUN([BRLTTY_TEXT_TABLE], [dnl
-define([brltty_tables_text], ifdef([brltty_tables_text], [brltty_tables_text])[
-m4_text_wrap([$2], [           ], [- ]m4_format([%-8s ], [$1]), brltty_help_width)])])
-
-AC_DEFUN([BRLTTY_ATTRIBUTES_TABLE], [dnl
-define([brltty_tables_attributes], ifdef([brltty_tables_attributes], [brltty_tables_attributes])[
-m4_text_wrap([$2], [             ], [- ]m4_format([%-10s ], [$1]), brltty_help_width)])])
-
 AC_DEFUN([BRLTTY_SUMMARY_BEGIN], [dnl
 brltty_summary_lines="Options Summary:"
 ])
@@ -556,7 +560,7 @@ BRLTTY_ARG_WITH(
 
 $2_found=false
 m4_define([$2_find], ifelse(m4_eval($# > 4), 1, [true], [false]))
-ifelse($2_find, [true], [BRLTTY_HAVE_PACKAGE([$2], [$1], [$2_found=true], [])])
+ifelse($2_find, [true], [BRLTTY_HAVE_PACKAGE([$2], [$1], [$2_found=true], [:])])
 
 if test "${$2_root}" = "no"
 then
@@ -640,6 +644,22 @@ AC_SUBST([$1_includes])
 AC_SUBST([$1_libs])
 ])
 
+AC_DEFUN([BRLTTY_HAVE_DBUS], [dnl
+   AC_CACHE_CHECK([if D-Bus is available], [brltty_cv_have_dbus], [dnl
+      BRLTTY_HAVE_PACKAGE([dbus], ["dbus-1 >= 1.0"], [dnl
+         brltty_cv_have_dbus=yes
+      ], [dnl
+         brltty_cv_have_dbus=no
+      ])
+   ])
+])
+
+AC_DEFUN([BRLTTY_IF_DBUS], [dnl
+AC_REQUIRE([BRLTTY_HAVE_DBUS])
+test "${brltty_cv_have_dbus}" = "yes" && {
+   $1
+}])
+
 AC_DEFUN([BRLTTY_HAVE_PTHREADS], [dnl
    AC_CACHE_CHECK([if pthreads are available], [brltty_cv_have_pthreads], [dnl
       SYSCFLAGS="${SYSCFLAGS} -D_REENTRANT"
@@ -692,7 +712,7 @@ AC_CACHE_CHECK([which translit([$1], [_], [ ]) package to use], [brltty_cv_packa
          brltty_found=true
          for brltty_header in ${brltty_headers}
          do
-            AC_CHECK_HEADER([${brltty_header}], [], [brltty_found=false], [-])
+            BRLTTY_HAVE_HEADER([${brltty_header}], [], [brltty_found=false])
             "${brltty_found}" || break
          done
          "${brltty_found}" || continue
@@ -705,7 +725,7 @@ AC_CACHE_CHECK([which translit([$1], [_], [ ]) package to use], [brltty_cv_packa
 ])
    $1_package="${brltty_cv_package_$1}"
 else
-   AC_HAVE_LIBRARY([${$1_package}], [], [$1_package=""])
+   BRLTTY_HAVE_LIBRARY([${$1_package}], [], [$1_package=""])
 fi
 AC_SUBST([$1_package])
 test -n "${$1_package}" && {
@@ -738,17 +758,24 @@ AC_DEFUN([BRLTTY_HAVE_WINDOWS_LIBRARY], [dnl
 AC_CACHE_CHECK(
    [if DLL $1 can be loaded],
    [brltty_cv_dll_$1],
-   [AC_TRY_RUN([
-#include <windows.h>
-int main () {
-   return !LoadLibrary("$1.DLL");
-}
-],
-[brltty_cv_dll_$1=yes],
-[brltty_cv_dll_$1=no])])
+   [
+      AC_RUN_IFELSE(
+         [
+            AC_LANG_SOURCE([[
+               #include <windows.h>
+               int main () {
+                  return !LoadLibrary("$1.DLL");
+               }
+            ]])
+         ],
+         [brltty_cv_dll_$1=yes],
+         [brltty_cv_dll_$1=no]
+      )
+   ]
+)
 if test "${brltty_cv_dll_$1}" = "yes"
 then
-   AC_HAVE_LIBRARY([$1])
+   BRLTTY_HAVE_LIBRARY([$1])
    $2
 else
    :
@@ -759,23 +786,28 @@ AC_DEFUN([BRLTTY_HAVE_WINDOWS_FUNCTION], [dnl
 AC_CACHE_CHECK(
    [if function $1 in DLL $2 exists],
    [brltty_cv_function_$1],
-   [AC_TRY_RUN([
-#include <windows.h>
-#include <stdio.h>
-#include <errno.h>
+   [
+      AC_RUN_IFELSE([
+         AC_LANG_SOURCE([[
+            #include <windows.h>
+            #include <stdio.h>
+            #include <errno.h>
 
-int
-main (void) {
-  HMODULE module;
-  HINSTANCE instance;
-  if (!(instance = LoadLibrary("$2.dll"))) return 1;
-  if (!(module = GetModuleHandle("$2.dll"))) return 2;
-  if (!(GetProcAddress(module, "$1"))) return 3;
-  return 0;
-}
-],
-   [brltty_cv_function_$1=yes],
-   [brltty_cv_function_$1=no])])
+            int
+            main (void) {
+              HMODULE module;
+              HINSTANCE instance;
+              if (!(instance = LoadLibrary("$2.dll"))) return 1;
+              if (!(module = GetModuleHandle("$2.dll"))) return 2;
+              if (!(GetProcAddress(module, "$1"))) return 3;
+              return 0;
+            }
+         ]]),
+         [brltty_cv_function_$1=yes],
+         [brltty_cv_function_$1=no]
+      ])
+   ]
+)
 if test "${brltty_cv_function_$1}" = "yes"
 then
    AC_DEFINE(BRLTTY_UPPERCASE_TRANSLATE([HAVE_$1]), [1],

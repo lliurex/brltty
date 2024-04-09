@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,7 +19,7 @@
 #include "prologue.h"
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "log.h"
 #include "atb.h"
 
@@ -28,24 +28,27 @@ static char *opt_tablesDirectory;
 BEGIN_OPTION_TABLE(programOptions)
   { .word = "tables-directory",
     .letter = 'T',
-    .flags = OPT_Hidden,
     .argument = strtext("directory"),
     .setting.string = &opt_tablesDirectory,
     .internal.setting = TABLES_DIRECTORY,
     .internal.adjust = fixInstallPath,
     .description = strtext("Path to directory containing tables.")
   },
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 int
 main (int argc, char *argv[]) {
   ProgramExitStatus exitStatus = PROG_EXIT_SUCCESS;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltty-atb",
-      .argumentsSummary = "attributes-table"
+
+      .usage = {
+        .purpose = strtext("Check an attributes table."),
+        .parameters = "attributes-table",
+      }
     };
     PROCESS_OPTIONS(descriptor, argc, argv);
   }

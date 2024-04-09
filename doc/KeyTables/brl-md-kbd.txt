@@ -1,0 +1,156 @@
+Key Table: MDV (with keyboard)
+==============================
+
+Notes
+* RoutingKey refers to any of the keys immediately behind the text cells.
+* The long key in the center of the front surface is named Shift.
+  The two round keys to its left, from left to right, are named: Left, Up.
+  The two round keys to its right, from left to right, are named: Down, Right.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Space+Dots125
+* enter/leave command learn mode: Space+Dots123
+* enter/leave preferences menu: Space+Dots1234
+* enter/leave status display: Space+Dots234
+* set display mode attributes/text: Space+Dots145
+* set display mode attributes: Space+Dots1458
+* set display mode text: Space+Dots1457
+* set screen image frozen/unfrozen: Space+Dots124
+* set screen image frozen: Space+Dots1248
+* set screen image unfrozen: Space+Dots1247
+
+Cursor Functions
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: Space+Dots1236
+
+Vertical Navigation
+* go up one line: Up
+* go down one line: Down
+* go to top line: Long+Up
+* go to bottom line: Long+Down
+* go up to first line of paragraph: Shift+Long+Left
+* go down to first line of next paragraph: Shift+Long+Right
+* go up to previous command prompt: Shift+Long+Up
+* go down to next command prompt: Shift+Long+Down
+
+Horizontal Navigation
+* go backward one braille window: Left
+* go forward one braille window: Right
+* go to beginning of line: Long+Left
+* go to end of line: Long+Right
+
+Clipboard Functions
+* start new clipboard at character: RoutingKey+Left
+* linear copy to character: RoutingKey+Right
+* rectangular copy to character: RoutingKey+Down
+* copy characters to clipboard: RoutingKey+RoutingKey
+* append characters to clipboard: RoutingKey+Up
+* insert clipboard text after screen cursor:
+  + RoutingKey.2+RoutingKey.3
+  + Space+Dots1346
+* save clipboard to disk: Space+Dots13468
+* restore clipboard from disk: Space+Dots13467
+
+Configuration Functions
+* set autorepeat on/off: Space+Dots1235
+* set autorepeat on: Space+Dots12358
+* set autorepeat off: Space+Dots12357
+* set contracted/computer braille: Space+Dots1245
+* set contracted braille: Space+Dots12458
+* set computer braille: Space+Dots12457
+* set six dot computer braille: Space+Dots235
+* set eight dot computer braille: Space+Dots236
+* set skipping of lines with identical content on/off: Space+Dots24
+* set skipping of lines with identical content on: Space+Dots248
+* set skipping of lines with identical content off: Space+Dots247
+* set skipping of blank braille windows on/off: Space+Dots12
+* set skipping of blank braille windows on: Space+Dots128
+* set skipping of blank braille windows off: Space+Dots127
+* set sliding braille window on/off: Space+Dots2456
+* set sliding braille window on: Space+Dots24568
+* set sliding braille window off: Space+Dots24567
+* set track screen cursor on/off: Space+Dots2345
+* set track screen cursor on: Space+Dots23458
+* set track screen cursor off: Space+Dots23457
+* set screen cursor visibility on/off: Space+Dots14
+* set screen cursor visibility on: Space+Dots148
+* set screen cursor visibility off: Space+Dots147
+* set attribute underlining on/off: Space+Dots136
+* set attribute underlining on: Space+Dots1368
+* set attribute underlining off: Space+Dots1367
+
+Menu Operations
+* save preferences to disk: Space+Dots12348
+* restore preferences from disk: Space+Dots12347
+* reset preferences to defaults: Space+Dots123478
+
+Keyboard Input
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot7: Dot7
+* braille keyboard dot8: Dot8
+* braille keyboard space: Space
+* type braille dots [7]: Space+Dot7
+* type braille dots [8]: Space+Dot8
+* backspace key: Dot7
+* escape key: Space+Dots26
+* cursor-left key:
+  + Shift+Left
+  + Space+Dot3
+* cursor-right key:
+  + Shift+Right
+  + Space+Dot6
+* cursor-up key:
+  + Shift+Up
+  + Space+Dot1
+* cursor-down key:
+  + Shift+Down
+  + Space+Dot4
+* page-up key: Space+Dots23
+* page-down key: Space+Dots56
+* home key: Space+Dot2
+* end key: Space+Dot5
+* insert key: Space+Dots35
+* delete key: Space+Dots256
+* enter key: Dot8
+* tab key: Space+Dots45
+* clear all sticky input modifiers: Space+Dots78
+* cycle the Upper sticky input modifier (next, on, off): Space+Dots68
+* cycle the Shift sticky input modifier (next, on, off): Space+Dots48
+* cycle the Control sticky input modifier (next, on, off): Space+Dots38
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Space+Dots28
+* cycle the AltGr (Right Alt) sticky input modifier (next, on, off): Space+Dots58
+* cycle the GUI (Windows) sticky input modifier (next, on, off): Space+Dots18
+* switch to the previous virtual terminal: Space+Dots12367
+* switch to the next virtual terminal: Space+Dots12368
+* set braille keyboard enabled: Space+Dots138
+* set braille keyboard disabled: Space+Dots137
+* set braille typing mode dots: Space+Dots468
+* set braille typing mode text: Space+Dots467
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: Dot8
+
+Menu Operations
+* go up to previous item:
+  + Up
+  + Dot1
+* go down to next item:
+  + Down
+  + Dot4
+* go up to first item: Dot2
+* go down to last item: Dot5
+* select previous choice: Dot3
+* select next choice: Dot6
+* go to previous menu level: Dot7
+

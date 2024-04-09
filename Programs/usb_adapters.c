@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,10 +21,16 @@
 #include "usb_adapters.h"
 
 const UsbSerialAdapter usbSerialAdapterTable[] = {
-  { /* Albatross, Cebra, HIMS, HandyTech FTDI */
+  { /* Albatross, Cebra, HIMS SyncBraille, HandyTech FTDI, Hedo MobilLine, MDV */
     .vendor=0X0403, .product=0X6001,
     .generic = 1,
     .operations = &usbSerialOperations_FTDI_FT8U232AM
+  },
+
+  { /* DotPad */
+    .vendor=0X0403, .product=0X6010,
+    .generic = 1,
+    .operations = &usbSerialOperations_FTDI_FT232BM
   },
 
   { /* Hedo MobilLine */
@@ -147,13 +153,13 @@ const UsbSerialAdapter usbSerialAdapterTable[] = {
     .operations = &usbSerialOperations_Belkin
   },
 
-  { /* Braille Memo, Seika Braille Display */
+  { /* BrailleMemo Pocket, Seika BrailleDisplay */
     .vendor=0X10C4, .product=0XEA60,
     .generic = 1,
     .operations = &usbSerialOperations_CP2101
   },
 
-  { /* Seika Note Taker */
+  { /* Seika NoteTaker */
     .vendor=0X10C4, .product=0XEA80,
     .generic = 1,
     .operations = &usbSerialOperations_CP2110
@@ -162,6 +168,12 @@ const UsbSerialAdapter usbSerialAdapterTable[] = {
   { /* Canute */
     .vendor=0X16C0, .product=0X05E1,
     .operations = &usbSerialOperations_CDC_ACM
+  },
+
+  { /* NLS eReader Zoomax */
+    .vendor=0X1A86, .product=0X7523,
+    .generic = 1,
+    .operations = &usbSerialOperations_CH341
   },
 };
 

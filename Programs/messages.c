@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -64,26 +64,26 @@ typedef struct {
   uint32_t magicNumber;
   uint32_t versionNumber;
   uint32_t messageCount;
-  uint32_t originalMessages;
+  uint32_t sourceMessages;
   uint32_t translatedMessages;
   uint32_t hashSize;
   uint32_t hashOffset;
-} MessagesHeader;
+} MessageCatalogHeader;
 
 typedef struct {
   union {
-    void *area;
+    void *data;
     const unsigned char *bytes;
-    const MessagesHeader *header;
+    const MessageCatalogHeader *header;
   } view;
 
-  size_t areaSize;
+  size_t dataSize;
   GetIntegerFunction *getInteger;
-} MessagesData;
+} MessageCatalog;
 
-static MessagesData messagesData = {
-  .view.area = NULL,
-  .areaSize = 0,
+static MessageCatalog messageCatalog = {
+  .view.data = NULL,
+  .dataSize = 0,
   .getInteger = NULL,
 };
 
@@ -106,8 +106,8 @@ getFlippedInteger (uint32_t value) {
 }
 
 static int
-checkMagicNumber (MessagesData *data) {
-  const MessagesHeader *header = data->view.header;
+checkMagicNumber (MessageCatalog *catalog) {
+  const MessageCatalogHeader *header = catalog->view.header;
 
   {
     static GetIntegerFunction *const functions[] = {
@@ -120,7 +120,7 @@ checkMagicNumber (MessagesData *data) {
 
     while (*function) {
       if ((*function)(header->magicNumber) == magicNumber) {
-        data->getInteger = *function;
+        catalog->getInteger = *function;
         return 1;
       }
 
@@ -159,12 +159,12 @@ makeLocaleDirectoryPath (void) {
     code += 1;
   }
 
-  logMessage(LOG_WARNING, "messages locale not found: %s", localeSpecifier);
+  logMessage(LOG_DEBUG, "messages locale not found: %s", localeSpecifier);
   return NULL;
 }
 
 static char *
-makeMessagesFilePath (void) {
+makeCatalogFilePath (void) {
   char *locale = makeLocaleDirectoryPath();
 
   if (locale) {
@@ -174,25 +174,61 @@ makeMessagesFilePath (void) {
     locale = NULL;
 
     if (category) {
-      char *file = makeFilePath(category, domainName, ".mo");
+      char *catalog = makeFilePath(category, domainName, ".mo");
 
       free(category);
       category = NULL;
 
-      if (file) return file;
+      if (catalog) return catalog;
     }
   }
 
   return NULL;
 }
 
+static int
+setMessageCatalog (void *data, size_t size) {
+  MessageCatalog catalog = {
+    .view.data = data,
+    .dataSize = size
+  };
+
+  if (checkMagicNumber(&catalog)) {
+    messageCatalog = catalog;
+    return 1;
+  }
+
+  return 0;
+}
+
+static int
+setEmptyMessageCatalog (void) {
+  MessageCatalogHeader *header;
+  size_t size = sizeof(*header);
+
+  if ((header = malloc(size))) {
+    memset(header, 0, size);
+    header->magicNumber = magicNumber;
+
+    header->sourceMessages = size;
+    header->translatedMessages = header->sourceMessages;
+
+    if (setMessageCatalog(header, size)) return 1;
+    free(header);
+  } else {
+    logMallocError();
+  }
+
+  return 0;
+}
+
 int
-loadMessagesData (void) {
-  if (messagesData.view.area) return 1;
+loadMessageCatalog (void) {
+  if (messageCatalog.view.data) return 1;
   ensureAllMessagesProperties();
 
   int loaded = 0;
-  char *path = makeMessagesFilePath();
+  char *path = makeCatalogFilePath();
 
   if (path) {
     int fd = open(path, (O_RDONLY | O_BINARY));
@@ -202,45 +238,37 @@ loadMessagesData (void) {
 
       if (fstat(fd, &info) != -1) {
         size_t size = info.st_size;
-        void *area = NULL;
+        void *data = NULL;
 
         if (size) {
-          if ((area = malloc(size))) {
-            ssize_t count = read(fd, area, size);
+          if ((data = malloc(size))) {
+            ssize_t count = read(fd, data, size);
 
             if (count == -1) {
               logMessage(LOG_WARNING,
-                "messages data read error: %s: %s",
+                "message catalog read error: %s: %s",
                 path, strerror(errno)
               );
             } else if (count < size) {
               logMessage(LOG_WARNING,
-                "truncated messages data: %"PRIssize" < %"PRIsize": %s",
+                "truncated message catalog: %"PRIssize" < %"PRIsize": %s",
                 count, size, path
               );
-            } else {
-              MessagesData data = {
-                .view.area = area,
-                .areaSize = size
-              };
-
-              if (checkMagicNumber(&data)) {
-                messagesData = data;
-                area = NULL;
-                loaded = 1;
-              }
+            } else if (setMessageCatalog(data, size)) {
+              data = NULL;
+              loaded = 1;
             }
 
-            if (!loaded) free(area);
+            if (!loaded) free(data);
           } else {
             logMallocError();
           }
         } else {
-          logMessage(LOG_WARNING, "no messages data");
+          logMessage(LOG_WARNING, "empty message catalog");
         }
       } else {
         logMessage(LOG_WARNING,
-          "messages file stat error: %s: %s",
+          "message catalog stat error: %s: %s",
           path, strerror(errno)
         );
       }
@@ -248,7 +276,7 @@ loadMessagesData (void) {
       close(fd);
     } else {
       logMessage(LOG_WARNING,
-        "messages file open error: %s: %s",
+        "message catalog open error: %s: %s",
         path, strerror(errno)
       );
     }
@@ -256,28 +284,35 @@ loadMessagesData (void) {
     free(path);
   }
 
+  if (!loaded) {
+    if (setEmptyMessageCatalog()) {
+      loaded = 1;
+      logMessage(LOG_DEBUG, "no message translations");
+    }
+  }
+
   return loaded;
 }
 
 void
-releaseMessagesData (void) {
-  if (messagesData.view.area) free(messagesData.view.area);
-  memset(&messagesData, 0, sizeof(messagesData));
+releaseMessageCatalog (void) {
+  if (messageCatalog.view.data) free(messageCatalog.view.data);
+  memset(&messageCatalog, 0, sizeof(messageCatalog));
 }
 
-static inline const MessagesHeader *
+static inline const MessageCatalogHeader *
 getHeader (void) {
-  return messagesData.view.header;
+  return messageCatalog.view.header;
 }
 
 static inline const void *
 getItem (uint32_t offset) {
-  return &messagesData.view.bytes[messagesData.getInteger(offset)];
+  return &messageCatalog.view.bytes[messageCatalog.getInteger(offset)];
 }
 
 uint32_t
 getMessageCount (void) {
-  return messagesData.getInteger(getHeader()->messageCount);
+  return messageCatalog.getInteger(getHeader()->messageCount);
 }
 
 struct MessageStruct {
@@ -287,7 +322,7 @@ struct MessageStruct {
 
 uint32_t
 getMessageLength (const Message *message) {
-  return messagesData.getInteger(message->length);
+  return messageCatalog.getInteger(message->length);
 }
 
 const char *
@@ -296,8 +331,8 @@ getMessageText (const Message *message) {
 }
 
 static inline const Message *
-getOriginalMessages (void) {
-  return getItem(getHeader()->originalMessages);
+getSourceMessages (void) {
+  return getItem(getHeader()->sourceMessages);
 }
 
 static inline const Message *
@@ -306,8 +341,8 @@ getTranslatedMessages (void) {
 }
 
 const Message *
-getOriginalMessage (unsigned int index) {
-  return &getOriginalMessages()[index];
+getSourceMessage (unsigned int index) {
+  return &getSourceMessages()[index];
 }
 
 const Message *
@@ -319,8 +354,10 @@ const char *
 getMessagesMetadata (void) {
   if (getMessageCount() == 0) return "";
 
-  const Message *original = getOriginalMessage(0);
-  if (getMessageLength(original) != 0) return "";
+  {
+    const Message *message = getSourceMessage(0);
+    if (getMessageLength(message) != 0) return "";
+  }
 
   return getMessageText(getTranslatedMessage(0));
 }
@@ -408,8 +445,8 @@ getMessagesAttribute (const char *property, const char *name) {
 }
 
 int
-findOriginalMessage (const char *text, size_t textLength, unsigned int *index) {
-  const Message *messages = getOriginalMessages();
+findSourceMessage (const char *text, size_t textLength, unsigned int *index) {
+  const Message *messages = getSourceMessages();
   int from = 0;
   int to = getMessageCount();
 
@@ -444,10 +481,10 @@ findSimpleTranslation (const char *text, size_t length) {
   if (!text) return NULL;
   if (!length) return NULL;
 
-  if (loadMessagesData()) {
+  if (loadMessageCatalog()) {
     unsigned int index;
 
-    if (findOriginalMessage(text, length, &index)) {
+    if (findSourceMessage(text, length, &index)) {
       return getTranslatedMessage(index);
     }
   }
@@ -549,7 +586,7 @@ updateProperty (
   char **property, const char *value, const char *defaultValue,
   int (*setter) (const char *value)
 ) {
-  releaseMessagesData();
+  releaseMessageCatalog();
 
   if (!(value && *value)) value = defaultValue;
   char *copy = strdup(value);

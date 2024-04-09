@@ -1,0 +1,141 @@
+Key Table: Bindings for Keypad-based Navigation
+===============================================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: KPMinus+KP7
+* enter/leave command learn mode: KPMinus+KP9
+* enter/leave preferences menu: KPMinus+KP5
+* enter/leave status display: KPMinus+KP8
+* set display mode attributes/text: KP0+KPMultiply
+* set screen image frozen/unfrozen: KPMinus+KP2
+* describe character at cursor: KPMinus+KP3
+* show current date and time: KPMinus+KP1
+* switch to Default Bindings: KPEnter+KPMinus
+* switch to Braille Input Mode: KPEnter+KPPlus
+
+Cursor Functions
+* go to screen cursor: KP0+KP5
+* go back after cursor tracking: KPPeriod+KP5
+* bring screen cursor to current line: KP0+KPPeriod+KP2
+* bring screen cursor to speech cursor: KPPlus+KPMultiply
+
+Vertical Navigation
+* go up one line: KP0+KP8
+* go down one line: KP0+KP2
+* go to beginning of top line: KP0+KP7
+* go to beginning of bottom line: KP0+KP1
+* go up to nearest line with different content: KP0+KP9
+* go down to nearest line with different content: KP0+KP3
+* go up to nearest line with different highlighting: KPPeriod+KP9
+* go down to nearest line with different highlighting: KPPeriod+KP3
+* go up to first line of paragraph: KPPeriod+KP8
+* go down to first line of next paragraph: KPPeriod+KP2
+* go up to previous command prompt: KPPeriod+KP7
+* go down to next command prompt: KPPeriod+KP1
+* go up to nearest line with less indent than character at cursor: KPMultiply+KP8
+* go down to nearest line with less indent than character at cursor: KPMultiply+KP2
+* go up to nearest line with different character at cursor: KPMultiply+KP4
+* go down to nearest line with different character at cursor: KPMultiply+KP6
+
+Horizontal Navigation
+* go backward one braille window: KP0+KP4
+* go forward one braille window: KP0+KP6
+* go backward skipping blank braille windows: KPPeriod+KP4
+* go forward skipping blank braille windows: KPPeriod+KP6
+* go to beginning of line: KP0+KPPeriod+KP4
+* go to end of line: KP0+KPPeriod+KP6
+* go left one character: KP0+KPPeriod+KP1
+* go right one character: KP0+KPPeriod+KP3
+* place left end of braille window at character at cursor: KP0+KPPeriod+KP5
+
+Clipboard Functions
+* start new clipboard at character at cursor: KPMultiply+KP7
+* append to clipboard from character at cursor: KPMultiply+KP1
+* linear copy to character at cursor: KPMultiply+KP9
+* rectangular copy to character at cursor: KPMultiply+KP3
+* insert clipboard text after screen cursor: KPMultiply+KP5
+* search backward for clipboard text: KPMultiply+KPMinus
+* search forward for clipboard text: KPMultiply+KPPlus
+
+Configuration Functions
+* set text style 6-dot: KP0+KPPlus
+* set text style 8-dot: KP0+KPMinus
+* set track screen cursor on/off: KP0+KPDivide
+* set screen cursor visibility on/off: KPPeriod+KPDivide
+* set attribute underlining on/off: KPPeriod+KPMultiply
+
+Menu Operations
+* save preferences to disk: KPMinus+KP6
+* restore preferences from disk: KPMinus+KP4
+
+Speech Functions
+* stop speaking: KPEnter+KP4
+* speak current line: KPEnter+KP5
+* speak from top of screen through current line: KPEnter+KP8
+* speak from current line through bottom of screen: KPEnter+KP2
+* go to current speaking position: KPEnter+KPDivide
+* decrease speaking volume: KPEnter+KP1
+* increase speaking volume: KPEnter+KP3
+* decrease speaking rate: KPEnter+KP7
+* increase speaking rate: KPEnter+KP9
+* set autospeak on/off: KPEnter+KP6
+* set autospeak selected line on/off: KPEnter+KP0+KP5
+* set autospeak selected character on/off: KPEnter+KP0+KP4
+* set autospeak inserted characters on/off: KPEnter+KP0+KP3
+* set autospeak deleted characters on/off: KPEnter+KP0+KP1
+* set autospeak replaced characters on/off: KPEnter+KP0+KP2
+* set autospeak completed words on/off: KPEnter+KP0+KP6
+* set autospeak indent of current line on/off: KPPlus+KP0+KPMinus
+
+Speech Navigation
+* speak current character: KPPlus+KP2
+* describe current character: KPPlus+KP0+KP2
+* go to and speak previous character: KPPlus+KP1
+* go to and speak next character: KPPlus+KP3
+* go to and speak first non-blank character on line: KPPlus+KP0+KP1
+* go to and speak last non-blank character on line: KPPlus+KP0+KP3
+* speak current word: KPPlus+KP5
+* spell current word: KPPlus+KP0+KP5
+* go to and speak previous word: KPPlus+KP4
+* go to and speak next word: KPPlus+KP6
+* speak current line: KPPlus+KP8
+* go to and speak previous line: KPPlus+KP7
+* go to and speak next line: KPPlus+KP9
+* go to and speak first non-blank line on screen: KPPlus+KP0+KP7
+* go to and speak last non-blank line on screen: KPPlus+KP0+KP9
+* speak indent of current line: KPPlus+KPMinus
+* speak speech cursor location: KPPlus+KPDivide
+* set speech cursor visibility on/off: KPPlus+KP0+KPDivide
+
+Keyboard Input
+* set braille typing mode dots: KPPeriod+KPPlus
+* set braille typing mode text: KPPeriod+KPMinus
+
+Special Functions
+* restart braille driver: KPMinus+KPDivide
+* restart speech driver: KPMinus+KPMultiply
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: KP0+KPEnter
+
+Horizontal Navigation
+* go backward one braille window: KP0+KP4
+* go forward one braille window: KP0+KP6
+
+Menu Operations
+* go up to previous item: KP0+KP8
+* go down to next item: KP0+KP2
+* go up to first item: KP0+KP7
+* go down to last item: KP0+KP1
+* select previous choice: KP0+KP9
+* select next choice: KP0+KP3
+* go to previous menu level: KP0+KP5
+* save preferences to disk: KP0+KPPlus
+* restore preferences from disk: KP0+KPMinus
+

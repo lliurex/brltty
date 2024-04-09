@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -20,5 +20,5 @@ note B9 and B10 are the keys immediately to the left and right of the joystick.
 
 map B9 SPACE
 assign space B10
-include keyboard.kti
+include joystick.kti
 bind B9+RoutingKey SETLEFT

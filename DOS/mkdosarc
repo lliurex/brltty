@@ -1,9 +1,9 @@
-#!/bin/bash -p
+#!/bin/bash
 ###############################################################################
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -23,16 +23,18 @@ shopt -s nullglob
 defaultArchiveName="brltty-dos"
 defaultInstallDirectory="BRLTTY"
 
-. "`dirname "${0}"`/../brltty-prologue.sh"
+. "`dirname "${0}"`/../prologue.sh"
 addProgramOption a string.name archiveName "specify archive name" "${defaultArchiveName}"
 addProgramOption i string.directory installDirectory "specify installation directory on target system" "${defaultInstallDirectory}"
 addProgramOption o flag overwriteArchive "overwrite existing archive"
 addProgramOption s flag invokeShell "invoke interactive shell to inspect/modify result"
+addProgramOption T string.directory toolsRoot "specify tool chain root directory"
 addProgramParameter source sourceDirectory "top-level directory of source tree"
 parseProgramArguments "${@}"
 
 [ -n "${archiveName}" ] || archiveName="${defaultArchiveName}"
 [ -n "${installDirectory}" ] || installDirectory="${defaultInstallDirectory}"
+[ -n "${toolsRoot}" ] && export DOS_TOOLS_ROOT="${toolsRoot}"
 
 [ -n "${sourceDirectory}" ] || sourceDirectory="."
 verifyInputDirectory "${sourceDirectory}" || semanticError
@@ -58,6 +60,14 @@ function installFile {
    local targetDirectory="${targetFile%/*}"
    mkdir -p "${targetDirectory}"
    cp "${sourceFile}" "${targetFile}"
+}
+
+function installCSV {
+   local oldName="${1}"
+   local newName="${2}"
+
+   local extension="csv"
+   installFile "${sourceDirectory}/${documentsSubdirectory}/${oldName}.${extension}" "${documentSubdirectory}/${newName}.${extension}"
 }
 
 function installManualFiles {
@@ -112,7 +122,7 @@ logMessage task "building documentation"
 make -s -C Documents all
 
 logMessage task "installing files"
-make -s -C Programs install-commands install-tables install-core-headers install-manpages
+make -s -C Programs install-commands install-tables
 
 logMessage task "updating files"
 
@@ -120,8 +130,8 @@ cd "${installDirectory}/bin"
 mv brltty-lscmds.exe brllscmd.exe
 mv brltty-trtxt.exe brltrtxt.exe
 mv brltty-ttb.exe brlttb.exe
-mv brltty-atb.exe brlatb.exe
 mv brltty-ctb.exe brlctb.exe
+mv brltty-atb.exe brlatb.exe
 mv brltty-ktb.exe brlktb.exe
 mv brltty-tune.exe brltune.exe
 mv brltty-morse.exe brlmorse.exe
@@ -156,30 +166,36 @@ done
 cd "${sourceDirectory}"
 installFile "LICENSE-LGPL" "LIC-LGPL.txt"
 installFile "README" "README.txt"
-installFile "Documents/README.DOS" "${documentSubdirectory}/DOS.txt"
-installFile "Documents/ChangeLog" "${documentSubdirectory}/CHANGES.txt"
-installFile "Documents/HISTORY" "${documentSubdirectory}/HISTORY.txt"
-installFile "Documents/TODO" "${documentSubdirectory}/TODO.txt"
+
+cd "${documentsSubdirectory}"
+installFile "ChangeLog" "${documentSubdirectory}/CHG-LOG.txt"
+
+for file in DOS
+do
+   installFile "README.${file}" "${documentSubdirectory}/${file}.txt"
+done
+
+for file in BUGS CONTRIBUTORS HISTORY TODO
+do
+   installFile "${file}" "${documentSubdirectory}/${file}.txt"
+done
+
+installCSV braille-driver BRL-DRV
+installCSV speech-driver SPK-DRV
+installCSV screen-driver SCR-DRV
+
+installCSV text-table TEXT-TBL
+installCSV contraction-table CONT-TBL
+installCSV attributes-table ATTR-TBL
+installCSV keyboard-table KBD-TBL
 
 installManualFiles "${sourceDirectory}"
 installManualFiles "${buildDirectory}"
 
 cd "${buildDirectory}"
 installFile "Documents/brltty.conf" "etc/brltty.cfg"
-installFile "Programs/revision_identifier.h" "REVISION.txt"
+installFile "Programs/revision_identifier.auto.h" "REVISION.txt"
 sed -e 's/"//g' -i "${installDirectory}/REVISION.txt"
-
-cd "${installDirectory}"
-mv share/man .
-rm -f -r share
-cd man
-
-for source in */*
-do
-   target="${source/%?/txt}"
-   MANWIDTH=80 LC_ALL=C man "${source}" | ul -t dumb | expand | uniq >"${target}"
-   rm "${source}"
-done
 
 logMessage task "converting text files"
 cd "${installDirectory}"
@@ -194,34 +210,34 @@ find . -print |
 
       if [ "${name#*.*.}" != "${name}" ]
       then
-         logMessage warning "name contains more than one dot: ${handle}"
+         logWarning "name contains more than one dot: ${handle}"
       elif [ "${name#.}" != "${name}" ]
       then
-         logMessage warning "null name: ${handle}"
+         logWarning "null name: ${handle}"
       elif [ "${name%.}" != "${name}" ]
       then
-         logMessage warning "null extension: ${handle}"
+         logWarning "null extension: ${handle}"
       elif [ -f "${path}" ]
       then
          if [ "${extension}" = "${name}" ]
          then
-            logMessage warning "file without an extension: ${handle}"
+            logWarning "file without an extension: ${handle}"
          else
             case "${extension}"
             in
-               txt | html | htm | cfg | [tack]t[bi] | h) convertTextFile "${path}";;
+               txt | html | htm | csv | cfg | [tcak]t[bi] | h) convertTextFile "${path}";;
                exe | pdf | doc);;
-               *) logMessage warning "unexpected file extension: ${handle}";;
+               *) logWarning "unexpected file extension: ${handle}";;
             esac
          fi
       elif [ -d "${path}" ]
       then
          if [ "${extension}" != "${name}" ]
          then
-            logMessage warning "directory with an extension: ${handle}"
+            logWarning "directory with an extension: ${handle}"
          fi
       else
-         logMessage warning "unsupported special file: ${handle}"
+         logWarning "unsupported special file: ${handle}"
       fi
    done
 
@@ -253,7 +269,7 @@ find . -type d -print |
          then
             shortNames["${shortName}"]="${longName}"
          else
-            logMessage warning "name collision: ${directory#.}: ${shortNames["${shortName}"]} & ${longName}"
+            logWarning "name collision: ${directory#.}: ${shortNames["${shortName}"]} & ${longName}"
          fi
       done
    done

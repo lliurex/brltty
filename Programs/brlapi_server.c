@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,20 +22,16 @@
 #define SERVER_SELECT_TIMEOUT 1
 #define UNAUTH_LIMIT 5
 #define UNAUTH_TIMEOUT 30
-#define OUR_STACK_MIN 0X10000
-
-#ifndef PTHREAD_STACK_MIN
-#define PTHREAD_STACK_MIN OUR_STACK_MIN
-#endif /* PTHREAD_STACK_MIN */
 
 #define RELEASE "BrlAPI Server: release " BRLAPI_RELEASE
-#define COPYRIGHT "   Copyright (C) 2002-2021 by Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>, \
+#define COPYRIGHT "   Copyright (C) 2002-2023 by Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>, \
 Samuel Thibault <samuel.thibault@ens-lyon.org>"
 
 #include "prologue.h"
 
 #include <stdio.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -120,12 +116,31 @@ Samuel Thibault <samuel.thibault@ens-lyon.org>"
 typedef enum {
   PARM_AUTH,
   PARM_HOST,
-  PARM_STACKSIZE
+#ifdef ENABLE_API_FUZZING
+  PARM_FUZZ,
+  PARM_FUZZSEED,
+  PARM_FUZZHEAD,
+  PARM_FUZZWRITE,
+  PARM_FUZZWRITEUTF8,
+  PARM_CRASH,
+#endif
 } Parameters;
 
-const char *const api_serverParameters[] = { "auth", "host", "stacksize", NULL };
+const char *const api_serverParameters[] = {
+  "auth", "host",
+#ifdef ENABLE_API_FUZZING
+  "fuzz", "fuzzseed", "fuzzhead", "fuzzwrite", "fuzzwriteutf8", "crash",
+#endif /* ENABLE_API_FUZZING */
+  NULL
+};
 
-static size_t stackSize;
+#ifdef ENABLE_API_FUZZING
+static int fuzz_runs;
+static int fuzz_seed;
+static unsigned int fuzz_head;
+static unsigned int fuzz_write;
+static unsigned int fuzz_writeutf8;
+#endif /* ENABLE_API_FUZZING */
 
 #define WERR(x, y, ...) do { \
   logMessage(LOG_ERR, "writing error %d to %"PRIfd, y, x); \
@@ -227,6 +242,10 @@ static ParamState paramState[BRLAPI_PARAM_COUNT];
 
 /* Pointer to the connection accepter thread */
 static pthread_t serverThread; /* server */
+#ifdef ENABLE_API_FUZZING
+static pthread_t fuzzerThread;                       /* fuzzer */
+static pthread_t crasherThread;                      /* crash reproducer */
+#endif /* ENABLE_API_FUZZING */
 static pthread_t socketThreads[SERVER_SOCKET_LIMIT]; /* socket binding threads */
 static int running; /* should threads be running? */
 static char **socketHosts = NULL; /* socket local hosts */
@@ -554,6 +573,7 @@ typedef struct { /* packet handlers */
   PacketHandler resumeDriver;
   PacketHandler parameterValue;
   PacketHandler parameterRequest;
+  PacketHandler sync;
 } PacketHandlers;
 
 /****************************************************************************/
@@ -602,7 +622,7 @@ getCursorOverlay (BrailleDisplay *brl) {
     requireBlinkDescriptor(blink);
 
     if (isBlinkVisible(blink)) {
-      return getScreenCursorDots();
+      return mapCursorDots(getScreenCursorDots());
     }
   }
 
@@ -830,7 +850,7 @@ static int handleGetDriverName(Connection *c, brlapi_packetType_t type, brlapi_p
 
 static int handleGetModelIdentifier(Connection *c, brlapi_packetType_t type, brlapi_packet_t *packet, size_t size)
 {
-  return handleGetDriver(c, type, size, disp->keyBindings);
+  return handleGetDriver(c, type, size, disp && disp->keyBindings ? disp->keyBindings : "");
 }
 
 static int handleGetDisplaySize(Connection *c, brlapi_packetType_t type, brlapi_packet_t *packet, size_t size)
@@ -897,7 +917,6 @@ static int handleEnterTtyMode(Connection *c, brlapi_packetType_t type, brlapi_pa
        * doesn't exist yet. This is forbidden. */
       unlockMutex(&apiConnectionsMutex);
       WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "already having another tty");
-      freeBrailleWindow(&c->brailleWindow);
       return 0;
     }
     /* ok, allocate path */
@@ -995,7 +1014,7 @@ static int handleKeyRanges(Connection *c, brlapi_packetType_t type, brlapi_packe
 {
   int res = 0;
   brlapi_keyCode_t x,y;
-  uint32_t (*ints)[4] = (uint32_t (*)[4]) packet;
+  uint32_t (*ints)[4] = (uint32_t (*)[4]) &packet->uint32;
   unsigned int i;
   CHECKERR(!c->raw,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed in raw mode");
   CHECKERR(c->tty,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed out of tty mode");
@@ -1035,7 +1054,7 @@ logConversionResult (Connection *connection, unsigned int chars, unsigned int by
 }
 
 static void
-convertFromLatin1 (Connection *c, unsigned int rbeg, unsigned int rsiz, const unsigned char *text, unsigned int textLen) {
+convertFromLatin1 (Connection *c, unsigned int rbeg, unsigned int rsiz, const unsigned char *text) {
   for (int i=0; i<rsiz; i+=1) {
     c->brailleWindow.text[rbeg-1+i] = text[i];
   }
@@ -1065,14 +1084,15 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
   brlapi_writeArgumentsPacket_t *wa = &packet->writeArguments;
   unsigned char *text = NULL, *orAttr = NULL, *andAttr = NULL;
   unsigned int rbeg, rsiz, textLen = 0;
+  bool fill;
   int cursor = -1;
   unsigned char *p = &wa->data;
   int remaining = size;
   char *charset = NULL;
   unsigned int charsetLen = 0;
   CHECKEXC(remaining>=sizeof(wa->flags), BRLAPI_ERROR_INVALID_PACKET, "packet too small for flags");
-  CHECKERR(!c->raw,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed in raw mode");
-  CHECKERR(c->tty,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed out of tty mode");
+  CHECKEXC(!c->raw,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed in raw mode");
+  CHECKEXC(c->tty,BRLAPI_ERROR_ILLEGAL_INSTRUCTION,"not allowed out of tty mode");
   wa->flags = ntohl(wa->flags);
   if ((remaining==sizeof(wa->flags))&&(wa->flags==0)) {
     c->brlbufstate = EMPTY;
@@ -1081,11 +1101,20 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
   remaining -= sizeof(wa->flags); /* flags */
   CHECKEXC((wa->flags & BRLAPI_WF_DISPLAYNUMBER)==0, BRLAPI_ERROR_OPNOTSUPP, "display number not yet supported");
   if (wa->flags & BRLAPI_WF_REGION) {
+    int regionSize;
     CHECKEXC(remaining>2*sizeof(uint32_t), BRLAPI_ERROR_INVALID_PACKET, "packet too small for region");
     rbeg = ntohl( *((uint32_t *) p) );
     p += sizeof(uint32_t); remaining -= sizeof(uint32_t); /* region begin */
-    rsiz = ntohl( *((uint32_t *) p) );
+    regionSize = (int32_t) ntohl( *((uint32_t *) p) );
     p += sizeof(uint32_t); remaining -= sizeof(uint32_t); /* region size */
+    if (regionSize < 0) {
+      CHECKEXC(regionSize != INT32_MIN, BRLAPI_ERROR_INVALID_PARAMETER, "invalid region size");
+      rsiz = -regionSize;
+      fill = true;
+    } else {
+      rsiz = regionSize;
+      fill = false;
+    }
 
     CHECKEXC(
       (rbeg >= 1) && (rbeg <= displaySize),
@@ -1093,18 +1122,19 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
     );
 
     CHECKEXC(
-      (rsiz > 0) && (rsiz <= displaySize),
+      (rsiz >= 1) && (rsiz <= displaySize),
       BRLAPI_ERROR_INVALID_PARAMETER, "invalid region size"
     );
 
     CHECKEXC(
-      ((rbeg + rsiz - 1) <= displaySize),
+      (rbeg + rsiz - 1 <= displaySize),
       BRLAPI_ERROR_INVALID_PARAMETER, "invalid region"
     );
   } else {
     logMessage(LOG_CATEGORY(SERVER_EVENTS), "warning: fd %"PRIfd" uses deprecated regionBegin=0 and regionSize = 0",c->fd);
     rbeg = 1;
     rsiz = displaySize;
+    fill = true;
   }
   if (wa->flags & BRLAPI_WF_TEXT) {
     CHECKEXC(remaining>=sizeof(uint32_t), BRLAPI_ERROR_INVALID_PACKET, "packet too small for text length");
@@ -1142,6 +1172,8 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
   }
   CHECKEXC(remaining==0, BRLAPI_ERROR_INVALID_PACKET, "packet too big");
   /* Here the whole packet has been checked */
+
+  unsigned int rsiz_filled = fill ? displaySize - rbeg + 1 : rsiz;
 
   if (text) {
     int isUTF8 = 0;
@@ -1189,10 +1221,11 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
       }
     }
 
+    size_t end;
     if (isUTF8) {
       logConversionDecision(c, "UTF-8", "internal conversion");
 
-      size_t outLeft = rsiz;
+      size_t outLeft = rsiz_filled;
       wchar_t outBuff[outLeft];
 
       size_t inLeft = textLen;
@@ -1203,24 +1236,26 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
         BRLAPI_ERROR_INVALID_PACKET, "invalid charset conversion"
       );
 
-      CHECKEXC(!inLeft, BRLAPI_ERROR_INVALID_PACKET, "text too big");
-      CHECKEXC(!outLeft, BRLAPI_ERROR_INVALID_PACKET, "text too small");
+      if (!fill) {
+	CHECKEXC(!inLeft, BRLAPI_ERROR_INVALID_PACKET, "text too big");
+	CHECKEXC(!outLeft, BRLAPI_ERROR_INVALID_PACKET, "text too small");
+      } else {
+	CHECKEXC(inLeft || (!andAttr && !orAttr) || rsiz_filled - outLeft == rsiz, BRLAPI_ERROR_INVALID_PACKET, "text length does not match and/or mask length");
+      }
 
       lockMutex(&c->brailleWindowMutex);
-      wmemcpy(c->brailleWindow.text+rbeg-1, outBuff, rsiz);
-    } else if (isLatin1) {
-      logConversionDecision(c, "ISO_8859-1", "internal conversion");
-      lockMutex(&c->brailleWindowMutex);
-      convertFromLatin1(c, rbeg, rsiz, text, textLen);
+      wmemcpy(c->brailleWindow.text+rbeg-1, outBuff, rsiz_filled - outLeft);
+      end = rbeg-1 + rsiz_filled - outLeft;
     }
 
 #ifdef HAVE_ICONV_H
-    else if (charset) {
+    else if (charset && !isLatin1) {
       logConversionDecision(c, charset, "iconv conversion");
 
-      wchar_t textBuf[rsiz];
+      size_t len = fill ? textLen : rsiz;
+      wchar_t textBuf[len ? len : 1];
       char *in = (char *) text, *out = (char *) textBuf;
-      size_t sin = textLen, sout = sizeof(textBuf);
+      size_t sin = textLen, sout = len * sizeof(wchar_t);
 
       iconv_t conv = iconv_open(getWcharCharset(), charset);
       CHECKEXC((conv != (iconv_t)(-1)), BRLAPI_ERROR_INVALID_PACKET, "invalid charset");
@@ -1228,34 +1263,62 @@ static int handleWrite(Connection *c, brlapi_packetType_t type, brlapi_packet_t 
       iconv_close(conv);
 
       CHECKEXC((res != (size_t)-1), BRLAPI_ERROR_INVALID_PACKET, "invalid charset conversion");
-      CHECKEXC(!sin, BRLAPI_ERROR_INVALID_PACKET, "text too big");
-      CHECKEXC(!sout, BRLAPI_ERROR_INVALID_PACKET, "text too small");
+      if (!fill) {
+	CHECKEXC(!sin, BRLAPI_ERROR_INVALID_PACKET, "text too big");
+	CHECKEXC(!sout, BRLAPI_ERROR_INVALID_PACKET, "text too small");
+      } else {
+	CHECKEXC(sin || (!andAttr && !orAttr) || len - sout / sizeof(wchar_t) == rsiz, BRLAPI_ERROR_INVALID_PACKET, "text length does not match and/or mask length");
+      }
       logConversionResult(c, rsiz, textLen);
+      len -= sout / sizeof(wchar_t);
+      if (len > displaySize - rbeg + 1)
+	len = displaySize - rbeg + 1;
 
       lockMutex(&c->brailleWindowMutex);
-      wmemcpy(c->brailleWindow.text+rbeg-1, textBuf, rsiz);
+      wmemcpy(c->brailleWindow.text+rbeg-1, textBuf, len);
+      end = rbeg-1 + len;
     }
 #endif /* HAVE_ICONV_H */
 
     else {
-      logConversionDecision(c, "ISO_8859-1", "assumed");
+      logConversionDecision(c, "ISO_8859-1", isLatin1 ? "internal conversion" : "assumed");
+      size_t len = textLen;
+      if (!fill) {
+	CHECKEXC(len <= rsiz, BRLAPI_ERROR_INVALID_PACKET, "text too big");
+	CHECKEXC(len >= rsiz, BRLAPI_ERROR_INVALID_PACKET, "text too small");
+      } else {
+	if (len > rsiz_filled)
+	  len = rsiz_filled;
+	else
+	  CHECKEXC((!andAttr && !orAttr) || len == rsiz, BRLAPI_ERROR_INVALID_PACKET, "text length does not match and/or mask length");
+      }
       lockMutex(&c->brailleWindowMutex);
-      convertFromLatin1(c, rbeg, rsiz, text, textLen);
+      convertFromLatin1(c, rbeg, len, text);
+      end = rbeg-1 + len;
     }
+    if (fill)
+      wmemset(c->brailleWindow.text+end, L' ', displaySize - end);
 
     // Forget the charset in case it's pointing to a local buffer.
     // This occurs when getCharset() is saved and alloca() isn't available.
     charset = NULL;
     charsetLen = 0;
 
-    if (!andAttr) memset(c->brailleWindow.andAttr+rbeg-1,0xFF,rsiz);
-    if (!orAttr)  memset(c->brailleWindow.orAttr+rbeg-1,0x00,rsiz);
+    if (!andAttr) memset(c->brailleWindow.andAttr+rbeg-1,0xFF,rsiz_filled);
+    if (!orAttr)  memset(c->brailleWindow.orAttr+rbeg-1,0x00,rsiz_filled);
+    if (fill)     memset(c->brailleWindow.andAttr+rbeg-1+rsiz,0x00,rsiz_filled-rsiz);
   } else {
     lockMutex(&c->brailleWindowMutex);
   }
 
-  if (andAttr) memcpy(c->brailleWindow.andAttr+rbeg-1,andAttr,rsiz);
-  if (orAttr) memcpy(c->brailleWindow.orAttr+rbeg-1,orAttr,rsiz);
+  if (andAttr) {
+    memcpy(c->brailleWindow.andAttr+rbeg-1,andAttr,rsiz);
+    memset(c->brailleWindow.andAttr+rbeg-1+rsiz,0X00,rsiz_filled-rsiz);
+  }
+  if (orAttr) {
+    memcpy(c->brailleWindow.orAttr+rbeg-1,orAttr,rsiz);
+    memset(c->brailleWindow.orAttr+rbeg-1+rsiz,0X00,rsiz_filled-rsiz);
+  }
   if (cursor >= 0) c->brailleWindow.cursor = cursor;
 
   c->brlbufstate = TODISPLAY;
@@ -1607,7 +1670,7 @@ PARAM_READER(computerBrailleCellSize)
 {
   brlapi_param_computerBrailleCellSize_t *computerBrailleCellSize = data;
   *size = sizeof(*computerBrailleCellSize);
-  *computerBrailleCellSize = isSixDotBraille()? 6: 8;
+  *computerBrailleCellSize = isSixDotComputerBraille()? 6: 8;
   return NULL;
 }
 
@@ -1616,7 +1679,7 @@ PARAM_WRITER(computerBrailleCellSize)
   const brlapi_param_computerBrailleCellSize_t *computerBrailleCellSize = data;
   PARAM_ASSERT_SIZE(computerBrailleCellSize);
 
-  setSixDotBraille(*computerBrailleCellSize <= 6);
+  setSixDotComputerBraille(*computerBrailleCellSize <= 6);
   return NULL;
 }
 
@@ -1676,7 +1739,7 @@ PARAM_READER(cursorBlinkPercentage)
 {
   brlapi_param_cursorBlinkPercentage_t *cursorBlinkPercentage = data;
   *size = sizeof(*cursorBlinkPercentage);
-  *cursorBlinkPercentage = getBlinkPercentage(&screenCursorBlinkDescriptor);
+  *cursorBlinkPercentage = getBlinkPercentVisible(&screenCursorBlinkDescriptor);
   return NULL;
 }
 
@@ -1684,7 +1747,7 @@ PARAM_WRITER(cursorBlinkPercentage)
 {
   const brlapi_param_cursorBlinkPercentage_t *cursorBlinkPercentage = data;
   PARAM_ASSERT_SIZE(cursorBlinkPercentage);
-  if (!setBlinkPercentage(&screenCursorBlinkDescriptor, *cursorBlinkPercentage)) return "unsupported cursor blink percentage";
+  if (!setBlinkPercentVisible(&screenCursorBlinkDescriptor, *cursorBlinkPercentage)) return "unsupported cursor blink percentage";
   return NULL;
 }
 
@@ -1692,7 +1755,7 @@ PARAM_WRITER(cursorBlinkPercentage)
 PARAM_READER(renderedCells)
 {
   lockMutex(&apiDriverMutex);
-    if (disp) {
+    if (disp && c->brailleWindow.text) {
       unsigned char buffer[displaySize];
       getDots(&c->brailleWindow, buffer);
 
@@ -1964,7 +2027,6 @@ PARAM_WRITER(computerBrailleTable)
   return param_writeString(changeTextTable, data, size);
 }
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
 /* BRLAPI_PARAM_LITERARY_BRAILLE_TABLE */
 PARAM_READER(literaryBrailleTable)
 {
@@ -1976,7 +2038,6 @@ PARAM_WRITER(literaryBrailleTable)
 {
   return param_writeString(changeContractionTable, data, size);
 }
-#endif /* ENABLE_CONTRACTED_BRAILLE */
 
 /* BRLAPI_PARAM_MESSAGE_LOCALE */
 PARAM_READER(messageLocale)
@@ -2174,13 +2235,11 @@ static const ParamDispatch paramDispatch[BRLAPI_PARAM_COUNT] = {
     .write = param_computerBrailleTable_write,
   },
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
   [BRLAPI_PARAM_LITERARY_BRAILLE_TABLE] = {
     .global = 1,
     .read = param_literaryBrailleTable_read,
     .write = param_literaryBrailleTable_write,
   },
-#endif /* ENABLE_CONTRACTED_BRAILLE */
 
   [BRLAPI_PARAM_MESSAGE_LOCALE] = {
     .global = 1,
@@ -2401,12 +2460,6 @@ static int handleParamRequest(Connection *c, brlapi_packetType_t type, brlapi_pa
   if (flags & BRLAPI_PARAMF_SUBSCRIBE) {
     /* subscribe to parameter updates */
 
-    if (param == BRLAPI_PARAM_SERVER_VERSION) {
-      WERR(c->fd, BRLAPI_ERROR_INVALID_PARAMETER, "parameter %u not available for watching - it won't change", param);
-      unlockMutex(&apiParamMutex);
-      return 0;
-    }
-
     {
       brlapi_param_t root = paramDispatch[param].rootParameter;
 
@@ -2441,7 +2494,7 @@ static int handleParamRequest(Connection *c, brlapi_packetType_t type, brlapi_pa
 	  && (s->flags & BRLAPI_PARAMF_GLOBAL) == (flags & BRLAPI_PARAMF_GLOBAL))
 	break;
     }
-    if (s) {
+    if (s != &c->subscriptions) {
       if (flags & BRLAPI_PARAMF_GLOBAL)
         paramState[param].global_subscriptions--;
       else
@@ -2481,6 +2534,12 @@ static int handleParamRequest(Connection *c, brlapi_packetType_t type, brlapi_pa
   return 0;
 }
 
+static int handleSync(Connection *c, brlapi_packetType_t type, brlapi_packet_t *packet, size_t size)
+{
+  writeAck(c->fd);
+  return 0;
+}
+
 static PacketHandlers packetHandlers = {
   handleGetDriverName, handleGetModelIdentifier, handleGetDisplaySize,
   handleEnterTtyMode, handleSetFocus, handleLeaveTtyMode,
@@ -2488,6 +2547,7 @@ static PacketHandlers packetHandlers = {
   handleEnterRawMode, handleLeaveRawMode, handlePacket,
   handleSuspendDriver, handleResumeDriver,
   handleParamValue, handleParamRequest,
+  handleSync,
 };
 
 static void handleNewConnection(Connection *c)
@@ -2681,6 +2741,7 @@ static int processRequest(Connection *c, PacketHandlers *handlers)
     case BRLAPI_PACKET_RESUMEDRIVER: p = handlers->resumeDriver; break;
     case BRLAPI_PACKET_PARAM_VALUE: p = handlers->parameterValue; break;
     case BRLAPI_PACKET_PARAM_REQUEST: p = handlers->parameterRequest; break;
+    case BRLAPI_PACKET_SYNCHRONIZE: p = handlers->sync; break;
   }
   if (p!=NULL) {
     logRequest(type, c->fd);
@@ -2714,7 +2775,16 @@ static int loopBind(SocketDescriptor fd, const struct sockaddr *address, socklen
   int delay = 1;
   int res;
 
-  while ((res = bind(fd, address, length)) == -1) {
+  while (1) {
+    {
+      lockUmask();
+      mode_t originalMask = umask(0);
+      res = bind(fd, address, length);
+      umask(originalMask);
+      unlockUmask();
+    }
+
+    if (res != -1) break;
     if (!running) break;
 
     if (
@@ -2748,6 +2818,8 @@ static SocketDescriptor newTcpSocket(int family, int type, int protocol, const s
   SocketDescriptor fd = socket(family, type, protocol);
 
   if (fd != INVALID_SOCKET_DESCRIPTOR) {
+  //setCloseOnExec(fd, 1);
+
 #ifdef SO_REUSEADDR
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
                    (const void *)&yes, sizeof(yes)) == -1) {
@@ -2981,7 +3053,17 @@ static int readPid(char *path)
   pid_t pid;
   int n;
   FileDescriptor fd;
-  fd = open(path, O_RDONLY);
+
+  {
+    int openFlags = O_RDONLY;
+
+    #ifdef O_CLOEXEC
+    openFlags |= O_CLOEXEC;
+    #endif /* O_CLOEXEC */
+
+    fd = open(path, openFlags);
+  }
+
   if (fd == -1) return 0;
   n = read(fd, pids, sizeof(pids)-1);
   closeFileDescriptor(fd);
@@ -2993,46 +3075,41 @@ static int readPid(char *path)
 }
 
 static int
-adjustPermissions (const char *path) {
-  int adjust = !geteuid();
+adjustPermissions (
+  const void *object, const char *container,
+  int (*getStatus) (const void *object, struct stat *status),
+  int (*setPermissions) (const void *object, mode_t permissions)
+) {
+  uid_t user = geteuid();
+  int adjust = !user;
 
   if (!adjust) {
-    char *directory = getPathDirectory(path);
+    struct stat status;
 
-    if (directory) {
-      struct stat status;
-
-      if (stat(directory, &status) == -1) {
-        logSystemError("stat");
-      } else if (status.st_uid == geteuid()) {
-        adjust = 1;
-      }
-
-      free(directory);
+    if (stat(container, &status) == -1) {
+      logSystemError("stat");
+    } else if (status.st_uid == user) {
+      adjust = 1;
     }
   }
 
   if (adjust) {
     struct stat status;
-
-    if (stat(path, &status) == -1) {
-      logSystemError("stat");
-      return 0;
-    }
+    if (!getStatus(object, &status)) return 0;
 
     {
       mode_t oldPermissions = status.st_mode & ~S_IFMT;
       mode_t newPermissions = oldPermissions;
 
-#ifdef S_IRGRP
+      #ifdef S_IRGRP
       if (oldPermissions & S_IRUSR) newPermissions |= S_IRGRP | S_IROTH;
       if (oldPermissions & S_IWUSR) newPermissions |= S_IWGRP | S_IWOTH;
       if (oldPermissions & S_IXUSR) newPermissions |= S_IXGRP | S_IXOTH;
-#endif
+      if (S_ISDIR(status.st_mode)) newPermissions |= S_ISVTX | S_IXOTH;
+      #endif
 
       if (newPermissions != oldPermissions) {
-        if (chmod(path, newPermissions) == -1) {
-          logSystemError("chmod");
+        if (!setPermissions(object, newPermissions)) {
           return 0;
         }
       }
@@ -3040,6 +3117,68 @@ adjustPermissions (const char *path) {
   }
 
   return 1;
+}
+
+static int
+getPathStatus (const void *object, struct stat *status) {
+  const char *path = object;
+  if (stat(path, status) != -1) return 1;
+  logSystemError("stat");
+  return 0;
+}
+
+static int
+setPathPermissions (const void *object, mode_t permissions) {
+  const char *path = object;
+
+  lockUmask();
+  int changed = chmod(path, permissions) != -1;
+  unlockUmask();
+
+  if (!changed) logSystemError("chmod");
+  return changed;
+}
+
+static int
+adjustPathPermissions (const char *path) {
+  int ok = 0;
+  char *parent = getPathDirectory(path);
+
+  if (parent) {
+    if (adjustPermissions(path, parent, getPathStatus, setPathPermissions)) ok = 1;
+    free(parent);
+  }
+
+  return ok;
+}
+
+static int
+getFileStatus (const void *object, struct stat *status) {
+  const int *fd = object;
+  if (fstat(*fd, status) != -1) return 1;
+  logSystemError("fstat");
+  return 0;
+}
+
+static int
+setFilePermissions (const void *object, mode_t permissions) {
+  const int *fd = object;
+
+  lockUmask();
+  int changed = fchmod(*fd, permissions) != -1;
+  unlockUmask();
+
+  if (!changed) logSystemError("fchmod");
+  return changed;
+}
+
+static int
+adjustFilePermissions (int fd, const char *directory) {
+  return adjustPermissions(
+    &fd, directory,
+    getFileStatus,
+    setFilePermissions
+  );
 }
 #endif /* __MINGW32__ */
 
@@ -3103,6 +3242,7 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
     goto out;
   }
 
+  setCloseOnExec(fd, 1);
   sa.sun_family = AF_LOCAL;
 
   if (lpath+lport+1>sizeof(sa.sun_path)) {
@@ -3110,10 +3250,16 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
     goto outfd;
   }
 
-  while (mkdir(BRLAPI_SOCKETPATH, (permissions | S_ISVTX)) == -1) {
-    if (errno == EEXIST) {
-      break;
+  while (1) {
+    {
+      lockUmask();
+      int mkdirResult = mkdir(BRLAPI_SOCKETPATH, (permissions | S_ISVTX));
+      unlockUmask();
+      if (mkdirResult != -1) break;
     }
+
+    if (!running) goto outfd;
+    if (errno == EEXIST) break;
 
     if ((errno != EROFS) && (errno != ENOENT)) {
       logSystemError("making socket directory");
@@ -3124,7 +3270,7 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
     approximateDelay(1000);
   }
 
-  if (!adjustPermissions(BRLAPI_SOCKETPATH)) {
+  if (!adjustPathPermissions(BRLAPI_SOCKETPATH)) {
     goto outfd;
   }
 
@@ -3138,8 +3284,29 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
   tmppath[lpath+2+lport+1]=0;
   lockpath[lpath+2+lport]=0;
 
-  while ((lock = open(tmppath, O_WRONLY|O_CREAT|O_EXCL,
-                      (permissions & (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)))) == -1) {
+  while (1) {
+    {
+      lockUmask();
+
+      {
+        int openFlags = O_WRONLY | O_CREAT | O_EXCL;
+
+        #ifdef O_CLOEXEC
+        openFlags |= O_CLOEXEC;
+        #endif /* O_CLOEXEC */
+
+        lock = open(
+          tmppath, openFlags,
+          (permissions & (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH))
+        );
+      }
+
+      unlockUmask();
+    }
+
+    if (lock != -1) break;
+    if (!running) goto outfd;
+
     if (errno == EROFS) {
       approximateDelay(1000);
       continue;
@@ -3171,6 +3338,8 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
   done = 0;
 
   while ((res = write(lock,pids+done,n)) < n) {
+    if (!running) goto outlockfd;
+
     if (res == -1) {
       if (errno != ENOSPC) {
 	logSystemError("writing pid in local socket lock");
@@ -3185,6 +3354,8 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
   }
 
   while (1) {
+    if (!running) goto outtmp;
+
     if (link(tmppath, lockpath) == -1) {
       logMessage(LOG_CATEGORY(SERVER_EVENTS), "linking local socket lock: %s", strerror(errno));
       /* but no action: link() might erroneously return errors, see manpage */
@@ -3222,7 +3393,7 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
 
   if (unlink(sa.sun_path) && errno != ENOENT) {
     logSystemError("removing old socket");
-    goto outtmp;
+    goto outfd;
   }
 
   if (loopBind(fd, (struct sockaddr *) &sa, sizeof(sa)) == -1) {
@@ -3230,7 +3401,7 @@ static FileDescriptor createLocalSocket(struct socketInfo *info)
     goto outfd;
   }
 
-  if (!adjustPermissions(sa.sun_path)) {
+  if (!adjustFilePermissions(fd, BRLAPI_SOCKETPATH)) {
     goto outfd;
   }
 
@@ -3467,7 +3638,6 @@ THREAD_FUNCTION(createServerSocket) {
 /* Returns NULL in any case */
 THREAD_FUNCTION(runServer) {
   char *hosts = (char *)argument;
-  pthread_attr_t attr;
   int i;
   int res;
   struct sockaddr_storage addr;
@@ -3509,10 +3679,6 @@ THREAD_FUNCTION(runServer) {
   nbAlloc = serverSocketCount;
 #endif /* __MINGW32__ */
 
-  pthread_attr_init(&attr);
-  /* don't care if it fails */
-  pthread_attr_setstacksize(&attr,stackSize);
-
   for (i=0;i<serverSocketCount;i++)
     socketInfo[i].fd = INVALID_FILE_DESCRIPTOR;
 
@@ -3545,7 +3711,7 @@ THREAD_FUNCTION(runServer) {
         char name[0X100];
         snprintf(name, sizeof(name), "server-socket-create-%d", i);
 
-        res = createThread(name, &socketThreads[i], &attr,
+        res = createThread(name, &socketThreads[i], NULL,
                            createServerSocket, (void *)(intptr_t)i);
       }
 
@@ -3975,7 +4141,10 @@ static Connection *whoFillsTty(Tty *tty) {
   Connection *c;
   Tty *t;
   for (c=tty->connections->next; c!=tty->connections; c = c->next)
-    if (c->brlbufstate!=EMPTY) goto found;
+    if (c->brlbufstate!=EMPTY
+        && c->client_priority != BRLAPI_PARAM_CLIENT_PRIORITY_DISABLE) {
+      goto found;
+    }
 
   c = NULL;
 found:
@@ -4377,6 +4546,238 @@ void api_logServerIdentity(int full)
   }
 }
 
+#ifdef ENABLE_API_FUZZING
+/* Function : api_connect */
+/* Connect to our own API server */
+static int api_connect(void){
+  int s;
+  struct sockaddr_storage ss;
+  size_t ss_size;
+
+#ifdef PF_LOCAL
+  if (socketInfo[0].addrfamily == PF_LOCAL) {
+    struct sockaddr_un *sun = (struct sockaddr_un *) &ss;
+    s = socket(PF_LOCAL, SOCK_STREAM, 0);
+    ss_size = sizeof(*sun);
+    memset(sun, 0, ss_size);
+    sun->sun_family = AF_LOCAL;
+    sprintf(sun->sun_path, BRLAPI_SOCKETPATH "/%s", socketInfo[0].port);
+  } else
+#endif /* PF_LOCAL */
+  {
+    struct sockaddr_in *sin = (struct sockaddr_in *) &ss;
+    s = socket(AF_INET, SOCK_STREAM, 0);
+    ss_size = sizeof(*sin);
+    memset(sin, 0, ss_size);
+    sin->sin_family = AF_INET;
+    sin->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    sin->sin_port = htons(BRLAPI_SOCKETPORTNUM+atoi(socketInfo[0].port));
+  }
+
+  while (true) {
+    int c = connect(s, (struct sockaddr *) &ss, ss_size);
+    if (!c) break;
+    if (errno != ECONNREFUSED)
+      logMessage(LOG_WARNING, "Could not connect to API: %s", strerror(errno));
+    sleep(1);
+  }
+  return s;
+}
+
+/* Function : api_writeData */
+/* Write to API socket some data */
+static int api_writeData(int s, const void* data, size_t size) {
+  size_t remaining = size;
+  while (remaining) {
+    ssize_t done = write(s, data, remaining);
+    if (done < 0) {
+      if (errno != EINTR && errno != EAGAIN)
+	return 0;
+      done = 0;
+    }
+    remaining -= done;
+    data += done;
+  }
+  return 1;
+}
+
+/* Function : api_writeFile */
+/* Write to API socket the content of a file */
+static int api_writeFile(int s, const char* filename) {
+  struct stat st;
+  int fd;
+  size_t size;
+  fd = open(filename, O_RDONLY);
+  if (fd < 0) return 0;
+  if (fstat(fd, &st) < 0) {
+    close(fd);
+    return 0;
+  }
+  size = st.st_size;
+  if (size == 0) return 0;
+  {
+    uint8_t buff[size];
+    ssize_t ret;
+    ret = read(fd, buff, size);
+    close(fd);
+    if (ret < size) return 0;
+    return api_writeData(s, buff, size);
+  }
+}
+
+/* Function : api_writeHead */
+/* Write to API socket the version + auth head, so the fuzzer does not have to guess these */
+static int api_writeHead(int s) {
+  const uint32_t versionPacket[] = {
+    htonl(4), htonl(BRLAPI_PACKET_VERSION),
+    htonl(BRLAPI_PROTOCOL_VERSION)
+  };
+  if (!api_writeData(s, versionPacket, sizeof(versionPacket))) return 0;
+  return 1;
+}
+
+/* Function : api_writeWrite */
+/* Write to API socket the write header, so the fuzzer does not have to guess it */
+static int api_writeWrite(int s, int utf8) {
+  {
+    const uint32_t enterTtyModePacket[] = { htonl(2*4), htonl(BRLAPI_PACKET_ENTERTTYMODE), htonl(1), htonl(1) };
+    if (!api_writeData(s, enterTtyModePacket, sizeof(enterTtyModePacket))) return 0;
+  }
+  {
+    const uint32_t writePacket[] = {
+      htonl(3 * 4 + displaySize + (utf8 ? 6 : 11)), htonl(BRLAPI_PACKET_WRITE),
+      htonl(BRLAPI_WF_REGION | BRLAPI_WF_TEXT | BRLAPI_WF_CHARSET),
+      htonl(1), htonl(displaySize),
+    };
+    if (!api_writeData(s, writePacket, sizeof(writePacket))) return 0;
+  }
+  return 1;
+}
+
+/* Function : api_writeLatin1Charset */
+/* Write to API socket the write footer for latin1, so the fuzzer does not have to guess it */
+static int api_writeLatin1Charset(int s) {
+  return api_writeData(s, "\x0aiso-8859-1", 11);
+}
+
+/* Function : api_writeUtf8Charset */
+/* Write to API socket the write footer for UTF-8, so the fuzzer does not have to guess it */
+static int api_writeUtf8Charset(int s) {
+  return api_writeData(s, "\x05UTF-8", 6);
+}
+
+/* Function : api_writeHeading */
+/* Write to API socket the heading for a test */
+static int api_writeHeading(int s) {
+  if (!fuzz_head && !api_writeHead(s)) return 0;
+  if (fuzz_write && !api_writeWrite(s, fuzz_writeutf8)) return 0;
+  return 1;
+}
+
+/* Function : api_writeTrailing */
+/* Write to API socket the trailing for a test */
+static int api_writeTrailing(int s) {
+  if (fuzz_write) {
+    if (fuzz_writeutf8) {
+      if (!api_writeUtf8Charset(s)) return 0;
+    } else {
+      if (!api_writeLatin1Charset(s)) return 0;
+    }
+  }
+  return 1;
+}
+
+/* Function : api_writeInput */
+/* Write to API socket some data set */
+static int api_writeInput(int s, const uint8_t *data, size_t size) {
+  if (fuzz_write) {
+    /* Reject sizes that don't match display size */
+    if (fuzz_writeutf8) {
+      char buf[size+1];
+      memcpy(buf, data, size);
+      buf[size] = 0;
+      if (countUtf8Characters((const char*) data) != displaySize) return -1;
+    } else {
+      if (size != displaySize) return -1;
+    }
+  }
+  if (!api_writeHeading(s)) return 0;
+  if (!api_writeData(s, data, size)) return 0;
+  if (!api_writeTrailing(s)) return 0;
+  return 1;
+}
+
+/* Function: api_readData */
+/* Read all data coming from API socket */
+static int api_readData(int s){
+  while (1) {
+    char buff[4096];
+    ssize_t r = read(s, buff, sizeof(buff));
+    if (r <= 0) {
+      close(s);
+      return r == 0;
+    }
+  }
+}
+
+/* Function: api_testOneInput */
+/* Test feeding API with feeding one input set */
+static int api_testOneInput(const uint8_t *data, size_t size)
+{
+  int s = api_connect();
+  int r = api_writeInput(s, data, size);
+  if (r == -1) return -1; /* Reject this data */
+  if (r == 0) goto out;
+  shutdown(s, SHUT_WR); /* We are finished speaking */
+  api_readData(s);
+out:
+  close(s);
+  return 0;
+}
+
+/* Prototype for LLVM fuzzer runner */
+extern int LLVMFuzzerRunDriver(int *argc, char ***argv,
+                               int (*UserCb)(const uint8_t *data, size_t size));
+
+/* Function: fuzzerFunction */
+/* Runs the LLVM fuzzer */
+THREAD_FUNCTION(fuzzerFunction)
+{
+  char runs[18];
+  char seed[18];
+  char *argv[] = { "brltty", "-max_len=1000", "-dict=Tools/brlapi.d/fuzz-dict", "-detect_leaks=0", "-rss_limit_mb=1000", runs, seed, NULL };
+  int a = sizeof(argv) / sizeof(argv[0]) - 1;
+  char **a_2 = argv;
+  snprintf(runs, sizeof(runs), "-runs=%d", fuzz_runs);
+  snprintf(seed, sizeof(seed), "-seed=%d", fuzz_seed);
+  sleep(1);
+  LLVMFuzzerRunDriver(&a, &a_2, &api_testOneInput);
+  _exit(EXIT_SUCCESS);
+  return 0;
+}
+
+/* Function: crasherFunction */
+/* Runs one crasher reproducer */
+THREAD_FUNCTION(crasherFunction)
+{
+  int s, r = 0;
+  sleep(1);
+  s = api_connect();
+  if (!api_writeHeading(s)) goto out;
+  if (!api_writeFile(s, argument)) goto out;
+  if (!api_writeTrailing(s)) goto out;
+  shutdown(s, SHUT_WR);
+  api_readData(s);
+  r = 1;
+out:
+  close(s);
+  if (r)
+    logMessage(LOG_ALERT, "crash test passed");
+  _exit(EXIT_SUCCESS);
+  return NULL;
+}
+#endif /* ENABLE_API_FUZZING */
+
 /* Function : api_startServer */
 /* Initializes BrlApi */
 /* One first initialize the driver */
@@ -4399,22 +4800,6 @@ int api_startServer(BrailleDisplay *brl, char **parameters)
     if (*operand) hosts = operand;
   }
 
-  stackSize = MAX(PTHREAD_STACK_MIN, OUR_STACK_MIN);
-  {
-    const char *operand = parameters[PARM_STACKSIZE];
-
-    if (*operand) {
-      int size;
-      static const int minSize = PTHREAD_STACK_MIN;
-
-      if (validateInteger(&size, operand, &minSize, NULL)) {
-        stackSize = size;
-      } else {
-        logMessage(LOG_WARNING, "%s: %s", gettext("invalid thread stack size"), operand);
-      }
-    }
-  }
-
   auth = BRLAPI_DEFAUTH;
   {
     const char *operand = parameters[PARM_AUTH];
@@ -4422,7 +4807,6 @@ int api_startServer(BrailleDisplay *brl, char **parameters)
     if (*operand) auth = operand;
   }
 
-  pthread_attr_t attr;
   pthread_mutexattr_t mattr;
 
   coreActive=1;
@@ -4448,9 +4832,6 @@ int api_startServer(BrailleDisplay *brl, char **parameters)
   pthread_mutex_init(&apiSuspendMutex,&mattr);
   pthread_mutex_init(&apiParamMutex,&mattr);
 
-  pthread_attr_init(&attr);
-  pthread_attr_setstacksize(&attr,stackSize);
-
 #ifndef __MINGW32__
   initializeBlockedSignalsMask();
   asyncHandleSignal(SIGUSR2, asyncEmptySignalHandler, NULL);
@@ -4459,7 +4840,7 @@ int api_startServer(BrailleDisplay *brl, char **parameters)
   running = 1;
   trueBraille=&noBraille;
 
-  if ((res = createThread("server-main", &serverThread, &attr,
+  if ((res = createThread("server-main", &serverThread, NULL,
                           runServer, hosts)) != 0) {
     logMessage(LOG_WARNING,"pthread_create: %s",strerror(res));
     running = 0;
@@ -4475,6 +4856,26 @@ int api_startServer(BrailleDisplay *brl, char **parameters)
 
     goto noServerThread;
   }
+
+#ifdef ENABLE_API_FUZZING
+  validateOnOff(&fuzz_head, parameters[PARM_FUZZHEAD]);
+  validateOnOff(&fuzz_write, parameters[PARM_FUZZWRITE]);
+  validateOnOff(&fuzz_writeutf8, parameters[PARM_FUZZWRITEUTF8]);
+
+  const char *fuzz = parameters[PARM_FUZZ];
+  if (fuzz) {
+    validateInteger(&fuzz_runs, fuzz, NULL, NULL);
+    if (fuzz_runs) {
+      if (parameters[PARM_FUZZSEED])
+        validateInteger(&fuzz_seed, parameters[PARM_FUZZSEED], NULL, NULL);
+      createThread("fuzzer", &fuzzerThread, NULL, fuzzerFunction, NULL);
+    }
+  }
+
+  const char *crash = parameters[PARM_CRASH];
+  if (crash && crash[0])
+    createThread("crasher", &crasherThread, NULL, crasherFunction, (void*) crash);
+#endif /* ENABLE_API_FUZZING */
 
   return 1;
 

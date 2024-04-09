@@ -1,0 +1,1638 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="Docutils 0.16: http://docutils.sourceforge.net/" />
+<title>BRLTTY on Android</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7952 2016-07-26 18:15:59Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left, table.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right, table.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table.align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+.align-top    {
+  vertical-align: top }
+
+.align-middle {
+  vertical-align: middle }
+
+.align-bottom {
+  vertical-align: bottom }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math, pre.code {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="brltty-on-android">
+<h1 class="title">BRLTTY on Android</h1>
+
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#using-brltty" id="id2">Using BRLTTY</a><ul>
+<li><a class="reference internal" href="#activation-and-configuration" id="id3">Activation and Configuration</a><ul>
+<li><a class="reference internal" href="#starting-and-stopping-brltty" id="id4">Starting and Stopping BRLTTY</a></li>
+<li><a class="reference internal" href="#connecting-your-braille-device" id="id5">Connecting Your Braille Device</a><ul>
+<li><a class="reference internal" href="#connecting-via-bluetooth" id="id6">Connecting Via Bluetooth</a></li>
+<li><a class="reference internal" href="#connecting-via-usb" id="id7">Connecting Via USB</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#defining-your-braille-device" id="id8">Defining Your Braille Device</a></li>
+<li><a class="reference internal" href="#using-a-braille-keyboard" id="id9">Using a Braille Keyboard</a></li>
+<li><a class="reference internal" href="#actions-screen" id="id10">Actions Screen</a></li>
+<li><a class="reference internal" href="#customized-data-files" id="id11">Customized Data Files</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#navigating-the-screen" id="id12">Navigating the Screen</a><ul>
+<li><a class="reference internal" href="#using-multiple-hosts" id="id13">Using Multiple Hosts</a></li>
+<li><a class="reference internal" href="#accessibility-focus" id="id14">Accessibility Focus</a></li>
+<li><a class="reference internal" href="#the-cursor-routing-keys" id="id15">The Cursor Routing Keys</a></li>
+<li><a class="reference internal" href="#input-areas" id="id16">Input Areas</a></li>
+<li><a class="reference internal" href="#widget-representations" id="id17">Widget Representations</a><ul>
+<li><a class="reference internal" href="#check-boxes" id="id18">Check Boxes</a></li>
+<li><a class="reference internal" href="#radio-buttons" id="id19">Radio Buttons</a></li>
+<li><a class="reference internal" href="#switches" id="id20">Switches</a></li>
+<li><a class="reference internal" href="#range-controls" id="id21">Range Controls</a></li>
+<li><a class="reference internal" href="#disabled-controls" id="id22">Disabled Controls</a></li>
+<li><a class="reference internal" href="#when-there-s-no-text" id="id23">When There's No Text</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#global-actions" id="id24">Global Actions</a></li>
+<li><a class="reference internal" href="#text-selection-and-the-clipboard" id="id25">Text Selection and the Clipboard</a><ul>
+<li><a class="reference internal" href="#commands" id="id26">Commands</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#web-pages" id="id27">Web Pages</a><ul>
+<li><a class="reference internal" href="#element-annotations" id="id28">Element Annotations</a></li>
+<li><a class="reference internal" href="#structural-navigation" id="id29">Structural Navigation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#when-brltty-crashes" id="id30">When BRLTTY Crashes</a></li>
+<li><a class="reference internal" href="#known-issues" id="id31">Known Issues</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#installing-brltty" id="id32">Installing BRLTTY</a><ul>
+<li><a class="reference internal" href="#required-permissions" id="id33">Required Permissions</a></li>
+<li><a class="reference internal" href="#the-old-way" id="id34">The Old Way</a><ul>
+<li><a class="reference internal" href="#on-your-computer" id="id35">On Your Computer</a></li>
+<li><a class="reference internal" href="#on-your-android-device" id="id36">On Your Android Device</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#building-brltty" id="id37">Building BRLTTY</a><ul>
+<li><a class="reference internal" href="#preparing-your-host-environment" id="id38">Preparing Your Host Environment</a></li>
+<li><a class="reference internal" href="#installing-and-preparing-the-brltty-source-tree" id="id39">Installing and Preparing the BRLTTY Source Tree</a></li>
+<li><a class="reference internal" href="#building-brltty-for-android" id="id40">Building BRLTTY for Android</a></li>
+<li><a class="reference internal" href="#preparing-your-android-device" id="id41">Preparing Your Android Device</a></li>
+<li><a class="reference internal" href="#installing-brltty-on-your-android-device" id="id42">Installing BRLTTY on Your Android Device</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="using-brltty">
+<h2><a class="toc-backref" href="#id2">Using BRLTTY</a></h2>
+<div class="section" id="activation-and-configuration">
+<h3><a class="toc-backref" href="#id3">Activation and Configuration</a></h3>
+<p>At this point, BRLTTY has been installed. Next, you'll need to go into
+<tt class="docutils literal">Settings</tt> -&gt; <tt class="docutils literal">Accessibility</tt> -&gt; <tt class="docutils literal">BRLTTY</tt> in order to start the <tt class="docutils literal">BRLTTY</tt>
+accessibility service, adjust its settings, and select your braille device.</p>
+<p>If you'll be connecting to your braille device via Bluetooth,
+see <a class="reference internal" href="#connecting-via-bluetooth">Connecting Via Bluetooth</a>.</p>
+<p>If you'll be connecting to your braille device via USB,
+see <a class="reference internal" href="#connecting-via-usb">Connecting Via USB</a>.</p>
+<p>If your braille device has a braille keyboard,
+see <a class="reference internal" href="#using-a-braille-keyboard">Using a Braille Keyboard</a>.</p>
+<div class="section" id="starting-and-stopping-brltty">
+<h4><a class="toc-backref" href="#id4">Starting and Stopping BRLTTY</a></h4>
+<p>BRLTTY isn't a regular Android application - it's an accessibility service. As
+such, it can't be started and stopped in the usual way, i.e. from the launcher.
+In fact, it can't even be found within the applications list.</p>
+<p>BRLTTY must be started and stopped from the <tt class="docutils literal">Accessibility Settings</tt> screen.
+To get there, launch the <tt class="docutils literal">Settings</tt> application, and then tap on
+<tt class="docutils literal">Accessibility</tt> (near the bottom). This screen contains a &quot;Services&quot; section
+that lists all of the accessibility services that are currently installed on
+the device. For each installed accessibility service, there's an associated
+indicator that says <tt class="docutils literal">On</tt> if that service is currently running, and <tt class="docutils literal">Off</tt> if
+it isn't.</p>
+<p>Find <tt class="docutils literal">BRLTTY</tt> and tap on it. This brings up a window with two items in it.
+One is a &quot;switch&quot; for turning BRLTTY on and off. The other is a button that
+takes you to BRLTTY's <tt class="docutils literal">Settings</tt> screen. You can go through BRLTTY's
+settings, making changes as desired, as well as define your braille device(s),
+either before starting BRLTTY or while it's running.</p>
+</div>
+<div class="section" id="connecting-your-braille-device">
+<h4><a class="toc-backref" href="#id5">Connecting Your Braille Device</a></h4>
+<div class="section" id="connecting-via-bluetooth">
+<h5><a class="toc-backref" href="#id6">Connecting Via Bluetooth</a></h5>
+<p>In order to use a Bluetooth braille device, you'll need to first &quot;pair&quot; it with
+your Android device. Go into <tt class="docutils literal">Settings</tt> -&gt; <tt class="docutils literal">Bluetooth</tt>. If your braille
+device is already listed within the <tt class="docutils literal">Paired Devices</tt> section of that screen
+then it has already been paired. If you still need to pair it then tap
+<tt class="docutils literal">Search for Devices</tt>. This will add an <tt class="docutils literal">Available Devices</tt> section to the
+screen. If your braille device isn't listed then you'll probably need to
+perform a model-specific action on it in order to make it visible
+(also known as discoverable) - see its manual for details. After doing that,
+tap <tt class="docutils literal">Search for Devices</tt> again. Tap on your braille device to begin the
+Bluetooth Pairing Request, enter its PIN (see its manual for details), and tap
+<tt class="docutils literal">OK</tt>.</p>
+</div>
+<div class="section" id="connecting-via-usb">
+<h5><a class="toc-backref" href="#id7">Connecting Via USB</a></h5>
+<p>In order to use a USB braille device, you'll need a special cable known as a
+&quot;Micro USB Host Adapter&quot;. The reason for this is that the USB port on an
+Android device usually acts as a &quot;device&quot; (rather than as a &quot;host&quot;) port. This
+is so that, for example, you can control your Android device from your
+computer. The Micro USB Host Adapter has a special plug, known as an OTG
+(on-the-go) connector, that, when inserted into the Android device's USB port,
+instructs Android to act as the USB host.</p>
+<p>The Micro USB Host Adapter also allows you to connect any other USB
+device (keyboard, mouse, printer, hub, etc) to your Android device. Be aware,
+though, that if any such device, including your braille device, draws power via
+its USB port then your Android device's battery will become the source of that
+power. If portability isn't an issue, you may wish to consider using your Micro
+USB Host Adapter to connect your Android device to a powered hub so that your
+USB devices will draw power from the hub rather than from your Android device's
+battery. You may also wish to consider disabling USB charging on any devices
+that offer this capability.</p>
+</div>
+</div>
+<div class="section" id="defining-your-braille-device">
+<h4><a class="toc-backref" href="#id8">Defining Your Braille Device</a></h4>
+<p>You don't actually need to define your braille device, but BRLTTY will connect
+to it much faster if you do. If you don't, BRLTTY will search through all of
+the devices that have been connected via either Bluetooth or USB
+(see <a class="reference internal" href="#connecting-your-braille-device">Connecting Your Braille Device</a>) for one that it recognizes. If there's
+more than one, it'll select the first one that it finds.</p>
+<p>To define your braille device, go to BRLTTY's <tt class="docutils literal">Settings</tt> screen, tap on
+<tt class="docutils literal">Manage Devices</tt>, and then on <tt class="docutils literal">Add Device</tt>. From there, find your braille
+device, and then tap <tt class="docutils literal">Add</tt>. To find your braille device:</p>
+<ol class="arabic simple">
+<li>Select its communication method (Bluetooth, USB).</li>
+<li>Select your device from the list that's presented.</li>
+<li>Select the correct braille driver.
+This step is optional, i.e. you can usually leave it set to <tt class="docutils literal">autodetect</tt>.
+Going through the effort of selecting the correct driver, however,
+ensures a fast and reliable connection.</li>
+</ol>
+<p>After you've added your braille device to BRLTTY, tap on <tt class="docutils literal">Selected Device</tt>
+and select it from the list of devices that BRLTTY knows about.</p>
+</div>
+<div class="section" id="using-a-braille-keyboard">
+<h4><a class="toc-backref" href="#id9">Using a Braille Keyboard</a></h4>
+<p>Braille device keyboard input is supported, but, like all Android input
+methods, it must be explicitly enabled, and then explicitly selected. Android
+doesn't permit BRLTTY to do either of these automatically on your behalf.
+Although it's inconvenient, Android imposes this manual process so that you're
+very consciously aware of which input methods can process, and which input
+method is currently processing, whatever you're typing. Such applications,
+after all, handle extremely sensitive personal data (such as passwords, credit
+card numbers, etc), so it's crucial that you make your own decisions regarding
+which of them you're willing to trust.</p>
+<p>If you type on your braille device's keyboard when BRLTTY's input method is
+either disabled or enabled but not selected, then BRLTTY will alert you to this
+fact via a message on your braille display. You may wish to enable BRLTTY's
+keyboard support ahead of time, but you probably don't want to select it ahead
+of time. The reason for this is that Android only allows exactly one input
+method to be in use at a time. When you explicitly select BRLTTY's input
+method, therefore, you're also implicitly deselecting the on-screen keyboard.</p>
+<p>You can enable BRLTTY's keyboard support in one of the following ways:</p>
+<ul class="simple">
+<li>Launch Android's <tt class="docutils literal">Settings</tt> application and tap on <tt class="docutils literal">Language and Input</tt>.
+The <tt class="docutils literal">Keyboard and Input Methods</tt> section of this screen shows the
+<tt class="docutils literal">Default</tt> (currently selected) input method, and contains a check box for
+each installed input method. An input method is enabled if its check box is
+checked, so, to enable BRLTTY's keyboard support, check the box labelled
+<tt class="docutils literal">BRLTTY Input Service</tt>. Once it's been enabled, you can select it at any
+time by adjusting the <tt class="docutils literal">Default</tt> setting.</li>
+<li>If BRLTTY is running then switching between input methods is much easier.
+Go to BRLTTY's <a class="reference internal" href="#actions-screen">Actions screen</a> and tap <tt class="docutils literal">Switch Input Method</tt>. This
+brings up Android's Input Method Picker, which presents a set of radio
+buttons - one for each enabled input method. If there's no radio button for
+BRLTTY's input method then it hasn't been enabled yet. To enable it, tap the
+button labelled <tt class="docutils literal">Set up input methods</tt>. This screen contains a check box for
+each installed input method. Check the box labelled <tt class="docutils literal">BRLTTY Input Service</tt>.
+Then tap the <tt class="docutils literal">Back</tt> button to return to the <tt class="docutils literal">Language and Input</tt> screen,
+find the <tt class="docutils literal">Keyboard and Input Methods</tt> section, and set the <tt class="docutils literal">Default</tt>
+input method to BRLTTY's input method.</li>
+</ul>
+</div>
+<div class="section" id="actions-screen">
+<h4><a class="toc-backref" href="#id10">Actions Screen</a></h4>
+<p>BRLTTY's Actions screen presents several common actions that you may wish to perform:</p>
+<ul class="simple">
+<li>Switch Input Method</li>
+<li>BRLTTY Settings</li>
+<li>View User Guide</li>
+<li>Browse Web Site</li>
+<li>Browse Community Messages</li>
+<li>Post Community Message</li>
+<li>Manage Community Membership</li>
+<li>Update Application</li>
+<li>About Application</li>
+</ul>
+<p>You can get to this screen using any of the following methods:</p>
+<ul>
+<li><p class="first">From your braille device via global action #5.
+See <a class="reference internal" href="#global-actions">Global Actions</a> for details.</p>
+</li>
+<li><p class="first">From your braille device via Space + Dots12345678.</p>
+</li>
+<li><p class="first">Via <tt class="docutils literal">Settings</tt> -&gt; <tt class="docutils literal">Accessibility</tt> -&gt; <tt class="docutils literal">BRLTTY</tt> -&gt; <tt class="docutils literal">Settings</tt>.</p>
+</li>
+<li><p class="first">From the notifications shade.
+Open it by dragging the status bar downward:</p>
+<ul class="simple">
+<li>With two fingers (if Explore by Touch is active).</li>
+<li>With one finger (if Explore by Touch isn't active).</li>
+</ul>
+<p>Then find BRLTTY's service notification and tap it.</p>
+</li>
+<li><p class="first">Via the Accessibility button on the system navigation bar.
+This capability was introduced in Android 8.0 (Oreo).
+The button may not be visible for a number of reasons, for example:</p>
+<ul class="simple">
+<li>The device's system navigation bar isn't rendered via software.</li>
+<li>An application has chosen to hide the system navigation bar.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="customized-data-files">
+<h4><a class="toc-backref" href="#id11">Customized Data Files</a></h4>
+<p>You can customize any of BRLTTY's data files,
+e.g. a text, contraction, or key table or subtable.
+To do this, add a file with the same name directly into a folder named <tt class="docutils literal">brltty</tt>
+at the top-level of your Android device's primary shared/external storage area.
+This area might be internal (on the device itself)
+or external (on a removal storage device, e.g. an SD card).
+Normally, it's the area that <tt class="docutils literal">/sdcard</tt> is symbolically linked to.</p>
+<p>BRLTTY won't be aware of your customized data files
+if this area has been mounted by a computer.</p>
+<p>It's safe to include the original data file from your customized copy.
+If you're only adding lines, therefore, then your customized copy
+need only contain those additions and the include statement.</p>
+</div>
+</div>
+<div class="section" id="navigating-the-screen">
+<h3><a class="toc-backref" href="#id12">Navigating the Screen</a></h3>
+<div class="section" id="using-multiple-hosts">
+<h4><a class="toc-backref" href="#id13">Using Multiple Hosts</a></h4>
+<p>BRLTTY only remains connected to your braille device while your Android device
+is unlocked or while its screen is on. If your Android device is locked and its
+screen is off then BRLTTY automatically disconnects from your braille device.
+This is so that you can easily share your braille device amongst multiple
+hosts.</p>
+<p>Pressing your Android device's power button (or similar action) to wake it up,
+even though it may still be locked, is sufficient to cause BRLTTY to
+automatically reconnect to your braille device. This allows you to enter your
+password or PIN via your braille keyboard.</p>
+<p>You can continue using your braille device even though your Android device's
+screen may have turned off, as long as its lock timer hasn't yet expired.
+Pressing keys on your braille device resets your Android device's lock timer in
+the same way that pressing its keys, touching its screen, etc does. This means
+that your Android device will stay awake and unlocked even though you're only
+controlling it from your braille device, and that it'll also still
+automatically lock once you're no longer using it.</p>
+</div>
+<div class="section" id="accessibility-focus">
+<h4><a class="toc-backref" href="#id14">Accessibility Focus</a></h4>
+<p>The &quot;accessibility focus&quot; feature of Android is used for cursor tracking and
+routing. It's a soft cursor, not visible on the screen, that can be
+programmatically associated with any screen element. All screen readers that
+use it to define the current element for actions (like tapping) will implicitly
+cooperate reasonably seamlessly with one another.</p>
+<p>The cursor is usually placed on the first character of the screen element that
+currently has accessibility focus. The one exception to this is within an
+input area. If that area has input focus then the cursor is placed at
+the location within it where input will be inserted.</p>
+<p>When a home screen folder is opened, BRLTTY automatically sets accessibility
+focus to that folder's first entry. This eliminates the need to search for it.</p>
+</div>
+<div class="section" id="the-cursor-routing-keys">
+<h4><a class="toc-backref" href="#id15">The Cursor Routing Keys</a></h4>
+<p>The cursor routing keys of your braille device perform their usual function when
+within an input area if it has input focus - the key above a given
+character brings the cursor to that character. In any other context, however, a
+cursor routing key performs an action on the screen element under it. Starting
+with the leftmost routing key over a screen element, which we'll call key #1,
+these actions are as follows:</p>
+<ol class="arabic simple">
+<li>Bring accessibility focus (cursor)</li>
+<li>tap (click)</li>
+<li>hold (long click)</li>
+<li>scroll backward (up or left)</li>
+<li>scroll forward (down or right)</li>
+<li>context click</li>
+<li>accessibility actions</li>
+</ol>
+<p>A range control (progress bar, volume slider, etc) can be adjusted up/down
+via the scroll forward/backward actions.</p>
+</div>
+<div class="section" id="input-areas">
+<h4><a class="toc-backref" href="#id16">Input Areas</a></h4>
+<p>When an input area has input focus, BRLTTY's attribute underlining
+feature is used to highlight the selected text region.</p>
+</div>
+<div class="section" id="widget-representations">
+<h4><a class="toc-backref" href="#id17">Widget Representations</a></h4>
+<div class="section" id="check-boxes">
+<h5><a class="toc-backref" href="#id18">Check Boxes</a></h5>
+<p>A check box is rendered as a three-cell symbol:</p>
+<ol class="arabic simple">
+<li>dots 123478 (the left side of the box)</li>
+<li>dots 2356 (the check mark)</li>
+<li>dots 145678 (the right side of the box)</li>
+</ol>
+<p>The check mark is present if the box is checked and absent if it isn't.
+If the check box has a label then it appears to the right of the symbol.
+The braille representations are:</p>
+<ul class="simple">
+<li>⣏⠶⣹ checked</li>
+<li>⣏ ⣹ not checked</li>
+</ul>
+</div>
+<div class="section" id="radio-buttons">
+<h5><a class="toc-backref" href="#id19">Radio Buttons</a></h5>
+<p>A radio button is rendered as a three-cell symbol:</p>
+<ol class="arabic simple">
+<li>dots 2348 (the left side of the button)</li>
+<li>dots 2356 (the check mark)</li>
+<li>dots 1567 (the right side of the button)</li>
+</ol>
+<p>The check mark shows which of the radio buttons is currently selected.
+The label for each radio button appears to the right of its symbol.
+The braille representations are:</p>
+<ul class="simple">
+<li>⢎⠶⡱ selected</li>
+<li>⢎ ⡱ not selected</li>
+</ul>
+</div>
+<div class="section" id="switches">
+<h5><a class="toc-backref" href="#id20">Switches</a></h5>
+<p>A (two-position) switch is rendered as a three-cell symbol:</p>
+<ol class="arabic simple">
+<li>dots 4568 (the left side of the switch)</li>
+<li>dots 1478 (the top and bottom of the switch)</li>
+<li>dots 1237 (the right side of the switch)</li>
+</ol>
+<p>Dots 25 are added to the middle cell if the switch is on,
+and dots 36 are added to the middle cell if the switch is off.
+In other words, the switch is up when on and down when off.
+The label for the switch's current state appears to the right of the symbol.
+The braille representations are:</p>
+<ul class="simple">
+<li>⢸⣛⡇ on</li>
+<li>⢸⣭⡇ off</li>
+</ul>
+</div>
+<div class="section" id="range-controls">
+<h5><a class="toc-backref" href="#id21">Range Controls</a></h5>
+<p>A range control is one which can be adjusted (rather than set or edited).
+They include widgets like progress bars, volume sliders, etc.
+They're rendered as a three-value summary:</p>
+<pre class="literal-block">
+* An at sign followed by the current setting.
+* The minimum and maximum settings, separated by a dash, within parentheses.
+</pre>
+<p>The developer of an application can choose which value range a given control uses.
+For example, a 16-position volume control currently set to 75% might look like this:</p>
+<pre class="literal-block">
+&#64;11 (0 - 15)
+</pre>
+<p>It could, however, also look like this:</p>
+<pre class="literal-block">
+&#64;75% (0% - 100%)
+</pre>
+</div>
+<div class="section" id="disabled-controls">
+<h5><a class="toc-backref" href="#id22">Disabled Controls</a></h5>
+<p>If a control is currently disabled then the word <tt class="docutils literal">disabled</tt>,
+enclosed within parentheses, appears to the right of its label.
+For example:</p>
+<pre class="literal-block">
+Connect (disabled)
+</pre>
+</div>
+<div class="section" id="when-there-s-no-text">
+<h5><a class="toc-backref" href="#id23">When There's No Text</a></h5>
+<p>A screen element that has no text of its own,
+and that BRLTTY doesn't explicitly support,
+is normally not rendered.
+Examples of these include:</p>
+<ul class="simple">
+<li>A graphic (e.g. an image view).</li>
+<li>A container used to construct the screen's layout (e.g. a frame layout).</li>
+</ul>
+<p>It's still necessary to render it, however, if it implements
+an action (e.g. a tap) which the user needs to be able to perform.</p>
+<p>If the application's developer has provided descriptive text
+then that text is rendered.
+If not, then BRLTTY renders a generic description within (parentheses).
+It contains the widget's type, and, if available, it's source code identifier.</p>
+</div>
+</div>
+<div class="section" id="global-actions">
+<h4><a class="toc-backref" href="#id24">Global Actions</a></h4>
+<p>Android supports a number of global actions that can be performed by pressing
+special hardware buttons and/or by touching reserved areas on the screen.
+BRLTTY also offers a way to perform these actions from your braille device.
+While a better way may be developed in the future, this is how it can be done
+right now.</p>
+<ul class="simple">
+<li>Since Android doesn't use the keyboard function keys
+(commonly named <tt class="docutils literal">F1</tt> through <tt class="docutils literal">F12</tt>),
+BRLTTY uses them to perform the global actions.
+The way a braille device emulates keyboard function keys
+differs from model to model,
+so you should check the BRLTTY documentation for your braille device.
+The most common way is to press the corresponding cursor routing key
+along with some other key or key combination.
+For braille devices that have a braille keyboard,
+the most common key to be used in conjunction with a cursor routing key
+in order to emulate a keyboard function key is the space bar.</li>
+<li>If your braille device has a braille keyboard
+then you can perform the global actions
+via chords that also include dots 7 and 8.
+For example, Space + Dots78 + Dots125 (h) goes to the home screen.</li>
+</ul>
+<table border="1" class="docutils">
+<caption>Global Android Actions</caption>
+<colgroup>
+<col width="9%" />
+<col width="12%" />
+<col width="50%" />
+<col width="28%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>FN-Key</td>
+<td>Chord78+</td>
+<td>Action</td>
+<td>As of Android Release</td>
+</tr>
+<tr><td><tt class="docutils literal">F1</tt></td>
+<td>125 (h)</td>
+<td>go to the Home screen</td>
+<td>4.1 (Jelly Bean)</td>
+</tr>
+<tr><td><tt class="docutils literal">F2</tt></td>
+<td>12 (b)</td>
+<td>tap the Back button</td>
+<td>4.1 (Jelly Bean)</td>
+</tr>
+<tr><td><tt class="docutils literal">F3</tt></td>
+<td>1345 (n)</td>
+<td>go to the Notifications screen</td>
+<td>4.1 (Jelly Bean)</td>
+</tr>
+<tr><td><tt class="docutils literal">F4</tt></td>
+<td>1235 (r)</td>
+<td>tap the Recent Apps (Overview) button</td>
+<td>4.1 (Jelly Bean)</td>
+</tr>
+<tr><td><tt class="docutils literal">F5</tt></td>
+<td>123456</td>
+<td>go to BRLTTY's <a class="reference internal" href="#actions-screen">Actions screen</a></td>
+<td>*</td>
+</tr>
+<tr><td><tt class="docutils literal">F6</tt></td>
+<td>23</td>
+<td>move to the first item</td>
+<td>*</td>
+</tr>
+<tr><td><tt class="docutils literal">F7</tt></td>
+<td>2</td>
+<td>move to the previous item</td>
+<td>*</td>
+</tr>
+<tr><td><tt class="docutils literal">F8</tt></td>
+<td>5</td>
+<td>move to the next item</td>
+<td>*</td>
+</tr>
+<tr><td><tt class="docutils literal">F9</tt></td>
+<td>56</td>
+<td>move to the last item</td>
+<td>*</td>
+</tr>
+<tr><td><tt class="docutils literal">F10</tt></td>
+<td>134 (m)</td>
+<td>tap the Menu button</td>
+<td>*</td>
+</tr>
+<tr><td><tt class="docutils literal">F11</tt></td>
+<td>36</td>
+<td>return to the active window</td>
+<td>4.0 (Kitkat)</td>
+</tr>
+<tr><td><tt class="docutils literal">F12</tt></td>
+<td>3</td>
+<td>switch to the previous window</td>
+<td>4.0 (Kitkat)</td>
+</tr>
+<tr><td><tt class="docutils literal">F13</tt></td>
+<td>6</td>
+<td>switch to the next window</td>
+<td>4.0 (Kitkat)</td>
+</tr>
+<tr><td><tt class="docutils literal">F14</tt></td>
+<td>2345 (t)</td>
+<td>show the window title</td>
+<td>6.0 (Nougat)</td>
+</tr>
+<tr><td><tt class="docutils literal">F15</tt></td>
+<td>24 (i)</td>
+<td>show various device status indicators</td>
+<td>*</td>
+</tr>
+<tr><td><tt class="docutils literal">F16</tt></td>
+<td>234 (s)</td>
+<td>go to the Quick Settings screen</td>
+<td>4.2 (Jelly Bean MR1)</td>
+</tr>
+<tr><td><tt class="docutils literal">F17</tt></td>
+<td>135 (o)</td>
+<td>go to the Device Options screen</td>
+<td>5.0 (Lollipop)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="text-selection-and-the-clipboard">
+<h4><a class="toc-backref" href="#id25">Text Selection and the Clipboard</a></h4>
+<p>As with the <a class="reference internal" href="#global-actions">global actions</a>,
+if your braille device has a braille keyboard
+then you can perform text selection actions
+via chords that also include dots 7 and 8.
+For example, Space + Dots78 + Dots14 (c)
+copies the selected text to Adroid's clipboard.
+This works as of Android release 4.3 (Jelly Bean MR2).</p>
+<table border="1" class="docutils">
+<caption>Text Selection and Clipboard Actions</caption>
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Chord78+</td>
+<td>Action</td>
+</tr>
+<tr><td>1 (a)</td>
+<td>select all of the text</td>
+</tr>
+<tr><td>4</td>
+<td>clear the text selection</td>
+</tr>
+<tr><td>14 (c)</td>
+<td>copy the selected text to the clipboard</td>
+</tr>
+<tr><td>1236 (v)</td>
+<td>paste the text on the clipboard</td>
+</tr>
+<tr><td>1346 (x)</td>
+<td>cut the selected text to the clipboard</td>
+</tr>
+</tbody>
+</table>
+<p>The text selection extends inclusively
+from its first endpoint through its second one.
+The attribute underlining feature (see the Show Attributes preference)
+is used to show which text has currently been selected.
+It may be helpful to set the attribute underline to blink
+if the cursor isn't set to blink, and vice versa.</p>
+<p>In addition to being able to select all of the text,
+there are ways to select a specific portion of the text.
+Exactly how this is done depends on which braille device you're using.
+There is, however, one way to do it that works
+on any braille device that has cursor routing keys.</p>
+<p>The cursor routing key where the cursor is
+normally doesn't serve any useful purpose.
+If, however, you enable the Start Text Selection preference
+(which can be found within the Navigation Options submenu),
+then it enters <a class="reference internal" href="#text-selection-mode">text selection mode</a>
+with that character being both the first and second endpoints.
+This method has the constraint that the first endpoint of the text selection
+must be a character that the cursor can get to.</p>
+<p id="text-selection-mode">When in text selection mode,
+pressing a cursor routing key changes the second endpoint of the selection.
+This may be done any number of times.
+The second endpoint may be either after or before the first one.</p>
+<div class="section" id="commands">
+<h5><a class="toc-backref" href="#id26">Commands</a></h5>
+<dl class="docutils">
+<dt>HOST_COPY</dt>
+<dd>Copy the selected text to the host clipboard
+and then deselect it.</dd>
+<dt>HOST_CUT</dt>
+<dd>Copy the selected text to the host clipboard
+and then delete it.</dd>
+<dt>HOST_PASTE</dt>
+<dd>Insert the text on the host clipboard after the screen cursor.</dd>
+<dt>TXTSEL_ALL</dt>
+<dd>Select all of the text.</dd>
+<dt>TXTSEL_CLEAR</dt>
+<dd>Clear (deselect) the current text selection.</dd>
+<dt>TXTSEL_SET</dt>
+<dd>Select a specific portion of the text.
+This command requires that both endpoints of the text
+are within the current braille window.
+The key combination needs two cursor routing (or equivalent) keys.
+We recommend a long press of two cursor routing keys
+(if the braille device supports it).</dd>
+<dt>TXTSEL_START</dt>
+<dd>Enter <a class="reference internal" href="#text-selection-mode">text selection mode</a> with that character being both endpoints.
+With this method, the first endpoint of the text selection can be anywehre,
+i.e. it isn't constrained to be a character that the cursor can get to.
+The key combination needs a cursor routing (or equivalent) key.
+We recommend a long press of a cursor routing key
+(if the braille device supports it).</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="web-pages">
+<h4><a class="toc-backref" href="#id27">Web Pages</a></h4>
+<div class="section" id="element-annotations">
+<h5><a class="toc-backref" href="#id28">Element Annotations</a></h5>
+<p>A number of elements within a web page are annotated
+in order to help distinguish them from the surrounding text.
+Each annotation is placed immediately before
+the text of the element that it describes.
+It consists of a three-letter tag,
+optionally followed by descriptivE data,
+all enclosed within (parentheses).
+Here are some examples:</p>
+<table border="1" class="docutils">
+<caption>Web Page Element Annotation Examples</caption>
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Example</td>
+<td>Meaning</td>
+</tr>
+<tr><td>(btn) Submit</td>
+<td>a Submit button</td>
+</tr>
+<tr><td>(lnk <a class="reference external" href="https://">https://</a>...)</td>
+<td>the target URL of a link</td>
+</tr>
+<tr><td>(tbl 4x9)</td>
+<td>the start of a table with four columns and nine rows</td>
+</tr>
+<tr><td>(col 2&#64;3)</td>
+<td>the second column of the third row of a table</td>
+</tr>
+</tbody>
+</table>
+<p>The following table lists all of the annotations:</p>
+<table border="1" class="docutils">
+<caption>Web Page Element Annotations</caption>
+<colgroup>
+<col width="17%" />
+<col width="64%" />
+<col width="19%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Annotation</td>
+<td>Meaning</td>
+<td>Data</td>
+</tr>
+<tr><td>btn</td>
+<td>button</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>cap</td>
+<td>table caption</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>col</td>
+<td>column in table row</td>
+<td>coordinates</td>
+</tr>
+<tr><td>frm</td>
+<td>start of form</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>hdg</td>
+<td>heading (unspecified level)</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>hd1</td>
+<td>level one heading</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>hd2</td>
+<td>level two heading</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>hd3</td>
+<td>level three heading</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>hd4</td>
+<td>level four heading</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>hd5</td>
+<td>level five heading</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>hd6</td>
+<td>level six heading</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>hdr</td>
+<td>header of table column</td>
+<td>coordinates</td>
+</tr>
+<tr><td>lnk</td>
+<td>target of link</td>
+<td>URL</td>
+</tr>
+<tr><td>lsi</td>
+<td>list item</td>
+<td>coordinates</td>
+</tr>
+<tr><td>lsm</td>
+<td>list marker</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>lst</td>
+<td>start of list</td>
+<td>dimensions</td>
+</tr>
+<tr><td>pop</td>
+<td>combo box (single or Multiple choice)</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>pwd</td>
+<td>password field</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>row</td>
+<td>start of table row</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>tbl</td>
+<td>start of table</td>
+<td>dimensions</td>
+</tr>
+<tr><td>txt</td>
+<td>text field or area</td>
+<td>&nbsp;</td>
+</tr>
+<tr><td>--------</td>
+<td>horizontal divider</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="structural-navigation">
+<h5><a class="toc-backref" href="#id29">Structural Navigation</a></h5>
+<p>Pressing Dots2578 enters Structural navigation mode.
+When in this mode,
+a web page, when being browsed with Chrome, can be structurally navigated
+by pressing dot combinations on your braille device.
+Press Dots78 (without Space) to return to the default key bindings.</p>
+<p>When in this mode,
+combinations of dots 1 through 6 specify the type of element
+that you'd like to navigate to.
+Adding dot 7 means move to the previous element of that type,
+and adding dot 8 means move to the next element of that type.
+If neither dot 7 nor dot 8 is added then the current direction is used.</p>
+<p>The current direction defaults to (starts out as) <tt class="docutils literal">next</tt>.
+Pressing dot 7 by itself sets it to <tt class="docutils literal">previous</tt>,
+and pressing dot 8 by itself sets it to <tt class="docutils literal">next</tt>.</p>
+<p>If the key table for your braille device defines
+a key to be the Left Alt (meta) modifier
+then you don't need to switch to/from structural navigation mode.
+Just hold that key while pressing
+the desired structural navigation dot combination.</p>
+<p>The following element types are supported
+(where possible, a hopefully easy-to-remember character has been chosen):</p>
+<table border="1" class="docutils">
+<caption>Structurally Navigable Web Page Elements</caption>
+<colgroup>
+<col width="13%" />
+<col width="9%" />
+<col width="79%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Dots</td>
+<td>Char</td>
+<td>Go to the Previous/Next</td>
+</tr>
+<tr><td>1</td>
+<td>a</td>
+<td>article</td>
+</tr>
+<tr><td>12</td>
+<td>b</td>
+<td>button</td>
+</tr>
+<tr><td>14</td>
+<td>c</td>
+<td>control</td>
+</tr>
+<tr><td>145</td>
+<td>d</td>
+<td>ARIA landmark</td>
+</tr>
+<tr><td>15</td>
+<td>e</td>
+<td>editable text</td>
+</tr>
+<tr><td>124</td>
+<td>f</td>
+<td>focusable item</td>
+</tr>
+<tr><td>1245</td>
+<td>g</td>
+<td>graphic</td>
+</tr>
+<tr><td>125</td>
+<td>h</td>
+<td>heading (any level)</td>
+</tr>
+<tr><td>24</td>
+<td>i</td>
+<td>list item</td>
+</tr>
+<tr><td>123</td>
+<td>l</td>
+<td>link (visited or unvisited)</td>
+</tr>
+<tr><td>134</td>
+<td>m</td>
+<td>media</td>
+</tr>
+<tr><td>135</td>
+<td>o</td>
+<td>list (ordered or unordered)</td>
+</tr>
+<tr><td>1235</td>
+<td>r</td>
+<td>radio button</td>
+</tr>
+<tr><td>234</td>
+<td>s</td>
+<td>section</td>
+</tr>
+<tr><td>2345</td>
+<td>t</td>
+<td>table</td>
+</tr>
+<tr><td>136</td>
+<td>u</td>
+<td>unvisited link</td>
+</tr>
+<tr><td>1236</td>
+<td>v</td>
+<td>visited link</td>
+</tr>
+<tr><td>1346</td>
+<td>x</td>
+<td>check box</td>
+</tr>
+<tr><td>1356</td>
+<td>z</td>
+<td>combo box (single or multiple choice)</td>
+</tr>
+<tr><td>2</td>
+<td>1</td>
+<td>level one heading</td>
+</tr>
+<tr><td>23</td>
+<td>2</td>
+<td>level two heading</td>
+</tr>
+<tr><td>25</td>
+<td>3</td>
+<td>level three heading</td>
+</tr>
+<tr><td>256</td>
+<td>4</td>
+<td>level four heading</td>
+</tr>
+<tr><td>26</td>
+<td>5</td>
+<td>level five heading</td>
+</tr>
+<tr><td>235</td>
+<td>6</td>
+<td>level six heading</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="section" id="when-brltty-crashes">
+<h3><a class="toc-backref" href="#id30">When BRLTTY Crashes</a></h3>
+<p>We hope, of course, that BRLTTY won't crash. If it does, though, we want to
+know about it.</p>
+<p>If BRLTTY does crash, you'll get a dialog with a message like this:</p>
+<pre class="literal-block">
+Unfortunately, BRLTTY has stopped.
+</pre>
+<p>This dialog will stay on the screen until you dismiss it by tapping its <tt class="docutils literal">OK</tt>
+button. Android will then try to automatically restart BRLTTY, so don't be
+overly concerned if this dialog comes up again. Android will eventually give up
+if, after a few automatic restart attempts, it decides that BRLTTY simply won't
+stay running.</p>
+<p>If this ever happens, then, if you can, connect your device to your host via
+USB as soon as possible in order to capture a debug log. To capture a debug
+log, use this command:</p>
+<pre class="literal-block">
+adb logcat -v time -d &gt;/path/to/logfile
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">-v</span> time</tt> option means to add a timestamp to each log record. The <tt class="docutils literal"><span class="pre">-d</span></tt>
+option means to dump the current Android system log. The <tt class="docutils literal">adb logcat</tt> command
+writes the log to its standard output, so you need to redirect its standard
+output (with <tt class="docutils literal">&gt;</tt>) to wherever you'd like the log to be written.</p>
+<p>The reason for capturing the log as soon as possible after a problem is that
+Android imposes limits on its log storage so that the log can't consume too
+much of your device's resources. If the log becomes too large, Android
+automatically removes older entries from it. If you wait too long, therefore,
+the part of it that shows how BRLTTY crashed may already have been
+automatically removed.</p>
+</div>
+<div class="section" id="known-issues">
+<h3><a class="toc-backref" href="#id31">Known Issues</a></h3>
+<p>Serial devices aren't supported. Even though Android devices don't have serial
+ports, serial devices still can be connected via a USB to Serial adapter. Users
+who have older, serial-only braille devices should still be able to use them
+with their Android devices.</p>
+</div>
+</div>
+<div class="section" id="installing-brltty">
+<h2><a class="toc-backref" href="#id32">Installing BRLTTY</a></h2>
+<p>BRLTTY has been designed to run on at least Android 4.1 (Jelly Bean).
+While it does run on Android 4.0 (Ice Cream Sandwich),
+many of its highly desirable features won't work.</p>
+<p>BRLTTY can be installed via Google Play.
+You can either search for it by name
+or go directly to <a class="reference external" href="https://play.google.com/store/apps/details?id=org.a11y.brltty.android">BRLTTY on Google Play</a>.</p>
+<div class="section" id="required-permissions">
+<h3><a class="toc-backref" href="#id33">Required Permissions</a></h3>
+<p>BRLTTY requires access to a number of privileged
+Android operating system capabilities.
+The required permissions are as follows:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal">BIND_ACCESSIBILITY_SERVICE</tt></dt>
+<dd><ul class="first last simple">
+<li>For inspecting the layout and content of the screen.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">BIND_INPUT_METHOD</tt></dt>
+<dd><ul class="first last simple">
+<li>For Android to accept input via BRLTTY from your braille device's keyboard.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">FOREGROUND_SERVICE</tt></dt>
+<dd><ul class="first last simple">
+<li>For creating a foreground notification.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">WAKE_LOCK</tt></dt>
+<dd><ul class="first last simple">
+<li>For resetting the Android device's lock timer
+each time you interact with a control on your braille device.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">BLUETOOTH</tt></dt>
+<dd><ul class="first last simple">
+<li>For communicating with a braille device via Bluetooth.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">INTERNET</tt></dt>
+<dd><ul class="first last simple">
+<li>For listening on a TCP/IP port for BrlAPI client connection requests.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">READ_EXTERNAL_STORAGE</tt></dt>
+<dd><ul class="first last simple">
+<li>For reading customized data files
+from your Android device's primary shared/external storage area.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">SYSTEM_ALERT_WINDOW</tt></dt>
+<dd><ul class="first last simple">
+<li>For presenting the Accessibility Actions chooser.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">RECEIVE_BOOT_COMPLETED</tt></dt>
+<dd><ul class="first last simple">
+<li>For knowing when locked storage can be accessed after a reboot.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">REQUEST_INSTALL_PACKAGES</tt></dt>
+<dd><ul class="first last simple">
+<li>For upgrading to a newer release.</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">ACCESS_WIFI_STATE</tt></dt>
+<dd><ul class="first last simple">
+<li>For getting Wi-Fi status values (for the INDICATORS command).</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">ACCESS_FINE_LOCATION</tt></dt>
+<dd><ul class="first last simple">
+<li>For getting the Wi-Fi SSID (for the INDICATORS command).</li>
+<li>For getting cell information (for the INDICATORS command).</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">ACCESS_COARSE_UPDATES</tt></dt>
+<dd><ul class="first last simple">
+<li>For getting the cell signal strength (for the INDICATORS command).</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal">READ_PHONE_STATE</tt></dt>
+<dd><ul class="first last simple">
+<li>For getting the cell data network type (for the INDICATORS command).</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="the-old-way">
+<h3><a class="toc-backref" href="#id34">The Old Way</a></h3>
+<p>Before it was on Google Play, BRLTTY had to be installed and updated manually.
+For now, this way still works.</p>
+<p>These instructions are from the perspective of a Firefox user on Windows,
+but the process should be much the same when using a different web browser and/or operating system.</p>
+<div class="section" id="on-your-computer">
+<h4><a class="toc-backref" href="#id35">On Your Computer</a></h4>
+<ol class="arabic simple">
+<li>Go to <a class="reference external" href="https://brltty.app/">BRLTTY's web site</a>.</li>
+<li>Find the <tt class="docutils literal">Download</tt> link and press Enter on it.</li>
+<li>Go to the <tt class="docutils literal">Android</tt> section, down-arrow from there to the link that says
+<tt class="docutils literal">Latest APK</tt>, and press Enter on it.</li>
+<li>You'll be prompted to open or save the file at this point. Save it.</li>
+<li>Go to your <tt class="docutils literal">Downloads</tt> folder (or wherever you save downloads), and
+find the <tt class="docutils literal"><span class="pre">brltty-latest.apk</span></tt> file.</li>
+<li>If the file has been saved on your computer as <tt class="docutils literal"><span class="pre">brltty-latest.zip</span></tt>,
+then press the <tt class="docutils literal">Context</tt> key, arrow to and press Enter on <tt class="docutils literal">Rename</tt>,
+and change the file extension from <tt class="docutils literal">zip</tt> to <tt class="docutils literal">apk</tt>. Don't worry if you
+get a warning about the possibility of rendering the file unusable. Go
+ahead with the rename.</li>
+</ol>
+</div>
+<div class="section" id="on-your-android-device">
+<h4><a class="toc-backref" href="#id36">On Your Android Device</a></h4>
+<ol class="arabic">
+<li><p class="first">Go into <tt class="docutils literal">Settings</tt> -&gt; <tt class="docutils literal">Security</tt>, and ensure that <tt class="docutils literal">Unknown Sources</tt>
+is enabled. This option says something like:</p>
+<blockquote>
+<p>Allow the installation of apps from unknown sources</p>
+</blockquote>
+<p>This is a one-time step. Once the box has been checked, it stays checked.</p>
+</li>
+<li><p class="first">Copy the <tt class="docutils literal">apk</tt> file to your device. There are a number of ways to do this:</p>
+<ul class="simple">
+<li>The easiest way may be to email it to yourself as a file attachment so
+that it will go to the email on your Android device.</li>
+<li>Another option is to save the file in Dropbox on your computer, and
+then wait for it to show up in Dropbox on your Android device.</li>
+<li>Another option is to connect your Android device to your computer via
+a USB cable, and then to copy the file to it in the same way that
+you'd copy a file to a thumb drive.</li>
+</ul>
+</li>
+<li><p class="first">Tap the <tt class="docutils literal"><span class="pre">brltty-latest.apk</span></tt> file to start its installation, and answer any
+prompts. If you use the Dropbox method, you might need to tap on the file
+twice - once to download it, and a second time to install it.</p>
+</li>
+<li><p class="first">Tap <tt class="docutils literal">OK</tt> when installation is complete.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="section" id="building-brltty">
+<h2><a class="toc-backref" href="#id37">Building BRLTTY</a></h2>
+<div class="section" id="preparing-your-host-environment">
+<h3><a class="toc-backref" href="#id38">Preparing Your Host Environment</a></h3>
+<p>BRLTTY is currently being built using:</p>
+<ul class="simple">
+<li>Version 29.0.3 of the Android SDK build tools.</li>
+<li>Version r21e (21.4.7075529) of the Android NDK.</li>
+<li>Version 1.7 of OpenJDK.</li>
+</ul>
+<p>You need the Android SDK (Software Development Kit) for:</p>
+<ul class="simple">
+<li>installing an application onto your device</li>
+<li>removing an application from your device</li>
+</ul>
+<p>You can get it from <a class="reference external" href="https://developer.android.com/sdk/index.html">The Android SDK Web Page</a>.</p>
+<p>You need the Android NDK (Native Development Kit) if you want to do your own
+builds. You can get it from <a class="reference external" href="https://developer.android.com/tools/sdk/ndk/index.html">The Android NDK Web Page</a>.</p>
+<p>The SDK initially only includes support for the current Android API
+(Application Programming Interface) level. BRLTTY, however, needs to support
+earlier API levels so that it can run on older releases of Android. Support for
+any missing API levels is added whenever the SDK is updated. To do this, use
+the following command:</p>
+<pre class="literal-block">
+android update sdk -u
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">-u</span></tt> option, which is the short form of the <tt class="docutils literal"><span class="pre">--no-ui</span></tt> option, means to
+bypass the graphical interface.</p>
+<p>There may be password prompts for installing packages that are provided by
+various vendours. Any of these can be easily skipped.</p>
+<p>The 64-bit versions of the SDK and NDK depend on 32-bit system libraries. If
+you're using a 64-bit version then you need to first ensure that these are
+installed on your system. This at least includes:</p>
+<ul class="simple">
+<li>libc6 (or glibc)</li>
+<li>libz (or zlib)</li>
+<li>libstdc++6 (or libstdc++)</li>
+<li>libncurses</li>
+</ul>
+<p>If you're using a modern Debian GNU/Linux system (<tt class="docutils literal">Wheezy</tt> or later), you can
+install these packages for a foreign architecture (in this case, i386) with the
+following commands (as root):</p>
+<pre class="literal-block">
+dpkg --add-architecture i386
+apt-get install libncurses5:i386 libstdc++6:i386 zlib1g:i386 libc6:i386
+</pre>
+</div>
+<div class="section" id="installing-and-preparing-the-brltty-source-tree">
+<h3><a class="toc-backref" href="#id39">Installing and Preparing the BRLTTY Source Tree</a></h3>
+<p>Choose the directory that should contain BRLTTY's source tree (which needn't
+yet exist). Then extract the latest BRLTTY source into it with the following
+command:</p>
+<pre class="literal-block">
+git clone https://github.com/brltty/brltty.git /path/to/brltty
+</pre>
+<p>The directory operand (of <tt class="docutils literal">git clone</tt>) is optional. If you don't specify it
+then the directory named <tt class="docutils literal">brltty</tt> within the current working directory is
+assumed.</p>
+<p>Next, you need to prepare the source tree. This is done as follows:</p>
+<pre class="literal-block">
+cd /path/to/brltty
+./autogen
+</pre>
+<p>At this point, the source tree is essentially just like what you'd get were you
+to unpack an officially released BRLTTY archive. It doesn't yet know anything
+about the specifics of your system. It also doesn't yet know anything about the
+platform you intend to build BRLTTY for.</p>
+<p>Adding information to BRLTTY's source tree regarding the specifics of your
+system, as well as of your intent to build BRLTTY for Android, is done as
+follows:</p>
+<pre class="literal-block">
+export ANDROID_NDK=/path/to/Android/NDK
+./cfg-android -q
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">-q</span></tt> option, which is the short form of the <tt class="docutils literal">configure</tt> command's
+<tt class="docutils literal"><span class="pre">--quiet</span></tt> option, means to not display any progress information (there's
+usually quite a lot of it) - only warnings and errors are displayed.</p>
+<p>All of the options you give to the <tt class="docutils literal"><span class="pre">cfg-android</span></tt> command are passed directly
+through to the <tt class="docutils literal">configure</tt> command. So, while <tt class="docutils literal"><span class="pre">cfg-android</span></tt> supplies a
+default set of options to <tt class="docutils literal">configure</tt>, it's easy for you to do your own
+customization.</p>
+</div>
+<div class="section" id="building-brltty-for-android">
+<h3><a class="toc-backref" href="#id40">Building BRLTTY for Android</a></h3>
+<p>In order to be able to build an Android application, a number of Android build
+tools need to be added to your command search path. This is done via the
+following command:</p>
+<pre class="literal-block">
+export PATH=&quot;/path/to/Android/SDK/tools:/path/to/Android/SDK/platform-tools:$PATH&quot;
+</pre>
+<p>The final step is to build the BRLTTY service for Android. This is done as
+follows:</p>
+<pre class="literal-block">
+cd /path/to/brltty/Android/Application
+make -s
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">-s</span></tt> option of the <tt class="docutils literal">make</tt> command, which is short for its <tt class="docutils literal"><span class="pre">--silent</span></tt>
+option, means to not display any progress information (there's usually quite a
+lot of it) - only warnings and errors are displayed.</p>
+<p>The result of the build is the file <tt class="docutils literal"><span class="pre">BRLTTY_App-debug.apk</span></tt>. It will be in the
+<tt class="docutils literal">bin/</tt> subdirectory of BRLTTY's Android Application directory:</p>
+<pre class="literal-block">
+/path/to/brltty/Android/Application/bin/BRLTTY_App-debug.apk
+</pre>
+<p><tt class="docutils literal">apk</tt> is the file extension used for an installable Android package.</p>
+</div>
+<div class="section" id="preparing-your-android-device">
+<h3><a class="toc-backref" href="#id41">Preparing Your Android Device</a></h3>
+<p>You need <tt class="docutils literal">USB Debugging</tt> to be enabled. This is done from the <tt class="docutils literal">Developer
+Options</tt> screen. You can get to it from the <tt class="docutils literal">Settings</tt> screen.</p>
+<p>Launch the <tt class="docutils literal">Settings</tt> application, and look, near the bottom, for <tt class="docutils literal">Developer
+Options</tt>. If you can't find it, the most likely cause is a new feature that
+was introduced in Android 4.2 (Jelly Bean). If you need to enable it, tap on
+<tt class="docutils literal">About Phone</tt>, which, again, can be found near the bottom of the <tt class="docutils literal">Settings</tt>
+screen. Then, on the <tt class="docutils literal">About Phone</tt> screen, look for the <tt class="docutils literal">Build Number</tt>
+line. Tap on <tt class="docutils literal">Build Number</tt> seven times and your device will officially
+declare you to be a developer. You should then be able to find <tt class="docutils literal">Developer
+Options</tt> on the <tt class="docutils literal">Settings</tt> screen.</p>
+<p>There's a check box at the top-right of the <tt class="docutils literal">Developer Options</tt> screen. It
+needs to be checked so that all of the other controls on that screen will be
+enabled. After doing that, check the <tt class="docutils literal">USB Debugging</tt> check box (which can be
+found within the <tt class="docutils literal">Debugging</tt> section). This enables the <tt class="docutils literal">adb</tt> (Android
+Debug Bridge) tool to perform functions on your Android device.</p>
+</div>
+<div class="section" id="installing-brltty-on-your-android-device">
+<h3><a class="toc-backref" href="#id42">Installing BRLTTY on Your Android Device</a></h3>
+<p>In order to install BRLTTY onto your device, or to remove it from your device,
+you need to be in BRLTTY's Android Application directory:</p>
+<pre class="literal-block">
+cd /path/to/brltty/Android/Application
+</pre>
+<p>You also need to connect your device to your host via USB.</p>
+<p>To install BRLTTY, use this command:</p>
+<pre class="literal-block">
+make -s install
+</pre>
+<p>To remove BRLTTY, use this command:</p>
+<pre class="literal-block">
+make -s uninstall
+</pre>
+<p>The <tt class="docutils literal">make install</tt> command will fail if BRLTTY is already installed. If
+you're wanting to upgrade BRLTTY, however, then removing it first is probably
+what you don't want to be doing. This is because removing BRLTTY also causes
+its settings to be lost. What you should do instead is reinstall it. You can do
+this with the following command:</p>
+<pre class="literal-block">
+make -s reinstall
+</pre>
+<p>If you've obtained your Android package file (<tt class="docutils literal">apk</tt>) for BRLTTY from some
+other source (than building it for yourself), then it may have a different name
+than the make file is expecting. It's useful, therefore, to know what the
+actual host commands are for installing and removing Android applications.</p>
+<p>The host command for installing an Android application is:</p>
+<pre class="literal-block">
+adb install /path/to/file
+</pre>
+<p>The host command for reinstalling an Android application is:</p>
+<pre class="literal-block">
+adb install -r /path/to/file
+</pre>
+<p>The host command for removing an Android application is:</p>
+<pre class="literal-block">
+adb uninstall application.package.name
+</pre>
+<p>So, to remove BRLTTY, the host command is:</p>
+<pre class="literal-block">
+adb uninstall org.a11y.brltty.android
+</pre>
+<p>If any of these <tt class="docutils literal">make</tt> or <tt class="docutils literal">adb</tt> commands fails with an error like <tt class="docutils literal">device
+not found</tt>, it's probably because your host's USB device permissions are
+requiring root access. The solution to this problem is to restart the <tt class="docutils literal">adb</tt>
+server such that it is running as root. With this done, you yourself will still
+be able to use <tt class="docutils literal">adb</tt> as a regular user.</p>
+<p>The commands to restart the <tt class="docutils literal">adb</tt> server such that it's running as root are
+as follows:</p>
+<pre class="literal-block">
+su
+cd /path/to/Android/SDK/platform-tools
+./adb kill-server
+./adb start-server
+exit
+</pre>
+</div>
+</div>
+</div>
+</body>
+</html>

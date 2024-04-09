@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+###############################################################################
+# BRLTTY - A background process providing access to the console screen (when in
+#          text mode) for a blind person using a refreshable braille display.
+#
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
+#
+# BRLTTY comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+. "`dirname "${0}"`/brltty-prologue.sh"
+
+handleInitialHelpOption "${@}" <<END-OF-HELP
+Configure a BRLTTY build for the OpenBSD platform.
+
+Syntax: ${programName} {-h | [-option ...]}
+
+All of the options are passed through, unmodified, as additional options to the configure script.
+END-OF-HELP
+
+configureOptions=(
+   --disable-icu
+   --disable-liblouis
+   --disable-polkit
+
+   --without-libbraille
+   --without-espeak
+   --without-espeak-ng
+   --without-flite
+   --without-mikropuhe
+   --without-speechd
+   --without-swift
+   --without-theta
+
+   --disable-emacs-bindings
+   --disable-java-bindings
+   --disable-lua-bindings
+   --disable-ocaml-bindings
+   --disable-python-bindings
+
+   --without-pgmpath-package
+   --without-pgmprivs-package
+   --without-service-package
+   --without-params-package
+   --without-charset-package
+   --without-rgx-package
+   --without-mntpt-package
+   --without-mntfs-package
+   --without-kbd-package
+   --without-bell-package
+   --without-leds-package
+   --without-pcm-package
+   --without-midi-package
+   --without-bluetooth-package
+   --without-hid-package
+   --without-ports-package
+)
+
+"${programDirectory}/configure" --quiet "${configureOptions[@]}" "${@}"
+exit "${?}"

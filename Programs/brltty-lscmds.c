@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,12 +23,12 @@
 #include <ctype.h>
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "ktb_cmds.h"
 #include "cmd.h"
 
 BEGIN_OPTION_TABLE(programOptions)
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 static void
 writeCharacter (char character) {
@@ -53,7 +53,7 @@ writeString (const char *string) {
   while (*string) writeCharacter(*string++);
 }
 
-static const char headerCharacters[] = {'=', '-', '~'};
+static const char headerCharacters[] = {'~', '=', '-'};
 static unsigned char headerLevel = 0;
 
 static void
@@ -68,10 +68,18 @@ decrementHeaderLevel (void) {
 
 static void
 writeHeader (const char *header) {
+  char headerCharacter = headerCharacters[headerLevel];
+  size_t headerLength = strlen(header);
+
+  if (headerLevel == 0) {
+    writeCharacters(headerCharacter, headerLength);
+    endLine();
+  }
+
   writeString(header);
   endLine();
 
-  writeCharacters(headerCharacters[headerLevel], strlen(header));
+  writeCharacters(headerCharacter, headerLength);
   endLine();
   endLine();
 }
@@ -110,12 +118,13 @@ listModifiers (int include, const char *type, int *started, const CommandModifie
 }
 
 static void
-listCommand (const CommandEntry *command) {
-  incrementHeaderLevel();
-  writeHeader(command->name);
-
+putCommand (const CommandEntry *command) {
   {
     const char *description = command->description;
+
+    printf(".. _%s:\n\n", command->name);
+    printf("**%s** - ", command->name);
+
     writeCharacter(toupper(*description++));
     printf("%s.\n\n", description);
   }
@@ -169,51 +178,90 @@ listCommand (const CommandEntry *command) {
 
     if (started) endLine();
   }
-
-  decrementHeaderLevel();
 }
 
 static void
-listGroup (const CommandGroupEntry *group) {
+putGroup (const CommandGroupEntry *group) {
   incrementHeaderLevel();
   writeHeader(group->name);
 
-  const CommandListEntry *command = group->commands.table;
-  const CommandListEntry *end = command + group->commands.count;
+  size_t count = group->commands.count;
+  const CommandEntry *commands[count];
 
-  while (command < end) {
-    listCommand(findCommandEntry(command->code));
-    command += 1;
+  for (unsigned int index=0; index<count; index+=1) {
+    commands[index] = findCommandEntry(group->commands.table[index].code);
+  }
+
+  for (unsigned int index=0; index<count; index+=1) {
+    printf("* `%s`_\n", commands[index]->name);
+  }
+  printf("\n");
+
+  for (unsigned int index=0; index<count; index+=1) {
+    putCommand(commands[index]);
   }
 
   decrementHeaderLevel();
 }
 
 static void
-listGroups (void) {
+putGroups (void) {
   const CommandGroupEntry *group = commandGroupTable;
   const CommandGroupEntry *end = group + commandGroupCount;
 
   while (group < end) {
-    listGroup(group);
+    putGroup(group);
     group += 1;
   }
+}
+
+static int
+compareCommands (const void *element1, const void *element2) {
+  const CommandEntry *const *command1 = element1;
+  const CommandEntry *const *command2 = element2;
+  return strcmp((*command1)->name, (*command2)->name);
+}
+
+static void
+putCommandIndex (void) {
+  incrementHeaderLevel();
+  writeHeader("Alphabetical Command Index");
+
+  int count = getCommandCount();
+  const CommandEntry *commands[count];
+
+  for (int index=0; index<count; index+=1) {
+    commands[index] = &commandTable[index];
+  }
+  qsort(commands, count, sizeof(commands[0]), compareCommands);
+
+  for (int index=0; index<count; index+=1) {
+    printf("* `%s`_\n", commands[index]->name);
+  }
+
+  printf("\n");
+  decrementHeaderLevel();
 }
 
 int
 main (int argc, char *argv[]) {
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
-      .applicationName = "brltty-lscmds"
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
+      .applicationName = "brltty-lscmds",
+
+      .usage = {
+        .purpose = strtext("Write a brltty command reference in reStructuredText."),
+      }
     };
 
     PROCESS_OPTIONS(descriptor, argc, argv);
   }
 
-  writeHeader("BRLTTY Command Reference");
+  writeHeader("The BRLTTY Command Reference");
   writeString(".. contents::\n\n");
 
-  listGroups();
+  putCommandIndex();
+  putGroups();
   return PROG_EXIT_SUCCESS;
 }

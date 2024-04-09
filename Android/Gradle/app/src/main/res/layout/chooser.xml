@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_height="match_parent"
+  android:layout_width="match_parent"
+  >
+
+  <TextView
+    android:id="@+id/chooser_title"
+    android:textStyle="bold"
+   />
+
+  <ListView
+    android:id="@+id/chooser_list"
+   />
+
+  <Button
+    android:id="@+id/chooser_dismiss"
+    android:text="@android:string/cancel"
+   />
+</TableLayout>

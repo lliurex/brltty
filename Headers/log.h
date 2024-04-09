@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -50,14 +50,13 @@ typedef enum {
 extern const char *const logLevelNames[];
 extern const unsigned int logLevelCount;
 
-#define LOG_FLG_CATEGORY 0X80
-#define LOG_MSK_CATEGORY (LOG_FLG_CATEGORY - 1)
+#define LOG_LEVEL_WIDTH 8
+#define LOG_LEVEL_MASK (LOG_LEVEL_WIDTH - 1)
 
 #define LOG_CATEGORY_INDEX(name) LOG_CTG_##name
-#define LOG_CATEGORY(name) (LOG_FLG_CATEGORY | LOG_CATEGORY_INDEX(name))
+#define LOG_CATEGORY(name) ((LOG_CATEGORY_INDEX(name) + 1) << LOG_LEVEL_WIDTH)
 
 typedef enum {
-  LOG_CATEGORY_INDEX(GENERIC_INPUT),
   LOG_CATEGORY_INDEX(INPUT_PACKETS),
   LOG_CATEGORY_INDEX(OUTPUT_PACKETS),
 
@@ -72,9 +71,11 @@ typedef enum {
   LOG_CATEGORY_INDEX(ASYNC_EVENTS),
   LOG_CATEGORY_INDEX(SERVER_EVENTS),
 
+  LOG_CATEGORY_INDEX(GENERIC_IO),
   LOG_CATEGORY_INDEX(SERIAL_IO),
   LOG_CATEGORY_INDEX(USB_IO),
   LOG_CATEGORY_INDEX(BLUETOOTH_IO),
+  LOG_CATEGORY_INDEX(HID_IO),
 
   LOG_CATEGORY_INDEX(BRAILLE_DRIVER),
   LOG_CATEGORY_INDEX(SPEECH_DRIVER),
@@ -105,36 +106,36 @@ extern int pushLogPrefix (const char *prefix);
 extern int popLogPrefix (void);
 
 typedef size_t LogDataFormatter (char *buffer, size_t size, const void *data);
-extern void logData (int level, LogDataFormatter *formatLogData, const void *data);
+extern int logData (int level, LogDataFormatter *formatLogData, const void *data);
 
-extern void logMessage (int level, const char *format, ...) PRINTF(2, 3);
-extern void vlogMessage (int level, const char *format, va_list *arguments);
+extern int logMessage (int level, const char *format, ...) PRINTF(2, 3);
+extern int vlogMessage (int level, const char *format, va_list *arguments);
 
-extern void logBytes (int level, const char *label, const void *data, size_t length, ...) PRINTF(2, 5);
-extern void logSymbol (int level, void *address, const char *format, ...) PRINTF(3, 4);
+extern int logBytes (int level, const char *label, const void *data, size_t length, ...) PRINTF(2, 5);
+extern int logSymbol (int level, void *address, const char *format, ...) PRINTF(3, 4);
 
-extern void logActionProblem (int level, int error, const char *action);
-extern void logActionError (int error, const char *action);
+extern int logActionProblem (int level, int error, const char *action);
+extern int logActionError (int error, const char *action);
 
-extern void logSystemProblem (int level, const char *action);
-extern void logSystemError (const char *action);
-extern void logMallocError (void);
+extern int logSystemProblem (int level, const char *action);
+extern int logSystemError (const char *action);
+extern int logMallocError (void);
 
-extern void logUnsupportedFeature (const char *name);
-extern void logUnsupportedOperation (const char *name);
+extern int logUnsupportedFeature (const char *name);
+extern int logUnsupportedOperation (const char *name);
 #define logUnsupportedFunction() logUnsupportedOperation(__func__)
-extern void logPossibleCause (const char *cause);
+extern int logPossibleCause (const char *cause);
 
 #ifdef WINDOWS
-extern void logWindowsError (DWORD code, const char *action);
-extern void logWindowsSystemError (const char *action);
+extern int logWindowsError (DWORD code, const char *action);
+extern int logWindowsSystemError (const char *action);
 
 #ifdef __MINGW32__
-extern void logWindowsSocketError (const char *action);
+extern int logWindowsSocketError (const char *action);
 #endif /* __MINGW32__ */
 #endif /* WINDOWS */
 
-extern void logBacktrace (void);
+extern int logBacktrace (void);
 
 #ifdef __cplusplus
 }

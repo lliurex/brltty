@@ -1,0 +1,83 @@
+def assetsDirectory = brltty.getAssetsPath(project)
+def messagesDirectory = assetsDirectory + File.separator + "locale"
+def tablesDirectory = assetsDirectory + File.separator + "tables"
+
+task brlttyAddTables (type: Copy) {
+  group "build"
+  description "Add the tables (text, contraction, attributes, keyboard, input) to the build (as assets)."
+
+  from brltty.native.tablesDirectory
+  into tablesDirectory
+  include 'Text/**/*.tt?'
+  include 'Contraction/**/*.ct?'
+  include 'Attributes/**/*.at?'
+  include 'Keyboard/**/*.kt?'
+  include 'Input/**/*.kt?'
+}
+
+task brlttyRemoveTables (type: Delete) {
+  group "build"
+  description "Remove the tables (text, contraction, attributes, keyboard, input) from the build."
+
+  delete tablesDirectory
+}
+
+tasks.register("brlttyAddMessages") {
+  group "build"
+  description "Add the message catalogs (.mo files) to the build (as assets)."
+
+  doLast {
+    def commandProcesses = []
+
+    try {
+      def sourceDirectory = new File(brltty.native.messagesDirectory)
+      def sourceFiles = layout.files {sourceDirectory.listFiles()}
+
+      sourceFiles.each { sourceFile ->
+        def sourceName = sourceFile.name
+
+        if (sourceName.endsWith(".po")) {
+          def languageCode = sourceName.replaceAll(/\..+?$/, '')
+          def targetDirectory = new File(messagesDirectory + File.separator + languageCode + File.separator + "LC_MESSAGES")
+
+          if (targetDirectory.isDirectory() || targetDirectory.mkdirs()) {
+            def targetFile = new File(targetDirectory, "brltty.mo")
+
+            def commandArguments = [
+              "msgfmt", "--no-hash",
+              "--output-file=" + targetFile.absolutePath,
+              "--", sourceFile.absolutePath
+            ]
+
+            def commandProcess = commandArguments.execute()
+            commandProcess.waitForProcessOutput(new StringBuffer(), System.err)
+            commandProcesses += commandProcess
+          } else {
+            throw new IOException("messages directory not created: " + targetDirectory.absolutePath)
+          }
+        }
+      }
+    } finally {
+      def ok = true
+
+      commandProcesses.each { process ->
+        int exitValue = process.waitFor()
+        if (exitValue) ok = false
+      }
+
+      if (!ok) throw new RuntimeException("installing messages failed")
+    }
+  }
+}
+
+task brlttyRemoveMessages (type: Delete) {
+  group "build"
+  description "Remove the message catalogs (.mo files) from the build."
+
+  delete messagesDirectory
+}
+
+brltty.addAssembleTask project, brlttyAddMessages
+brltty.addAssembleTask project, brlttyAddTables
+clean.dependsOn brlttyRemoveMessages
+clean.dependsOn brlttyRemoveTables

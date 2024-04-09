@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -89,9 +89,25 @@ cpbReadScreen (ClipboardCommandData *ccd, size_t *length, int fromColumn, int fr
 }
 
 static int
-cpbEndOperation (ClipboardCommandData *ccd, const wchar_t *characters, size_t length) {
+cpbEndOperation (ClipboardCommandData *ccd, const wchar_t *characters, size_t length,
+                 int insertCR) {
   lockMainClipboard();
+    if (insertCR && ccd->begin.offset >= 1) {
+      size_t length;
+      const wchar_t *characters = getClipboardContent(ccd->clipboard, &length);
+      if (length > ccd->begin.offset) length = ccd->begin.offset;
+      while (length > 0) {
+        size_t last = length - 1;
+        if (characters[last] == WC_C('\r')) insertCR = 0;
+        if (characters[last] != WC_C(' ')) break;
+        length = last;
+      }
+      ccd->begin.offset = length;
+    }
+    if (ccd->begin.offset <= 0) insertCR = 0;
+
     int truncated = truncateClipboardContent(ccd->clipboard, ccd->begin.offset);
+    if (insertCR) appendClipboardContent(ccd->clipboard, &(wchar_t){WC_C('\r')}, 1);
     int appended = appendClipboardContent(ccd->clipboard, characters, length);
   unlockMainClipboard();
 
@@ -136,6 +152,7 @@ cpbRectangularCopy (ClipboardCommandData *ccd, int column, int row) {
 
           case WC_C('\r'):
             spaces = 0;
+            break;
 
           default:
             break;
@@ -152,7 +169,7 @@ cpbRectangularCopy (ClipboardCommandData *ccd, int column, int row) {
       length = to - buffer;
     }
 
-    if (cpbEndOperation(ccd, buffer, length)) copied = 1;
+    if (cpbEndOperation(ccd, buffer, length, 1)) copied = 1;
     free(buffer);
   }
 
@@ -173,6 +190,7 @@ cpbLinearCopy (ClipboardCommandData *ccd, int column, int row) {
     if (buffer) {
       if (column < rightColumn) {
         wchar_t *start = buffer + length;
+
         while (start != buffer) {
           if (*--start == WC_C('\r')) {
             start += 1;
@@ -229,10 +247,11 @@ cpbLinearCopy (ClipboardCommandData *ccd, int column, int row) {
           *to++ = character;
         }
 
+        if (spaces || newlines) *to++ = WC_C(' ');
         length = to - buffer;
       }
 
-      if (cpbEndOperation(ccd, buffer, length)) copied = 1;
+      if (cpbEndOperation(ccd, buffer, length, 0)) copied = 1;
       free(buffer);
     }
   }
@@ -271,6 +290,12 @@ cpbPaste (ClipboardCommandData *ccd, unsigned int index) {
       characters = getClipboardHistory(ccd->clipboard, index-1, &length);
     } else {
       characters = getClipboardContent(ccd->clipboard, &length);
+    }
+
+    while (length > 0) {
+      size_t last = length - 1;
+      if (characters[last] != WC_C(' ')) break;
+      length = last;
     }
 
     pasted = pasteCharacters(characters, length);

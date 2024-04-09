@@ -1,0 +1,106 @@
+Key Table: Papenmeier BrailleX EL70s
+====================================
+
+Notes
+* The long key on the front is the Easy Access Bar.
+  It can be moved two steps in each direction (left, right, up, down).
+* RoutingKey1 refers to the row of keys just behind the text cells.
+* RoutingKey2 refers to the row of keys behind the RoutingKey1 row.
+* The rockers at each side of the top that don't stay when pressed
+  are named the Left and Right Key.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: RightKeyRear
+* enter/leave command learn mode: RightKeyFront
+* enter/leave preferences menu: LeftKeyFront+BarRight1
+* enter/leave status display: LeftKeyFront+BarLeft1
+* set display mode attributes/text: LeftKeyRear+BarLeft1
+* set screen image frozen/unfrozen: LeftKeyFront+BarDown2
+* describe character:
+  + RoutingKey2
+  + BarDown2+RoutingKey1
+
+Cursor Functions
+* go to screen cursor: LeftKeyFront
+* go back after cursor tracking: LeftKeyRear
+* bring screen cursor to character: RoutingKey1
+* bring screen cursor to current line: LeftKeyRear+BarDown2
+
+Vertical Navigation
+* go up one line: BarUp1
+* go down one line: BarDown1
+* go to top line: BarUp2
+* go to bottom line: BarDown2
+* go up to nearest line with less indent than character: BarUp1+RoutingKey1
+* go down to nearest line with less indent than character: BarDown1+RoutingKey1
+
+Horizontal Navigation
+* go backward one braille window: BarLeft1
+* go forward one braille window: BarRight1
+* go to beginning of line: BarLeft2
+* go to end of line: BarRight2
+* place left end of braille window at character: BarUp2+RoutingKey1
+
+Clipboard Functions
+* start new clipboard at character:
+  + BarLeft2+RoutingKey1
+  + LeftKeyRear+RoutingKey1
+* append to clipboard from character:
+  + BarLeft1+RoutingKey1
+  + LeftKeyFront+RoutingKey1
+* linear copy to character:
+  + BarRight1+RoutingKey1
+  + RightKeyRear+RoutingKey1
+* rectangular copy to character:
+  + BarRight2+RoutingKey1
+  + RightKeyFront+RoutingKey1
+* insert clipboard text after screen cursor: LeftKeyRear+BarDown1
+
+Configuration Functions
+* set autorepeat on/off: LeftKeyFront+BarDown1
+* set text style 6-dot/8-dot: LeftKeyRear+BarUp1
+* set skipping of lines with identical content on/off: RightKeyFront+BarLeft1
+* set skipping of blank braille windows on/off: RightKeyFront+BarRight1
+* set sliding braille window on/off: RightKeyFront+BarRight2
+* set track screen cursor on/off: LeftKeyRear+BarRight1
+* set screen cursor visibility on/off: LeftKeyRear+BarRight2
+* set attribute underlining on/off: LeftKeyRear+BarLeft2
+* set capital letter blinking on/off: LeftKeyRear+BarUp2
+* set alert tunes on/off: RightKeyFront+BarDown1
+
+Menu Operations
+* save preferences to disk: LeftKeyFront+BarRight2
+* restore preferences from disk: LeftKeyFront+BarLeft2
+
+Speech Functions
+* stop speaking: RightKeyRear+BarLeft1
+* speak current line: RightKeyRear+BarRight1
+* speak from top of screen through current line: RightKeyRear+BarUp1
+* speak from current line through bottom of screen: RightKeyRear+BarDown1
+* go to current speaking position: RightKeyFront+BarUp1
+* decrease speaking volume: RightKeyRear+BarDown2
+* increase speaking volume: RightKeyRear+BarUp2
+* decrease speaking rate: RightKeyRear+BarLeft2
+* increase speaking rate: RightKeyRear+BarRight2
+* set autospeak on/off: LeftKeyFront+BarUp1
+
+Special Functions
+* restart braille driver: LeftKeyFront+BarUp2
+* restart speech driver: RightKeyFront+BarUp2
+
+Menu Bindings
+-------------
+
+Menu Operations
+* go up to previous item: BarUp1
+* go down to next item: BarDown1
+* go up to first item: BarUp2
+* go down to last item: BarDown2
+* select previous choice: BarLeft1
+* select next choice: BarRight1
+* save preferences to disk: BarRight2
+* restore preferences from disk: BarLeft2
+

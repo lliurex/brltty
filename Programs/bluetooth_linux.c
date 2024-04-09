@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -32,6 +32,8 @@
 #include "parameters.h"
 #include "io_bluetooth.h"
 #include "bluetooth_internal.h"
+#include "async_handle.h"
+#include "async_io.h"
 #include "io_misc.h"
 #include "timing.h"
 
@@ -130,6 +132,8 @@ bthOpenChannel (BluetoothConnectionExtension *bcx, uint8_t channel, int timeout)
   bcx->remoteAddress.rc_channel = channel;
 
   if ((bcx->socketDescriptor = socket(PF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM)) != -1) {
+    setCloseOnExec(bcx->socketDescriptor, 1);
+
     if (bind(bcx->socketDescriptor, (struct sockaddr *)&bcx->localAddress, sizeof(bcx->localAddress)) != -1) {
       if (setBlockingIo(bcx->socketDescriptor, 0)) {
         int connectResult = LINUX_BLUETOOTH_CHANNEL_CONNECT_ASYNCHRONOUS?
@@ -213,6 +217,8 @@ bthNewL2capConnection (const bdaddr_t *address, int timeout) {
   SocketDescriptor socketDescriptor = socket(PF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP);
 
   if (socketDescriptor != -1) {
+    setCloseOnExec(socketDescriptor, 1);
+
     if (setBlockingIo(socketDescriptor, 0)) {
       struct sockaddr_l2 socketAddress = {
         .l2_family = AF_BLUETOOTH,
@@ -641,9 +647,9 @@ void
 bthProcessDiscoveredDevices (
   DiscoveredBluetoothDeviceTester *testDevice, void *data
 ) {
+#ifdef HAVE_PKG_DBUS
   int found = 0;
 
-#ifdef HAVE_PKG_DBUS
   DBusError error;
   DBusConnection *bus;
  

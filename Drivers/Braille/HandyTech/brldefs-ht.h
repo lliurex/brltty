@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -210,6 +210,10 @@ typedef enum {
   HT_KEY_JoystickUp         = 0X76,
   HT_KEY_JoystickDown       = 0X77,
   HT_KEY_JoystickAction     = 0X78,
+
+  /* Activator keys */
+  HT_KEY_LeftCenter         = 0X7A,
+  HT_KEY_RightCenter        = 0X7B,
 
   /* ranges and flags */
   HT_KEY_ROUTING = 0X20,

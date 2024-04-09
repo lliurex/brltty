@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -54,7 +54,7 @@ typedef enum {
   CTO_BeginCapitalSign, /*dot pattern for beginning capital block*/
   CTO_EndCapitalSign, /*dot pattern for ending capital block*/
 
-  CTO_EnglishLetterSign, /*dot pattern for english letter sign*/
+  CTO_LetterSign, /*dot pattern for letter sign*/
   CTO_NumberSign, /*number sign*/
 
   CTO_Literal, /*don't translate this string*/
@@ -101,14 +101,14 @@ typedef struct {
   ContractionTableCharacterAttributes before; /*character types which must precede*/
   BYTE findlen; /*length of string to be replaced*/
   BYTE replen; /*length of replacement string*/
-  wchar_t findrep[1]; /*find and replacement strings*/
+  wchar_t findrep[]; /*find and replacement strings*/
 } ContractionTableRule;
 
 typedef struct {
   ContractionTableOffset capitalSign; /*capitalization sign*/
   ContractionTableOffset beginCapitalSign; /*begin capitals sign*/
   ContractionTableOffset endCapitalSign; /*end capitals sign*/
-  ContractionTableOffset englishLetterSign; /*english letter sign*/
+  ContractionTableOffset letterSign; /*letter sign*/
   ContractionTableOffset numberSign; /*number sign*/
   ContractionTableOffset characters;
   uint32_t characterCount;
@@ -116,11 +116,12 @@ typedef struct {
 } ContractionTableHeader;
 
 typedef struct {
+  const ContractionTableRule *always;
+  ContractionTableCharacterAttributes attributes;
+
   wchar_t value;
   wchar_t uppercase;
   wchar_t lowercase;
-  ContractionTableCharacterAttributes attributes;
-  const ContractionTableRule *always;
 } CharacterEntry;
 
 typedef struct {
@@ -133,51 +134,33 @@ extern GetContractionTableTranslationMethodsFunction getContractionTableTranslat
 extern GetContractionTableTranslationMethodsFunction getContractionTableTranslationMethods_external;
 extern GetContractionTableTranslationMethodsFunction getContractionTableTranslationMethods_louis;
 
+typedef struct {
+  union {
+    ContractionTableHeader *fields;
+    const unsigned char *bytes;
+  } header;
+
+  size_t size;
+} InternalContractionTable;
+
 struct ContractionTableStruct {
   const ContractionTableManagementMethods *managementMethods;
   const ContractionTableTranslationMethods *translationMethods;
 
   struct {
     CharacterEntry *array;
-    int size;
-    int count;
+    unsigned int size;
+    unsigned int count;
   } characters;
 
   struct {
-    struct {
-      wchar_t *characters;
-      unsigned int size;
-      unsigned int count;
-      unsigned int consumed;
-    } input;
-
-    struct {
-      unsigned char *cells;
-      unsigned int size;
-      unsigned int count;
-      unsigned int maximum;
-    } output;
-
-    struct {
-      int *array;
-      unsigned int size;
-      unsigned int count;
-    } offsets;
-
-    int cursorOffset;
-    unsigned char expandCurrentWord;
-    unsigned char capitalizationMode;
-  } cache;
+    ContractionTableRule **array;
+    unsigned int size;
+    unsigned int count;
+  } rules;
 
   union {
-    struct {
-      union {
-        ContractionTableHeader *fields;
-        const unsigned char *bytes;
-      } header;
-
-      size_t size;
-    } internal;
+    InternalContractionTable internal;
 
     struct {
       char *command;
@@ -201,6 +184,8 @@ struct ContractionTableStruct {
 
 extern int startContractionCommand (ContractionTable *table);
 extern void stopContractionCommand (ContractionTable *table);
+
+extern const unsigned char *getInternalContractionTableBytes (void);
 
 #ifdef __cplusplus
 }

@@ -1,0 +1,79 @@
+def propertyFiles = [
+  config: "config.properties",
+  native: "native.properties",
+]
+
+void normalizeFileProperty (Properties properties, String name) {
+  properties[name] = rootProject.file(properties[name])
+}
+
+void normalizeDirectoryProperty (Properties properties, String name) {
+  normalizeFileProperty(properties, name)
+  properties[name] = properties[name].absolutePath
+}
+
+void normalizeSubdirectoryProperty (Properties properties, String subdirectoryName) {
+  def directoryName = subdirectoryName.replaceAll(/Subdirectory$/, "Directory")
+  properties[directoryName] = properties.rootDirectory + File.separator + properties[subdirectoryName]
+}
+
+void normalizeListProperty (Properties properties, String name) {
+  properties[name] = properties[name].split(',').collect{it as String}
+}
+
+Properties loadPropertiesFromFile (String path) {
+  def properties = new Properties()
+  def file = rootProject.file(path)
+
+  if (file.exists()) {
+    new FileInputStream(file).withStream { stream ->
+      new InputStreamReader(stream, "UTF-8").withReader { reader ->
+        properties.load(reader)
+      }
+    }
+  }
+
+  def directoryProperties = []
+  def subdirectoryProperties = []
+  def fileProperties = []
+  def listProperties = []
+
+  properties.propertyNames().each { name ->
+    if (name.endsWith("Directory")) {
+      directoryProperties += name
+    } else if (name.endsWith("Subdirectory")) {
+      subdirectoryProperties += name
+    } else if (name.endsWith("File")) {
+      fileProperties += name
+    } else if (name.endsWith("List")) {
+      listProperties += name
+    }
+  }
+
+  directoryProperties.each { name ->
+    normalizeDirectoryProperty(properties, name)
+  }
+
+  subdirectoryProperties.each { name ->
+    normalizeSubdirectoryProperty(properties, name)
+  }
+
+  fileProperties.each { name ->
+    normalizeFileProperty(properties, name)
+  }
+
+  listProperties.each { name ->
+    normalizeListProperty(properties, name)
+  }
+
+  return properties
+}
+
+propertyFiles.keySet().each { name ->
+  def path = propertyFiles[name]
+  brltty[name] = loadPropertiesFromFile(path)
+}
+
+brltty.loadProperties = { String filePath ->
+  loadPropertiesFromFile(filePath)
+}

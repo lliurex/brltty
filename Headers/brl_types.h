@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -20,10 +20,11 @@
 #define BRLTTY_INCLUDED_BRL_TYPES
 
 #include "driver.h"
+#include "ctb_types.h"
 #include "ktb_types.h"
 #include "gio_types.h"
 #include "queue.h"
-#include "async.h"
+#include "async_types_handle.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,6 +63,18 @@ typedef int SetBrailleFirmnessMethod (BrailleDisplay *brl, BrailleFirmness setti
 typedef int SetTouchSensitivityMethod (BrailleDisplay *brl, TouchSensitivity setting);
 typedef int SetAutorepeatPropertiesMethod (BrailleDisplay *brl, int on, int delay, int interval);
 
+typedef struct {
+  struct {
+    ContractionCache cache;
+    int length;
+
+    struct {
+      int *array;
+      unsigned int size;
+    } offsets;
+  } contracted;
+} BrailleRowDescriptor;
+
 struct BrailleDisplayStruct {
   BrailleData *data;
 
@@ -86,18 +99,24 @@ struct BrailleDisplayStruct {
   unsigned int writeDelay;
 
   unsigned char *buffer;
-  unsigned char quality;
-  unsigned char isCoreBuffer:1;
-
   void (*bufferResized) (unsigned int rows, unsigned int columns);
-  unsigned char resizeRequired:1;
+
+  struct {
+    BrailleRowDescriptor *array;
+    unsigned int size;
+  } rowDescriptors;
 
   int cursor;
+  unsigned char quality;
 
   unsigned char noDisplay:1;
   unsigned char hasFailed:1;
   unsigned char isOffline:1;
   unsigned char isSuspended:1;
+
+  unsigned char isCoreBuffer:1;
+  unsigned char resizeRequired:1;
+
   unsigned char hideCursor:1;
 
   struct {

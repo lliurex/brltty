@@ -1,0 +1,958 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="Docutils 0.16: http://docutils.sourceforge.net/" />
+<title>Contraction Tables</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7952 2016-07-26 18:15:59Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left, table.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right, table.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table.align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+.align-top    {
+  vertical-align: top }
+
+.align-middle {
+  vertical-align: middle }
+
+.align-bottom {
+  vertical-align: bottom }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math, pre.code {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="contraction-tables">
+<h1 class="title">Contraction Tables</h1>
+
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#description" id="id2">Description</a></li>
+<li><a class="reference internal" href="#contraction-directives" id="id3">Contraction Directives</a><ul>
+<li><a class="reference internal" href="#the-literal-directive" id="id4">The Literal Directive</a></li>
+<li><a class="reference internal" href="#the-always-directive" id="id5">The Always Directive</a></li>
+<li><a class="reference internal" href="#the-repeatable-directive" id="id6">The Repeatable Directive</a></li>
+<li><a class="reference internal" href="#the-largesign-directive" id="id7">The LargeSign Directive</a></li>
+<li><a class="reference internal" href="#the-lastlargesign-directive" id="id8">The LastLargeSign Directive</a></li>
+<li><a class="reference internal" href="#the-word-directive" id="id9">The Word Directive</a></li>
+<li><a class="reference internal" href="#the-joinword-directive" id="id10">The JoinWord Directive</a></li>
+<li><a class="reference internal" href="#the-lowword-directive" id="id11">The LowWord Directive</a></li>
+<li><a class="reference internal" href="#the-contraction-directive" id="id12">The Contraction Directive</a></li>
+<li><a class="reference internal" href="#the-sufword-directive" id="id13">The SufWord Directive</a></li>
+<li><a class="reference internal" href="#the-prfword-directive" id="id14">The PrfWord Directive</a></li>
+<li><a class="reference internal" href="#the-begword-directive" id="id15">The BegWord Directive</a></li>
+<li><a class="reference internal" href="#the-begmidword-directive" id="id16">The BegMidWord Directive</a></li>
+<li><a class="reference internal" href="#the-midword-directive" id="id17">The MidWord Directive</a></li>
+<li><a class="reference internal" href="#the-midendword-directive" id="id18">The MidEndWord Directive</a></li>
+<li><a class="reference internal" href="#the-endword-directive" id="id19">The EndWord Directive</a></li>
+<li><a class="reference internal" href="#the-prepunc-directive" id="id20">The PrePunc Directive</a></li>
+<li><a class="reference internal" href="#the-postpunc-directive" id="id21">The PostPunc Directive</a></li>
+<li><a class="reference internal" href="#the-begnum-directive" id="id22">The BegNum Directive</a></li>
+<li><a class="reference internal" href="#the-midnum-directive" id="id23">The MidNum Directive</a></li>
+<li><a class="reference internal" href="#the-endnum-directive" id="id24">The EndNum Directive</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#character-classes" id="id25">Character Classes</a><ul>
+<li><a class="reference internal" href="#the-class-directive" id="id26">The Class Directive</a></li>
+<li><a class="reference internal" href="#the-after-directive" id="id27">The After Directive</a></li>
+<li><a class="reference internal" href="#the-before-directive" id="id28">The Before Directive</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indicator-specification" id="id29">Indicator Specification</a><ul>
+<li><a class="reference internal" href="#the-capsign-directive" id="id30">The CapSign Directive</a></li>
+<li><a class="reference internal" href="#the-begcaps-directive" id="id31">The BegCaps Directive</a></li>
+<li><a class="reference internal" href="#the-endcaps-directive" id="id32">The EndCaps Directive</a></li>
+<li><a class="reference internal" href="#the-letsign-directive" id="id33">The LetSign Directive</a></li>
+<li><a class="reference internal" href="#the-numsign-directive" id="id34">The NumSign Directive</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#special-directives" id="id35">Special Directives</a><ul>
+<li><a class="reference internal" href="#the-replace-directive" id="id36">The Replace Directive</a></li>
+<li><a class="reference internal" href="#the-emoji-directive" id="id37">The Emoji Directive</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#standard-directives" id="id38">Standard Directives</a><ul>
+<li><a class="reference internal" href="#the-include-directive" id="id39">The Include Directive</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#operands" id="id40">Operands</a><ul>
+<li><a class="reference internal" href="#the-string-operand" id="id41">The String Operand</a></li>
+<li><a class="reference internal" href="#the-representation-operand" id="id42">The Representation Operand</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#contraction-table-list" id="id43">Contraction Table List</a></li>
+</ul>
+</div>
+<div class="section" id="description">
+<h2><a class="toc-backref" href="#id2">Description</a></h2>
+<p>Files with names of the form <tt class="docutils literal">*.ctb</tt> are contraction tables, and with names
+of the form <tt class="docutils literal">*.cti</tt> are contraction subtables. They are used by BRLTTY to
+translate character sequences on the screen into their corresponding contracted
+braille representations.</p>
+<p>Contraction tables can usually be found in the <tt class="docutils literal">/etc/brltty/Contraction/</tt>
+directory (see <a class="reference external" href="Customize.html">Local Customization</a> for more details). SEe
+<a class="reference internal" href="#contraction-table-list">Contraction Table list</a> for a list of BRLTTY's contraction tables.</p>
+<p>A contraction table consists of a sequence of directives, one per line, that
+define how character sequences are to be represented in contracted braille.
+UTF-8 character encoding must be used. Whitespace (blanks, tabs) at the
+beginning of a line, as well as before and/or after any operand, is ignored.
+Lines containing only whitespace are ignored. If the first non-whitespace
+character of a line is <tt class="docutils literal">#</tt> then that line is a comment and is ignored.</p>
+</div>
+<div class="section" id="contraction-directives">
+<h2><a class="toc-backref" href="#id3">Contraction Directives</a></h2>
+<p>The format of a contraction directive is:</p>
+<pre class="literal-block">
+<em>directive</em> <em>operand</em> ... <em>comment</em>
+</pre>
+<p>Each directive has a specific number of operands. Any text beyond the last
+operand of a directive is interpreted as a comment. This commenting capability
+is often used to list some of the words that make the directive necessary.</p>
+<p>The order of the directives within a contraction table is, in general, anything
+that is convenient for its maintainer(s). A directive that defines an entity,
+e.g. <a class="reference internal" href="#the-class-directive">The Class Directive</a>, must precede all references to that entity.</p>
+<p>Directives that match character sequences are automatically rearranged such
+that longer sequences are matched first. If more than one directive matches the
+same character sequence then their original table ordering is maintained.</p>
+<p>Whenever a character needs to be written, its representation as defined via
+<a class="reference internal" href="#the-always-directive">The Always Directive</a> is used. In principle, this means that every character
+within the <em>representation</em> operand of every contraction directive should be
+explicitly defined via <a class="reference internal" href="#the-always-directive">The Always Directive</a>. If a character's representation
+hasn't been defined then the Unicode Replacement Character (U+FFFD) is used -
+if it's representation hasn't been defined then all eight dots are used.</p>
+<div class="section" id="the-literal-directive">
+<h3><a class="toc-backref" href="#id4">The Literal Directive</a></h3>
+<pre class="literal-block">
+literal <em>characters</em>
+</pre>
+<p>Translate the entire whitespace-bounded text containing the character sequence
+into computer braille.</p>
+</div>
+<div class="section" id="the-always-directive">
+<h3><a class="toc-backref" href="#id5">The Always Directive</a></h3>
+<pre class="literal-block">
+always <em>characters</em> <em>representation</em>
+</pre>
+<p>Unconditionally translate the characters no matter where they appear. If
+there's only one character, then, in addition, define the default
+representation for that character.</p>
+</div>
+<div class="section" id="the-repeatable-directive">
+<h3><a class="toc-backref" href="#id6">The Repeatable Directive</a></h3>
+<pre class="literal-block">
+repeatable <em>characters</em> <em>representation</em>
+</pre>
+<p>Unconditionally translate the characters no matter where they appear. Ignore
+any consecutive repetitions of the same sequence.</p>
+</div>
+<div class="section" id="the-largesign-directive">
+<h3><a class="toc-backref" href="#id7">The LargeSign Directive</a></h3>
+<pre class="literal-block">
+largeSign <em>characters</em> <em>representation</em>
+</pre>
+<p>Unconditionally translate the characters no matter where they appear. Remove
+whitespace between consecutive words matched by this directive.</p>
+</div>
+<div class="section" id="the-lastlargesign-directive">
+<h3><a class="toc-backref" href="#id8">The LastLargeSign Directive</a></h3>
+<pre class="literal-block">
+lastLargeSign <em>characters</em> <em>representation</em>
+</pre>
+<p>Unconditionally translate the characters no matter where they appear. Remove
+preceding whitespace if the previous word was matched by
+<a class="reference internal" href="#the-largesign-directive">The LargeSign Directive</a>.</p>
+</div>
+<div class="section" id="the-word-directive">
+<h3><a class="toc-backref" href="#id9">The Word Directive</a></h3>
+<pre class="literal-block">
+word <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're a word.</p>
+</div>
+<div class="section" id="the-joinword-directive">
+<h3><a class="toc-backref" href="#id10">The JoinWord Directive</a></h3>
+<pre class="literal-block">
+joinWord <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're a word. Remove the following whitespace if
+the first character after it is a letter.</p>
+</div>
+<div class="section" id="the-lowword-directive">
+<h3><a class="toc-backref" href="#id11">The LowWord Directive</a></h3>
+<pre class="literal-block">
+lowWord <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're a whitespace-bounded word.</p>
+</div>
+<div class="section" id="the-contraction-directive">
+<h3><a class="toc-backref" href="#id12">The Contraction Directive</a></h3>
+<pre class="literal-block">
+contraction <em>characters</em>
+</pre>
+<p>Prefix the characters with a letter sign (see
+<a class="reference internal" href="#the-letsign-directive">The LetSign Directive</a>) if they're a word.</p>
+</div>
+<div class="section" id="the-sufword-directive">
+<h3><a class="toc-backref" href="#id13">The SufWord Directive</a></h3>
+<pre class="literal-block">
+sufWord <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're either a word or at the beginning of a
+word.</p>
+</div>
+<div class="section" id="the-prfword-directive">
+<h3><a class="toc-backref" href="#id14">The PrfWord Directive</a></h3>
+<pre class="literal-block">
+prfWord <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're either a word or at the end of a word.</p>
+</div>
+<div class="section" id="the-begword-directive">
+<h3><a class="toc-backref" href="#id15">The BegWord Directive</a></h3>
+<pre class="literal-block">
+begWord <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're at the beginning of a word.</p>
+</div>
+<div class="section" id="the-begmidword-directive">
+<h3><a class="toc-backref" href="#id16">The BegMidWord Directive</a></h3>
+<pre class="literal-block">
+begMidWord <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're either at the beginning or in the middle of
+a word.</p>
+</div>
+<div class="section" id="the-midword-directive">
+<h3><a class="toc-backref" href="#id17">The MidWord Directive</a></h3>
+<pre class="literal-block">
+midWord <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're in the middle of a word.</p>
+</div>
+<div class="section" id="the-midendword-directive">
+<h3><a class="toc-backref" href="#id18">The MidEndWord Directive</a></h3>
+<pre class="literal-block">
+midEndWord <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're either in the middle or at the end of a
+word.</p>
+</div>
+<div class="section" id="the-endword-directive">
+<h3><a class="toc-backref" href="#id19">The EndWord Directive</a></h3>
+<pre class="literal-block">
+endWord <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're at the end of a word.</p>
+</div>
+<div class="section" id="the-prepunc-directive">
+<h3><a class="toc-backref" href="#id20">The PrePunc Directive</a></h3>
+<pre class="literal-block">
+prePunc <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're part of punctuation at the beginning of a
+word.</p>
+</div>
+<div class="section" id="the-postpunc-directive">
+<h3><a class="toc-backref" href="#id21">The PostPunc Directive</a></h3>
+<pre class="literal-block">
+postPunc <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're part of punctuation at the end of a word.</p>
+</div>
+<div class="section" id="the-begnum-directive">
+<h3><a class="toc-backref" href="#id22">The BegNum Directive</a></h3>
+<pre class="literal-block">
+begNum <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're at the beginning of a number.</p>
+</div>
+<div class="section" id="the-midnum-directive">
+<h3><a class="toc-backref" href="#id23">The MidNum Directive</a></h3>
+<pre class="literal-block">
+midNum <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're in the middle of a number.</p>
+</div>
+<div class="section" id="the-endnum-directive">
+<h3><a class="toc-backref" href="#id24">The EndNum Directive</a></h3>
+<pre class="literal-block">
+endNum <em>characters</em> <em>representation</em>
+</pre>
+<p>Translate the characters if they're at the end of a number.</p>
+</div>
+</div>
+<div class="section" id="character-classes">
+<h2><a class="toc-backref" href="#id25">Character Classes</a></h2>
+<div class="section" id="the-class-directive">
+<h3><a class="toc-backref" href="#id26">The Class Directive</a></h3>
+<pre class="literal-block">
+class <em>name</em> <em>characters</em>
+</pre>
+<p>Define a new character class. A character class may not be used until it has
+been defined.</p>
+</div>
+<div class="section" id="the-after-directive">
+<h3><a class="toc-backref" href="#id27">The After Directive</a></h3>
+<pre class="literal-block">
+after <em>class</em> <em>directive</em>
+</pre>
+<p>The specified directive is further constrained in that the matched character
+sequence must be immediately preceded by a character belonging to the specified
+class. If this directive is used more than once on the same line then the union
+of the characters in all the classes is used.</p>
+</div>
+<div class="section" id="the-before-directive">
+<h3><a class="toc-backref" href="#id28">The Before Directive</a></h3>
+<pre class="literal-block">
+before <em>class</em> <em>directive</em>
+</pre>
+<p>The specified directive is further constrained in that the matched character
+sequence must be immediately followed by a character belonging to the specified
+class. If this directive is used more than once on the same line then the union
+of the characters in all the classes is used.</p>
+</div>
+</div>
+<div class="section" id="indicator-specification">
+<h2><a class="toc-backref" href="#id29">Indicator Specification</a></h2>
+<div class="section" id="the-capsign-directive">
+<h3><a class="toc-backref" href="#id30">The CapSign Directive</a></h3>
+<pre class="literal-block">
+capSign <em>representation</em>
+</pre>
+<p>Define the symbol which capitalizes a single letter.</p>
+</div>
+<div class="section" id="the-begcaps-directive">
+<h3><a class="toc-backref" href="#id31">The BegCaps Directive</a></h3>
+<pre class="literal-block">
+begCaps <em>representation</em>
+</pre>
+<p>Define the symbol which begins a block of capital letters within a word.</p>
+</div>
+<div class="section" id="the-endcaps-directive">
+<h3><a class="toc-backref" href="#id32">The EndCaps Directive</a></h3>
+<pre class="literal-block">
+endCaps <em>representation</em>
+</pre>
+<p>Define the symbol which ends a block of capital letters within a word.</p>
+</div>
+<div class="section" id="the-letsign-directive">
+<h3><a class="toc-backref" href="#id33">The LetSign Directive</a></h3>
+<pre class="literal-block">
+letSign <em>representation</em>
+</pre>
+<p>Define the symbol which marks a letter which isn't part of a word.</p>
+</div>
+<div class="section" id="the-numsign-directive">
+<h3><a class="toc-backref" href="#id34">The NumSign Directive</a></h3>
+<pre class="literal-block">
+numSign <em>representation</em>
+</pre>
+<p>Define the symbol which marks the beginning of a number.</p>
+</div>
+</div>
+<div class="section" id="special-directives">
+<h2><a class="toc-backref" href="#id35">Special Directives</a></h2>
+<div class="section" id="the-replace-directive">
+<h3><a class="toc-backref" href="#id36">The Replace Directive</a></h3>
+<pre class="literal-block">
+replace <em>characters</em> <em>characters</em>
+</pre>
+<p>Translate the first character sequence into the second character sequence.
+The replacement characters are then recontracted.</p>
+</div>
+<div class="section" id="the-emoji-directive">
+<h3><a class="toc-backref" href="#id37">The Emoji Directive</a></h3>
+<pre class="literal-block">
+emoji <em>language</em>
+</pre>
+<p>Translate an emoji character sequence into its description in the specified
+language. The language operand is an ISO 639 two-letter language code.</p>
+<p>This directive only works if at least ICU version 57 is installed.</p>
+<p>This directive relies on data provided by the CLDR package.
+CLDR stands for the Common Locale Data Repository project.
+Knoqwn names for this package include:</p>
+<ul class="simple">
+<li>cldr-emoji-annotation</li>
+<li>unicode-cldr</li>
+</ul>
+<p>At the time of this writing, this project is maintained at
+<a class="reference external" href="https://github.com/unicode-org/cldr">https://github.com/unicode-org/cldr</a>.</p>
+</div>
+</div>
+<div class="section" id="standard-directives">
+<h2><a class="toc-backref" href="#id38">Standard Directives</a></h2>
+<div class="section" id="the-include-directive">
+<h3><a class="toc-backref" href="#id39">The Include Directive</a></h3>
+<pre class="literal-block">
+include <em>file</em> # <em>comment</em>
+</pre>
+<p>Use this directive to include the content of another file. It is recursive,
+which means that an included file can itself include yet another file.
+Care must be taken to ensure that an &quot;include loop&quot; is not created.</p>
+<dl class="docutils">
+<dt><em>file</em></dt>
+<dd>The file to be included. It may be either a relative or an absolute path. If
+relative, it is anchored at the directory containing the including file.</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="operands">
+<h2><a class="toc-backref" href="#id40">Operands</a></h2>
+<div class="section" id="the-string-operand">
+<h3><a class="toc-backref" href="#id41">The String Operand</a></h3>
+<p>A <em>string</em> operand may be specified as a non-whitespace sequence of:</p>
+<ul>
+<li><p class="first">Any single character other than a backslash (\\) or a white-space
+character.</p>
+</li>
+<li><p class="first">A backslash-prefixed special character. These are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<tbody valign="top">
+<tr><td>Sequence</td>
+<td>Meaning</td>
+</tr>
+<tr><td><tt class="docutils literal">\b</tt></td>
+<td>The backspace character.</td>
+</tr>
+<tr><td><tt class="docutils literal">\f</tt></td>
+<td>The formfeed character.</td>
+</tr>
+<tr><td><tt class="docutils literal">\n</tt></td>
+<td>The newline character.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">\o###</span></tt></td>
+<td>The three-digit octal representation of a character.</td>
+</tr>
+<tr><td><tt class="docutils literal">\r</tt></td>
+<td>The carriage return character.</td>
+</tr>
+<tr><td><tt class="docutils literal">\R</tt></td>
+<td>The Unicode replacement character.</td>
+</tr>
+<tr><td><tt class="docutils literal">\s</tt></td>
+<td>The space character.</td>
+</tr>
+<tr><td><tt class="docutils literal">\t</tt></td>
+<td>The horizontal tab character.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">\u####</span></tt></td>
+<td>The four-digit hexadecimal representation of a character.</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">\U########</span></tt></td>
+<td>The eight-digit hexadecimal representation of a character.</td>
+</tr>
+<tr><td><tt class="docutils literal">\v</tt></td>
+<td>The vertical tab character.</td>
+</tr>
+<tr><td><tt class="docutils literal">\x##</tt></td>
+<td>The two-digit hexadecimal representation of a character.</td>
+</tr>
+<tr><td><tt class="docutils literal">\X##</tt></td>
+<td>(the case of the X and of the digits isn't significant)</td>
+</tr>
+<tr><td><tt class="docutils literal">\&lt;name&gt;</tt></td>
+<td>The Unicode name of a character (use _ for space).</td>
+</tr>
+<tr><td><tt class="docutils literal">\{variable}</tt></td>
+<td>The value of a variable.</td>
+</tr>
+<tr><td><tt class="docutils literal">\\</tt></td>
+<td>A literal backslash.</td>
+</tr>
+<tr><td><tt class="docutils literal">\#</tt></td>
+<td>A literal number sign.</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</div>
+<div class="section" id="the-representation-operand">
+<h3><a class="toc-backref" href="#id42">The Representation Operand</a></h3>
+<p>The contracted braille representation of a character sequence. Braille cells
+are separated from one another by a minus (<tt class="docutils literal">-</tt>) sign. Each braille cell is
+specified as a sequence of one to eight dot numbers. A dot number is a digit
+within the range <tt class="docutils literal">1</tt>-<tt class="docutils literal">8</tt> as defined by the standard braille dot numbering
+convention (see <a class="reference external" href="BrailleDots.html">Braille Dots</a> for details). The special dot number
+<tt class="docutils literal">0</tt> means no dots, and may not be used in conjunction with any other dot
+numbers.</p>
+<p>The equals (<tt class="docutils literal">=</tt>) sign , when used all by itself, means that the <em>characters</em>
+operand of the contraction directive is to be written without any translation.</p>
+</div>
+</div>
+<div class="section" id="contraction-table-list">
+<h2><a class="toc-backref" href="#id43">Contraction Table List</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">name</th>
+<th class="head">description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>auto</td>
+<td>locale-based autoselection</td>
+</tr>
+<tr><td>af</td>
+<td>Afrikaans (contracted)</td>
+</tr>
+<tr><td>am</td>
+<td>Amharic (uncontracted)</td>
+</tr>
+<tr><td>de</td>
+<td>German</td>
+</tr>
+<tr><td>de-g0</td>
+<td>German (uncontracted)</td>
+</tr>
+<tr><td>de-g1</td>
+<td>German (basic contractions)</td>
+</tr>
+<tr><td>de-g2</td>
+<td>German (contracted)</td>
+</tr>
+<tr><td>de-1998</td>
+<td>German (contracted - 1998 standard)</td>
+</tr>
+<tr><td>de-2015</td>
+<td>German (contracted - 2015 standard)</td>
+</tr>
+<tr><td>en</td>
+<td>English</td>
+</tr>
+<tr><td>en_US</td>
+<td>English (United States)</td>
+</tr>
+<tr><td>en-ueb-g1</td>
+<td>English (Unified, uncontracted)</td>
+</tr>
+<tr><td>en-ueb-g2</td>
+<td>English (Unified, contracted)</td>
+</tr>
+<tr><td>en-us-g2</td>
+<td>English (United States, contracted)</td>
+</tr>
+<tr><td>es</td>
+<td>Spanish (contracted)</td>
+</tr>
+<tr><td>fr</td>
+<td>French</td>
+</tr>
+<tr><td>fr-g1</td>
+<td>French (uncontracted)</td>
+</tr>
+<tr><td>fr-g2</td>
+<td>French (contracted)</td>
+</tr>
+<tr><td>ha</td>
+<td>Hausa (contracted)</td>
+</tr>
+<tr><td>id</td>
+<td>Indonesian (contracted)</td>
+</tr>
+<tr><td>ipa</td>
+<td>International Phonetic Alphabet</td>
+</tr>
+<tr><td>ja</td>
+<td>Japanese (uncontracted)</td>
+</tr>
+<tr><td>ko</td>
+<td>Korean</td>
+</tr>
+<tr><td>ko-g0</td>
+<td>Korean (uncontracted)</td>
+</tr>
+<tr><td>ko-g1</td>
+<td>Korean (partially contracted)</td>
+</tr>
+<tr><td>ko-g2</td>
+<td>Korean (contracted)</td>
+</tr>
+<tr><td>lt</td>
+<td>Lithuanian (uncontracted)</td>
+</tr>
+<tr><td>mg</td>
+<td>Malagasy (contracted)</td>
+</tr>
+<tr><td>mun</td>
+<td>Munda (contracted)</td>
+</tr>
+<tr><td>nl</td>
+<td>Dutch (contracted)</td>
+</tr>
+<tr><td>ny</td>
+<td>Chichewa (contracted)</td>
+</tr>
+<tr><td>pt</td>
+<td>Portuguese (contracted)</td>
+</tr>
+<tr><td>ru</td>
+<td>Russian (contracted)</td>
+</tr>
+<tr><td>si</td>
+<td>Sinhalese (uncontracted)</td>
+</tr>
+<tr><td>sw</td>
+<td>Swahili (contracted)</td>
+</tr>
+<tr><td>th</td>
+<td>Thai (contracted)</td>
+</tr>
+<tr><td>zh_TW</td>
+<td>Chinese (Taiwan, uncontracted)</td>
+</tr>
+<tr><td>zu</td>
+<td>Zulu (contracted)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

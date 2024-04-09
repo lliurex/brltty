@@ -1,0 +1,107 @@
+Key Table: EuroBraille Esys 12,24
+=================================
+
+Notes
+* The eight dot keys of the braille keyboard are behind the cursor routing keys.
+* From left to right, they are: Dot7, Dot3, Dot2, Dot1, Dot4, Dot5, Dot6, Dot8.
+* The two keys of the braille keyboard in front of the braille cells, from left to right, are: Backspace, Space.
+* The cursor routing keys are the small, round buttons just behind the braille cells.
+* RoutingKey1 means pressing a cursor routing key once (a single click).
+* RoutingKey2 means pressing a cursor routing key twice quickly (a double click).
+* The joysticks are the small, round, five-way (left, right, up, down, press) controls to the left and right of the cursor routing keys.
+* The switches are three-way (left, right, press) controls on the front surface.
+* Switch1 is the left outer switch.
+* Switch2 is the right outer switch.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: LeftJoystickRight+RightJoystickDown
+* enter/leave command learn mode: LeftJoystickRight+RightJoystickUp
+* enter/leave preferences menu: LeftJoystickRight+Switch1Left+Switch1Right
+* describe character: RoutingKey2
+
+Cursor Functions
+* go to screen cursor: RightJoystickPress
+* bring screen cursor to character: RoutingKey1
+
+Vertical Navigation
+* go up one line: RightJoystickUp
+* go down one line: RightJoystickDown
+* go to beginning of top line: LeftJoystickUp
+* go to beginning of bottom line: LeftJoystickDown
+* go up to previous command prompt: LeftJoystickLeft
+* go down to next command prompt: LeftJoystickRight
+
+Horizontal Navigation
+* go backward one braille window:
+  + Switch1Left
+  + RightJoystickLeft
+* go forward one braille window:
+  + Switch1Right
+  + RightJoystickRight
+* go to beginning of line: LeftJoystickRight+Switch1Left
+* go to end of line: LeftJoystickRight+Switch1Right
+
+Clipboard Functions
+* start new clipboard at character: LeftJoystickDown+RightJoystickLeft, RoutingKey1
+* append to clipboard from character: LeftJoystickDown+RightJoystickUp, RoutingKey1
+* linear copy to character: LeftJoystickDown+RightJoystickRight, RoutingKey1
+* rectangular copy to character: LeftJoystickDown+RightJoystickDown, RoutingKey1
+* insert clipboard text after screen cursor: LeftJoystickDown+RightJoystickPress
+
+Configuration Functions
+* set track screen cursor on/off: LeftJoystickRight+Switch2Left+Switch2Right
+
+Speech Functions
+* stop speaking: LeftJoystickLeft+Switch1Left+Switch1Right
+* speak current line: LeftJoystickLeft+RightJoystickPress
+* speak from top of screen through current line: LeftJoystickLeft+RightJoystickUp
+* speak from current line through bottom of screen: LeftJoystickLeft+RightJoystickDown
+* decrease speaking volume: LeftJoystickLeft+RightJoystickLeft
+* increase speaking volume: LeftJoystickLeft+RightJoystickRight
+* decrease speaking rate: LeftJoystickLeft+Switch1Left
+* increase speaking rate: LeftJoystickLeft+Switch1Right
+
+Keyboard Input
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot7: Dot7
+* braille keyboard dot8: Dot8
+* braille keyboard space: Space
+* backspace key: Backspace
+* escape key: Space+Dots1245
+* cursor-left key: Space+Dot2
+* cursor-right key: Space+Dot5
+* cursor-up key: Space+Dot4
+* cursor-down key: Space+Dot6
+* page-up key: Space+Dots13
+* page-down key: Space+Dots46
+* home key: Space+Dots123
+* end key: Space+Dots456
+* insert key: Space+Dots135
+* delete key: Space+Dots36
+* function key #1: Backspace+Dot1
+* function key #2: Backspace+Dots12
+* function key #3: Backspace+Dots14
+* function key #4: Backspace+Dots145
+* function key #5: Backspace+Dots15
+* function key #6: Backspace+Dots124
+* function key #7: Backspace+Dots1245
+* function key #8: Backspace+Dots125
+* function key #9: Backspace+Dots24
+* function key #10: Backspace+Dots245
+* function key #11: Backspace+Dots13
+* function key #12: Backspace+Dots123
+* enter key: Backspace+Space
+* tab key: Space+Dots256
+* tab key + shift: Space+Dots236
+* cycle the Shift sticky input modifier (next, on, off): Space+Dot7
+* cycle the Control sticky input modifier (next, on, off): Space+Dots78
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Space+Dot8
+

@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -24,21 +24,21 @@ nsisName="NSIS"
 nsisLocation="/c/Program Files (x86)/NSIS"
 nsisDownload="http://nsis.sourceforge.net/"
 
-libusb0Name="LibUSB-Win32"
+libusb0Name="LibUSB (aka LibUSB-Win32)"
 libusb0Version="1.2.6.0"
 libusb0Location="/c/LibUSB-Win32"
 libusb0Files="bin/libusb-win32-bin-README.txt"
 libusb0Download="http://libusb-win32.sourceforge.net/"
 libusb0Pattern="usb0"
 
-libusb1Name="LibUSB-1.0"
+libusb1Name="LibUSB-1.0 (aka LibUSBx)"
 libusb1Version="1.0.18"
 libusb1Location="/c/LibUSB-1.0"
 libusb1Files="libusb-1.0.def"
 libusb1Download="http://www.libusb.org/wiki/windows_backend"
 libusb1Pattern="usb-1.0"
 
-winusbName="WinUSB"
+winusbName="LibUSB-1.0 WinUSB Coinstallers"
 winusbLocation="/c/WinUSB"
 winusbFiles="libusb_device.inf"
 winusbDownload="http://www.libusb.org/wiki/windows_backend"
@@ -85,15 +85,15 @@ verifyPackage() {
 
    if [ -z "${root}" ]
    then
-      logMessage warning "package location not defined: ${name}"
+      logWarning "package location not defined: ${name}"
       root=""
    elif [ ! -e "${root}" ]
    then
-      logMessage warning "directory not found: ${root}"
+      logWarning "directory not found: ${root}"
       root=""
    elif [ ! -d "${root}" ]
    then
-      logMessage warning "not a directory: ${root}"
+      logWarning "not a directory: ${root}"
       root=""
    else
       set -- $(getVariable "${package}Files")
@@ -105,7 +105,7 @@ verifyPackage() {
          local path="${prefix}/${file}"
 
          [ -e "${path}" ] || {
-            logMessage warning "${name} file not found: ${path}"
+            logWarning "${name} file not found: ${path}"
             root=""
          }
       done
@@ -137,7 +137,7 @@ verifyWindowsPackage() {
       local download="$(getVariable "${package}Download")"
       [ -z "${download}" ] || message="${message} (download from ${download})"
 
-      logMessage warning "${message}"
+      logWarning "${message}"
       return 1
    }
 
@@ -167,7 +167,7 @@ verifyMingwPackage() {
       local name="$(getVariable "${package}Name")"
       [ -z "${name}" ] || message="${message} ${name}"
 
-      logMessage warning "${message}"
+      logWarning "${message}"
       return 1
    }
 
@@ -211,7 +211,7 @@ verifyWindowsCommand() {
          message="${message} from ${download})"
       }
 
-      logMessage warning "${message}"
+      logWarning "${message}"
       return 1
    }
 
@@ -241,7 +241,7 @@ verifyMingwCommand() {
       local package="$(getVariable "${command}Package")"
       [ -z "${package}" ] || message="${message} (install package ${package})"
 
-      logMessage warning "${message}"
+      logWarning "${message}"
       return 1
    }
 

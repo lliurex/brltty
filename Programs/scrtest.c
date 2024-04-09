@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,7 +24,7 @@
 #include <ctype.h>
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "log.h"
 #include "parse.h"
 #include "scr.h"
@@ -37,16 +37,6 @@ static char *opt_screenDriver;
 static char *opt_driversDirectory;
 
 BEGIN_OPTION_TABLE(programOptions)
-  { .word = "drivers-directory",
-    .letter = 'D',
-    .flags = OPT_Hidden,
-    .argument = "directory",
-    .setting.string = &opt_driversDirectory,
-    .internal.setting = DRIVERS_DIRECTORY,
-    .internal.adjust = fixInstallPath,
-    .description = "Path to directory for loading drivers."
-  },
-
   { .word = "screen-driver",
     .letter = 'x',
     .argument = "driver",
@@ -82,7 +72,16 @@ BEGIN_OPTION_TABLE(programOptions)
     .setting.string = &opt_boxHeight,
     .description = "Height of region."
   },
-END_OPTION_TABLE
+
+  { .word = "drivers-directory",
+    .letter = 'D',
+    .argument = "directory",
+    .setting.string = &opt_driversDirectory,
+    .internal.setting = DRIVERS_DIRECTORY,
+    .internal.adjust = fixInstallPath,
+    .description = "Path to directory for loading drivers."
+  },
+END_OPTION_TABLE(programOptions)
 
 static int
 setRegion (
@@ -130,11 +129,16 @@ main (int argc, char *argv[]) {
   void *driverObject;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "scrtest",
-      .argumentsSummary = "[parameter=value ...]"
+
+      .usage = {
+        .purpose = strtext("Test a screen driver."),
+        .parameters = "[parameter=value ...]",
+      }
     };
+
     PROCESS_OPTIONS(descriptor, argc, argv);
   }
 

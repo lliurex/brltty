@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,16 +25,15 @@ extern "C" {
 
 typedef struct GioHandleStruct GioHandle;
 
-typedef struct {
-  void *address;
-  size_t size;
-} GioHidReportItemsData;
-
 typedef int GioDisconnectResourceMethod (GioHandle *handle);
+
+typedef GioEndpoint *GioGetChainedEndpointMethod (GioHandle *handle);
 
 typedef const char *MakeResourceIdentifierMethod (GioHandle *handle, char *buffer, size_t size);
 
 typedef char *GioGetResourceNameMethod (GioHandle *handle, int timeout);
+
+typedef void *GioGetResourceObjectMethod (GioHandle *handle);
 
 typedef ssize_t GioWriteDataMethod (GioHandle *handle, const void *data, size_t size, int timeout);
 
@@ -44,6 +43,8 @@ typedef ssize_t GioReadDataMethod (
   GioHandle *handle, void *buffer, size_t size,
   int initialTimeout, int subsequentTimeout
 );
+
+typedef int GioMonitorInputMethod (GioHandle *handle, AsyncMonitorCallback *callback, void *data);
 
 typedef int GioReconfigureResourceMethod (GioHandle *handle, const SerialParameters *parameters);
 
@@ -59,70 +60,62 @@ typedef ssize_t GioAskResourceMethod (
   void *buffer, uint16_t size, int timeout
 );
 
-typedef int GioGetHidReportItemsMethod (GioHandle *handle, GioHidReportItemsData *items, int timeout);
-
-typedef size_t GioGetHidReportSizeMethod (const GioHidReportItemsData *items, unsigned char report);
-
-typedef ssize_t GioSetHidReportMethod (
-  GioHandle *handle, unsigned char report,
-  const void *data, uint16_t size, int timeout
+typedef int GioGetHidReportSizeMethod (
+  GioHandle *handle, HidReportIdentifier identifier,
+  HidReportSize *size, int timeout
 );
 
 typedef ssize_t GioGetHidReportMethod (
-  GioHandle *handle, unsigned char report,
-  void *buffer, uint16_t size, int timeout
+  GioHandle *handle, HidReportIdentifier identifier,
+  unsigned char *buffer, size_t size, int timeout
 );
 
-typedef ssize_t GioSetHidFeatureMethod (
-  GioHandle *handle, unsigned char report,
-  const void *data, uint16_t size, int timeout
+typedef ssize_t GioSetHidReportMethod (
+  GioHandle *handle, HidReportIdentifier identifier,
+  const unsigned char *data, size_t size, int timeout
 );
 
 typedef ssize_t GioGetHidFeatureMethod (
-  GioHandle *handle, unsigned char report,
-  void *buffer, uint16_t size, int timeout
+  GioHandle *handle, HidReportIdentifier identifier,
+  unsigned char *buffer, size_t size, int timeout
 );
 
-typedef int GioMonitorInputMethod (GioHandle *handle, AsyncMonitorCallback *callback, void *data);
-
-typedef void *GioGetResourceObjectMethod (GioHandle *handle);
+typedef ssize_t GioSetHidFeatureMethod (
+  GioHandle *handle, HidReportIdentifier identifier,
+  const unsigned char *data, size_t size, int timeout
+);
 
 typedef struct {
   GioDisconnectResourceMethod *disconnectResource;
+  GioGetChainedEndpointMethod *getChainedEndpoint;
 
   MakeResourceIdentifierMethod *makeResourceIdentifier;
   GioGetResourceNameMethod *getResourceName;
+  GioGetResourceObjectMethod *getResourceObject;
 
   GioWriteDataMethod *writeData;
   GioAwaitInputMethod *awaitInput;
   GioReadDataMethod *readData;
-
+  GioMonitorInputMethod *monitorInput;
   GioReconfigureResourceMethod *reconfigureResource;
 
   GioTellResourceMethod *tellResource;
   GioAskResourceMethod *askResource;
 
-  GioGetHidReportItemsMethod *getHidReportItems;
   GioGetHidReportSizeMethod *getHidReportSize;
-
-  GioSetHidReportMethod *setHidReport;
   GioGetHidReportMethod *getHidReport;
-
-  GioSetHidFeatureMethod *setHidFeature;
+  GioSetHidReportMethod *setHidReport;
   GioGetHidFeatureMethod *getHidFeature;
-
-  GioMonitorInputMethod *monitorInput;
-
-  GioGetResourceObjectMethod *getResourceObject;
-} GioMethods;
+  GioSetHidFeatureMethod *setHidFeature;
+} GioHandleMethods;
 
 struct GioEndpointStruct {
   GioHandle *handle;
-  const GioMethods *methods;
+  const GioHandleMethods *handleMethods;
   GioOptions options;
   GioTypeIdentifier resourceType;
   unsigned int bytesPerSecond;
-  GioHidReportItemsData hidReportItems;
+  unsigned char referenceCount;
 
   struct {
     int error;
@@ -136,7 +129,7 @@ typedef int GioIsSupportedMethod (const GioDescriptor *descriptor);
 
 typedef const GioOptions *GioGetOptionsMethod (const GioDescriptor *descriptor);
 
-typedef const GioMethods *GioGetMethodsMethod (void);
+typedef const GioHandleMethods *GioGetHandleMethodsMethod (void);
 
 typedef GioHandle *GioConnectResourceMethod (
   const char *identifier,
@@ -149,7 +142,7 @@ typedef struct {
   GioIsSupportedMethod *isSupported;
 
   GioGetOptionsMethod *getOptions;
-  GioGetMethodsMethod *getMethods;
+  GioGetHandleMethodsMethod *getHandleMethods;
 
   GioConnectResourceMethod *connectResource;
   GioPrepareEndpointMethod *prepareEndpoint;
@@ -161,12 +154,19 @@ typedef struct {
 } GioProperties;
 
 extern const GioProperties *const gioProperties[];
-extern const GioProperties gioProperties_null;
 extern const GioProperties gioProperties_serial;
 extern const GioProperties gioProperties_usb;
 extern const GioProperties gioProperties_bluetooth;
+extern const GioProperties gioProperties_hid;
+extern const GioProperties gioProperties_null;
 
 extern void gioSetBytesPerSecond (GioEndpoint *endpoint, const SerialParameters *parameters);
+extern void gioSetApplicationData (GioEndpoint *endpoint, const void *data);
+
+static inline int
+gioIsHidSupported (const GioDescriptor *descriptor) {
+  return gioProperties_hid.private->isSupported(descriptor);
+}
 
 #ifdef __cplusplus
 }

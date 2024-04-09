@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -27,7 +27,7 @@
 
 static int
 usbSetAttribute_Belkin (UsbDevice *device, unsigned char request, unsigned int value, unsigned int index) {
-  logMessage(LOG_CATEGORY(USB_IO), "Belkin request: %02X %04X %04X", request, value, index);
+  logMessage(LOG_CATEGORY(SERIAL_IO), "Belkin request: %02X %04X %04X", request, value, index);
   return usbControlWrite(device, UsbControlRecipient_Device, UsbControlType_Vendor,
                          request, value, index, NULL, 0, 1000) != -1;
 }
@@ -36,7 +36,7 @@ static int
 usbSetBaud_Belkin (UsbDevice *device, unsigned int baud) {
   const unsigned int base = 230400;
   if (base % baud) {
-    logMessage(LOG_WARNING, "unsupported Belkin baud: %u", baud);
+    logUnsupportedBaud(baud);
     errno = EINVAL;
     return 0;
   }
@@ -57,7 +57,7 @@ usbSetFlowControl_Belkin (UsbDevice *device, SerialFlowControl flow) {
   BELKIN_FLOW(SERIAL_FLOW_INPUT_XON , 0X0100);
 #undef BELKIN_FLOW
   if (flow) {
-    logMessage(LOG_WARNING, "unsupported Belkin flow control: %02X", flow);
+    logUnsupportedFlowControl(flow);
   }
   return usbSetAttribute_Belkin(device, 16, value, 0);
 }
@@ -65,7 +65,7 @@ usbSetFlowControl_Belkin (UsbDevice *device, SerialFlowControl flow) {
 static int
 usbSetDataBits_Belkin (UsbDevice *device, unsigned int bits) {
   if ((bits < 5) || (bits > 8)) {
-    logMessage(LOG_WARNING, "unsupported Belkin data bits: %u", bits);
+    logUnsupportedDataBits(bits);
     errno = EINVAL;
     return 0;
   }
@@ -79,7 +79,7 @@ usbSetStopBits_Belkin (UsbDevice *device, SerialStopBits bits) {
     case SERIAL_STOP_1: value = 0; break;
     case SERIAL_STOP_2: value = 1; break;
     default:
-      logMessage(LOG_WARNING, "unsupported Belkin stop bits: %u", bits);
+      logUnsupportedStopBits(bits);
       errno = EINVAL;
       return 0;
   }
@@ -96,7 +96,7 @@ usbSetParity_Belkin (UsbDevice *device, SerialParity parity) {
     case SERIAL_PARITY_MARK:  value = 3; break;
     case SERIAL_PARITY_NONE:  value = 0; break;
     default:
-      logMessage(LOG_WARNING, "unsupported Belkin parity: %u", parity);
+      logUnsupportedParity(parity);
       errno = EINVAL;
       return 0;
   }

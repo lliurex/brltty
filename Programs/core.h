@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -39,9 +39,9 @@ extern "C" {
 #endif /* __cplusplus */
 
 extern int isContractedBraille (void);
-extern int isSixDotBraille (void);
+extern int isSixDotComputerBraille (void);
 extern void setContractedBraille (int contracted);
-extern void setSixDotBraille (int sixDot);
+extern void setSixDotComputerBraille (int sixDot);
 extern void onBrailleVariantUpdated (void);
 
 extern ScreenDescription scr;
@@ -95,8 +95,8 @@ extern int showBrailleText (const char *mode, const char *text, int minimumDelay
 extern char *opt_driversDirectory;
 extern char *opt_tablesDirectory;
 extern char *opt_textTable;
-extern char *opt_attributesTable;
 extern char *opt_contractionTable;
+extern char *opt_attributesTable;
 extern char *opt_keyboardTable;
 
 extern char *opt_brailleDevice;
@@ -134,18 +134,13 @@ typedef struct {
 extern void getTimeFormattingData (TimeFormattingData *fmt);
 extern STR_DECLARE_FORMATTER(formatBrailleTime, const TimeFormattingData *fmt);
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
 extern int isContracted;
-extern int contractedLength;
-extern int contractedStart;
-extern int contractedOffsets[0X100];
 extern int contractedTrack;
+extern BrailleRowDescriptor *getBrailleRowDescriptor (unsigned int row);
+extern int getCursorOffsetForContracting (void);
 
 extern int isContracting (void);
-extern int getUncontractedCursorOffset (int x, int y);
-extern int getContractedCursor (void);
 extern int getContractedLength (unsigned int outputLimit);
-#endif /* ENABLE_CONTRACTED_BRAILLE */
 
 extern ContractionTable *contractionTable;
 
@@ -155,11 +150,12 @@ extern ProgramExitStatus brlttyPrepare (int argc, char *argv[]);
 extern ProgramExitStatus brlttyStart (void);
 
 extern void setPreferences (const PreferenceSettings *newPreferences);
-extern int loadPreferences (void);
+extern int loadPreferences (int reset);
 extern int savePreferences (void);
 
 extern unsigned char getCursorDots (const unsigned char *setting);
 extern int setCursorDots (unsigned char *setting, unsigned char dots);
+extern unsigned char mapCursorDots (unsigned char dots);
 
 extern unsigned char getScreenCursorDots (void);
 extern int setScreenCursorDots (unsigned char dots);
@@ -168,6 +164,7 @@ extern unsigned char getSpeechCursorDots (void);
 extern int setSpeechCursorDots (unsigned char dots);
 
 extern BrailleDisplay brl;			/* braille driver reference */
+extern int haveBrailleDisplay (void);
 
 extern unsigned int textStart;
 extern unsigned int textCount;
@@ -195,22 +192,17 @@ extern void forgetDevices (void);
 extern void reconfigureBrailleWindow (void);
 extern int haveStatusCells (void);
 
-typedef enum {
-  SCT_WORD,
-  SCT_NONWORD,
-  SCT_SPACE
-} ScreenCharacterType;
-
-extern ScreenCharacterType getScreenCharacterType (const ScreenCharacter *character);
 extern int findFirstNonSpaceCharacter (const ScreenCharacter *characters, int count);
 extern int findLastNonSpaceCharacter (const ScreenCharacter *characters, int count);
 extern int isAllSpaceCharacters (const ScreenCharacter *characters, int count);
 
 #ifdef ENABLE_SPEECH_SUPPORT
-extern volatile SpeechSynthesizer spk;
+extern SpeechSynthesizer spk;
+extern int haveSpeechSynthesizer (void);
 extern int opt_quietIfNoBraille;
 
 extern int isAutospeakActive (void);
+extern unsigned int autospeakMinimumScreenContentQuality;
 
 extern void sayScreenCharacters (const ScreenCharacter *characters, size_t count, SayOptions options);
 extern void speakCharacters (const ScreenCharacter *characters, size_t count, int spell, int interrupt);

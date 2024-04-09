@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -56,14 +56,14 @@ static unsigned char latin2cp437[0X80] =
 #endif /* 0 */
 
 static int
-spk_construct (volatile SpeechSynthesizer *spk, char **parameters)
+spk_construct (SpeechSynthesizer *spk, char **parameters)
 {
   return 1;
 }
 
 
 static void
-spk_say (volatile SpeechSynthesizer *spk, const unsigned char *buffer, size_t len, size_t count, const unsigned char *attributes)
+spk_say (SpeechSynthesizer *spk, const unsigned char *buffer, size_t len, size_t count, const unsigned char *attributes)
 {
   static unsigned char pre_speech[] = { PRE_SPEECH };
   static unsigned char post_speech[] = { POST_SPEECH };
@@ -111,7 +111,7 @@ spk_say (volatile SpeechSynthesizer *spk, const unsigned char *buffer, size_t le
 
 
 static void
-spk_mute (volatile SpeechSynthesizer *spk)
+spk_mute (SpeechSynthesizer *spk)
 {
   unsigned char mute_seq[] = {MUTE_SEQ };
 
@@ -120,6 +120,6 @@ spk_mute (volatile SpeechSynthesizer *spk)
 
 
 static void
-spk_destruct (volatile SpeechSynthesizer *spk)
+spk_destruct (SpeechSynthesizer *spk)
 {
 }

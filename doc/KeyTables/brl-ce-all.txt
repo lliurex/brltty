@@ -1,0 +1,95 @@
+Key Table: Cebra
+================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: PadCenter1+PadLeft1
+* enter/leave command learn mode: PadCenter1+PadRight1
+* enter/leave preferences menu: PadCenter1+PadDown1
+* enter/leave status display: PadCenter1+PadUp1
+* set display mode attributes/text: RightUpper1+PadDown1
+* set screen image frozen/unfrozen: RightUpper1+PadUp1
+* describe character: PadCenter1+RoutingKey
+
+Cursor Functions
+* go to screen cursor: PadCenter1
+* go back after cursor tracking: LeftMiddle1+PadCenter1
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: LeftLower1+PadCenter1
+
+Vertical Navigation
+* go up one line: PadUp1
+* go down one line: PadDown1
+* go to top line: RightMiddle1+PadUp1
+* go to bottom line: RightMiddle1+PadDown1
+* go to beginning of top line: LeftUpper1
+* go to beginning of bottom line: LeftLower1
+* go up to nearest line with different content: RightUpper1
+* go down to nearest line with different content: RightLower1
+* go up to nearest line with different highlighting: LeftMiddle1+PadUp1
+* go down to nearest line with different highlighting: LeftMiddle1+PadDown1
+* go up to first line of paragraph: LeftUpper1+PadUp1
+* go down to first line of next paragraph: LeftUpper1+PadDown1
+* go up to previous command prompt: LeftLower1+PadUp1
+* go down to next command prompt: LeftLower1+PadDown1
+* go up to nearest line with less indent than character: PadUp1+RoutingKey
+* go down to nearest line with less indent than character: PadDown1+RoutingKey
+* go up to nearest line with different character: PadLeft1+RoutingKey
+* go down to nearest line with different character: PadRight1+RoutingKey
+
+Horizontal Navigation
+* go backward one braille window: PadLeft1
+* go forward one braille window: PadRight1
+* go backward skipping blank braille windows: LeftLower1+PadLeft1
+* go forward skipping blank braille windows: LeftLower1+PadRight1
+* go to beginning of line: LeftMiddle1+PadLeft1
+* go to end of line: LeftMiddle1+PadRight1
+* go left one character: RightMiddle1+PadLeft1
+* go right one character: RightMiddle1+PadRight1
+* place left end of braille window at character: LeftMiddle1+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: LeftUpper1+RoutingKey
+* append to clipboard from character: LeftLower1+RoutingKey
+* linear copy to character: RightUpper1+RoutingKey
+* rectangular copy to character: RightLower1+RoutingKey
+* insert clipboard text after screen cursor: LeftUpper1+PadCenter1
+* search backward for clipboard text: LeftUpper1+PadLeft1
+* search forward for clipboard text: LeftUpper1+PadRight1
+
+Configuration Functions
+* set autorepeat on/off: RightLower1+PadDown1
+* set text style 6-dot/8-dot: LeftMiddle1
+* set track screen cursor on/off: RightMiddle1
+* set screen cursor visibility on/off: RightUpper1+PadRight1
+* set attribute underlining on/off: RightUpper1+PadLeft1
+
+Menu Operations
+* save preferences to disk: RightLower1+PadRight1
+* restore preferences from disk: RightLower1+PadLeft1
+
+Speech Functions
+* set autospeak on/off: RightLower1+PadUp1
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: PadCenter1
+
+Horizontal Navigation
+* go backward one braille window: LeftMiddle1
+* go forward one braille window: RightMiddle1
+
+Menu Operations
+* go up to previous item: PadUp1
+* go down to next item: PadDown1
+* go up to first item: LeftUpper1
+* go down to last item: LeftLower1
+* select previous choice: PadLeft1
+* select next choice: PadRight1
+* save preferences to disk: RightLower1
+* restore preferences from disk: RightUpper1
+

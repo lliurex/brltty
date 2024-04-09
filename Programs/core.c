@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -52,6 +52,7 @@
 #include "cmd_toggle.h"
 #include "cmd_touch.h"
 
+#include "async_handle.h"
 #include "async_wait.h"
 #include "async_alarm.h"
 #include "async_event.h"
@@ -63,6 +64,7 @@
 #include "ctb.h"
 #include "routing.h"
 #include "utf8.h"
+#include "unicode.h"
 #include "scr.h"
 #include "update.h"
 #include "ses.h"
@@ -77,6 +79,12 @@
 #endif /* ENABLE_SPEECH_SUPPORT */
 
 BrailleDisplay brl;                        /* For the Braille routines */
+
+int
+haveBrailleDisplay (void) {
+  return braille->definition.code != noBraille.definition.code;
+}
+
 ScreenDescription scr;
 SessionEntry *ses = NULL;
 
@@ -93,14 +101,6 @@ unsigned int fullWindowShift;                /* Full window horizontal distance 
 unsigned int halfWindowShift;                /* Half window horizontal distance */
 unsigned int verticalWindowShift;                /* Window vertical distance */
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
-int isContracted = 0;
-int contractedLength;
-int contractedStart;
-int contractedOffsets[0X100];
-int contractedTrack = 0;
-#endif /* ENABLE_CONTRACTED_BRAILLE */
-
 int
 isContractedBraille (void) {
   return (prefs.brailleVariant == bvContracted6)
@@ -109,7 +109,7 @@ isContractedBraille (void) {
 }
 
 int
-isSixDotBraille (void) {
+isSixDotComputerBraille (void) {
   return (prefs.brailleVariant == bvComputer6)
       || (prefs.brailleVariant == bvContracted6)
       ;
@@ -124,12 +124,12 @@ setBrailleVariant (int contracted, int sixDot) {
 
 void
 setContractedBraille (int contracted) {
-  setBrailleVariant(contracted, isSixDotBraille());
+  setBrailleVariant(contracted, isSixDotComputerBraille());
   api.updateParameter(BRLAPI_PARAM_LITERARY_BRAILLE, 0);
 }
 
 void
-setSixDotBraille (int sixDot) {
+setSixDotComputerBraille (int sixDot) {
   setBrailleVariant(isContractedBraille(), sixDot);
   api.updateParameter(BRLAPI_PARAM_COMPUTER_BRAILLE_CELL_SIZE, 0);
 }
@@ -210,9 +210,7 @@ postprocessCommand (void *state, int command, const CommandEntry *cmd, int handl
       ses->motx = ses->winx;
       ses->moty = ses->winy;
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
       isContracted = 0;
-#endif /* ENABLE_CONTRACTED_BRAILLE */
     }
 
     if (cmd) {
@@ -731,7 +729,6 @@ placeBrailleWindowHorizontally (int x) {
 
 void
 placeRightEdge (int column) {
-#ifdef ENABLE_CONTRACTED_BRAILLE
   if (isContracting()) {
     ses->winx = 0;
 
@@ -743,9 +740,7 @@ placeRightEdge (int column) {
       if (end == ses->winx) break;
       ses->winx = end;
     }
-  } else
-#endif /* ENABLE_CONTRACTED_BRAILLE */
-  {
+  } else {
     ses->winx = column / textCount * textCount;
   }
 }
@@ -776,42 +771,57 @@ moveBrailleWindowRight (unsigned int amount) {
 
 int
 shiftBrailleWindowLeft (unsigned int amount) {
-#ifdef ENABLE_CONTRACTED_BRAILLE
   if (isContracting()) {
     int reference = ses->winx;
-    int first = 0;
-    int last = ses->winx - 1;
+    if (!reference) return 0;
 
-    while (first <= last) {
-      int end = (ses->winx = (first + last) / 2) + getContractedLength(amount);
+    {
+      int from = 0;
+      int to = ses->winx;
 
-      if (end < reference) {
-        first = ses->winx + 1;
-      } else {
-        last = ses->winx - 1;
+      while (from < to) {
+        int end = (ses->winx = ((from + to) / 2)) + getContractedLength(amount);
+
+        if (end < reference) {
+          from = ses->winx + 1;
+        } else {
+          to = ses->winx;
+        }
+      }
+
+      if (!(ses->winx = from)) return 1;
+    }
+
+    ScreenCharacter characters[reference];
+    readScreenRow(ses->winy, reference, characters);
+    int x = ses->winx;
+
+    if (!isWordBreak(characters, x-1)) {
+      int wasIdeographic = isIdeographicCharacter(characters[x-1].text);
+
+      for (int i=x; i<reference; i+=1) {
+        int isIdeographic = isIdeographicCharacter(characters[i].text);
+
+        if (!(isIdeographic && wasIdeographic)) {
+          if (!isWordBreak(characters, i)) {
+            wasIdeographic = isIdeographic;
+            continue;
+          }
+        }
+
+        x = i;
+        break;
       }
     }
 
-    if (first > 0) {
-      ScreenCharacter characters[reference];
-      readScreenRow(ses->winy, reference, characters);
-
-      if (!isWordBreak(characters, first-1)) {
-        while (!isWordBreak(characters, first)) first += 1;
-      }
-
-      while (isWordBreak(characters, first)) first += 1;
+    while (x < reference) {
+      if (!isWordBreak(characters, x)) break;
+      x += 1;
     }
 
-    if (first == reference) {
-      if (!first) return 0;
-      first -= 1;
-    }
-
-    ses->winx = first;
+    if (x < reference) ses->winx = x;
     return 1;
   }
-#endif /* ENABLE_CONTRACTED_BRAILLE */
 
   if (prefs.wordWrap) {
     if (ses->winx < 1) return 0;
@@ -824,12 +834,9 @@ shiftBrailleWindowLeft (unsigned int amount) {
 
 int
 shiftBrailleWindowRight (unsigned int amount) {
-#ifdef ENABLE_CONTRACTED_BRAILLE
   if (isContracting()) {
     amount = getContractedLength(amount);
-  } else
-#endif /* ENABLE_CONTRACTED_BRAILLE */
-  if (prefs.wordWrap) {
+  } else if (prefs.wordWrap) {
     amount = getWordWrapLength(ses->winy, ses->winx, amount);
   }
 
@@ -838,10 +845,16 @@ shiftBrailleWindowRight (unsigned int amount) {
 
 void
 slideBrailleWindowVertically (int y) {
-  if (y < ses->winy) {
+  if ((y < ses->winy) || (y >= (int)(ses->winy + brl.textRows))) {
+    y -= brl.textRows / 2;
+
+    {
+      int maxy = scr.rows - brl.textRows;
+      if (y > maxy) y = maxy;
+    }
+
+    if (y < 0) y = 0;
     ses->winy = y;
-  } else if (y >= (int)(ses->winy + brl.textRows)) {
-    ses->winy = y - (brl.textRows - 1);
   }
 }
 
@@ -893,41 +906,39 @@ trackScreenCursor (int place) {
   ses->dctx = 0;
   ses->dcty = 0;
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
   if (isContracted) {
-    ses->winy = scr.posy;
-    if (scr.posx < ses->winx) {
-      int length = scr.posx + 1;
-      ScreenCharacter characters[length];
-      int onspace = 1;
-      readScreenRow(ses->winy, length, characters);
+    slideBrailleWindowVertically(scr.posy);
+    contractedTrack = 1;
 
-      while (length) {
-        if ((iswspace(characters[--length].text) != 0) != onspace) {
-          if (onspace) {
-            onspace = 0;
-          } else {
-            ++length;
-            break;
-          }
-        }
+    if (scr.posx > ses->winx) {
+      if (scr.posx < (ses->winx + getContractedLength(textCount))) {
+        return 1;
       }
-
-      ses->winx = length;
     }
 
-    contractedTrack = 1;
+    ses->winx = scr.posx;
+    shiftBrailleWindowLeft(halfWindowShift);
     return 1;
   }
-#endif /* ENABLE_CONTRACTED_BRAILLE */
 
   if (place && !isWithinBrailleWindow(scr.posx, scr.posy)) {
     placeBrailleWindowHorizontally(scr.posx);
   }
 
   if (prefs.slidingBrailleWindow) {
+    {
+      int width = scr.cols;
+      ScreenCharacter characters[width];
+      readScreenRow(scr.posy, width, characters);
+
+      int column = findLastNonSpaceCharacter(characters, width);
+      if (column < 0) column = 0;
+      if (column < textCount) ses->winx = 0;
+    }
+
     int reset = textCount * 3 / 10;
     int trigger = prefs.eagerSlidingBrailleWindow? textCount*3/20: 0;
+    if (scr.posx == ses->winx) trigger = 1;
 
     if (scr.posx < (ses->winx + trigger)) {
       ses->winx = MAX(scr.posx-reset, 0);
@@ -951,20 +962,12 @@ trackScreenCursor (int place) {
   return 1;
 }
 
-ScreenCharacterType
-getScreenCharacterType (const ScreenCharacter *character) {
-  if (iswspace(character->text)) return SCT_SPACE;
-  if (iswalnum(character->text)) return SCT_WORD;
-  if (wcschr(WS_C("_"), character->text)) return SCT_WORD;
-  return SCT_NONWORD;
-}
-
 int
 findFirstNonSpaceCharacter (const ScreenCharacter *characters, int count) {
   int index = 0;
 
   while (index < count) {
-    if (getScreenCharacterType(&characters[index]) != SCT_SPACE) return index;
+    if (!iswspace(characters[index].text)) return index;
     index += 1;
   }
 
@@ -976,7 +979,7 @@ findLastNonSpaceCharacter (const ScreenCharacter *characters, int count) {
   int index = count;
 
   while (index > 0)
-    if (getScreenCharacterType(&characters[--index]) != SCT_SPACE)
+    if (!iswspace(characters[--index].text))
       return index;
 
   return -1;
@@ -988,7 +991,12 @@ isAllSpaceCharacters (const ScreenCharacter *characters, int count) {
 }
 
 #ifdef ENABLE_SPEECH_SUPPORT
-volatile SpeechSynthesizer spk;
+SpeechSynthesizer spk;
+
+int
+haveSpeechSynthesizer (void) {
+  return speech->definition.code != noSpeech.definition.code;
+}
 
 void
 trackSpeech (void) {
@@ -1003,9 +1011,9 @@ trackSpeech (void) {
 
 int
 isAutospeakActive (void) {
-  if (speech->definition.code == noSpeech.definition.code) return 0;
+  if (!haveSpeechSynthesizer()) return 0;
   if (prefs.autospeak) return 1;
-  if (braille->definition.code != noBraille.definition.code) return 0;
+  if (haveBrailleDisplay()) return 0;
   return !opt_quietIfNoBraille;
 }
 
@@ -1017,14 +1025,10 @@ sayScreenCharacters (const ScreenCharacter *characters, size_t count, SayOptions
   unsigned char attributes[count];
   unsigned char *a = attributes;
 
-  {
-    unsigned int i;
-
-    for (i=0; i<count; i+=1) {
-      const ScreenCharacter *character = &characters[i];
-      *t++ = character->text;
-      *a++ = character->attributes;
-    }
+  for (unsigned int i=0; i<count; i+=1) {
+    const ScreenCharacter *character = &characters[i];
+    *t++ = character->text;
+    *a++ = character->attributes;
   }
 
   sayWideCharacters(&spk, text, attributes, count, options);
@@ -1051,6 +1055,7 @@ speakCharacters (const ScreenCharacter *characters, size_t count, int spell, int
     }
   } else if (count == 1) {
     wchar_t character = characters[0].text;
+    unsigned char attributes = characters[0].attributes;
     const char *prefix = NULL;
 
     if (iswupper(character)) {
@@ -1069,31 +1074,47 @@ speakCharacters (const ScreenCharacter *characters, size_t count, int spell, int
           sayOptions |= SAY_OPT_HIGHER_PITCH;
           break;
       }
+    } else if (iswpunct(character)) {
+      sayOptions |= SAY_OPT_ALL_PUNCTUATION;
     }
 
     if (prefix) {
-      wchar_t buffer[0X100];
-      size_t length = makeWcharsFromUtf8(prefix, buffer, ARRAY_COUNT(buffer));
+      wchar_t textBuffer[0X100];
+      size_t length = makeWcharsFromUtf8(prefix, textBuffer, ARRAY_COUNT(textBuffer));
 
-      buffer[length++] = WC_C(' ');
-      buffer[length++] = character;
-      sayWideCharacters(&spk, buffer, NULL, length, sayOptions);
+      textBuffer[length++] = WC_C(' ');
+      textBuffer[length++] = character;
+
+      unsigned char attributesBuffer[length];
+      memset(attributesBuffer, SCR_COLOUR_DEFAULT, length);
+      attributesBuffer[length-1] = attributes;
+
+      sayWideCharacters(&spk, textBuffer, attributesBuffer, length, sayOptions);
     } else {
-      if (iswpunct(character)) sayOptions |= SAY_OPT_ALL_PUNCTUATION;
-      sayWideCharacters(&spk, &character, NULL, 1, sayOptions);
+      sayWideCharacters(&spk, &character, &attributes, 1, sayOptions);
     }
   } else if (spell) {
-    wchar_t string[count * 2];
-    size_t length = 0;
-    unsigned int index = 0;
+    size_t length = count * 2;
+    wchar_t textBuffer[length];
+    unsigned char attributesBuffer[length];
 
-    while (index < count) {
-      string[length++] = characters[index++].text;
-      string[length++] = WC_C(' ');
+    wchar_t *text = textBuffer;
+    unsigned char *attributes = attributesBuffer;
+
+    const ScreenCharacter *character = characters;
+    const ScreenCharacter *end = character + count;
+
+    while (character < end) {
+      *text++ = character->text;
+      *attributes++ = character->attributes;
+
+      *text++ = WC_C(' ');
+      *attributes++ = SCR_COLOUR_DEFAULT;
+
+      character += 1;
     }
 
-    string[length] = WC_C('\0');
-    sayWideCharacters(&spk, string, NULL, length, sayOptions);
+    sayWideCharacters(&spk, textBuffer, attributesBuffer, length-1, sayOptions);
   } else {
     sayScreenCharacters(characters, count, sayOptions);
   }
@@ -1131,44 +1152,42 @@ speakIndent (const ScreenCharacter *characters, int count, int evenIfNoIndent) {
 }
 #endif /* ENABLE_SPEECH_SUPPORT */
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
 int
 isContracting (void) {
   return isContractedBraille() && contractionTable;
 }
 
 int
-getUncontractedCursorOffset (int x, int y) {
-  return ((y == ses->winy) && (x >= ses->winx) && (x < scr.cols))?
-         (x - ses->winx):
-         BRL_NO_CURSOR;
-}
-
-int
-getContractedCursor (void) {
-  int offset = getUncontractedCursorOffset(scr.posx, scr.posy);
-
-  return ((offset != BRL_NO_CURSOR) && !ses->hideScreenCursor)?
-         offset:
-         CTB_NO_CURSOR;
-}
-
-int
 getContractedLength (unsigned int outputLimit) {
   int inputLength = scr.cols - ses->winx;
   wchar_t inputBuffer[inputLength];
+  readScreenText(ses->winx, ses->winy, inputLength, 1, inputBuffer);
 
   int outputLength = outputLimit;
   unsigned char outputBuffer[outputLength];
 
-  readScreenText(ses->winx, ses->winy, inputLength, 1, inputBuffer);
-  contractText(contractionTable,
-               inputBuffer, &inputLength,
-               outputBuffer, &outputLength,
-               NULL, getContractedCursor());
+  int offsetCount = inputLength;
+  int outputOffsets[offsetCount + 1];
+
+  contractText(
+    contractionTable, NULL,
+    inputBuffer, &inputLength,
+    outputBuffer, &outputLength,
+    outputOffsets, getCursorOffsetForContracting()
+  );
+
+  for (int length=0; length<inputLength; length+=1) {
+    int offset = outputOffsets[length];
+
+    if (offset != CTB_NO_OFFSET) {
+      if (offset >= outputLimit) {
+        return length;
+      }
+    }
+  }
+
   return inputLength;
 }
-#endif /* ENABLE_CONTRACTED_BRAILLE */
 
 int
 showScreenCursor (void) {
@@ -1307,9 +1326,9 @@ handleBrailleDriverFailed (const void *data) {
   restartBrailleDriver();
 }
 
-static volatile unsigned int programTerminationRequestCount;
-static volatile time_t programTerminationRequestTime;
-static volatile int programTerminationRequestSignal;
+static time_t programTerminationRequestTime;
+static int programTerminationRequestSignal;
+static volatile sig_atomic_t programTerminationRequestCount;
 
 typedef struct {
   UnmonitoredConditionHandler *handler;
@@ -1327,9 +1346,13 @@ ASYNC_CONDITION_TESTER(checkUnmonitoredConditions) {
   }
 
   if (programTerminationRequestCount) {
+    // This is a memory read barrier to ensure that the most recent
+    // time and number for the program termination signal are seen.
+    __sync_synchronize();
+
     logMessage(LOG_CATEGORY(ASYNC_EVENTS),
-      "program termination requested: Count=%u Signal=%d",
-      programTerminationRequestCount, programTerminationRequestSignal
+      "program termination requested: Count=%ld Signal=%d",
+      (long)programTerminationRequestCount, programTerminationRequestSignal
     );
 
     static const WaitResult result = WAIT_STOP;
@@ -1518,16 +1541,20 @@ runCoreTask (CoreTaskCallback *callback, void *data, int wait) {
 ASYNC_SIGNAL_HANDLER(handleProgramTerminationRequest) {
   time_t now = time(NULL);
 
-  if (difftime(now, programTerminationRequestTime) > PROGRAM_TERMINATION_REQUEST_RESET_SECONDS) {
-    programTerminationRequestCount = 0;
-  }
+  int reset = difftime(now, programTerminationRequestTime)
+            > PROGRAM_TERMINATION_REQUEST_RESET_SECONDS;
 
-  if (++programTerminationRequestCount > PROGRAM_TERMINATION_REQUEST_COUNT_THRESHOLD) {
-    exit(1);
-  }
+  int count = reset? 0: programTerminationRequestCount;
+  if (++count > PROGRAM_TERMINATION_REQUEST_COUNT_THRESHOLD) exit(1);
 
   programTerminationRequestTime = now;
   programTerminationRequestSignal = signalNumber;
+
+  // This is a memory write barrier to ensure that the time and number
+  // for this signal will be visible before its count is adjusted.
+  __sync_synchronize();
+
+  programTerminationRequestCount = count;
 }
 
 #ifdef SIGCHLD
@@ -1549,9 +1576,9 @@ brlttyConstruct (int argc, char *argv[]) {
     if (exitStatus != PROG_EXIT_SUCCESS) return exitStatus;
   }
 
-  programTerminationRequestCount = 0;
   programTerminationRequestTime = time(NULL);
   programTerminationRequestSignal = 0;
+  programTerminationRequestCount = 0;
 
 #ifdef ASYNC_CAN_BLOCK_SIGNALS
   asyncBlockObtainableSignals();
@@ -1607,8 +1634,11 @@ brlttyConstruct (int argc, char *argv[]) {
 
 int
 brlttyDestruct (void) {
+  if (prefs.saveOnExit) savePreferences();
+
   suspendUpdates();
   stopCoreTasks();
+
   endProgram();
   endCommandQueue();
   return 1;

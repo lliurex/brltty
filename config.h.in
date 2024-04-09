@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -172,6 +172,10 @@ extern "C" {
 #undef USE_PKG_BLUETOOTH_LINUX
 #undef USE_PKG_BLUETOOTH_WINDOWS
 
+/* Define only one of the following HID I/O packages. */
+#undef USE_PKG_HID_NONE
+#undef USE_PKG_HID_LINUX
+
 /* Define only one of the following I/O ports packages. */
 #undef USE_PKG_PORTS_NONE
 #undef USE_PKG_PORTS_GLIBC
@@ -230,6 +234,9 @@ extern "C" {
 
 /* Define this if the function pause exists. */
 #undef HAVE_PAUSE
+
+/* Define this if the function readlink exists. */
+#undef HAVE_READLINK
 
 /* Define this if the function realpath exists. */
 #undef HAVE_REALPATH
@@ -393,6 +400,9 @@ extern "C" {
 /* Define this if the header file X11/keysym.h exists. */
 #undef HAVE_X11_KEYSYM_H
 
+/* Define this if the function XSetIOErrorExitHandler exists.  */
+#undef HAVE_XSETIOERROREXITHANDLER
+
 /* Define this if the function atspi_get_a11y_bus exists in atspi2. */
 #undef HAVE_ATSPI_GET_A11Y_BUS
 
@@ -462,17 +472,23 @@ extern "C" {
 /* Define this if the compiler doesn't fully support the inline keyword. */
 #undef inline
 
-/* Define this if the printf format attribute is supported. */
-#undef HAVE_ATTRIBUTE_FORMAT_PRINTF
+/* Define this if the packed variable attribute is supported. */
+#undef HAVE_VAR_ATTRIBUTE_PACKED
 
-/* Define this if the noreturn attribute is supported. */
-#undef HAVE_ATTRIBUTE_NORETURN
+/* Define this if the unused variable attribute is supported. */
+#undef HAVE_VAR_ATTRIBUTE_UNUSED
 
-/* Define this if the packed attribute is supported. */
-#undef HAVE_ATTRIBUTE_PACKED
+/* Define this if the format function attribute is supported. */
+#undef HAVE_FUNC_ATTRIBUTE_FORMAT
 
-/* Define this if the unused attribute is supported. */
-#undef HAVE_ATTRIBUTE_UNUSED
+/* Define this if the format_arg function attribute is supported. */
+#undef HAVE_FUNC_ATTRIBUTE_FORMAT_ARG
+
+/* Define this if the noreturn function attribute is supported. */
+#undef HAVE_FUNC_ATTRIBUTE_NORETURN
+
+/* Define this if the unused function attribute is supported. */
+#undef HAVE_FUNC_ATTRIBUTE_UNUSED
 
 /* Define this if the __alignof__ operator is supported. */
 #undef HAVE_OPERATOR_ALIGNOF
@@ -519,11 +535,11 @@ extern "C" {
 /* Define this to be a string containing the name of the default preferences file. */
 #undef PREFERENCES_FILE
 
+/* Define this to be a string containing the path to the helper commands directory. */
+#undef COMMANDS_DIRECTORY
+
 /* Define this to be a string containing the path to the drivers directory. */
 #undef DRIVERS_DIRECTORY
-
-/* Define this to be a string containing the path to the scripts directory. */
-#undef SCRIPTS_DIRECTORY
 
 /* Define this to be a string containing the path to the tables directory. */
 #undef TABLES_DIRECTORY
@@ -564,14 +580,14 @@ extern "C" {
 /* Define this to be a string containing the default parameters for the screen driver(s). */
 #undef SCREEN_PARAMETERS
 
-/* Define this to be a string containing the path to the default text table. */
+/* Define this to be a string containing the name of the default text table. */
 #undef TEXT_TABLE
 
-/* Define this to be a string containing the path to the default attributes table. */
-#undef ATTRIBUTES_TABLE
+/* Define this to be a string containing the name of the default contraction table. */
+#undef CONTRACTION_TABLE
 
-/* Define this to include contraction table support. */
-#undef ENABLE_CONTRACTED_BRAILLE
+/* Define this to be a string containing the name of the default attributes table. */
+#undef ATTRIBUTES_TABLE
 
 /* Define this to include speech synthesizer and text-to-speech engine support. */
 #undef ENABLE_SPEECH_SUPPORT
@@ -593,6 +609,9 @@ extern "C" {
 
 /* Define this if the application programming interface is to be included. */
 #undef ENABLE_API
+
+/* Define this if the application programming interface is to be fuzzed. */
+#undef ENABLE_API_FUZZING
 
 /* Define this to be a string containing the default parameters for the application programming interface. */
 #undef API_PARAMETERS
@@ -618,11 +637,11 @@ extern "C" {
 /* Define this to be a string containing the subdirectory for text tables. */
 #undef TEXT_TABLES_SUBDIRECTORY
 
-/* Define this to be a string containing the subdirectory for attributes tables. */
-#undef ATTRIBUTES_TABLES_SUBDIRECTORY
-
 /* Define this to be a string containing the subdirectory for contraction tables. */
 #undef CONTRACTION_TABLES_SUBDIRECTORY
+
+/* Define this to be a string containing the subdirectory for attributes tables. */
+#undef ATTRIBUTES_TABLES_SUBDIRECTORY
 
 /* Define this to be a string containing the subdirectory for keyboard tables. */
 #undef KEYBOARD_TABLES_SUBDIRECTORY
@@ -636,17 +655,17 @@ extern "C" {
 /* Define this to be a string containing the extension for text subtables. */
 #undef TEXT_SUBTABLE_EXTENSION
 
-/* Define this to be a string containing the extension for attributes tables. */
-#undef ATTRIBUTES_TABLE_EXTENSION
-
-/* Define this to be a string containing the extension for attributes subtables. */
-#undef ATTRIBUTES_SUBTABLE_EXTENSION
-
 /* Define this to be a string containing the extension for contraction tables. */
 #undef CONTRACTION_TABLE_EXTENSION
 
 /* Define this to be a string containing the extension for contraction subtables. */
 #undef CONTRACTION_SUBTABLE_EXTENSION
+
+/* Define this to be a string containing the extension for attributes tables. */
+#undef ATTRIBUTES_TABLE_EXTENSION
+
+/* Define this to be a string containing the extension for attributes subtables. */
+#undef ATTRIBUTES_SUBTABLE_EXTENSION
 
 /* Define this to be a string containing the extension for key tables. */
 #undef KEY_TABLE_EXTENSION

@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -22,8 +22,13 @@ umask 077
 
 . "`dirname "${0}"`/brltty-prologue.sh"
 . "${programDirectory}/brltty-config.sh"
-
 defaultKeyFile="${BRLTTY_EXECUTE_ROOT}${BRLAPI_KEY_FILE}"
+
+showProgramUsagePurpose() {
+cat <<END_OF_PROGRAM_USAGE_PURPOSE
+Generate the BrlAPI access key.
+END_OF_PROGRAM_USAGE_PURPOSE
+}
 
 addProgramOption f string.path keyFile "the BrlAPI key file" "${defaultKeyFile}"
 parseProgramArguments "${@}"
@@ -37,18 +42,18 @@ try() {
 
 [ -n "${keyFile}" ] || keyFile="${defaultKeyFile}"
 
-logMessage step "trying mcookie"
+logNote "trying mcookie"
 try mcookie >"${keyFile}"
 
 for device in "/dev/urandom" "/dev/random"
 do
    [ -c "${device}" -a -r "${device}" ] && {
-      logMessage step "trying ${device}"
+      logNote "trying ${device}"
       try dd if="${device}" of="${keyFile}" bs=32 count=1
    }
 done
 
-logMessage step "trying \$RANDOM"
+logNote "trying \$RANDOM"
 key="${RANDOM}"
 [ -n "${key}" ] && try echo >"${keyFile}" "${key}"
 

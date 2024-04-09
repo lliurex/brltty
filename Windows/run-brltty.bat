@@ -1,12 +1,14 @@
 @echo off
 
 setlocal
-set programFolder=%~dp0
-set logFile=%programFolder%brltty.log
+set programDirectory=%~dp0
+call "%programDirectory%setvars-brltty"
 set logLevel=info
 
-echo Running BRLTTY. When done, close this window ^(for example, by using the
-echo Alt-Space menu^). The log file is: %logFile%
+if "%programName%" == "%packageName%" (
+   echo Running %programName%. When done, close this window ^(for example, by using the
+   echo Alt-Space menu^). The log file is "%logFile%".
+)
 
-"%programFolder%bin\brltty" -n "-L%logFile%" "-l%logLevel%" %*
+"%programDirectory%bin\brltty" -n -N -U "%updatableDirectory%" -W "%writableDirectory%" -P "%pidFile%" -L "%logFile%" -l "%logLevel%" -f "%configurationFile%" %*
 exit /B %ERRORLEVEL%

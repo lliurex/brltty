@@ -1,0 +1,69 @@
+Key Table: HIMS Braille Sense (with QWERTY keyboard)
+====================================================
+
+Notes
+* Function Key Bindings
+  + Function-b: skip blank windows on/off
+  + Function-c: cursor show/hide
+  + Function-d: display mode attributes/text
+  + Function-f: screen image frozen/unfrozen
+  + Function-h: help screen enter/leave
+  + Function-i: skip identical lines on/off
+  + Function-l: learn mode enter/leave
+  + Function-p: preferences menu enter/leave
+  + Function-s: status line enter/leave
+  + Function-t: cursor tracking on/off
+  + Function-u: highlight underline on/off
+  + Function-v: bring cursor to current line
+  + Function-w: sliding window on/off
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: LeftScrollUp+LeftScrollDown+RightScrollUp+RightScrollDown
+* enter/leave preferences menu: RightScrollUp+RightScrollDown+LeftScrollDown
+* enter/leave status display: RightScrollUp+RightScrollDown+LeftScrollUp
+* set display mode attributes/text: LeftScrollDown+RightScrollDown
+* set screen image frozen/unfrozen: LeftScrollDown+RightScrollUp
+
+Cursor Functions
+* go to screen cursor or go back after cursor tracking: RightScrollUp+RightScrollDown
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: LeftScrollUp
+* go down one line: LeftScrollDown
+* go to top line: LeftScrollUp+LeftScrollDown+RightScrollUp
+* go to bottom line: LeftScrollUp+LeftScrollDown+RightScrollDown
+
+Horizontal Navigation
+* go backward one braille window: RightScrollUp
+* go forward one braille window: RightScrollDown
+* go to beginning of line: LeftScrollUp+LeftScrollDown
+
+Configuration Functions
+* set text style 6-dot/8-dot: LeftScrollUp+RightScrollDown
+* set track screen cursor on/off: LeftScrollUp+RightScrollUp
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: RightScrollUp+RightScrollDown+LeftScrollDown
+
+Horizontal Navigation
+* go backward one braille window: LeftScrollUp+LeftScrollDown
+* go forward one braille window: RightScrollUp+RightScrollDown
+
+Menu Operations
+* go up to previous item: LeftScrollUp
+* go down to next item: LeftScrollDown
+* go up to first item: LeftScrollUp+RightScrollUp
+* go down to last item: LeftScrollDown+RightScrollDown
+* select previous choice: RightScrollUp
+* select next choice: RightScrollDown
+* go to previous menu level: RightScrollUp+RightScrollDown+LeftScrollUp
+* save preferences to disk: LeftScrollUp+LeftScrollDown+RightScrollDown
+* restore preferences from disk: LeftScrollUp+LeftScrollDown+RightScrollUp
+

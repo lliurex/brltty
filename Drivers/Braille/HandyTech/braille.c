@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,8 +23,9 @@
 #include <time.h>
 #include <errno.h>
 
-#include "bitfield.h"
 #include "log.h"
+#include "parameters.h"
+#include "bitfield.h"
 #include "parse.h"
 #include "timing.h"
 #include "async_wait.h"
@@ -87,12 +88,21 @@ BEGIN_KEY_NAME_TABLE(rockers)
   KEY_NAME_ENTRY(HT_KEY_Down, "RightRockerBottom"),
 END_KEY_NAME_TABLE
 
+BEGIN_KEY_NAME_TABLE(navigation)
+  KEY_NAME_ENTRY(HT_KEY_Escape, "Display1"),
+  KEY_NAME_ENTRY(HT_KEY_LeftCenter, "Display2"),
+  KEY_NAME_ENTRY(HT_KEY_Return, "Display3"),
+
+  KEY_NAME_ENTRY(HT_KEY_Up, "Display4"),
+  KEY_NAME_ENTRY(HT_KEY_RightCenter, "Display5"),
+  KEY_NAME_ENTRY(HT_KEY_Down, "Display6"),
+END_KEY_NAME_TABLE
+
 BEGIN_KEY_NAME_TABLE(joystick)
   KEY_NAME_ENTRY(HT_KEY_JoystickLeft, "Left"),
   KEY_NAME_ENTRY(HT_KEY_JoystickRight, "Right"),
   KEY_NAME_ENTRY(HT_KEY_JoystickUp, "Up"),
   KEY_NAME_ENTRY(HT_KEY_JoystickDown, "Down"),
-
   KEY_NAME_ENTRY(HT_KEY_JoystickAction, "Action"),
 END_KEY_NAME_TABLE
 
@@ -182,6 +192,14 @@ BEGIN_KEY_NAME_TABLES(ab)
   KEY_NAME_TABLE(brailleStar),
 END_KEY_NAME_TABLES
 
+BEGIN_KEY_NAME_TABLES(ab_s)
+  KEY_NAME_TABLE(routing),
+  KEY_NAME_TABLE(dots),
+  KEY_NAME_TABLE(rockers),
+  KEY_NAME_TABLE(brailleStar),
+  KEY_NAME_TABLE(joystick),
+END_KEY_NAME_TABLES
+
 BEGIN_KEY_NAME_TABLES(cb40)
   KEY_NAME_TABLE(routing),
   KEY_NAME_TABLE(dots),
@@ -247,7 +265,7 @@ END_KEY_NAME_TABLES
 BEGIN_KEY_NAME_TABLES(ac4)
   KEY_NAME_TABLE(routing),
   KEY_NAME_TABLE(dots),
-  KEY_NAME_TABLE(rockers),
+  KEY_NAME_TABLE(navigation),
   KEY_NAME_TABLE(brailleStar),
   KEY_NAME_TABLE(joystick),
 END_KEY_NAME_TABLES
@@ -281,6 +299,7 @@ DEFINE_KEY_TABLE(bs80)
 DEFINE_KEY_TABLE(brln)
 DEFINE_KEY_TABLE(as40)
 DEFINE_KEY_TABLE(ab)
+DEFINE_KEY_TABLE(ab_s)
 DEFINE_KEY_TABLE(cb40)
 DEFINE_KEY_TABLE(wave)
 DEFINE_KEY_TABLE(easy)
@@ -300,6 +319,7 @@ BEGIN_KEY_TABLE_LIST
   &KEY_TABLE_DEFINITION(brln),
   &KEY_TABLE_DEFINITION(as40),
   &KEY_TABLE_DEFINITION(ab),
+  &KEY_TABLE_DEFINITION(ab_s),
   &KEY_TABLE_DEFINITION(cb40),
   &KEY_TABLE_DEFINITION(wave),
   &KEY_TABLE_DEFINITION(easy),
@@ -451,7 +471,7 @@ static const ModelEntry modelTable[] = {
     .statusCells = 0,
     .keyTableDefinition = &KEY_TABLE_DEFINITION(easy),
     .interpretByte = interpretByte_key,
-    .writeCells = writeCells_statusAndText
+    .writeCells = writeCells_Evolution
   },
 
   { .identifier = HT_MODEL_ActiveBraille,
@@ -568,6 +588,20 @@ static const ModelEntry modelTable[] = {
   }
 };
 
+static const ModelEntry modelEntry_ab_s = {
+  .identifier = HT_MODEL_ActiveBraille,
+  .name = "Active Braille S",
+  .textCells = 40,
+  .statusCells = 0,
+  .keyTableDefinition = &KEY_TABLE_DEFINITION(ab_s),
+  .interpretByte = interpretByte_key,
+  .writeCells = writeCells_Evolution,
+  .setBrailleFirmness = setBrailleFirmness,
+  .setTouchSensitivity = setTouchSensitivity_ActiveBraille,
+  .hasATC = 1,
+  .hasTime = 1
+};
+
 #define MAXIMUM_TEXT_CELLS   160
 #define MAXIMUM_STATUS_CELLS 4
 
@@ -594,6 +628,7 @@ struct BrailleDataStruct {
 
 /* USB IO */
 #include "io_usb.h"
+#include "usb_hid.h"
 
 #define HT_HID_REPORT_TIMEOUT 100
 
@@ -610,12 +645,12 @@ typedef enum {
   HT_HID_CMD_FlushBuffers = 0X01, /* flush input and output buffers */
 } HtHidCommand;
 
-static size_t hidReportSize_OutData;
-static size_t hidReportSize_InData;
-static size_t hidReportSize_InCommand;
-static size_t hidReportSize_OutVersion;
-static size_t hidReportSize_OutBaud;
-static size_t hidReportSize_InBaud;
+static size_t hidOutDataSize = 0;
+static size_t hidInDataSize = 0;
+static size_t hidInCommandSize = 0;
+static size_t hidOutVersionSize = 0;
+static size_t hidOutBaudSize = 0;
+static size_t hidInBaudSize = 0;
 
 static uint16_t hidFirmwareVersion;
 static unsigned char *hidInputReport = NULL;
@@ -640,27 +675,10 @@ getHidReport (
   return result;
 }
 
-typedef struct {
-  HT_HidReportNumber number;
-  size_t *size;
-} ReportEntry;
-
-static int
-getHidReportSizes (BrailleDisplay *brl, const ReportEntry *table) {
-  const ReportEntry *report = table;
-
-  while (report->number) {
-    if (!(*report->size = gioGetHidReportSize(brl->gioEndpoint, report->number))) return 0;
-    report += 1;
-  }
-
-  return 1;
-}
-
 static int
 allocateHidInputBuffer (void) {
-  if (hidReportSize_OutData) {
-    if ((hidInputReport = malloc(hidReportSize_OutData))) {
+  if (hidOutDataSize) {
+    if ((hidInputReport = malloc(hidOutDataSize))) {
       hidInputLength = 0;
       hidInputOffset = 0;
       return 1;
@@ -672,18 +690,26 @@ allocateHidInputBuffer (void) {
   return 0;
 }
 
+static void
+deallocateHidInputBuffer (void) {
+  if (hidInputReport) {
+    free(hidInputReport);
+    hidInputReport = NULL;
+  }
+}
+
 static int
 getHidFirmwareVersion (BrailleDisplay *brl) {
   hidFirmwareVersion = 0;
 
-  if (hidReportSize_OutVersion) {
-    unsigned char report[hidReportSize_OutVersion];
+  if (hidOutVersionSize) {
+    unsigned char report[hidOutVersionSize];
     ssize_t result = gioGetHidReport(brl->gioEndpoint,
                                      HT_HID_RPT_OutVersion, report, sizeof(report));
 
     if (result > 0) {
       hidFirmwareVersion = (report[1] << 8) | report[2];
-      logMessage(LOG_INFO, "Firmware Version: %u.%u", report[1], report[2]);
+      logMessage(LOG_INFO, "USB-HID Firmware Version: %u.%u", report[1], report[2]);
       return 1;
     }
   }
@@ -693,8 +719,8 @@ getHidFirmwareVersion (BrailleDisplay *brl) {
 
 static int
 executeHidFirmwareCommand (BrailleDisplay *brl, HtHidCommand command) {
-  if (hidReportSize_InCommand) {
-    unsigned char report[hidReportSize_InCommand];
+  if (hidInCommandSize) {
+    unsigned char report[hidInCommandSize];
 
     report[0] = HT_HID_RPT_InCommand;
     report[1] = command;
@@ -721,23 +747,25 @@ typedef struct {
 
 static int
 initializeUsbSession2 (BrailleDisplay *brl) {
-  static const ReportEntry reportTable[] = {
-    {.number=HT_HID_RPT_OutData, .size=&hidReportSize_OutData},
-    {.number=HT_HID_RPT_InData, .size=&hidReportSize_InData},
-    {.number=HT_HID_RPT_InCommand, .size=&hidReportSize_InCommand},
-    {.number=HT_HID_RPT_OutVersion, .size=&hidReportSize_OutVersion},
-    {.number=HT_HID_RPT_OutBaud, .size=&hidReportSize_OutBaud},
-    {.number=HT_HID_RPT_InBaud, .size=&hidReportSize_InBaud},
-    {.number=0}
+  static const BrailleReportSizeEntry reportTable[] = {
+    {.identifier=HT_HID_RPT_OutData, .input=&hidOutDataSize},
+    {.identifier=HT_HID_RPT_InData, .output=&hidInDataSize},
+    {.identifier=HT_HID_RPT_InCommand, .output=&hidInCommandSize},
+    {.identifier=HT_HID_RPT_OutVersion, .input=&hidOutVersionSize},
+    {.identifier=HT_HID_RPT_OutBaud, .input=&hidOutBaudSize},
+    {.identifier=HT_HID_RPT_InBaud, .output=&hidInBaudSize},
+    {.identifier=0}
   };
 
-  if (getHidReportSizes(brl, reportTable)) {
+  if (getBrailleReportSizes(brl, reportTable)) {
     if (allocateHidInputBuffer()) {
       if (getHidFirmwareVersion(brl)) {
         if (executeHidFirmwareCommand(brl, HT_HID_CMD_FlushBuffers)) {
           return 1;
         }
       }
+
+      deallocateHidInputBuffer();
     }
   }
 
@@ -748,22 +776,22 @@ static int
 awaitUsbInput2 (
   UsbDevice *device, const UsbChannelDefinition *definition, int milliseconds
 ) {
-  if (hidReportSize_OutData) {
-    TimePeriod period;
-
+  if (hidOutDataSize) {
     if (hidInputOffset < hidInputLength) return 1;
+
+    TimePeriod period;
     startTimePeriod(&period, milliseconds);
 
     while (1) {
       ssize_t result = getHidReport(device, definition, HT_HID_RPT_OutData,
-                                    hidInputReport, hidReportSize_OutData);
+                                    hidInputReport, hidOutDataSize);
 
       if (result == -1) return 0;
       hidInputOffset = 0;
       if (hidInputLength > 0) return 1;
 
       if (afterTimePeriod(&period, NULL)) break;
-      asyncWait(10);
+      asyncWait(BRAILLE_DRIVER_INPUT_POLL_INTERVAL);
     }
   }
 
@@ -807,9 +835,9 @@ writeUsbData2 (
   const unsigned char *buffer = data;
   int index = 0;
 
-  if (hidReportSize_InData) {
+  if (hidInDataSize) {
     while (size) {
-      unsigned char report[hidReportSize_InData];
+      unsigned char report[hidInDataSize];
       unsigned char count = MIN(size, (sizeof(report) - 2));
       int result;
 
@@ -844,13 +872,13 @@ static const UsbOperations usbOperations2 = {
 
 static int
 initializeUsbSession3 (BrailleDisplay *brl) {
-  static const ReportEntry reportTable[] = {
-    {.number=HT_HID_RPT_OutData, .size=&hidReportSize_OutData},
-    {.number=HT_HID_RPT_InData, .size=&hidReportSize_InData},
-    {.number=0}
+  static const BrailleReportSizeEntry reportTable[] = {
+    {.identifier=HT_HID_RPT_OutData, .input=&hidOutDataSize},
+    {.identifier=HT_HID_RPT_InData, .output=&hidInDataSize},
+    {.identifier=0}
   };
 
-  return getHidReportSizes(brl, reportTable);
+  return getBrailleReportSizes(brl, reportTable);
 }
 
 static ssize_t
@@ -861,9 +889,9 @@ writeUsbData3 (
   const unsigned char *buffer = data;
   int index = 0;
 
-  if (hidReportSize_InData) {
+  if (hidInDataSize) {
     while (size) {
-      unsigned char report[hidReportSize_InData];
+      unsigned char report[hidInDataSize];
       const unsigned char count = MIN(size, (sizeof(report) - 2));
       int result;
 
@@ -888,7 +916,7 @@ filterUsbInput3 (UsbInputFilterData *data) {
   unsigned char *buffer = data->buffer;
 
   if ((data->length >= 2) &&
-      (data->length == hidReportSize_OutData) && 
+      (data->length == hidOutDataSize) && 
       (buffer[0] == HT_HID_RPT_OutData) &&
       (buffer[1] <= (data->length - 2))) {
     data->length = buffer[1];
@@ -950,7 +978,7 @@ verifyPacket (
       break;
   }
 
-  if ((size == *length) && (bytes[0] == HT_PKT_Extended) && (byte != SYN)) {
+  if ((size == *length) && (bytes[0] == HT_PKT_Extended) && (byte != ASCII_SYN)) {
     return BRL_PVR_INVALID;
   }
 
@@ -1008,6 +1036,34 @@ identifyModel (BrailleDisplay *brl, unsigned char identifier) {
     return 0;
   }
 
+  if (brl->data->model->identifier == HT_MODEL_ActiveBraille) {
+    GioEndpoint *endpoint = brl->gioEndpoint;
+    char *serialNumber = NULL;
+
+    switch (gioGetResourceType(endpoint)) {
+      case GIO_TYPE_USB: {
+        UsbChannel *channel = gioGetResourceObject(endpoint);
+        serialNumber = usbGetSerialNumber(channel->device, 1000);
+        break;
+      }
+
+      default: {
+        serialNumber = gioGetResourceName(endpoint);
+        break;
+      }
+    }
+
+    if (serialNumber) {
+      const char *slash = strchr(serialNumber, '/');
+
+      if (slash) {
+        if (slash[1] == 'S') brl->data->model = &modelEntry_ab_s;
+      }
+
+      free(serialNumber);
+    }
+  }
+
   logMessage(LOG_INFO, "Detected %s: %d data %s, %d status %s.",
              brl->data->model->name,
              brl->data->model->textCells, (brl->data->model->textCells == 1)? "cell": "cells",
@@ -1044,7 +1100,7 @@ writeExtendedPacket (
   packet.fields.data.extended.length = size + 1; /* type byte is included */
   packet.fields.data.extended.type = type;
   if (data) memcpy(packet.fields.data.extended.data.bytes, data, size);
-  packet.fields.data.extended.data.bytes[size] = SYN;
+  packet.fields.data.extended.data.bytes[size] = ASCII_SYN;
   size += 5; /* EXT, ID, LEN, TYPE, ..., SYN */
   return writeBrailleMessage(brl, NULL, type, &packet, size);
 }
@@ -1330,6 +1386,7 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
   descriptor.usb.options.requestTimeout = 100;
 
   descriptor.bluetooth.channelNumber = 1;
+  descriptor.bluetooth.discoverChannel = 1;
 
   if (connectBrailleResource(brl, identifier, &descriptor, initializeSession)) {
     return 1;
@@ -1407,10 +1464,7 @@ brl_destruct (BrailleDisplay *brl) {
     brl->data = NULL;
   }
 
-  if (hidInputReport) {
-    free(hidInputReport);
-    hidInputReport = NULL;
-  }
+  deallocateHidInputBuffer();
 }
 
 static int
@@ -1436,7 +1490,7 @@ writeCells_Bookworm (BrailleDisplay *brl) {
 
   buffer[0] = 0X01;
   memcpy(buffer+1, brl->data->rawData, brl->data->model->textCells);
-  buffer[sizeof(buffer)-1] = SYN;
+  buffer[sizeof(buffer)-1] = ASCII_SYN;
   return writeBrailleMessage(brl, NULL, 0X01, buffer, sizeof(buffer));
 }
 

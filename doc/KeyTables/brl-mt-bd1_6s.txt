@@ -1,0 +1,48 @@
+Key Table: Metec BD I (with 6 keys and status cells)
+====================================================
+
+Default Bindings
+----------------
+
+Special Modes
+* describe character: RightDown+RoutingKey
+
+Cursor Functions
+* go to screen cursor: RightSelect+RightUp+RightDown
+* go back after cursor tracking: LeftSelect+LeftUp+LeftDown
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: RightUp
+* go down one line: RightDown
+* go to top line: LeftUp
+* go to bottom line: LeftDown
+
+Horizontal Navigation
+* go backward one braille window: LeftSelect
+* go forward one braille window: RightSelect
+* place left end of braille window at character: LeftDown+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: LeftUp+RoutingKey
+* linear copy to character: RightUp+RoutingKey
+* rectangular copy to character: RightSelect+RoutingKey
+* append characters to clipboard: LeftSelect+RoutingKey
+
+Configuration Functions
+* set text style 6-dot/8-dot: StatusKey.1
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: LeftSelect+LeftUp+LeftDown
+
+Menu Operations
+* go up to previous item: RightUp
+* go down to next item: RightDown
+* go up to first item: LeftUp
+* go down to last item: LeftDown
+* select previous choice: LeftSelect
+* select next choice: RightSelect
+

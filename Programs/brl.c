@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,6 +31,7 @@
 #include "ttb.h"
 #include "ktb.h"
 #include "queue.h"
+#include "async_handle.h"
 
 void
 constructBrailleDisplay (BrailleDisplay *brl) {
@@ -57,18 +58,20 @@ constructBrailleDisplay (BrailleDisplay *brl) {
   brl->writeDelay = 0;
 
   brl->buffer = NULL;
-  brl->quality = 0;
-  brl->isCoreBuffer = 0;
-
   brl->bufferResized = NULL;
-  brl->resizeRequired = 0;
+
+  brl->rowDescriptors.array = NULL;
+  brl->rowDescriptors.size = 0;
 
   brl->cursor = BRL_NO_CURSOR;
+  brl->quality = 0;
 
   brl->noDisplay = 0;
   brl->hasFailed = 0;
   brl->isOffline = 0;
   brl->isSuspended = 0;
+  brl->isCoreBuffer = 0;
+  brl->resizeRequired = 0;
   brl->hideCursor = 0;
 
   brl->acknowledgements.messages = NULL;
@@ -76,6 +79,30 @@ constructBrailleDisplay (BrailleDisplay *brl) {
   brl->acknowledgements.missing.timeout = BRAILLE_MESSAGE_ACKNOWLEDGEMENT_TIMEOUT;
   brl->acknowledgements.missing.count = 0;
   brl->acknowledgements.missing.limit = BRAILLE_MESSAGE_UNACKNOWLEDGEED_LIMIT;
+}
+
+static void
+destructContractionCache (ContractionCache *cache) {
+  if (cache->input.characters) {
+    free(cache->input.characters);
+    cache->input.characters = NULL;
+  }
+
+  if (cache->output.cells) {
+    free(cache->output.cells);
+    cache->output.cells = NULL;
+  }
+
+  if (cache->offsets.array) {
+    free(cache->offsets.array);
+    cache->offsets.array = NULL;
+  }
+}
+
+static void
+destructBrailleRowDescriptor (BrailleRowDescriptor *brd) {
+  destructContractionCache(&brd->contracted.cache);
+  if (brd->contracted.offsets.array) free(brd->contracted.offsets.array);
 }
 
 void
@@ -93,6 +120,16 @@ destructBrailleDisplay (BrailleDisplay *brl) {
   if (brl->keyTable) {
     destroyKeyTable(brl->keyTable);
     brl->keyTable = NULL;
+  }
+
+  if (brl->rowDescriptors.array) {
+    while (brl->rowDescriptors.size > 0) {
+      BrailleRowDescriptor *brd = &brl->rowDescriptors.array[--brl->rowDescriptors.size];
+      destructBrailleRowDescriptor(brd);
+    }
+
+    free(brl->rowDescriptors.array);
+    brl->rowDescriptors.array = NULL;
   }
 
   if (brl->buffer) {

@@ -1,0 +1,65 @@
+Key Table: Pegasus
+==================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Status1
+* enter/leave command learn mode: Status2
+* enter/leave preferences menu: LeftControl+End
+* enter/leave status display: LeftControl+Escape
+* set display mode attributes/text: LeftShift+Left
+* set screen image frozen/unfrozen: LeftControl+Enter
+* describe character: RightShift+Down, RoutingKey
+
+Cursor Functions
+* go to screen cursor or go back after cursor tracking: End
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: LeftShift+Down
+
+Vertical Navigation
+* go up one line: Up
+* go down one line: Down
+* go to beginning of top line: Home
+* go to beginning of bottom line: Enter
+* go up to nearest line with different content: LeftControl+Up
+* go down to nearest line with different content: LeftControl+Down
+* go up to nearest line with different highlighting: LeftControl+Left
+* go down to nearest line with different highlighting: LeftControl+Right
+* go up to first line of paragraph: LeftShift+End
+* go down to first line of next paragraph: LeftShift+Escape
+* go up to previous command prompt: LeftShift+Home
+* go down to next command prompt: LeftShift+Enter
+
+Horizontal Navigation
+* go backward one braille window: Left
+* go forward one braille window: Right
+* place left end of braille window at character: RightShift+Left, RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: RightShift+Home, RoutingKey
+* append to clipboard from character: RightShift+Enter, RoutingKey
+* linear copy to character: RightShift+End, RoutingKey
+* rectangular copy to character: RightShift+Escape, RoutingKey
+* insert clipboard text after screen cursor: RightShift+Right
+
+Configuration Functions
+* set text style 6-dot/8-dot: LeftShift+Right
+* set track screen cursor on/off: Escape
+
+Menu Bindings
+-------------
+
+Horizontal Navigation
+* go backward one braille window: Left
+* go forward one braille window: Right
+
+Menu Operations
+* go up to previous item: Up
+* go down to next item: Down
+* go up to first item: Home
+* go down to last item: Enter
+* select previous choice: End
+* select next choice: Escape
+

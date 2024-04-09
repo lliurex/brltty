@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -35,15 +35,19 @@
 #include "io_generic.h"
 #include "gio_internal.h"
 #include "io_usb.h"
+#include "usb_hid.h"
+#include "hid_items.h"
 
 struct GioHandleStruct {
   UsbChannel *channel;
   GioUsbConnectionProperties properties;
+  HidItemsDescriptor *hidItems;
 };
 
 static int
 disconnectUsbResource (GioHandle *handle) {
   usbCloseChannel(handle->channel);
+  if (handle->hidItems) free(handle->hidItems);
   free(handle);
   return 1;
 }
@@ -58,6 +62,11 @@ getUsbResourceName (GioHandle *handle, int timeout) {
   UsbChannel *channel = handle->channel;
 
   return usbGetProduct(channel->device, timeout);
+}
+
+static void *
+getUsbResourceObject (GioHandle *handle) {
+  return handle->channel;
 }
 
 static ssize_t
@@ -145,6 +154,19 @@ readUsbData (
 }
 
 static int
+monitorUsbInput (GioHandle *handle, AsyncMonitorCallback *callback, void *data) {
+  if (!GIO_USB_INPUT_MONITOR_DISABLE) {
+    UsbChannel *channel = handle->channel;
+    unsigned char endpoint = channel->definition->inputEndpoint;
+
+    if (!endpoint) return 0;
+    return usbMonitorInputEndpoint(channel->device, endpoint, callback, data);
+  }
+
+  return 0;
+}
+
+static int
 reconfigureUsbResource (GioHandle *handle, const SerialParameters *parameters) {
   UsbChannel *channel = handle->channel;
 
@@ -175,117 +197,95 @@ askUsbResource (
                         request, value, index, buffer, size, timeout);
 }
 
+static const HidItemsDescriptor *
+getUsbHidItems (GioHandle *handle, int timeout) {
+  if (!handle->hidItems) {
+    UsbChannel *channel = handle->channel;
+
+    handle->hidItems = usbHidGetItems(
+      channel->device, channel->definition->interface,
+      0, timeout
+    );
+  }
+
+  return handle->hidItems;
+}
+
 static int
-getUsbHidReportItems (GioHandle *handle, GioHidReportItemsData *items, int timeout) {
-  UsbChannel *channel = handle->channel;
-  unsigned char *address;
-  ssize_t result = usbHidGetItems(channel->device,
-                                  channel->definition->interface, 0,
-                                  &address, timeout);
-
-  if (!address) return 0;
-  items->address = address;
-  items->size = result;
-  return 1;
-}
-
-static size_t
-getUsbHidReportSize (const GioHidReportItemsData *items, unsigned char report) {
-  size_t size;
-  if (usbHidGetReportSize(items->address, items->size, report, &size)) return size;
-  errno = ENOSYS;
-  return 0;
-}
-
-static ssize_t
-setUsbHidReport (
-  GioHandle *handle, unsigned char report,
-  const void *data, uint16_t size, int timeout
+getUsbHidReportSize (
+  GioHandle *handle, HidReportIdentifier identifier,
+  HidReportSize *size, int timeout
 ) {
-  UsbChannel *channel = handle->channel;
-
-  return usbHidSetReport(channel->device, channel->definition->interface,
-                         report, data, size, timeout);
+  const HidItemsDescriptor *items = getUsbHidItems(handle, timeout);
+  if (!items) return 0;
+  return hidReportSize(items, identifier, size);
 }
 
 static ssize_t
 getUsbHidReport (
-  GioHandle *handle, unsigned char report,
-  void *buffer, uint16_t size, int timeout
+  GioHandle *handle, HidReportIdentifier identifier,
+  unsigned char *buffer, size_t size, int timeout
 ) {
   UsbChannel *channel = handle->channel;
 
   return usbHidGetReport(channel->device, channel->definition->interface,
-                         report, buffer, size, timeout);
+                         identifier, buffer, size, timeout);
 }
 
 static ssize_t
-setUsbHidFeature (
-  GioHandle *handle, unsigned char report,
-  const void *data, uint16_t size, int timeout
+setUsbHidReport (
+  GioHandle *handle, HidReportIdentifier identifier,
+  const unsigned char *data, size_t size, int timeout
 ) {
   UsbChannel *channel = handle->channel;
 
-  return usbHidSetFeature(channel->device, channel->definition->interface,
-                          report, data, size, timeout);
+  return usbHidSetReport(channel->device, channel->definition->interface,
+                         identifier, data, size, timeout);
 }
 
 static ssize_t
 getUsbHidFeature (
-  GioHandle *handle, unsigned char report,
-  void *buffer, uint16_t size, int timeout
+  GioHandle *handle, HidReportIdentifier identifier,
+  unsigned char *buffer, size_t size, int timeout
 ) {
   UsbChannel *channel = handle->channel;
 
   return usbHidGetFeature(channel->device, channel->definition->interface,
-                          report, buffer, size, timeout);
+                          identifier, buffer, size, timeout);
 }
 
-static int
-monitorUsbInput (GioHandle *handle, AsyncMonitorCallback *callback, void *data) {
-  if (!GIO_USB_INPUT_MONITOR_DISABLE) {
-    UsbChannel *channel = handle->channel;
-    unsigned char endpoint = channel->definition->inputEndpoint;
+static ssize_t
+setUsbHidFeature (
+  GioHandle *handle, HidReportIdentifier identifier,
+  const unsigned char *data, size_t size, int timeout
+) {
+  UsbChannel *channel = handle->channel;
 
-    if (!endpoint) return 1;
-    return usbMonitorInputEndpoint(channel->device, endpoint, callback, data);
-  }
-
-  return 0;
+  return usbHidSetFeature(channel->device, channel->definition->interface,
+                          identifier, data, size, timeout);
 }
 
-static void *
-getUsbResourceObject (GioHandle *handle) {
-  return handle->channel;
-}
-
-static const GioMethods gioUsbMethods = {
+static const GioHandleMethods gioUsbMethods = {
   .disconnectResource = disconnectUsbResource,
 
   .makeResourceIdentifier = makeUsbResourceIdentifier,
   .getResourceName = getUsbResourceName,
+  .getResourceObject = getUsbResourceObject,
 
   .writeData = writeUsbData,
   .awaitInput = awaitUsbInput,
   .readData = readUsbData,
-
+  .monitorInput = monitorUsbInput,
   .reconfigureResource = reconfigureUsbResource,
 
   .tellResource = tellUsbResource,
   .askResource = askUsbResource,
 
-  .getHidReportItems = getUsbHidReportItems,
   .getHidReportSize = getUsbHidReportSize,
-
-  .setHidReport = setUsbHidReport,
   .getHidReport = getUsbHidReport,
-
-  .setHidFeature = setUsbHidFeature,
+  .setHidReport = setUsbHidReport,
   .getHidFeature = getUsbHidFeature,
-
-  .monitorInput = monitorUsbInput,
-
-  .getResourceObject = getUsbResourceObject
+  .setHidFeature = setUsbHidFeature,
 };
 
 static int
@@ -312,7 +312,7 @@ getUsbOptions (const GioDescriptor *descriptor) {
   return &descriptor->usb.options;
 }
 
-static const GioMethods *
+static const GioHandleMethods *
 getUsbMethods (void) {
   return &gioUsbMethods;
 }
@@ -385,7 +385,7 @@ static const GioPrivateProperties gioPrivateProperties_usb = {
   .isSupported = isUsbSupported,
 
   .getOptions = getUsbOptions,
-  .getMethods = getUsbMethods,
+  .getHandleMethods = getUsbMethods,
 
   .connectResource = connectUsbResource,
   .prepareEndpoint = prepareUsbEndpoint

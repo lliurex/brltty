@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -26,11 +26,7 @@
 #include "scr_utils.h"
 #include "scr_base.h"
 #include "scr_internal.h"
-
-int
-isSpecialKey (ScreenKey key) {
-  return (key & (SCR_KEY_CHAR_MASK & ~0XFF)) == SCR_KEY_UNICODE_ROW;
-}
+#include "ascii.h"
 
 void
 setScreenKeyModifiers (ScreenKey *key, ScreenKey which) {
@@ -87,6 +83,17 @@ setScreenKeyModifiers (ScreenKey *key, ScreenKey which) {
       logMessage(LOG_CATEGORY(SCREEN_DRIVER), "transformed key: 0X%04X -> 0X%04X", *key, newKey);
       *key = newKey;
     }
+  }
+}
+
+void
+mapScreenKey (ScreenKey *key) {
+  switch (*key & SCR_KEY_CHAR_MASK) {
+    case '\n':
+    case '\r':   *key = SCR_KEY_ENTER;     break;
+    case '\t':   *key = SCR_KEY_TAB;       break;
+    case '\b':   *key = SCR_KEY_BACKSPACE; break;
+    case ASCII_ESC: *key = SCR_KEY_ESCAPE;    break;
   }
 }
 

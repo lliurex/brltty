@@ -1,0 +1,56 @@
+Key Table: APH Mantis Q40
+=========================
+
+Notes
+* There are four rectangular thumb keys on the front. From left to right:
+  The outer ones are named ThumbPrevious and ThumbNext.
+  The inner ones are named ThumbLeft and ThumbRight.
+  Some models have a round key in the middle - it's the internal menu key.
+* RoutingKey refers to any of the keys immediately behind the braille cells.
+
+Default Bindings
+----------------
+
+Cursor Functions
+* go to screen cursor: ThumbLeft+ThumbRight
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: ThumbPrevious
+* go down one line: ThumbNext
+* go to beginning of top line: ThumbLeft+ThumbPrevious
+* go to beginning of bottom line: ThumbLeft+ThumbNext
+* go up to nearest line with different content: ThumbRight+ThumbPrevious
+* go down to nearest line with different content: ThumbRight+ThumbNext
+
+Horizontal Navigation
+* go backward one braille window: ThumbLeft
+* go forward one braille window: ThumbRight
+
+Clipboard Functions
+* start new clipboard at character: ThumbPrevious+RoutingKey
+* append to clipboard from character: ThumbLeft+RoutingKey
+* linear copy to character: ThumbRight+RoutingKey
+* rectangular copy to character: ThumbNext+RoutingKey
+* insert clipboard text after screen cursor: ThumbPrevious+ThumbNext
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: ThumbLeft+ThumbRight
+
+Horizontal Navigation
+* go backward one braille window: ThumbLeft
+* go forward one braille window: ThumbRight
+
+Menu Operations
+* go up to previous item: ThumbPrevious
+* go down to next item: ThumbNext
+* go up to first item: ThumbLeft+ThumbPrevious
+* go down to last item: ThumbLeft+ThumbNext
+* select previous choice: ThumbRight+ThumbPrevious
+* select next choice: ThumbRight+ThumbNext
+* save preferences to disk: ThumbLeft+ThumbRight+ThumbNext
+* restore preferences from disk: ThumbLeft+ThumbRight+ThumbPrevious
+

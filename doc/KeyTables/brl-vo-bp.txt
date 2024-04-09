@@ -1,0 +1,191 @@
+Key Table: Braille Pen 12
+=========================
+
+Notes
+* The six round keys near the back are a braille keyboard.
+* From left to right, they're named: Dot3, Dot2, Dot1, Dot4, Dot5, Dot6.
+* From left to right, the three long function keys are named: Shift, Space, Control.
+* This table maps Shift to Dot7, and Control to Dot8.
+* The joystick between the dot and function keys has five positions named: Up, Down, Left, Right, Enter.
+* The round scroll keys at either end of the braille display are named: Left, Right.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Dots125+JoystickEnter
+* enter/leave command learn mode: Dots123+JoystickEnter
+* enter/leave preferences menu: Dots1234+JoystickEnter
+* enter/leave status display: Dots234+JoystickEnter
+* set display mode attributes/text: Dot1+JoystickEnter
+* set display mode attributes: Dot1+JoystickRight
+* set display mode text: Dot1+JoystickLeft
+* set screen image frozen/unfrozen: Dots124+JoystickEnter
+* describe character at cursor: ScrollRight+JoystickEnter
+
+Cursor Functions
+* go to screen cursor: ScrollLeft+ScrollRight
+* go back after cursor tracking: ScrollLeft+ScrollRight+JoystickEnter
+* bring screen cursor to character #1: JoystickEnter
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: Shift+JoystickEnter
+
+Vertical Navigation
+* go up one line: ScrollLeft+Space
+* go down one line: ScrollRight+Space
+* go to top line: Shift+JoystickUp
+* go to bottom line: Shift+JoystickDown
+* go up to nearest line with different content: ScrollLeft+JoystickUp
+* go down to nearest line with different content: ScrollLeft+JoystickDown
+* go up to nearest line with different highlighting: ScrollRight+JoystickUp
+* go down to nearest line with different highlighting: ScrollRight+JoystickDown
+* go up to first line of paragraph: ScrollLeft+ScrollRight+JoystickLeft
+* go down to first line of next paragraph: ScrollLeft+ScrollRight+JoystickRight
+* go up to previous command prompt: ScrollLeft+ScrollRight+JoystickUp
+* go down to next command prompt: ScrollLeft+ScrollRight+JoystickDown
+
+Horizontal Navigation
+* go backward one braille window: ScrollLeft
+* go forward one braille window: ScrollRight
+* go backward skipping blank braille windows: ScrollLeft+Shift
+* go forward skipping blank braille windows: ScrollRight+Control
+* go to beginning of line: Shift+JoystickLeft
+* go to end of line: Shift+JoystickRight
+* go left one character: ScrollLeft+JoystickLeft
+* go right one character: ScrollLeft+JoystickRight
+* go left half a braille window: ScrollRight+JoystickLeft
+* go right half a braille window: ScrollRight+JoystickRight
+* place left end of braille window at character at cursor: ScrollLeft+JoystickEnter
+
+Clipboard Functions
+* start new clipboard at character at cursor: Control+JoystickLeft
+* append to clipboard from character at cursor: Control+JoystickUp
+* linear copy to character at cursor: Control+JoystickRight
+* rectangular copy to character at cursor: Control+JoystickDown
+* insert clipboard text after screen cursor: Control+JoystickEnter
+
+Configuration Functions
+* set text style 6-dot: Dots235+JoystickEnter
+* set text style 8-dot: Dots236+JoystickEnter
+* set skipping of lines with identical content on/off: Dots24+JoystickEnter
+* set skipping of lines with identical content on: Dots24+JoystickRight
+* set skipping of lines with identical content off: Dots24+JoystickLeft
+* set skipping of blank braille windows on/off: Dots12+JoystickEnter
+* set skipping of blank braille windows on: Dots12+JoystickRight
+* set skipping of blank braille windows off: Dots12+JoystickLeft
+* set sliding braille window on/off: Dots2456+JoystickEnter
+* set sliding braille window on: Dots2456+JoystickRight
+* set sliding braille window off: Dots2456+JoystickLeft
+* set track screen cursor on/off: Dots2345+JoystickEnter
+* set track screen cursor on: Dots2345+JoystickRight
+* set track screen cursor off: Dots2345+JoystickLeft
+* set screen cursor visibility on/off: Dots14+JoystickEnter
+* set screen cursor visibility on: Dots14+JoystickRight
+* set screen cursor visibility off: Dots14+JoystickLeft
+* set attribute underlining on/off: Dots136+JoystickEnter
+* set attribute underlining on: Dots136+JoystickRight
+* set attribute underlining off: Dots136+JoystickLeft
+
+Menu Operations
+* save preferences to disk: Dots1234+JoystickRight
+* restore preferences from disk: Dots1234+JoystickLeft
+
+Keyboard Input
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot7: Shift
+* braille keyboard dot8: Control
+* braille keyboard space: Space
+* backspace key:
+  + Space+Shift
+  + Space+Dots12
+* escape key:
+  + Space+Shift+Control
+  + Space+Dots1346
+* cursor-left key:
+  + JoystickLeft
+  + Space+Dot1
+* cursor-right key:
+  + JoystickRight
+  + Space+Dot4
+* cursor-up key:
+  + JoystickUp
+  + Space+Dot2
+* cursor-down key:
+  + JoystickDown
+  + Space+Dot5
+* page-up key:
+  + Space+Dot3
+  + Space+JoystickUp
+* page-down key:
+  + Space+Dot6
+  + Space+JoystickDown
+* home key:
+  + Space+JoystickLeft
+  + Space+Dots125
+* end key:
+  + Space+JoystickRight
+  + Space+Dots15
+* insert key:
+  + Space+JoystickEnter
+  + Space+Dots24
+* delete key: Space+Dots145
+* function key #1: Space+Shift+Dot1
+* function key #2: Space+Shift+Dots12
+* function key #3: Space+Shift+Dots14
+* function key #4: Space+Shift+Dots145
+* function key #5: Space+Shift+Dots15
+* function key #6: Space+Shift+Dots124
+* function key #7: Space+Shift+Dots1245
+* function key #8: Space+Shift+Dots125
+* function key #9: Space+Shift+Dots24
+* function key #10: Space+Shift+Dots245
+* function key #11: Space+Shift+Dots13
+* function key #12: Space+Shift+Dots123
+* function key #13: Space+Shift+Dots134
+* function key #14: Space+Shift+Dots1345
+* function key #15: Space+Shift+Dots135
+* function key #16: Space+Shift+Dots1234
+* function key #17: Space+Shift+Dots12345
+* function key #18: Space+Shift+Dots1235
+* function key #19: Space+Shift+Dots234
+* function key #20: Space+Shift+Dots2345
+* enter key:
+  + Space+Control
+  + Space+Dots1235
+* tab key: Space+Dots2345
+* switch to specific virtual terminal #1: Space+Control+Dot1
+* switch to specific virtual terminal #2: Space+Control+Dots12
+* switch to specific virtual terminal #3: Space+Control+Dots14
+* switch to specific virtual terminal #4: Space+Control+Dots145
+* switch to specific virtual terminal #5: Space+Control+Dots15
+* switch to specific virtual terminal #6: Space+Control+Dots124
+* switch to specific virtual terminal #7: Space+Control+Dots1245
+* switch to specific virtual terminal #8: Space+Control+Dots125
+* switch to specific virtual terminal #9: Space+Control+Dots24
+* switch to specific virtual terminal #10: Space+Control+Dots245
+* switch to specific virtual terminal #11: Space+Control+Dots13
+* switch to specific virtual terminal #12: Space+Control+Dots123
+* switch to specific virtual terminal #13: Space+Control+Dots134
+* switch to specific virtual terminal #14: Space+Control+Dots1345
+* switch to specific virtual terminal #15: Space+Control+Dots135
+* switch to specific virtual terminal #16: Space+Control+Dots1234
+* switch to specific virtual terminal #17: Space+Control+Dots12345
+* switch to specific virtual terminal #18: Space+Control+Dots1235
+* switch to specific virtual terminal #19: Space+Control+Dots234
+* switch to specific virtual terminal #20: Space+Control+Dots2345
+
+Menu Bindings
+-------------
+
+Menu Operations
+* go up to previous item: JoystickUp
+* go down to next item: JoystickDown
+* select previous choice: JoystickLeft
+* select next choice: JoystickRight
+* save preferences to disk: JoystickEnter
+

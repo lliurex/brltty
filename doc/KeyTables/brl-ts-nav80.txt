@@ -1,0 +1,131 @@
+Key Table: Navigator 80
+=======================
+
+Notes
+* The keys of the four-key pad in the middle are named:
+* CursorLeft, CursorRight, CursorUp, CursorDown.
+* The keys on each side of the pad are named: LeftThumb, RightThumb.
+* The outer end keys are named: LeftOuter, RightOuter.
+* The inner end keys are named: LeftInner, RightInner.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display:
+  + CursorLeft+CursorRight
+  + RoutingKey.1+RoutingKey.80
+* enter/leave command learn mode:
+  + CursorLeft+CursorRight+CursorUp+CursorDown
+  + RoutingKey.1+RoutingKey.2+RoutingKey.79+RoutingKey.80
+* enter/leave preferences menu: LeftOuter+RightOuter
+* enter/leave status display: CursorUp+RightInner
+* set display mode attributes/text: CursorDown+LeftInner+LeftThumb
+* set screen image frozen/unfrozen: LeftThumb+RightThumb
+* describe character: RoutingKey+CursorDown
+
+Cursor Functions
+* go to screen cursor: RightThumb
+* go back after cursor tracking: RightThumb+CursorUp
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: CursorDown+RightInner
+
+Vertical Navigation
+* go up one line: LeftInner
+* go down one line: RightInner
+* go to beginning of top line: LeftOuter+LeftInner
+* go to beginning of bottom line: LeftOuter+RightInner
+* go up to nearest line with different content: RightThumb+LeftInner
+* go down to nearest line with different content: RightThumb+RightInner
+* go up to nearest line with different highlighting: LeftThumb+LeftInner
+* go down to nearest line with different highlighting: LeftThumb+RightInner
+* go up to first line of paragraph: RoutingKey.1+RoutingKey.2+LeftInner
+* go down to first line of next paragraph: RoutingKey.1+RoutingKey.2+RightInner
+* go up to previous command prompt: RoutingKey.2+RoutingKey.3+LeftInner
+* go down to next command prompt: RoutingKey.2+RoutingKey.3+RightInner
+* go up several lines: LeftThumb+CursorUp
+* go down several lines: LeftThumb+CursorDown
+* go up to nearest line with less indent than character: RoutingKey+LeftInner
+* go down to nearest line with less indent than character: RoutingKey+RightInner
+
+Horizontal Navigation
+* go backward one braille window: LeftOuter
+* go forward one braille window: RightOuter
+* go to beginning of line: CursorUp+LeftOuter
+* go to end of line: CursorUp+RightOuter
+* go left one character:
+  + LeftThumb+CursorLeft
+  + RoutingKey.1+RoutingKey.2
+* go right one character:
+  + LeftThumb+CursorRight
+  + RoutingKey.79+RoutingKey.80
+* go left half a braille window:
+  + CursorUp+CursorLeft
+  + RoutingKey.1+RoutingKey.3
+* go right half a braille window:
+  + CursorUp+CursorRight
+  + RoutingKey.78+RoutingKey.80
+* place left end of braille window at character: RoutingKey+CursorUp
+
+Clipboard Functions
+* start new clipboard at character: RoutingKey+LeftOuter
+* append to clipboard from character: RoutingKey+CursorLeft
+* linear copy to character: RoutingKey+CursorRight
+* rectangular copy to character: RoutingKey+RightOuter
+* copy characters to clipboard: RoutingKey+RoutingKey
+* insert clipboard text after screen cursor: RoutingKey.2+RoutingKey.3
+* search backward for clipboard text: RoutingKey.1+RoutingKey.3+LeftInner
+* search forward for clipboard text: RoutingKey.1+RoutingKey.3+RightInner
+
+Configuration Functions
+* set text style 6-dot/8-dot: LeftOuter+RightOuter+CursorDown
+* set skipping of lines with identical content on/off:
+  + LeftOuter+RightOuter+RightInner+RightThumb
+  + LeftOuter+RightOuter+RightInner+LeftThumb
+* set sliding braille window on/off: LeftOuter+RightOuter+CursorLeft
+* set track screen cursor on/off: LeftThumb
+* set screen cursor visibility on/off: LeftOuter+RightOuter+CursorUp
+* set screen cursor blinking on/off: LeftOuter+RightOuter+CursorUp+LeftThumb
+* set attribute underlining on/off: CursorDown+LeftInner
+* set attribute blinking on/off:
+  + LeftOuter+RightOuter+LeftInner+LeftThumb
+  + LeftOuter+RightOuter+CursorRight+LeftThumb
+* set capital letter blinking on/off: LeftOuter+RightOuter+CursorDown+LeftThumb
+* set alert tunes on/off: LeftOuter+RightOuter+CursorLeft+LeftThumb
+
+Menu Operations
+* save preferences to disk: LeftOuter+RightOuter+RightThumb
+* restore preferences from disk: LeftOuter+RightOuter+LeftThumb+RightThumb
+
+Speech Functions
+* stop speaking:
+  + RightOuter+LeftInner
+  + CursorRight+CursorUp+LeftOuter+LeftInner
+* speak current line:
+  + CursorRight+LeftOuter
+  + RightOuter+RightInner
+* speak from current line through bottom of screen: LeftOuter+RightOuter+RightInner
+* go to current speaking position: RightThumb+RightOuter
+
+Keyboard Input
+* cursor-left key: CursorLeft
+* cursor-right key: CursorRight
+* cursor-up key: CursorUp
+* cursor-down key: CursorDown
+
+Special Functions
+* remember current braille window position: RoutingKey+LeftThumb
+* go to remembered braille window position: RoutingKey+RightThumb
+* restart speech driver: CursorUp+LeftInner+LeftOuter+RightOuter
+
+Menu Bindings
+-------------
+
+Menu Operations
+* select previous choice:
+  + CursorUp
+  + LeftThumb
+* select next choice:
+  + RightThumb
+  + CursorDown
+

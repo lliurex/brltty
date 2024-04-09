@@ -8,8 +8,11 @@ screen.$O: $(BLD_TOP)Programs/brlapi_constants.h
 screen.$O: $(SRC_TOP)Programs/brlapi_keycodes.h
 screen.$O: $(SRC_TOP)Programs/brlapi_param.h
 screen.$O: $(SRC_TOP)Programs/report.h
-screen.$O: $(SRC_TOP)Headers/async.h
+screen.$O: $(SRC_TOP)Headers/message.h
+screen.$O: $(SRC_TOP)Headers/async_handle.h
+screen.$O: $(SRC_TOP)Headers/async_types_handle.h
 screen.$O: $(SRC_TOP)Headers/async_io.h
+screen.$O: $(SRC_TOP)Headers/async_types_io.h
 screen.$O: $(SRC_TOP)Headers/device.h
 screen.$O: $(SRC_TOP)Headers/get_sockets.h
 screen.$O: $(SRC_TOP)Headers/io_misc.h

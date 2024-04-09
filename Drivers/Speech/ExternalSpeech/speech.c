@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,140 +23,41 @@
 
 #include "prologue.h"
 
-#include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-
 #include <sys/socket.h>
 #include <sys/un.h>
 
-
 #include "log.h"
 #include "timing.h"
+#include "io_misc.h"
+#include "async_handle.h"
 #include "async_io.h"
 
 typedef enum {
-  PARM_SOCK_PATH,
+  PARM_SOCKET_PATH,
 } DriverParameter;
-#define SPKPARMS "socket_path"
 
+#define SPKPARMS "socket_path"
 #include "spk_driver.h"
 #include "speech.h"
 
-static int helper_fd = -1;
-static uint16_t totalCharacterCount;
+static const char *socketPath = NULL;
+static struct sockaddr_un socketAddress;
+static int socketDescriptor = -1;
 
+static uint16_t totalCharacterCount;
 #define TRACK_DATA_SIZE 2
 static AsyncHandle trackHandle = NULL;
 
-#define ERRBUFLEN 200
-static void myerror(volatile SpeechSynthesizer *spk, const char *fmt, ...)
-{
-  char buf[ERRBUFLEN];
-  int offs;
-  va_list argp;
-  va_start(argp, fmt);
-  offs = snprintf(buf, ERRBUFLEN, "ExternalSpeech: ");
-  if(offs < ERRBUFLEN) {
-    offs += vsnprintf(buf+offs, ERRBUFLEN-offs, fmt, argp);
-  }
-  buf[ERRBUFLEN-1] = 0;
-  va_end(argp);
-  logMessage(LOG_ERR, "%s", buf);
-  spk_destruct(spk);
-}
-static void myperror(volatile SpeechSynthesizer *spk, const char *fmt, ...)
-{
-  char buf[ERRBUFLEN];
-  int offs;
-  va_list argp;
-  va_start(argp, fmt);
-  offs = snprintf(buf, ERRBUFLEN, "ExternalSpeech: ");
-  if(offs < ERRBUFLEN) {
-    offs += vsnprintf(buf+offs, ERRBUFLEN-offs, fmt, argp);
-    if(offs < ERRBUFLEN)
-      snprintf(buf+offs, ERRBUFLEN-offs, ": %s", strerror(errno));
-  }
-  buf[ERRBUFLEN-1] = 0;
-  va_end(argp);
-  logMessage(LOG_ERR, "%s", buf);
-  spk_destruct(spk);
-}
-
-static void mywrite(volatile SpeechSynthesizer *spk, int fd, const void *buf, int len)
-{
-  char *pos = (char *)buf;
-  int w;
-  TimePeriod period;
-  if(fd<0) return;
-  startTimePeriod(&period, 2000);
-  do {
-    if((w = write(fd, pos, len)) < 0) {
-      if(errno == EINTR || errno == EAGAIN) continue;
-      else if(errno == EPIPE)
-	myerror(spk, "ExternalSpeech: pipe to helper program was broken");
-         /* try to reinit may be ??? */
-      else myperror(spk, "ExternalSpeech: pipe to helper program: write");
-      return;
-    }
-    pos += w; len -= w;
-  } while(len && !afterTimePeriod(&period, NULL));
-  if(len)
-    myerror(spk, "ExternalSpeech: pipe to helper program: write timed out");
-}
-
-static void spk_say(volatile SpeechSynthesizer *spk, const unsigned char *text, size_t length, size_t count, const unsigned char *attributes)
-{
-  unsigned char l[5];
-  if(helper_fd < 0) return;
-  l[0] = 4; /* say code */
-  l[1] = length >> 8;
-  l[2] = length & 0xFF;
-  if (attributes) {
-    l[3] = count >> 8;
-    l[4] = count & 0xFF;
-  } else {
-    l[3] = 0;
-    l[4] = 0;
-  }
-  mywrite(spk, helper_fd, l, 5);
-  mywrite(spk, helper_fd, text, length);
-  if (attributes) mywrite(spk, helper_fd, attributes, count);
-  totalCharacterCount = count;
-}
-
-static void spk_mute (volatile SpeechSynthesizer *spk)
-{
-  unsigned char c = 1;
-  if(helper_fd < 0) return;
-  logMessage(LOG_DEBUG,"mute");
-  mywrite(spk, helper_fd, &c,1);
-}
-
-static void spk_setRate (volatile SpeechSynthesizer *spk, unsigned char setting)
-{
-  float expand = 1.0 / getFloatSpeechRate(setting); 
-  unsigned char *p = (unsigned char *)&expand;
-  unsigned char l[5];
-  if(helper_fd < 0) return;
-  logMessage(LOG_DEBUG,"set rate to %u (time scale %f)", setting, expand);
-  l[0] = 3; /* time scale code */
-#ifdef WORDS_BIGENDIAN
-  l[1] = p[0]; l[2] = p[1]; l[3] = p[2]; l[4] = p[3];
-#else /* WORDS_BIGENDIAN */
-  l[1] = p[3]; l[2] = p[2]; l[3] = p[1]; l[4] = p[0];
-#endif /* WORDS_BIGENDIAN */
-  mywrite(spk, helper_fd, &l, 5);
-}
-
 ASYNC_INPUT_CALLBACK(xsHandleSpeechTrackingInput) {
-  volatile SpeechSynthesizer *spk = parameters->data;
+  SpeechSynthesizer *spk = parameters->data;
 
   if (parameters->error) {
-    logMessage(LOG_WARNING, "speech tracking input error: %s", strerror(parameters->error));
+    logMessage(LOG_WARNING,
+      "speech tracking input error %d: %s",
+      parameters->error, strerror(parameters->error)
+    );
   } else if (parameters->end) {
     logMessage(LOG_WARNING, "speech tracking end-of-file");
   } else if (parameters->length >= TRACK_DATA_SIZE) {
@@ -175,47 +76,207 @@ ASYNC_INPUT_CALLBACK(xsHandleSpeechTrackingInput) {
   return 0;
 }
 
-static int spk_construct (volatile SpeechSynthesizer *spk, char **parameters)
-{
-  const char *extSockPath = parameters[PARM_SOCK_PATH];
+static int
+amConnected (void) {
+  return socketDescriptor != -1;
+}
 
-  spk->setRate = spk_setRate;
+static int
+connectToServer (SpeechSynthesizer *spk) {
+  if (amConnected()) return 1;
 
-  if(!*extSockPath) extSockPath = HELPER_SOCKET_PATH;
+  logMessage(LOG_CATEGORY(SPEECH_DRIVER), "connecting to server: %s", socketPath);
+  int sd = socket(AF_UNIX, SOCK_STREAM, 0);
 
-  if((helper_fd = socket(PF_UNIX, SOCK_STREAM, 0)) <0) {
-    myperror(spk, "socket");
-    return 0;
+  if (sd != -1) {
+    if (setCloseOnExec(sd, 1)) {
+      if (connect(sd, (const struct sockaddr *)&socketAddress, sizeof(socketAddress)) != -1) {
+        if (setBlockingIo(sd, 0)) {
+          if (asyncReadSocket(&trackHandle, sd, TRACK_DATA_SIZE, xsHandleSpeechTrackingInput, spk)) {
+            logMessage(LOG_CATEGORY(SPEECH_DRIVER), "connected to server: fd=%d", sd);
+            socketDescriptor = sd;
+            return 1;
+          }
+        }
+      } else {
+        logSystemError("connect");
+      }
+    }
+
+    close(sd);
+  } else {
+    logSystemError("socket");
   }
 
-  struct sockaddr_un tgtaddr;
-  memset(&tgtaddr, 0, sizeof(tgtaddr));
-  tgtaddr.sun_family = PF_UNIX;
-  strncpy(tgtaddr.sun_path, extSockPath, sizeof(tgtaddr.sun_path)-1);
-  if(connect(helper_fd, (struct sockaddr *)&tgtaddr, sizeof(tgtaddr)) <0) {
-    myperror(spk, "connect to %s", extSockPath);
-    return 0;
+  return 0;
+}
+
+static void
+disconnectFromServer (void) {
+  if (amConnected()) {
+    logMessage(LOG_CATEGORY(SPEECH_DRIVER), "disconnecting from server");
+
+    if (trackHandle) {
+      asyncCancelRequest(trackHandle);
+      trackHandle = NULL;
+    }
+
+    close(socketDescriptor);
+    socketDescriptor = -1;
+  }
+}
+
+static int
+sendPacket (SpeechSynthesizer *spk, const unsigned char *packet, size_t length) {
+  if (!amConnected()) {
+    if (!connectToServer(spk)) {
+      return 0;
+    }
   }
 
-  if(fcntl(helper_fd, F_SETFL,O_NONBLOCK) < 0) {
-    myperror(spk, "fcntl F_SETFL O_NONBLOCK");
-    //close(helper_fd);
-    //helper_fd = -1;
-    return 0;
+  const unsigned char *position = packet;
+  const unsigned char *end = position + length;
+
+  TimePeriod period;
+  startTimePeriod(&period, XS_WRITE_TIMEOUT);
+
+  while (position < end) {
+    if (afterTimePeriod(&period, NULL)) {
+      logMessage(LOG_ERR, "ExternalSpeech write timed out");
+      disconnectFromServer();
+      return 0;
+    }
+
+    ssize_t result = write(socketDescriptor, position, (end - position));
+
+    if (result == -1) {
+      if ((errno == EINTR) || (errno == EAGAIN)) continue;
+
+      logMessage(LOG_ERR,
+        "ExternalSpeech write error %d: %s",
+        errno, strerror(errno)
+      );
+
+      disconnectFromServer();
+      if (!connectToServer(spk)) return 0;
+
+      position = packet;
+      continue;
+    }
+
+    position += result;
   }
-  logMessage(LOG_INFO, "Connected to ExternalSpeech helper socket at %s", extSockPath);
 
-
-  asyncReadFile(&trackHandle, helper_fd, TRACK_DATA_SIZE*10, xsHandleSpeechTrackingInput, (void *)spk);
   return 1;
 }
 
-static void spk_destruct (volatile SpeechSynthesizer *spk)
-{
-  if(trackHandle)
-    asyncCancelRequest(trackHandle);
-  if(helper_fd >= 0)
-    close(helper_fd);
-  helper_fd = -1;
+static void
+spk_say (SpeechSynthesizer *spk, const unsigned char *text, size_t length, size_t count, const unsigned char *attributes) {
+  if (!attributes) count = 0;
+
+  unsigned char packet[5 + length + count];
+  unsigned char *p = packet;
+
+  *p++ = 4;
+  *p++ = length >> 8;
+  *p++ = length & 0XFF;
+  *p++ = count >> 8;
+  *p++ = count & 0XFF;
+  p = mempcpy(p, text, length);
+  p = mempcpy(p, attributes, count);
+
+  if (sendPacket(spk, packet, (p - packet))) {
+    totalCharacterCount = count;
+  }
+}
+
+static void
+spk_mute (SpeechSynthesizer *spk) {
+  logMessage(LOG_CATEGORY(SPEECH_DRIVER), "mute");
+
+  unsigned char packet[] = {1};
+  sendPacket(spk, packet, sizeof(packet));
+}
+
+static void
+spk_setVolume (SpeechSynthesizer *spk, unsigned char setting) {
+  unsigned char percentage = getIntegerSpeechVolume(setting, 100);
+
+  logMessage(
+    LOG_CATEGORY(SPEECH_DRIVER),
+    "set volume to %u (%u%%)",
+    setting, percentage
+  );
+
+  unsigned char packet[] = {2, percentage};
+  sendPacket(spk, packet, sizeof(packet));
+}
+
+static int
+sendFloatSetting (SpeechSynthesizer *spk, unsigned char code, float value) {
+  unsigned char packet[5] = {code};
+  const unsigned char *v = (const unsigned char *)&value;
+
+#ifdef WORDS_BIGENDIAN
+  packet[1] = v[0];
+  packet[2] = v[1];
+  packet[3] = v[2];
+  packet[4] = v[3];
+#else /* WORDS_BIGENDIAN */
+  packet[1] = v[3];
+  packet[2] = v[2];
+  packet[3] = v[1];
+  packet[4] = v[0];
+#endif /* WORDS_BIGENDIAN */
+
+  return sendPacket(spk, packet, sizeof(packet));
+}
+
+static void
+spk_setRate (SpeechSynthesizer *spk, unsigned char setting) {
+  float stretch = 1.0 / getFloatSpeechRate(setting); 
+
+  logMessage(
+    LOG_CATEGORY(SPEECH_DRIVER),
+    "set rate to %u (time scale %f)",
+    setting, stretch
+  );
+
+  sendFloatSetting(spk, 3, stretch);
+}
+
+static void
+spk_setPitch (SpeechSynthesizer *spk, unsigned char setting) {
+  float multiplier = getFloatSpeechPitch(setting); 
+
+  logMessage(
+    LOG_CATEGORY(SPEECH_DRIVER),
+    "set pitch to %u (multiplier %f)",
+    setting, multiplier
+  );
+
+  sendFloatSetting(spk, 5, multiplier);
+}
+
+static int
+spk_construct (SpeechSynthesizer *spk, char **parameters) {
+  spk->setVolume = spk_setVolume;
+  spk->setRate = spk_setRate;
+  spk->setPitch = spk_setPitch;
+
+  socketPath = parameters[PARM_SOCKET_PATH];
+  if (!socketPath || !*socketPath) socketPath = XS_DEFAULT_SOCKET_PATH;
+
+  memset(&socketAddress, 0, sizeof(socketAddress));
+  socketAddress.sun_family = AF_UNIX;
+  strncpy(socketAddress.sun_path, socketPath, sizeof(socketAddress.sun_path)-1);
+
+  socketDescriptor = -1;
   trackHandle = NULL;
+  return connectToServer(spk);
+}
+
+static void
+spk_destruct (SpeechSynthesizer *spk) {
+  disconnectFromServer();
 }

@@ -1,7 +1,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2006-2021 by Dave Mielke <dave@mielke.cc>
+# Copyright (C) 2006-2023 by Dave Mielke <dave@mielke.cc>
 #
 # libbrlapi comes with ABSOLUTELY NO WARRANTY.
 #
@@ -16,85 +16,65 @@
 ###############################################################################
 
 AC_DEFUN([BRLTTY_TCL_BINDINGS], [dnl
+AC_PATH_PROGS([TCLSH], [tclsh tclsh8.5 tclsh8.6 tclsh8.7], [])
+
 TCL_OK=false
 TCL_CPPFLAGS=""
 TCL_LIBS=""
+TCL_DIR=""
 
-BRLTTY_ARG_WITH(
-   [tcl-config], [PATH],
-   [the path to the Tcl configuration script (tclConfig.sh) or to the directory containing it],
-   [tcl_config_script], ["yes"]
-)
-
-tcl_config_name="tclConfig.sh"
-if test "${tcl_config_script}" = "no"
+if test -n "${TCLSH}"
 then
-   AC_CHECK_HEADER([tcl.h], [dnl
-      TCL_OK=true
-      TCL_LIBS="-ltcl"
-   ])
-else
-   test "${tcl_config_script}" != "yes" || tcl_config_script=""
+   AC_MSG_NOTICE([Tcl shell: ${TCLSH}])
+   BRLTTY_TCL_QUERY([tcl_configuration_script], [config])
 
-   if test -z "${tcl_config_script}"
+   if test -n "${tcl_configuration_script}"
    then
-      for directory in "/usr/lib" "/usr/local/lib" "/usr/lib64" "/usr/local/lib64"
-      do
-         script="${directory}/${tcl_config_name}"
-         test ! -f "${script}" || {
-            tcl_config_script="${script}"
-            AC_MSG_NOTICE([Tcl configuration script is ${tcl_config_script}])
-            break
-         }
-      done
+      AC_MSG_NOTICE([Tcl configuration script: ${tcl_configuration_script}])
 
-      test -n "${tcl_config_script}" || {
-         AC_MSG_WARN([Tcl configuration script not found: ${tcl_config_name}])
-      }
-   else
-      test ! -d "${tcl_config_script}" || tcl_config_script="${tcl_config_script}/${tcl_config_name}"
-
-      test -f "${tcl_config_script}" || {
-         AC_MSG_WARN([Tcl configuration script not found: ${tcl_config_script}])
-         tcl_config_script=""
-      }
-   fi
-
-   test -z "${tcl_config_script}" || {
-      if test ! -r "${tcl_config_script}"
+      if test ! -r "${tcl_configuration_script}"
       then
-         AC_MSG_WARN([Tcl configuration script not readable: ${tcl_config_script}])
-      elif . "${tcl_config_script}"
+         AC_MSG_WARN([Tcl configuration script not readable: ${tcl_configuration_script}])
+      elif . "${tcl_configuration_script}"
       then
          TCL_OK=true
          TCL_CPPFLAGS="${TCL_INCLUDE_SPEC}"
          TCL_LIBS="${TCL_LIB_SPEC}"
       fi
-   }
+   else
+      AC_MSG_WARN([Tcl configuration script not found])
+   fi
+else
+   AC_MSG_WARN([Tcl shell not found])
+   TCLSH="TCL_SHELL_NOT_FOUND_BY_CONFIGURE"
 fi
 
-"${TCL_OK}" && {
-   AC_PATH_PROGS([TCLSH], [tclsh${TCL_VERSION} tclsh], [TCLSH_NOT_FOUND_BY_CONFIGURE])
-}
+${TCL_OK} && {
+   test -n "${TCL_PACKAGE_PATH}" && {
+      for directory in ${TCL_PACKAGE_PATH}
+      do
+         test `expr "${directory}" : '.*/lib'` -eq 0 || {
+            TCL_DIR="${directory}"
+            break
+         }
+      done
+   }
 
-TCL_DIR=""
-test -z "${TCL_PACKAGE_PATH}" || {
-   for directory in ${TCL_PACKAGE_PATH}
-   do
-      test `expr "${directory}" : '.*/lib'` -eq 0 || {
-         TCL_DIR="${directory}"
-         break
-      }
-   done
+   if test -n "${TCL_DIR}"
+   then
+      AC_MSG_NOTICE([Tcl packages directory: ${TCL_DIR}])
+   else
+      AC_MSG_WARN([Tcl packages directory not found])
+      TCL_DIR="TCL_PACKAGES_DIRECTORY_NOT_FOUND_BY_CONFIGURE"
+   fi
 }
-
-test -n "${TCL_DIR}" || {
-   AC_MSG_WARN([Tcl packages directory not found])
-   TCL_DIR="TCL_PACKAGES_DIRECTORY_NOT_FOUND_BY_CONFIGURE"
-}
-AC_SUBST([TCL_DIR])
 
 AC_SUBST([TCL_OK])
 AC_SUBST([TCL_CPPFLAGS])
 AC_SUBST([TCL_LIBS])
+AC_SUBST([TCL_DIR])
+])
+
+AC_DEFUN([BRLTTY_TCL_QUERY], [dnl
+   $1=`"${TCLSH}" "${srcdir}/Tools/tclcmd" $2`
 ])

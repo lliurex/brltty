@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -82,12 +82,17 @@ extern int getCharacterByAlias (wchar_t *character, const char *alias);
 extern int getCharacterWidth (wchar_t character);
 
 extern int isBrailleCharacter (wchar_t character);
+extern int isIdeographicCharacter (wchar_t character);
 extern int isEmojiSequence (const wchar_t *characters, size_t count);
 extern wchar_t getReplacementCharacter (void);
 
-extern int normalizeCharacters (
+extern int composeCharacters (
   size_t *length, const wchar_t *characters,
   wchar_t *buffer, unsigned int *map
+);
+
+extern size_t decomposeCharacter (
+  wchar_t character, wchar_t *buffer, size_t length
 );
 
 extern wchar_t getBaseCharacter (wchar_t character);

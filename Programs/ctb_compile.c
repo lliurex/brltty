@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,14 +25,15 @@
 #include "log.h"
 #include "parse.h"
 #include "file.h"
-#include "ctb.h"
-#include "ctb_internal.h"
 #include "datafile.h"
 #include "dataarea.h"
-#include "brl_dots.h"
-#include "cldr.h"
 #include "unicode.h"
 #include "utf8.h"
+#include "charset.h"
+#include "ctb.h"
+#include "ctb_internal.h"
+#include "brl_dots.h"
+#include "cldr.h"
 #include "hostcmd.h"
 
 static const wchar_t *const characterClassNames[] = {
@@ -57,7 +58,7 @@ static const wchar_t *const opcodeNames[CTO_None] = {
   [CTO_BeginCapitalSign] = WS_C("begcaps"),
   [CTO_EndCapitalSign] = WS_C("endcaps"),
 
-  [CTO_EnglishLetterSign] = WS_C("letsign"),
+  [CTO_LetterSign] = WS_C("letsign"),
   [CTO_NumberSign] = WS_C("numsign"),
 
   [CTO_Literal] = WS_C("literal"),
@@ -188,7 +189,7 @@ addByteRule (
   ContractionTableData *ctd
 ) {
   DataOffset ruleOffset;
-  int ruleSize = sizeof(ContractionTableRule) - sizeof(find->characters[0]);
+  size_t ruleSize = sizeof(ContractionTableRule);
   if (find) ruleSize += find->length * sizeof(find->characters[0]);
   if (replace) ruleSize += replace->length;
 
@@ -383,7 +384,16 @@ allocateCharacterClasses (ContractionTableData *ctd) {
 
 const wchar_t *
 getContractionTableOpcodeName (ContractionTableOpcode opcode) {
-  return opcodeNames[opcode];
+  const wchar_t *name = NULL;
+
+  if (opcode >= 0) {
+    if (opcode < ARRAY_COUNT(opcodeNames)) {
+      name = opcodeNames[opcode];
+    }
+  }
+
+  if (!name) name = WS_C("<unknown>");
+  return name;
 }
 
 static ContractionTableOpcode
@@ -522,12 +532,12 @@ static DATA_OPERANDS_PROCESSOR(processContractionTableDirective) {
         break;
       }
 
-      case CTO_EnglishLetterSign: {
+      case CTO_LetterSign: {
         ByteOperand cells;
         if (getCellsOperand(file, &cells, "letter sign")) {
           DataOffset offset;
           if (!saveCellsOperand(file, &offset, &cells, ctd)) return 0;
-          getContractionTableHeader(ctd)->englishLetterSign = offset;
+          getContractionTableHeader(ctd)->letterSign = offset;
         }
         break;
       }
@@ -599,7 +609,7 @@ static DATA_OPERANDS_PROCESSOR(processContractionTableDirective) {
       }
 
       default:
-        reportDataError(file, "unimplemented opcode: %" PRIws, opcodeNames[opcode]);
+        reportDataError(file, "unimplemented opcode: %" PRIws, getContractionTableOpcodeName(opcode));
         break;
     }
 
@@ -666,7 +676,10 @@ static DATA_OPERANDS_PROCESSOR(processEmojiOperands) {
         .ctd = ctd
       };
 
-      cldrParseFile(name, handleAnnotation, &ahd);
+      if (!cldrParseFile(name, handleAnnotation, &ahd)) {
+        logMessage(LOG_WARNING, "emoji substitutiion won't be performed");
+      }
+
       free(name);
     }
   }
@@ -690,17 +703,9 @@ initializeCommonFields (ContractionTable *table) {
   table->characters.size = 0;
   table->characters.count = 0;
 
-  table->cache.input.characters = NULL;
-  table->cache.input.size = 0;
-  table->cache.input.count = 0;
-
-  table->cache.output.cells = NULL;
-  table->cache.output.size = 0;
-  table->cache.output.count = 0;
-
-  table->cache.offsets.array = NULL;
-  table->cache.offsets.size = 0;
-  table->cache.offsets.count = 0;
+  table->rules.array = NULL;
+  table->rules.size = 0;
+  table->rules.count = 0;
 }
 
 static void
@@ -710,19 +715,15 @@ destroyCommonFields (ContractionTable *table) {
     table->characters.array = NULL;
   }
 
-  if (table->cache.input.characters) {
-    free(table->cache.input.characters);
-    table->cache.input.characters = NULL;
-  }
+  if (table->rules.array) {
+    {
+      ContractionTableRule **rule = table->rules.array;
+      ContractionTableRule **end = rule + table->rules.count;
+      while (rule < end) free(*rule++);
+    }
 
-  if (table->cache.output.cells) {
-    free(table->cache.output.cells);
-    table->cache.output.cells = NULL;
-  }
-
-  if (table->cache.offsets.array) {
-    free(table->cache.offsets.array);
-    table->cache.offsets.array = NULL;
+    free(table->rules.array);
+    table->rules.array = NULL;
   }
 }
 
@@ -741,7 +742,25 @@ static const ContractionTableManagementMethods nativeManagementMethods = {
 };
 
 static ContractionTable *
-compileContractionTable_native (const char *fileName) {
+newContractionTable (const unsigned char *bytes, size_t size) {
+  ContractionTable *table;
+
+  if ((table = malloc(sizeof(*table)))) {
+    table->managementMethods = &nativeManagementMethods;
+    table->translationMethods = getContractionTableTranslationMethods_native();
+    initializeCommonFields(table);
+
+    table->data.internal.header.bytes = bytes;
+    table->data.internal.size = size;
+  } else {
+    logMallocError();
+  }
+
+  return table;
+}
+
+static ContractionTable *
+compileContractionTable_native (const char *name) {
   ContractionTable *table = NULL;
 
   if (setTableDataVariables(CONTRACTION_TABLE_EXTENSION, CONTRACTION_SUBTABLE_EXTENSION)) {
@@ -762,35 +781,30 @@ compileContractionTable_native (const char *fileName) {
         ctd.opcodeNameLengths[opcode] = wcslen(opcodeNames[opcode]);
     }
 
-    if ((ctd.area = newDataArea())) {
-      if (allocateDataItem(ctd.area, NULL, sizeof(ContractionTableHeader), __alignof__(ContractionTableHeader))) {
-        if (allocateCharacterClasses(&ctd)) {
-          const DataFileParameters parameters = {
-            .processOperands = processContractionTableOperands,
-            .data = &ctd
-          };
+    if (allocateCharacterClasses(&ctd)) {
+      if (*name) {
+        if ((ctd.area = newDataArea())) {
+          if (allocateDataItem(ctd.area, NULL, sizeof(ContractionTableHeader), __alignof__(ContractionTableHeader))) {
+            const DataFileParameters parameters = {
+              .processOperands = processContractionTableOperands,
+              .data = &ctd
+            };
 
-          if (processDataFile(fileName, &parameters)) {
-            if (saveCharacterTable(&ctd)) {
-              if ((table = malloc(sizeof(*table)))) {
-                table->managementMethods = &nativeManagementMethods;
-                table->translationMethods = getContractionTableTranslationMethods_native();
-                initializeCommonFields(table);
-
-                table->data.internal.header.fields = getContractionTableHeader(&ctd);
-                table->data.internal.size = getDataSize(ctd.area);
+            if (processDataFile(name, &parameters)) {
+              if (saveCharacterTable(&ctd)) {
+                table = newContractionTable(getDataItem(ctd.area, 0), getDataSize(ctd.area));
                 resetDataArea(ctd.area);
-              } else {
-                logMallocError();
               }
             }
           }
 
-          deallocateCharacterClasses(&ctd);
+          destroyDataArea(ctd.area);
         }
+      } else {
+        table = newContractionTable(getInternalContractionTableBytes(), 0);
       }
 
-      destroyDataArea(ctd.area);
+      deallocateCharacterClasses(&ctd);
     }
 
     if (ctd.characterTable) free(ctd.characterTable);
@@ -846,13 +860,13 @@ static const ContractionTableManagementMethods externalManagementMethods = {
 };
 
 static ContractionTable *
-compileContractionTable_external (const char *fileName) {
+compileContractionTable_external (const char *name) {
   ContractionTable *table;
 
   if ((table = malloc(sizeof(*table)))) {
     memset(table, 0, sizeof(*table));
 
-    if ((table->data.external.command = strdup(fileName))) {
+    if ((table->data.external.command = strdup(name))) {
       table->managementMethods = &externalManagementMethods;
       table->translationMethods = getContractionTableTranslationMethods_external();
       initializeCommonFields(table);
@@ -950,26 +964,28 @@ getContractionTableQualifierEntry (const char **fileName) {
 }
 
 ContractionTable *
-compileContractionTable (const char *fileName) {
+compileContractionTable (const char *name) {
   ContractionTableCompileFunction *compile = NULL;
-  const ContractionTableQualifierEntry *ctq = getContractionTableQualifierEntry(&fileName);
+  const ContractionTableQualifierEntry *ctq = getContractionTableQualifierEntry(&name);
 
   if (ctq) {
     compile = ctq->compile;
   } else {
-    if (!hasNoQualifier(fileName)) {
-      logMessage(LOG_ERR, "unsupported contraction table: %s", fileName);
-      return NULL;
+    if (!isAbsolutePath(name)) {
+      if (!hasNoQualifier(name)) {
+        logMessage(LOG_ERR, "unsupported contraction table: %s", name);
+        return NULL;
+      }
     }
 
-    if (testProgramPath(fileName)) {
+    if (testProgramPath(name)) {
       compile = &compileContractionTable_external;
     } else {
       compile = &compileContractionTable_native;
     }
   }
 
-  return compile(fileName);
+  return compile(name);
 }
 
 void
@@ -1021,4 +1037,9 @@ makeContractionTablePath (const char *directory, const char *name) {
   }
 
   return NULL;
+}
+
+char *
+getContractionTableForLocale (const char *directory) {
+  return getFileForLocale(directory, makeContractionTablePath);
 }

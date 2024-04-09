@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -38,7 +38,30 @@ typedef enum {
   BM_KEY_WHEEL_DOWN = BM_KEY_WHEEL_UP + BM_KEYS_WHEEL,
   BM_KEY_WHEEL_PRESS = BM_KEY_WHEEL_DOWN + BM_KEYS_WHEEL,
   BM_KEY_STATUS = BM_KEY_WHEEL_PRESS + BM_KEYS_WHEEL,
-  BM_KEY_COUNT = BM_KEY_STATUS + BM_KEYS_STATUS
+  BM_KEY_COUNT = BM_KEY_STATUS + BM_KEYS_STATUS,
+
+  BM_KEY_B9 = BM_KEY_ENTRY,
+  BM_KEY_B10,
+  BM_KEY_B11,
+  BM_KEY_B12,
+  BM_KEY_F1,
+  BM_KEY_F2,
+  BM_KEY_F3,
+  BM_KEY_F4,
+  BM_KEY_DOT1,
+  BM_KEY_DOT2,
+  BM_KEY_DOT3,
+  BM_KEY_DOT4,
+  BM_KEY_DOT5,
+  BM_KEY_DOT6,
+  BM_KEY_DOT7,
+  BM_KEY_DOT8,
+
+  BM_KEY_UP = BM_KEY_JOYSTICK,
+  BM_KEY_LEFT,
+  BM_KEY_DOWN,
+  BM_KEY_RIGHT,
+  BM_KEY_PRESS,
 } BM_NavigationKey;
 
 typedef enum {

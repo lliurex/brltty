@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "log.h"
 #include "file.h"
 #include "parse.h"
@@ -31,6 +31,7 @@
 #include "ktb_keyboard.h"
 #include "brl.h"
 
+static char *opt_brailleDriver;
 static int opt_audit;
 static int opt_listKeyNames;
 static int opt_listHelpScreen;
@@ -39,6 +40,13 @@ static char *opt_tablesDirectory;
 char *opt_driversDirectory;
 
 BEGIN_OPTION_TABLE(programOptions)
+  { .word = "braille-driver",
+    .letter = 'b',
+    .argument = strtext("driver"),
+    .setting.string = &opt_brailleDriver,
+    .description = strtext("Braille driver code."),
+  },
+
   { .word = "audit",
     .letter = 'a',
     .setting.flag = &opt_audit,
@@ -65,7 +73,6 @@ BEGIN_OPTION_TABLE(programOptions)
 
   { .word = "tables-directory",
     .letter = 'T',
-    .flags = OPT_Hidden,
     .argument = strtext("directory"),
     .setting.string = &opt_tablesDirectory,
     .internal.setting = TABLES_DIRECTORY,
@@ -75,14 +82,13 @@ BEGIN_OPTION_TABLE(programOptions)
 
   { .word = "drivers-directory",
     .letter = 'D',
-    .flags = OPT_Hidden,
     .argument = strtext("directory"),
     .setting.string = &opt_driversDirectory,
     .internal.setting = DRIVERS_DIRECTORY,
     .internal.adjust = fixInstallPath,
     .description = strtext("Path to directory for loading drivers.")
   },
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 static void *driverObject;
 
@@ -92,99 +98,62 @@ typedef struct {
 } KeyTableDescriptor;
 
 static int
-getKeyTableDescriptor (KeyTableDescriptor *ktd, const char *name) {
+getKeyTableDescriptor (KeyTableDescriptor *ktd, const char *tableName) {
   int ok = 0;
-  int componentsLeft;
-  char **nameComponents = splitString(name, '-', &componentsLeft);
 
   memset(ktd, 0, sizeof(*ktd));
   ktd->names = NULL;
   ktd->path = NULL;
 
-  if (nameComponents) {
-    char **currentComponent = nameComponents;
+  if (*opt_brailleDriver) {
+    if (loadBrailleDriver(opt_brailleDriver, &driverObject, opt_driversDirectory)) {
+      char *keyTablesSymbol;
 
-    if (componentsLeft) {
-      const char *tableType = (componentsLeft--, *currentComponent++);
-
-      if (strcmp(tableType, "kbd") == 0) {
-        if (componentsLeft) {
-          const char *keyboardType = (componentsLeft--, *currentComponent++);
-
-          ktd->names = KEY_NAME_TABLES(keyboard);
-          if ((ktd->path = makeKeyboardTablePath(opt_tablesDirectory, keyboardType))) ok = 1;
-        } else {
-          logMessage(LOG_ERR, "missing keyboard type");
-        }
-      } else if (strcmp(tableType, "brl") == 0) {
-        if (componentsLeft) {
-          const char *driverCode = (componentsLeft--, *currentComponent++);
-
-          if (loadBrailleDriver(driverCode, &driverObject, opt_driversDirectory)) {
-            char *keyTablesSymbol;
-
-            {
-              const char *strings[] = {"brl_ktb_", driverCode};
-              keyTablesSymbol = joinStrings(strings, ARRAY_COUNT(strings));
-            }
-
-            if (keyTablesSymbol) {
-              const KeyTableDefinition *const *keyTableDefinitions;
-
-              if (findSharedSymbol(driverObject, keyTablesSymbol, &keyTableDefinitions)) {
-                const KeyTableDefinition *const *currentDefinition = keyTableDefinitions;
-
-                if (componentsLeft) {
-                  const char *deviceType = (componentsLeft--, *currentComponent++);
-
-                  while (*currentDefinition) {
-                    if (strcmp(deviceType, (*currentDefinition)->bindings) == 0) {
-                      ktd->names = (*currentDefinition)->names;
-                      if ((ktd->path = makeInputTablePath(opt_tablesDirectory, driverCode, deviceType))) ok = 1;
-                      break;
-                    }
-
-                    currentDefinition += 1;
-                  }
-
-                  if (!ktd->names) {
-                    logMessage(LOG_ERR, "unknown braille device type: %s-%s",
-                               driverCode, deviceType);
-                  }
-                } else {
-                  logMessage(LOG_ERR, "missing braille device type");
-                }
-              }
-
-              free(keyTablesSymbol);
-            } else {
-              logMallocError();
-            }
-          }
-        } else {
-          logMessage(LOG_ERR, "missing braille driver code");
-        }
-      } else {
-        logMessage(LOG_ERR, "unknown key table type: %s", tableType);
+      {
+        const char *strings[] = {"brl_ktb_", opt_brailleDriver};
+        keyTablesSymbol = joinStrings(strings, ARRAY_COUNT(strings));
       }
-    } else {
-      logMessage(LOG_ERR, "missing key table type");
-    }
 
-    deallocateStrings(nameComponents);
+      if (keyTablesSymbol) {
+        const KeyTableDefinition *const *keyTableDefinitions;
+
+        if (findSharedSymbol(driverObject, keyTablesSymbol, &keyTableDefinitions)) {
+          const KeyTableDefinition *const *currentDefinition = keyTableDefinitions;
+
+          while (*currentDefinition) {
+            if (strcmp(tableName, (*currentDefinition)->bindings) == 0) {
+              ktd->names = (*currentDefinition)->names;
+              if ((ktd->path = makeInputTablePath(opt_tablesDirectory, opt_brailleDriver, tableName))) ok = 1;
+              break;
+            }
+
+            currentDefinition += 1;
+          }
+
+          if (!ktd->names) {
+            logMessage(LOG_ERR,
+              "unknown braille device model: %s-%s",
+              opt_brailleDriver, tableName
+            );
+          }
+        }
+
+        free(keyTablesSymbol);
+      } else {
+        logMallocError();
+      }
+    }
+  } else {
+    ktd->names = KEY_NAME_TABLES(keyboard);
+    if ((ktd->path = makeKeyboardTablePath(opt_tablesDirectory, tableName))) ok = 1;
   }
 
-  if (ok) {
-    if (componentsLeft) {
-      logMessage(LOG_ERR, "too many key table name components");
-      ok = 0;
-    }
+  if (!ok) {
+    if (ktd->path) free(ktd->path);
+    memset(ktd, 0, sizeof(*ktd));
   }
 
-  if (ok) return 1;
-  if (ktd->path) free(ktd->path);
-  memset(ktd, 0, sizeof(*ktd));
-  return 0;
+  return ok;
 }
 
 static int
@@ -247,43 +216,35 @@ rstWriteLine (const wchar_t *line, void *data) {
 }
 
 static int
-rstAddHeader (const wchar_t *text, RestructuredTextData *rst) {
+rstWriteHeader (const wchar_t *text, unsigned int level, void *data) {
+  RestructuredTextData *rst = data;
+
+  if (level > (rst->headerLevel + 1)) {
+    level = rst->headerLevel + 1;
+  } else {
+    rst->headerLevel = level;
+  }
+
   static const wchar_t characters[] = {
     WC_C('='), WC_C('-'), WC_C('~')
   };
 
-  int isTitle = rst->headerLevel == 0;
   size_t length = wcslen(text);
   wchar_t underline[length + 1];
 
-  wmemset(underline, characters[rst->headerLevel], length);
+  wmemset(underline, characters[level], length);
   underline[length] = 0;
 
   if (!rstAddLine(text, rst)) return 0;
   if (!rstAddLine(underline, rst)) return 0;
   if (!rstAddBlankLine(rst)) return 0;
 
-  if (isTitle) {
+  if (level == 0) {
     if (!rstAddLine(WS_C(".. contents::"), rst)) return 0;
     if (!rstAddBlankLine(rst)) return 0;
   }
 
   return 1;
-}
-
-static int
-rstWriteHeader (const wchar_t *text, unsigned int level, void *data) {
-  RestructuredTextData *rst = data;
-
-  if (rst->headerLevel < level) {
-    while (++rst->headerLevel < level) {
-      if (!rstAddHeader(WS_C("\\ "), rst)) return 0;
-    }
-  } else if (rst->headerLevel > level) {
-    rst->headerLevel = level;
-  }
-
-  return rstAddHeader(text, rst);
 }
 
 static int
@@ -321,11 +282,16 @@ main (int argc, char *argv[]) {
   ProgramExitStatus exitStatus = PROG_EXIT_SUCCESS;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltty-ktb",
-      .argumentsSummary = "key-table"
+
+      .usage = {
+        .purpose = strtext("check a key table, list the key naems it can use, or write the key bindings it defines in useful formats."),
+        .parameters = "table-name",
+      }
     };
+
     PROCESS_OPTIONS(descriptor, argc, argv);
   }
 
@@ -419,6 +385,10 @@ currentVirtualTerminal (void) {
 
 void
 alert (AlertIdentifier identifier) {
+}
+
+void
+speakAlertText (const wchar_t *text) {
 }
 
 #include "api_control.h"

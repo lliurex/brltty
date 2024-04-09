@@ -1,0 +1,38 @@
+Key Table: NinePoint
+====================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Space+Brl2+Brl7+Brl8
+* enter/leave preferences menu: Space+Brl1+Brl6+Brl7+Brl8
+
+Cursor Functions
+* go to screen cursor: PadCenter
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: PadUp
+* go down one line: PadDown
+
+Horizontal Navigation
+* go backward one braille window:
+  + PadLeft
+  + NavLeft
+* go forward one braille window:
+  + PadRight
+  + NavRight
+
+Keyboard Input
+* braille keyboard dot4: Brl1
+* braille keyboard dot5: Brl2
+* braille keyboard dot6: Brl3
+* braille keyboard dot8: Brl4
+* braille keyboard dot7: Brl5
+* braille keyboard dot3: Brl6
+* braille keyboard dot2: Brl7
+* braille keyboard dot1: Brl8
+* braille keyboard space: Space
+* enter key: Enter
+

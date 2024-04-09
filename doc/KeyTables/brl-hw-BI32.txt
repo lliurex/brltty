@@ -1,0 +1,268 @@
+Key Table: HumanWare Brailliant BI 32
+=====================================
+
+Notes
+* There are four rectangular thumb keys on the front. From left to right:
+  The outer ones are named ThumbPrevious and ThumbNext.
+  The inner ones are named ThumbLeft and ThumbRight.
+  Some models have a round key in the middle - it's the internal menu key.
+* There's an eight-key braille keyboard near the back of the top.
+  From left to right, its keys are: Dot7, Dot3, Dot2, Dot1, Dot4, Dot5, Dot6, Dot8.
+* There are three display keys at each end of the braille cells.
+  From top to bottom:
+  + The three at the left are named Display1, Display2, and Display3.
+  + The three at the right are named Display4, Display5, and Display6.
+* RoutingKey refers to any of the keys immediately behind the braille cells.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display:
+  + Display1+Display2+Display5
+  + Space+Dots125
+* enter/leave command learn mode:
+  + Space+Dots123
+  + Display1+Display4+Display5+Display6
+* enter/leave preferences menu:
+  + Display1+Display3+Display4
+  + Space+Dots1234
+* enter/leave status display:
+  + Display2+Display5
+  + Space+Dots234
+* set display mode attributes/text:
+  + Display1+Display4+Display5
+  + Space+Dots145
+* set display mode attributes: Space+Dots1458
+* set display mode text: Space+Dots1457
+* set screen image frozen/unfrozen:
+  + Display1+Display2+Display4
+  + Space+Dots124
+* set screen image frozen: Space+Dots1248
+* set screen image unfrozen: Space+Dots1247
+* describe character: Display3+RoutingKey
+* show current date and time: Display1+Display5
+
+Cursor Functions
+* go to screen cursor:
+  + ThumbLeft+ThumbRight
+  + Display2+Display4+Display6
+* go back after cursor tracking: Display1+Display6
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line:
+  + Display1+Display3+Display4+Display6
+  + Space+Dots1236
+
+Vertical Navigation
+* go up one line:
+  + Display4
+  + ThumbPrevious
+* go down one line:
+  + Display6
+  + ThumbNext
+* go to top line: Display1+Display4
+* go to bottom line: Display3+Display6
+* go to beginning of top line:
+  + Display2+Display4
+  + ThumbLeft+ThumbPrevious
+* go to beginning of bottom line:
+  + Display2+Display6
+  + ThumbLeft+ThumbNext
+* go up to nearest line with different content:
+  + Display5+Display4
+  + ThumbRight+ThumbPrevious
+* go down to nearest line with different content:
+  + Display5+Display6
+  + ThumbRight+ThumbNext
+* go up to nearest line with different highlighting: Display2+Display1
+* go down to nearest line with different highlighting: Display2+Display3
+* go up to first line of paragraph: Display2+Display5+Display4
+* go down to first line of next paragraph: Display2+Display5+Display6
+* go up to previous command prompt: Display2+Display5+Display1+Display4
+* go down to next command prompt: Display2+Display5+Display3+Display6
+* go up to nearest line with less indent than character: Display2+Display1+RoutingKey
+* go down to nearest line with less indent than character: Display2+Display3+RoutingKey
+* go up to nearest line with different character: Display5+Display4+RoutingKey
+* go down to nearest line with different character: Display5+Display6+RoutingKey
+
+Horizontal Navigation
+* go backward one braille window:
+  + Display2
+  + ThumbLeft
+* go forward one braille window:
+  + Display5
+  + ThumbRight
+* go to beginning of line: Display1+Display2+Display3
+* go to end of line: Display4+Display5+Display6
+* go left one character: Display1+Display3
+* go right one character: Display4+Display6
+* place left end of braille window at character: Display6+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character:
+  + Display1+RoutingKey
+  + ThumbPrevious+RoutingKey
+* append to clipboard from character:
+  + Display2+RoutingKey
+  + ThumbLeft+RoutingKey
+* linear copy to character:
+  + Display4+RoutingKey
+  + ThumbRight+RoutingKey
+* rectangular copy to character:
+  + Display5+RoutingKey
+  + ThumbNext+RoutingKey
+* copy characters to clipboard: RoutingKey+RoutingKey
+* append characters to clipboard: Display2+RoutingKey+RoutingKey
+* insert clipboard text after screen cursor:
+  + ThumbPrevious+ThumbNext
+  + Display1+Display2+Display3+Display4
+  + Space+Dots1346
+* search backward for clipboard text: Display2+Display4+Display6+Display1
+* search forward for clipboard text: Display2+Display4+Display6+Display3
+* save clipboard to disk: Space+Dots13468
+* restore clipboard from disk: Space+Dots13467
+
+Configuration Functions
+* set autorepeat on/off: Space+Dots1235
+* set autorepeat on: Space+Dots12358
+* set autorepeat off: Space+Dots12357
+* set text style 6-dot: Display2+Display3+Display5
+* set text style 8-dot: Display2+Display3+Display6
+* set contracted/computer braille: Space+Dots1245
+* set contracted braille: Space+Dots12458
+* set computer braille: Space+Dots12457
+* set six dot computer braille: Space+Dots235
+* set eight dot computer braille: Space+Dots236
+* set skipping of lines with identical content on/off: Space+Dots24
+* set skipping of lines with identical content on: Space+Dots248
+* set skipping of lines with identical content off: Space+Dots247
+* set skipping of blank braille windows on/off: Space+Dots12
+* set skipping of blank braille windows on: Space+Dots128
+* set skipping of blank braille windows off: Space+Dots127
+* set sliding braille window on/off: Space+Dots2456
+* set sliding braille window on: Space+Dots24568
+* set sliding braille window off: Space+Dots24567
+* set track screen cursor on/off: Space+Dots2345
+* set track screen cursor on:
+  + Display1
+  + Space+Dots23458
+* set track screen cursor off:
+  + Display3
+  + Space+Dots23457
+* set screen cursor visibility on/off: Space+Dots14
+* set screen cursor visibility on: Space+Dots148
+* set screen cursor visibility off: Space+Dots147
+* set attribute underlining on/off:
+  + Space+Dots136
+  + Display2+Display3+Display4+Display5
+* set attribute underlining on: Space+Dots1368
+* set attribute underlining off: Space+Dots1367
+
+Menu Operations
+* save preferences to disk:
+  + Display2+Display4+Display5+Display6
+  + Space+Dots12348
+* restore preferences from disk:
+  + Display1+Display2+Display3+Display5
+  + Space+Dots12347
+* reset preferences to defaults: Space+Dots123478
+
+Speech Functions
+* stop speaking: Display3+Display4
+* speak current line: Display3+Display5
+* speak from top of screen through current line: Display3+Display5+Display4
+* speak from current line through bottom of screen: Display3+Display5+Display6
+* go to current speaking position: Display1+Display3+Display5
+* set autospeak on/off: Display3+Display4+Display6
+
+Keyboard Input
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot7: Dot7
+* braille keyboard dot8: Dot8
+* braille keyboard space: Space
+* braille keyboard meta: ThumbLeft
+* braille keyboard control: ThumbRight
+* type braille dots [7]: Space+Dot7
+* type braille dots [8]: Space+Dot8
+* backspace key: Dot7
+* escape key: Space+Dots26
+* cursor-left key: Space+Dot3
+* cursor-right key: Space+Dot6
+* cursor-up key: Space+Dot1
+* cursor-down key: Space+Dot4
+* page-up key: Space+Dots23
+* page-down key: Space+Dots56
+* home key: Space+Dot2
+* end key: Space+Dot5
+* insert key: Space+Dots35
+* delete key: Space+Dots256
+* function key: Space+RoutingKey
+* function key: ThumbRight+Space+RoutingKey
+* function key: ThumbLeft+Space+RoutingKey
+* function key: ThumbLeft+ThumbRight+Space+RoutingKey
+* enter key: Dot8
+* tab key: Space+Dots45
+* clear all sticky input modifiers: Space+Dots78
+* cycle the Upper sticky input modifier (next, on, off): Space+Dots68
+* cycle the Shift sticky input modifier (next, on, off): Space+Dots48
+* cycle the Control sticky input modifier (next, on, off): Space+Dots38
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Space+Dots28
+* cycle the AltGr (Right Alt) sticky input modifier (next, on, off): Space+Dots58
+* cycle the GUI (Windows) sticky input modifier (next, on, off): Space+Dots18
+* switch to specific virtual terminal: Display4+Display5+Display6+RoutingKey
+* switch to the previous virtual terminal:
+  + Display3+Display4+Display5+Display6
+  + Space+Dots12367
+* switch to the next virtual terminal:
+  + Display1+Display2+Display3+Display6
+  + Space+Dots12368
+* set braille keyboard enabled: Space+Dots138
+* set braille keyboard disabled: Space+Dots137
+* set braille typing mode dots: Space+Dots468
+* set braille typing mode text: Space+Dots467
+
+Special Functions
+* remember current braille window position: Display1+Display3+RoutingKey
+* go to remembered braille window position: Display4+Display6+RoutingKey
+* restart speech driver: Display2+Display3+Display4
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu:
+  + Dot8
+  + ThumbLeft+ThumbRight
+
+Horizontal Navigation
+* go backward one braille window: ThumbLeft
+* go forward one braille window: ThumbRight
+
+Menu Operations
+* go up to previous item:
+  + Dot1
+  + ThumbPrevious
+* go down to next item:
+  + Dot4
+  + ThumbNext
+* go up to first item:
+  + Dot2
+  + ThumbLeft+ThumbPrevious
+* go down to last item:
+  + Dot5
+  + ThumbLeft+ThumbNext
+* select previous choice:
+  + Dot3
+  + ThumbRight+ThumbPrevious
+* select next choice:
+  + Dot6
+  + ThumbRight+ThumbNext
+* go to previous menu level: Dot7
+* save preferences to disk: ThumbLeft+ThumbRight+ThumbNext
+* restore preferences from disk: ThumbLeft+ThumbRight+ThumbPrevious
+

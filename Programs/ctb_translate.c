@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -27,6 +27,15 @@
 #include "unicode.h"
 #include "prefs.h"
 
+static const unsigned char internalContractionTableBytes[] = {
+#include "ctb.auto.h"
+};
+
+const unsigned char *
+getInternalContractionTableBytes (void) {
+  return internalContractionTableBytes;
+}
+
 ContractionTable *contractionTable = NULL;
 
 static LockDescriptor *
@@ -45,74 +54,87 @@ unlockContractionTable (void) {
   releaseLock(getContractionTableLock());
 }
 
-CharacterEntry *
-getCharacterEntry (BrailleContractionData *bcd, wchar_t character) {
-  int first = 0;
-  int last = bcd->table->characters.count - 1;
+const CharacterEntry *
+findCharacterEntry (BrailleContractionData *bcd, wchar_t character, unsigned int *position) {
+  unsigned int from = 0;
+  unsigned int to = bcd->table->characters.count;
 
-  while (first <= last) {
-    int current = (first + last) / 2;
-    CharacterEntry *entry = &bcd->table->characters.array[current];
+  while (from < to) {
+    unsigned int current = (from + to) / 2;
+    const CharacterEntry *entry = &bcd->table->characters.array[current];
 
     if (entry->value < character) {
-      first = current + 1;
+      from = current + 1;
     } else if (entry->value > character) {
-      last = current - 1;
+      to = current;
     } else {
+      if (position) *position = current;
       return entry;
     }
   }
 
-  if (bcd->table->characters.count == bcd->table->characters.size) {
-    int newSize = bcd->table->characters.size;
+  if (position) *position = from;
+  return NULL;
+}
+
+static const CharacterEntry *
+addCharacterEntry (BrailleContractionData *bcd, wchar_t character, unsigned int position) {
+  ContractionTable *table = bcd->table;
+
+  if (table->characters.count == table->characters.size) {
+    int newSize = table->characters.size;
     newSize = newSize? newSize<<1: 0X80;
+    CharacterEntry *newArray = realloc(table->characters.array, ARRAY_SIZE(newArray, newSize));
 
-    {
-      CharacterEntry *newArray = realloc(bcd->table->characters.array, (newSize * sizeof(*newArray)));
-
-      if (!newArray) {
-        logMallocError();
-        return NULL;
-      }
-
-      bcd->table->characters.array = newArray;
-      bcd->table->characters.size = newSize;
-    }
-  }
-
-  memmove(&bcd->table->characters.array[first+1],
-          &bcd->table->characters.array[first],
-          (bcd->table->characters.count - first) * sizeof(*bcd->table->characters.array));
-  bcd->table->characters.count += 1;
-
-  {
-    CharacterEntry *entry = &bcd->table->characters.array[first];
-    memset(entry, 0, sizeof(*entry));
-    entry->value = entry->uppercase = entry->lowercase = character;
-
-    if (iswspace(character)) {
-      entry->attributes |= CTC_Space;
-    } else if (iswalpha(character)) {
-      entry->attributes |= CTC_Letter;
-
-      if (iswupper(character)) {
-        entry->attributes |= CTC_UpperCase;
-        entry->lowercase = towlower(character);
-      }
-
-      if (iswlower(character)) {
-        entry->attributes |= CTC_LowerCase;
-        entry->uppercase = towupper(character);
-      }
-    } else if (iswdigit(character)) {
-      entry->attributes |= CTC_Digit;
-    } else if (iswpunct(character)) {
-      entry->attributes |= CTC_Punctuation;
+    if (!newArray) {
+      logMallocError();
+      return NULL;
     }
 
-    bcd->table->translationMethods->finishCharacterEntry(bcd, entry);
-    return entry;
+    table->characters.array = newArray;
+    table->characters.size = newSize;
   }
+
+  memmove(
+    &table->characters.array[position+1],
+    &table->characters.array[position],
+    ((table->characters.count++ - position) * sizeof(*table->characters.array))
+  );
+
+  CharacterEntry *entry = &bcd->table->characters.array[position];
+  memset(entry, 0, sizeof(*entry));
+  entry->value = entry->uppercase = entry->lowercase = character;
+
+  if (iswspace(character)) {
+    entry->attributes |= CTC_Space;
+  } else if (iswalpha(character)) {
+    entry->attributes |= CTC_Letter;
+
+    if (iswupper(character)) {
+      entry->attributes |= CTC_UpperCase;
+      entry->lowercase = towlower(character);
+    }
+
+    if (iswlower(character)) {
+      entry->attributes |= CTC_LowerCase;
+      entry->uppercase = towupper(character);
+    }
+  } else if (iswdigit(character)) {
+    entry->attributes |= CTC_Digit;
+  } else if (iswpunct(character)) {
+    entry->attributes |= CTC_Punctuation;
+  }
+
+  bcd->table->translationMethods->finishCharacterEntry(bcd, entry);
+  return entry;
+}
+
+const CharacterEntry *
+getCharacterEntry (BrailleContractionData *bcd, wchar_t character) {
+  unsigned int position;
+  const CharacterEntry *entry = findCharacterEntry(bcd, character, &position);
+  if (entry) return entry;
+  return addCharacterEntry(bcd, character, position);
 }
 
 static inline int
@@ -121,107 +143,129 @@ makeCachedCursorOffset (BrailleContractionData *bcd) {
 }
 
 static int
-checkCache (BrailleContractionData *bcd) {
-  if (!bcd->table->cache.input.characters) return 0;
-  if (!bcd->table->cache.output.cells) return 0;
-  if (bcd->input.offsets && !bcd->table->cache.offsets.count) return 0;
-  if (bcd->table->cache.output.maximum != getOutputCount(bcd)) return 0;
-  if (bcd->table->cache.cursorOffset != makeCachedCursorOffset(bcd)) return 0;
-  if (bcd->table->cache.expandCurrentWord != prefs.expandCurrentWord) return 0;
-  if (bcd->table->cache.capitalizationMode != prefs.capitalizationMode) return 0;
+checkContractionCache (BrailleContractionData *bcd, ContractionCache *cache) {
+  if (!cache) return 0;
+  if (!cache->input.characters) return 0;
+  if (!cache->output.cells) return 0;
+  if (bcd->input.offsets && !cache->offsets.count) return 0;
+  if (cache->output.maximum != getOutputCount(bcd)) return 0;
+  if (cache->cursorOffset != makeCachedCursorOffset(bcd)) return 0;
+  if (cache->expandCurrentWord != prefs.expandCurrentWord) return 0;
+  if (cache->capitalizationMode != prefs.capitalizationMode) return 0;
 
   {
     unsigned int count = getInputCount(bcd);
-    if (bcd->table->cache.input.count != count) return 0;
-    if (wmemcmp(bcd->input.begin, bcd->table->cache.input.characters, count) != 0) return 0;
+    if (cache->input.count != count) return 0;
+    if (wmemcmp(bcd->input.begin, cache->input.characters, count) != 0) return 0;
   }
 
   return 1;
 }
 
 static void
-updateCache (BrailleContractionData *bcd) {
-  {
-    unsigned int count = getInputCount(bcd);
+useContractionCache (BrailleContractionData *bcd, ContractionCache *cache) {
+  bcd->input.current = bcd->input.begin + cache->input.consumed;
+  bcd->output.current = bcd->output.begin + cache->output.count;
 
-    if (count > bcd->table->cache.input.size) {
-      unsigned int newSize = count | 0X7F;
-      wchar_t *newCharacters = malloc(ARRAY_SIZE(newCharacters, newSize));
-
-      if (!newCharacters) {
-        logMallocError();
-        bcd->table->cache.input.count = 0;
-        goto inputDone;
-      }
-
-      if (bcd->table->cache.input.characters) free(bcd->table->cache.input.characters);
-      bcd->table->cache.input.characters = newCharacters;
-      bcd->table->cache.input.size = newSize;
-    }
-
-    wmemcpy(bcd->table->cache.input.characters, bcd->input.begin, count);
-    bcd->table->cache.input.count = count;
-    bcd->table->cache.input.consumed = getInputConsumed(bcd);
-  }
-inputDone:
-
-  {
-    unsigned int count = getOutputConsumed(bcd);
-
-    if (count > bcd->table->cache.output.size) {
-      unsigned int newSize = count | 0X7F;
-      unsigned char *newCells = malloc(ARRAY_SIZE(newCells, newSize));
-
-      if (!newCells) {
-        logMallocError();
-        bcd->table->cache.output.count = 0;
-        goto outputDone;
-      }
-
-      if (bcd->table->cache.output.cells) free(bcd->table->cache.output.cells);
-      bcd->table->cache.output.cells = newCells;
-      bcd->table->cache.output.size = newSize;
-    }
-
-    memcpy(bcd->table->cache.output.cells, bcd->output.begin, count);
-    bcd->table->cache.output.count = count;
-    bcd->table->cache.output.maximum = getOutputCount(bcd);
-  }
-outputDone:
+  memcpy(
+    bcd->output.begin, cache->output.cells,
+    ARRAY_SIZE(bcd->output.begin, cache->output.count)
+  );
 
   if (bcd->input.offsets) {
-    unsigned int count = getInputCount(bcd);
+    memcpy(
+      bcd->input.offsets, cache->offsets.array,
+      ARRAY_SIZE(bcd->input.offsets, cache->offsets.count)
+    );
+  }
+}
 
-    if (count > bcd->table->cache.offsets.size) {
-      unsigned int newSize = count | 0X7F;
-      int *newArray = malloc(ARRAY_SIZE(newArray, newSize));
+static void
+updateContractionCache (BrailleContractionData *bcd, ContractionCache *cache) {
+  if (cache) {
+    {
+      unsigned int count = getInputCount(bcd);
 
-      if (!newArray) {
-        logMallocError();
-        bcd->table->cache.offsets.count = 0;
-        goto offsetsDone;
+      if (count > cache->input.size) {
+        unsigned int newSize = count | 0X7F;
+        wchar_t *newCharacters = malloc(ARRAY_SIZE(newCharacters, newSize));
+
+        if (!newCharacters) {
+          logMallocError();
+          cache->input.count = 0;
+          goto inputDone;
+        }
+
+        if (cache->input.characters) free(cache->input.characters);
+        cache->input.characters = newCharacters;
+        cache->input.size = newSize;
       }
 
-      if (bcd->table->cache.offsets.array) free(bcd->table->cache.offsets.array);
-      bcd->table->cache.offsets.array = newArray;
-      bcd->table->cache.offsets.size = newSize;
+      wmemcpy(cache->input.characters, bcd->input.begin, count);
+      cache->input.count = count;
+      cache->input.consumed = getInputConsumed(bcd);
     }
+  inputDone:
 
-    memcpy(bcd->table->cache.offsets.array, bcd->input.offsets, ARRAY_SIZE(bcd->input.offsets, count));
-    bcd->table->cache.offsets.count = count;
-  } else {
-    bcd->table->cache.offsets.count = 0;
+    {
+      unsigned int count = getOutputConsumed(bcd);
+
+      if (count > cache->output.size) {
+        unsigned int newSize = count | 0X7F;
+        unsigned char *newCells = malloc(ARRAY_SIZE(newCells, newSize));
+
+        if (!newCells) {
+          logMallocError();
+          cache->output.count = 0;
+          goto outputDone;
+        }
+
+        if (cache->output.cells) free(cache->output.cells);
+        cache->output.cells = newCells;
+        cache->output.size = newSize;
+      }
+
+      memcpy(cache->output.cells, bcd->output.begin, count);
+      cache->output.count = count;
+      cache->output.maximum = getOutputCount(bcd);
+    }
+  outputDone:
+
+    if (bcd->input.offsets) {
+      unsigned int count = getInputCount(bcd);
+
+      if (count > cache->offsets.size) {
+        unsigned int newSize = count | 0X7F;
+        int *newArray = malloc(ARRAY_SIZE(newArray, newSize));
+
+        if (!newArray) {
+          logMallocError();
+          cache->offsets.count = 0;
+          goto offsetsDone;
+        }
+
+        if (cache->offsets.array) free(cache->offsets.array);
+        cache->offsets.array = newArray;
+        cache->offsets.size = newSize;
+      }
+
+      memcpy(cache->offsets.array, bcd->input.offsets, ARRAY_SIZE(bcd->input.offsets, count));
+      cache->offsets.count = count;
+    } else {
+      cache->offsets.count = 0;
+    }
+  offsetsDone:
+
+    cache->cursorOffset = makeCachedCursorOffset(bcd);
+    cache->expandCurrentWord = prefs.expandCurrentWord;
+    cache->capitalizationMode = prefs.capitalizationMode;
   }
-offsetsDone:
-
-  bcd->table->cache.cursorOffset = makeCachedCursorOffset(bcd);
-  bcd->table->cache.expandCurrentWord = prefs.expandCurrentWord;
-  bcd->table->cache.capitalizationMode = prefs.capitalizationMode;
 }
 
 void
 contractText (
   ContractionTable *contractionTable,
+  ContractionCache *contractionCache,
   const wchar_t *inputBuffer, int *inputLength,
   BYTE *outputBuffer, int *outputLength,
   int *offsetsMap, const int cursorOffset
@@ -244,17 +288,8 @@ contractText (
     }
   };
 
-  if (checkCache(&bcd)) {
-    bcd.input.current = bcd.input.begin + bcd.table->cache.input.consumed;
-
-    if (bcd.input.offsets) {
-      memcpy(bcd.input.offsets, bcd.table->cache.offsets.array,
-             ARRAY_SIZE(bcd.input.offsets, bcd.table->cache.offsets.count));
-    }
-
-    bcd.output.current = bcd.output.begin + bcd.table->cache.output.count;
-    memcpy(bcd.output.begin, bcd.table->cache.output.cells,
-           ARRAY_SIZE(bcd.output.begin, bcd.table->cache.output.count));
+  if (checkContractionCache(&bcd, contractionCache)) {
+    useContractionCache(&bcd, contractionCache);
   } else {
     int contracted;
 
@@ -263,7 +298,7 @@ contractText (
       wchar_t buffer[length];
       unsigned int map[length + 1];
 
-      if (normalizeCharacters(&length, bcd.input.begin, buffer, map)) {
+      if (composeCharacters(&length, bcd.input.begin, buffer, map)) {
         const wchar_t *oldBegin = bcd.input.begin;
         const wchar_t *oldEnd = bcd.input.end;
 
@@ -344,7 +379,7 @@ contractText (
       if (!done) bcd.input.current = srcorig;
     }
 
-    updateCache(&bcd);
+    updateContractionCache(&bcd, contractionCache);
   }
 
   *inputLength = getInputConsumed(&bcd);
@@ -353,7 +388,7 @@ contractText (
 
 int
 replaceContractionTable (const char *directory, const char *name) {
-  ContractionTable *table = NULL;
+  ContractionTable *newTable = NULL;
 
   if (*name) {
     char *path = makeContractionTablePath(directory, name);
@@ -361,25 +396,27 @@ replaceContractionTable (const char *directory, const char *name) {
     if (path) {
       logMessage(LOG_DEBUG, "compiling contraction table: %s", path);
 
-      if (!(table = compileContractionTable(path))) {
+      if (!(newTable = compileContractionTable(path))) {
         logMessage(LOG_ERR, "%s: %s", gettext("cannot compile contraction table"), path);
       }
 
       free(path);
     }
-
-    if (!table) return 0;
+  } else if (!(newTable = compileContractionTable(name))) {
+    logMessage(LOG_ERR, "%s: %s", gettext("cannot access internal contraction table"), CONTRACTION_TABLE);
   }
 
-  {
+  if (newTable) {
     ContractionTable *oldTable = contractionTable;
 
     lockContractionTable();
-      contractionTable = table;
+      contractionTable = newTable;
     unlockContractionTable();
 
     if (oldTable) destroyContractionTable(oldTable);
+    return 1;
   }
 
-  return 1;
+  logMessage(LOG_ERR, "%s: %s", gettext("cannot load contraction table"), name);
+  return 0;
 }

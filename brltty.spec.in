@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -45,21 +45,26 @@ BuildRequires: systemd-rpm-macros
 
 BuildRequires: /bin/sh
 BuildRequires: /usr/bin/env
+
+BuildRequires: bash
+BuildRequires: gawk
+BuildRequires: coreutils
+BuildRequires: binutils
+BuildRequires: tcl
+
 BuildRequires: autoconf >= 2.53
 BuildRequires: automake
 BuildRequires: make
-BuildRequires: coreutils
-BuildRequires: binutils
+BuildRequires: pkgconf-pkg-config
 BuildRequires: gcc
-BuildRequires: gawk
-BuildRequires: tcl
-BuildRequires: glibc-headers
 
 BuildRequires: alsa-lib-devel
 BuildRequires: bluez-libs-devel
 BuildRequires: dbus-devel
 BuildRequires: expat-devel
 BuildRequires: glibc-devel
+BuildRequires: glib2-devel
+BuildRequires: gpm-devel
 BuildRequires: libcap-devel
 BuildRequires: libicu-devel
 BuildRequires: liblouis-devel
@@ -67,8 +72,13 @@ BuildRequires: ncurses-devel
 BuildRequires: pcre2-devel
 BuildRequires: polkit-devel
 BuildRequires: systemd-devel
-BuildRequires: linuxdoc-tools
+
+BuildRequires: gettext
+BuildRequires: groff
 BuildRequires: doxygen
+BuildRequires: linuxdoc-tools
+BuildRequires: python3-docutils
+BuildRequires: rst2txt
 
 AutoProv: no
 AutoReq: yes
@@ -350,11 +360,30 @@ AutoProv: no
 AutoReq: yes
 Requires: systemd-udev
 
-Summary: Udev rules for BRLTTY.
+Summary: BRLTTY Udev rules.
 %description -n brltty-udev
-This package provides the rules and wrapper for managing BRLTTY via Udev.
+This package provides the rules and the wrapper for managing BRLTTY via Udev.
 
 Install this package if you'd like to manage BRLTTY processes via Udev.
+It doesn't include the rules for braille devices that use generic USB to serial adapters.
+
+
+%package -n brltty-udev-generic
+Version: @PACKAGE_VERSION@
+Release: 1
+Group: System Environment/Daemons
+License: LGPL
+BuildArch: noarch
+
+AutoProv: no
+AutoReq: yes
+Requires: systemd-udev
+
+Summary: BRLTTY Udev rules for braille devices that use a generic USB to serial adapter.
+%description -n brltty-udev-generic
+This package provides additional rules for managing BRLTTY via Udev.
+
+Install this package in order to support braille devices that use a generic USB to serial adapter.
 
 
 %package -n brltty-dracut
@@ -458,6 +487,27 @@ Install this package if you have a Java application
 which directly accesses a refreshable braille display.
 
 
+%package -n lua-brlapi
+Version: @api_release@
+Release: 1
+Group: System Environment/Libraries
+License: LGPL
+
+BuildRequires: lua
+BuildRequires: lua-devel
+
+AutoProv: no
+AutoReq: yes
+
+Summary: Lua bindings for BrlAPI.
+%description -n lua-brlapi
+This package provides the Lua bindings for BrlAPI,
+which is the Application Programming Interface to BRLTTY.
+
+Install this package if you have an Lua application
+which directly accesses a refreshable braille display.
+
+
 %package -n ocaml-brlapi
 Version: @api_release@
 Release: 1
@@ -487,7 +537,7 @@ License: LGPL
 
 BuildRequires: python3
 BuildRequires: python3-devel
-BuildRequires: Cython
+BuildRequires: python3-Cython
 
 AutoProv: no
 AutoReq: yes
@@ -529,14 +579,14 @@ which directly accesses a refreshable braille display.
 %build
 export PYTHON=python3
 %configure --disable-relocatable-install --with-install-root="${RPM_BUILD_ROOT}" --disable-gpm --without-mikropuhe --without-swift --without-theta --without-viavoice --without-libbraille --with-braille-driver=-tt,-vr
-make
+make all
 
 %install
 make install
 make install-messages
 make install-appstream
 make install-systemd
-make install-udev
+make install-udev UDEV_RULES_LOCATION=%{_udevrulesdir}
 make install-polkit
 make install-dracut
 make install-documents
@@ -551,6 +601,7 @@ rm -fr "${RPM_BUILD_ROOT}"
 %defattr(-,root,root)
 %{_bindir}/brltty
 %{_pkglibdir}
+%{_pkglibexecdir}/brltty-pty
 %exclude %{_pkglibdir}/libbrlttybba.so
 %exclude %{_pkglibdir}/libbrlttybxw.so
 %exclude %{_pkglibdir}/libbrlttysen.so
@@ -570,9 +621,13 @@ rm -fr "${RPM_BUILD_ROOT}"
 %doc %{_mandir}/man1/brltty.1.gz
 %doc %{_docdir}/*/LICENSE*
 %doc %{_docdir}/*/README*
+%doc %{_docdir}/*/*.html
+%doc %{_docdir}/*/BUGS
 %doc %{_docdir}/*/ChangeLog
 %doc %{_docdir}/*/CONTRIBUTORS
+%doc %{_docdir}/*/HISTORY
 %doc %{_docdir}/*/TODO
+%doc %{_docdir}/*/*.csv
 %doc %{_docdir}/*/brltty.conf
 %doc %{_docdir}/*/KeyTables
 %doc %{_docdir}/*/Manual-BRLTTY
@@ -619,7 +674,11 @@ rm -fr "${RPM_BUILD_ROOT}"
 
 %files -n brltty-udev
 %{_udevrulesdir}/*
+%exclude %{_udevrulesdir}/*-generic*
 %{_pkglibexecdir}/udev-*
+
+%files -n brltty-udev-generic
+%{_udevrulesdir}/*-generic*
 
 %files -n brltty-dracut
 /usr/lib/dracut/modules.d/99brltty
@@ -655,6 +714,9 @@ rm -fr "${RPM_BUILD_ROOT}"
 @JAVA_JAR_DIR@/*
 @JAVA_JNI_DIR@/*
 
+%files -n lua-brlapi
+@LUA_LIBRARY_DIRECTORY@/
+
 %files -n ocaml-brlapi
 @OCAMLLIB@/brlapi
 
@@ -667,42 +729,88 @@ rm -fr "${RPM_BUILD_ROOT}"
 
 
 %changelog
-* Thu Jan 28 2021 Dave Mielke <Dave@Mielke.cc> 6.3
-Core changes:
-   The CLIP_NEW command when performed via a keyboard table no longer crashes.
-   Message localization now works on Windows and Android.
-   Non-UTF8 consoles on Linux and Windows are now supported.
-Command line option changes:
-   --start-message no longer has a short option (was -Y).
-   --stop-message no longer has a short option (was -Z).
-   --prompt-patterns no longer has a short option (was -z).
-   The short option for --privilege-parameters is now -z (was -y).
-   The --stay-privileged [-Z] option has been added.
-   Setting the unprivileged user to :STAY-PRIVILEGED: is no longer supported.
-   The override-preference option has been renamed to override-preferences.
-   The --locale-directory option has been added.
-Build changes:
-   The Systemd and Udev wrapper scripts are now in libexec/ (not lib/brltty/).
-   BRLTTY now has a .pc (pkgconfig) file.
-   The revision identifier for the build is now stored within the tarball.
-Systemd changes:
-   The brlapi group is created during boot if it doesn't already exist.
-FreedomScientific braille driver changes:
-   Focus models: The SETMARK an GOTOMARK commands have been bound.
-XWindow braille driver changes:
-   A backspace key has been added.
-SpeechDispatcher speech driver changes:
-   The name= parameter has been added.
+* Sat Jul 22 2023 Dave Mielke <Dave@Mielke.cc> 6.6
+General changes:
+   The -H (uppercase) option and the concept of hidden options have been removed.
+   For consistency (with -A, -B, -S, -X), the -z and -Z short options have been swapped:
+      -z is now --stay-privileged
+      -Z is now --privilege-parameters
+   Multi-line contracted braille is now supported.
+   The cursor style can now be set to no dots.
+   A rectangular append to the clipboard now ensures a leading newline.
+   README.CommandReference has been added.
+Speech changes:
+   Speech can now be interrupted when writing new text to the input FIFO.
+   Autospeak now provides correct character highlighting to the speech driver.
+   A word is now a whitespace-delimited (rather than an alphanumeric) sequence of characters.
+   Word completion for single-character words now works correctly.
+   The ROUTE_SPEECH command (go to the speech cursor) has been added.
+   The DESC_CURR_CHAR command now speaks phonetically.
+Preferences Menu changes:
+   The PREFRESET command has been added.
+   Space + p + Dots 7-8 is bound to the new PREFRESET command.
+   If the preferences file can't be found then try loading /etc/brltty/default.prefs.
+   Save on Exit now also saves the preferences on program termination.
+   The Speak Key Context preference has been added.
+   The Speak Modifier Key preference has been added.
+Baum braille driver changes:
+   More recent Orbit Reader models have routing keys.
+BrlAPI braille driver changes:
+   The speechChanges (no, yes) parameter has been added.
+CombiBraille braille driver changes:
+   Upgraded to use generic (rather than direct serial) I/O.
+   The routing keys are now supported.
+DotPad braille driver:
+   New - its two-letter driver code is dp.
+   A multi-line text display is supported within its graphic area.
+Freedom Scientific braille driver changes:
+   Minor Focus key binding changes:
+      LeftShift + RoutingKey -> SETLEFT
+      RightShift + RoutingKey -> SWITCHVT
+      LeftSelector + NavrowKey -> PRDIFCHAR
+      RightSelector + NavrowKey -> NXDIFCHAR
+HandyTech braille driver changes:
+   Bluetooth service discovery now needs to be performed (for newer models).
+External Speech speech driver changes:
+   The volume and pitch can now be set.
+   Now disconnects from the server when a write error or timeout occurs.
+   Now tries to reconnect to the server if disconnected.
+   Now correctly handles the receipt of tracking data.
+AtSpi2 screen driver changes:
+   A potential crash on receipt of a cursor routing request has been resolved.
+File Viewer screen driver:
+   New. Its two-letter driver code is fv.
+   A virtual screen presents the specified file (via its file parameter).
+   The height of the screen is the number of lines within the file.
+   The width of the screen is the length of the file's longest line.
+Linux screen driver changes:
+   A message is shown on the braille display if character injection (TIOCSTI) is disabled.
+Terminal Emulator screen driver:
+   New. Its two-letter driver code is em.
+   It monitors a shared memory segment maintained by a terminal emulator
+   for screen content and size, cursor position, etc.
+   It uses a message queue to know when the segment has been updated
+   and to send input typed on the braille device to the terminal emulator.
+   BRLTTY's provided terminal emulator is the new brltty-pty command (in libexec/brltty/).
+   The new brltty-term command runs a shell or terminal manager via brltty-pty,
+   and also runs BRLTTY with its Terminal Emulator screen driver to interact with it.
 BrlAPI changes:
-   The version is now 0.8.2 (it was 0.8.1).
-   Some locking issues have been resolved.
-Contraction table changes:
-   The cldr directive has been renamed to emoji.
-   Emoji translation is no longer applied to (some) non-emoji characters.
-   A (rare) problem that could cause an infinite loop has been resolved.
-Developer changes:
-   The versioned symbolic link for libbrlapi.so is now created by make api.
-   The run-* scripts now work when the build and source trees aren't the same.
-   The run-brltty script now uses the message catalogs within the build tree.
-   The msgtest command has been added.
+   The version is now 0.8.5 (it was 0.8.4).
+   Fuzzing support has been added to the server (see README.APIFuzzing).
+   Various fuzzer-detected issues have been resolved.
+Contraction tables:
+   The en-ueb-g1 (English, Unified, Grade 1) contraction table has been added.
+Key tables:
+   A possible stack overflow during table compilation has been resolved.
+   The run directive has been added.
+   The macro directive has been added.
+   The isolated directive has been added.
+   The ktbcheck tool has been added.
+Windows changes:
+   The batch scripts have been improved.
+   The tasks-brltty.bat script has been added.
+   The regquery-brlapi.bat script has been added.
+   The build now includes the Debug\ directory, which contains:
+      The build's config.h, config.mk, and config.log files.
+      Unstripped executables (.exe) and libraries (.dll).
 

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,6 +22,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <locale.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <limits.h>
@@ -87,6 +88,7 @@ beginProgram (int argumentCount, char **argumentVector) {
   atexit(endProgram);
 #endif /* at exit */
 
+  setlocale(LC_ALL, "");
   initializeSystemObject();
   ensureAllMessagesProperties();
 
@@ -137,44 +139,69 @@ beginProgram (int argumentCount, char **argumentVector) {
   pushLogPrefix(programName);
 }
 
-int
-fixInstallPath (char **path) {
+const char *
+getProgramDirectory (void) {
   static const char *programDirectory = NULL;
 
   if (!programDirectory) {
     if ((programDirectory = getPathDirectory(programPath))) {
+      logMessage(LOG_DEBUG, "program directory: %s", programDirectory);
       registerProgramMemory("program-directory", &programDirectory);
     } else {
       logMessage(LOG_WARNING, gettext("cannot determine program directory"));
-      programDirectory = CURRENT_DIRECTORY_NAME;
+      programDirectory = "";
     }
-
-    logMessage(LOG_DEBUG, "program directory: %s", programDirectory);
   }
 
-  {
-    const char *problem = strtext("cannot fix install path");
-    char *newPath = makePath(programDirectory, *path);
+  if (!*programDirectory) return NULL;
+  return programDirectory;
+}
 
-    if (newPath) {
-      if (changeStringSetting(path, newPath)) {
-        if (isAbsolutePath(*path)) {
-          problem = NULL;
-        } else {
-          problem = strtext("install path not absolute");
-        }
+int
+fixInstallPath (char **path) {
+  const char *programDirectory = getProgramDirectory();
+  if (!programDirectory) programDirectory = CURRENT_DIRECTORY_NAME;
+
+  const char *problem = strtext("cannot fix install path");
+  char *newPath = makePath(programDirectory, *path);
+
+  if (newPath) {
+    if (changeStringSetting(path, newPath)) {
+      if (isAbsolutePath(*path)) {
+        problem = NULL;
+      } else {
+        problem = strtext("install path not absolute");
       }
-
-      free(newPath);
     }
 
-    if (problem) {
-      logMessage(LOG_WARNING, "%s: %s", gettext(problem), *path);
-      return 0;
+    free(newPath);
+  }
+
+  if (!problem) return 1;
+  logMessage(LOG_WARNING, "%s: %s", gettext(problem), *path);
+  return 0;
+}
+
+char *
+makeProgramPath (const char *name) {
+   const char *directory = getProgramDirectory();
+   if (!directory) return NULL;
+   return makePath(directory, name);
+}
+
+char *
+makeCommandPath (const char *name) {
+  char *path = NULL;
+  char *directory = NULL;
+
+  if (changeStringSetting(&directory, COMMANDS_DIRECTORY)) {
+    if (fixInstallPath(&directory)) {
+      path = makePath(directory, name);
     }
   }
 
-  return 1;
+  if (directory) free(directory);
+  return path;
 }
 
 int
@@ -190,16 +217,18 @@ createPidFile (const char *path, ProcessIdentifier pid) {
 
     typedef enum {PFS_ready, PFS_stale, PFS_clash, PFS_error} PidFileState;
     PidFileState state = PFS_error;
-    int file = open(path,
-                    O_RDWR | O_CREAT,
-                    S_IRUSR | S_IWUSR
+
+    lockUmask();
+    int file = open(
+      path, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR
 #ifdef S_IRGRP
-                    | S_IRGRP
+                            | S_IRGRP
 #endif /* S_IRGRP */
 #ifdef S_IROTH
-                    | S_IROTH
+                            | S_IROTH
 #endif /* S_IROTH */
-                    );
+    );
+    unlockUmask();
 
     if (file != -1) {
       int locked = acquireFileLock(file, 1);

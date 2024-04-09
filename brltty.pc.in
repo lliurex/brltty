@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -43,8 +43,8 @@ writable_directory=@writable_directory@
 
 execute_root=@execute_root@
 program_directory=${execute_root}@program_directory@
+commands_directory=${execute_root}@commands_directory@
 drivers_directory=${execute_root}@drivers_directory@
-scripts_directory=${execute_root}@scripts_directory@
 tables_directory=${execute_root}@tables_directory@
 include_directory=${execute_root}@include_directory@
 manpage_directory=${execute_root}@manpage_directory@
@@ -55,7 +55,6 @@ preferences_file=@PREFERENCES_FILE@
 text_table=@text_table@
 attributes_table=@attributes_table@
 
-have_contracted_braille=@brltty_enabled_contracted_braille@
 have_liblouis=@brltty_enabled_liblouis@
 liblouis_tables_directory=@louis_tables_directory@
 

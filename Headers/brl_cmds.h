@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -261,6 +261,15 @@ typedef enum {
   BRL_CMD_GUI_ITEM_NEXT /* move to the next item in the screen area */,
   BRL_CMD_GUI_ITEM_LAST /* move to the last item in the screen area */,
 
+  BRL_CMD_SAY_LOWER /* decrease speaking pitch */,
+  BRL_CMD_SAY_HIGHER /* increase speaking pitch */,
+  BRL_CMD_SAY_ALL /* speak from top of screen through bottom of screen */,
+  
+  BRL_CMD_CONTRACTED /* set contracted/computer braille */,
+  BRL_CMD_COMPBRL6 /* set six/eight dot computer braille */,
+
+  BRL_CMD_PREFRESET /* reset preferences to defaults */,
+
   BRL_basicCommandCount /* must be last */
 } BRL_BasicCommand;
 
@@ -297,7 +306,7 @@ typedef enum {
   BRL_BLK_REFRESH_LINE /* refresh braille line */,
   BRL_BLK_TXTSEL_START /* start text selection */,
   BRL_BLK_TXTSEL_SET /* set text selection */,
-  BRL_BLK_1C /* (reserved) */,
+  BRL_BLK_ROUTE_SPEECH /* bring speech cursor to character */,
   BRL_BLK_1D /* (reserved) */,
   BRL_BLK_SELECTVT /* bind to specific virtual terminal */,
   BRL_BLK_ALERT /* render an alert */,
@@ -309,6 +318,8 @@ typedef enum {
   BRL_BLK_PASSPS2 /* PS/2 (set 3) keyboard scan code */,
   BRL_BLK_CONTEXT /* switch to command context */,
   BRL_BLK_TOUCH_AT /* current reading location */,
+  BRL_BLK_MACRO /* execute command macro */,
+  BRL_BLK_HOSTCMD /* run host command */,
 
   BRL_blockCommandCount /* must be last */
 } BRL_BlockCommand;
@@ -351,6 +362,7 @@ typedef enum {
 #define BRL_FLG_INPUT_META    0X080000 /* meta (left alt) key pressed */
 #define BRL_FLG_INPUT_ALTGR   0X100000 /* altgr (right alt) key pressed */
 #define BRL_FLG_INPUT_GUI     0X200000 /* gui (windows) key pressed */
+#define BRL_FLG_INPUT_ESCAPED 0X400000 /* prefix with escape */
 
 #define BRL_FLG_KBD_RELEASE 0X010000 /* it is a release scan code */
 #define BRL_FLG_KBD_EMUL0   0X020000 /* it is an emulation 0 scan code */

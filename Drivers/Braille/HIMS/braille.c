@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -598,7 +598,7 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
       .data=&syncBrailleProtocol
     },
 
-    { /* Braille Edge */
+    { /* Braille Edge and QBrailleXL */
       .vendor=0X045E, .product=0X930B,
       .configuration=1, .interface=0, .alternative=0,
       .inputEndpoint=1, .outputEndpoint=2,

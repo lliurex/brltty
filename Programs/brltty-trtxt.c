@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,7 +23,7 @@
 #include <errno.h>
 
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "log.h"
 #include "file.h"
 #include "unicode.h"
@@ -34,6 +34,7 @@
 static char *opt_tablesDirectory;
 static char *opt_inputTable;
 static char *opt_outputTable;
+
 static int opt_sixDots;
 static int opt_noBaseCharacters;
 
@@ -41,16 +42,6 @@ static const char tableName_autoselect[] = "auto";
 static const char tableName_unicode[] = "unicode";
 
 BEGIN_OPTION_TABLE(programOptions)
-  { .word = "tables-directory",
-    .letter = 'T',
-    .flags = OPT_Hidden,
-    .argument = strtext("directory"),
-    .setting.string = &opt_tablesDirectory,
-    .internal.setting = TABLES_DIRECTORY,
-    .internal.adjust = fixInstallPath,
-    .description = strtext("Path to directory for text tables.")
-  },
-
   { .word = "input-table",
     .letter = 'i',
     .argument = strtext("file"),
@@ -78,7 +69,16 @@ BEGIN_OPTION_TABLE(programOptions)
     .setting.flag = &opt_noBaseCharacters,
     .description = strtext("Don't fall back to the Unicode base character.")
   },
-END_OPTION_TABLE
+
+  { .word = "tables-directory",
+    .letter = 'T',
+    .argument = strtext("directory"),
+    .setting.string = &opt_tablesDirectory,
+    .internal.setting = TABLES_DIRECTORY,
+    .internal.adjust = fixInstallPath,
+    .description = strtext("Path to directory for text tables.")
+  },
+END_OPTION_TABLE(programOptions)
 
 static TextTable *inputTable;
 static TextTable *outputTable;
@@ -204,7 +204,7 @@ getTable (TextTable **table, const char *name) {
     char *allocated = NULL;
 
     if (strcmp(name, tableName_autoselect) == 0) {
-      if (!(name = allocated = selectTextTable(directory))) {
+      if (!(name = allocated = getTextTableForLocale(directory))) {
         logMessage(LOG_ERR, "cannot find text table for current locale");
       }
     }
@@ -231,10 +231,14 @@ main (int argc, char *argv[]) {
   ProgramExitStatus exitStatus = PROG_EXIT_FATAL;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltty-trtxt",
-      .argumentsSummary = "[{input-file | -} ...]"
+
+      .usage = {
+        .purpose = strtext("Translate one binary braille representation to another."),
+        .parameters = "[{input-file | -} ...]",
+      }
     };
 
     PROCESS_OPTIONS(descriptor, argc, argv);

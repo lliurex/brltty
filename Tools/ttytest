@@ -1,0 +1,270 @@
+#!/usr/bin/env tclsh
+###############################################################################
+# BRLTTY - A background process providing access to the console screen (when in
+#          text mode) for a blind person using a refreshable braille display.
+#
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
+#
+# BRLTTY comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+source [file join [file dirname [info script]] .. brltty-prologue.tcl]
+
+set serialProperties [dict create]
+set devicePath "/dev/ttyS0"
+
+proc getSerialPropertyNames {} {
+   global serialProperties
+   return [dict keys $serialProperties]
+}
+
+proc isSerialPropertyDefined {name} {
+   return [lcontain [getSerialPropertyNames] $name]
+}
+
+proc getSerialPropertyLabel {name} {
+   global serialProperties
+   return [dict get $serialProperties $name label]
+}
+
+proc getSerialPropertyChoices {name} {
+   global serialProperties
+   return [dict get $serialProperties $name choices]
+}
+
+proc getSerialPropertyOptions {name} {
+   global serialProperties
+   return [dict get $serialProperties $name options]
+}
+
+proc getSerialPropertyDefault {name} {
+   global serialProperties
+   return [dict get $serialProperties $name default]
+}
+
+proc getSerialPropertySetting {name} {
+   global serialProperties
+   return [dict get $serialProperties $name setting]
+}
+
+proc verifySerialPropertyChoice {name value} {
+   if {![lcontain [getSerialPropertyChoices $name] $value]} {
+      return -code error "unknown serial [getSerialPropertyLabel $name]: $value"
+   }
+}
+
+proc setSerialPropertyField {name field value} {
+   global serialProperties
+   dict set serialProperties $name $field $value
+}
+
+proc defineSerialProperty {name label default args} {
+   if {[isSerialPropertyDefined $name]} {
+      return -code error "serial property already defined: $name"
+   }
+
+   global serialProperties
+   dict set serialProperties $name [dict create label $label choices $args options [dict create]]
+   verifySerialPropertyChoice $name $default
+   setSerialPropertyField $name default $default
+   setSerialPropertyField $name setting $default
+}
+
+proc addSerialOption {option property args} {
+   if {![isSerialPropertyDefined $property]} {
+      return -code error "serial property not defined: $property"
+   }
+
+   global serialProperties
+
+   foreach value $args {
+      verifySerialPropertyChoice $property $value
+   }
+
+   dict set serialProperties $property options $option $args
+}
+
+defineSerialProperty lineMode "mode" local local modem
+defineSerialProperty lineBaud "baud" 38400 50 75 110 134 150 200 300 600 1200 1800 2400 4800 9600 19200 38400 57600 115200 230400 460800 500000 576000 921600 1000000 1152000 1500000 2000000 2500000 3000000 3500000 4000000
+defineSerialProperty flowControl "flow control" no no hardware software
+defineSerialProperty dataParity "parity" none none odd even mark space
+defineSerialProperty dataBits "data bits" 8 5 6 7 8
+defineSerialProperty stopBits "stop bits" 1 1 2
+
+addSerialOption clocal lineMode local
+addSerialOption crtscts flowControl hardware
+addSerialOption ixon flowControl software
+addSerialOption parenb dataParity odd even mark space
+addSerialOption parodd dataParity odd mark
+addSerialOption cmspar dataParity mark space
+addSerialOption cstopb stopBits 2
+
+proc logSerialConfiguration {} {
+   global devicePath
+   set log "serial cofiguration: $devicePath"
+
+   foreach name [getSerialPropertyNames] {
+      append log ", [getSerialPropertySetting $name]"
+      append log " [getSerialPropertyLabel $name]"
+   }
+
+   logMessage task $log
+}
+
+proc configureSerialProperty {name value} {
+   verifySerialPropertyChoice $name $value
+   setSerialPropertyField $name setting $value
+}
+
+proc verifySerialDevice {path} {
+   foreach {test word} {exists "found" readable "readable" writable "writable"} {
+      if {![file $test $path]} {
+         semanticError "device not $word: $path"
+      }
+   }
+
+   if {![string equal [file type $path] characterSpecial]} {
+      semanticError "not a serial device: $path"
+   }
+}
+
+proc configureSerialDevice {{options {-g}}} {
+   global devicePath
+
+   set command [list]
+   lappend command stty -F $devicePath
+   eval lappend command $options
+   logNote "command: [join $command " "]"
+
+   lvarpush command exec
+   lappend command 2>@ stderr
+
+   if {[catch $command response] != 0} {
+      exit 9
+   }
+
+   return $response
+}
+
+proc addSettingUsage {linesVariable label specification default} {
+   upvar 1 $linesVariable lines
+   lappend lines "To set the $label, specify $specification (the default is $default)."
+}
+
+proc getArgumentsUsageSummary {} {
+   set lines [list]
+
+   global devicePath
+   addSettingUsage lines "port" "the absolute path to the corresponding serial device" $devicePath
+
+   foreach name [getSerialPropertyNames] {
+      set label [getSerialPropertyLabel $name]
+      set choices [getSerialPropertyChoices $name]
+      set default [getSerialPropertyDefault $name]
+      addSettingUsage lines $label [formatChoicesPhrase $choices] $default
+   }
+
+   return $lines
+}
+
+proc parseCommandLine {} {
+   set optionDefinitions {
+   }
+
+   processProgramArguments optionValues $optionDefinitions argumentValues "\[setting ...\]" getArgumentsUsageSummary
+   return $argumentValues
+}
+
+proc getRequestedConfiguration {} {
+   set configuration [list raw -echo -echoe -echok -echonl]
+   lappend configuration [getSerialPropertySetting lineBaud]
+   lappend configuration cs[getSerialPropertySetting dataBits]
+
+   foreach property [getSerialPropertyNames] {
+      set setting [getSerialPropertySetting $property]
+      set options [getSerialPropertyOptions $property]
+
+      foreach option [dict keys $options] {
+         if {![lcontain [dict get $options $option] $setting]} {
+            set option "-$option"
+         }
+
+         lappend configuration $option
+      }
+   }
+
+   return $configuration
+}
+
+foreach argument [parseCommandLine] {
+   if {[cequal [file pathtype $argument] absolute]} {
+      set devicePath $argument
+   } else {
+      set found 0
+
+      foreach name [getSerialPropertyNames] {
+         if {[lcontain [getSerialPropertyChoices $name] $argument]} {
+            set found 1
+            configureSerialProperty $name $argument
+            break
+         }
+      }
+
+      if {!$found} {
+         syntaxError "unrecognized serial property: $argument"
+      }
+   }
+}
+
+verifySerialDevice $devicePath
+logSerialConfiguration
+
+set originalConfiguration [configureSerialDevice]
+set requestedConfiguration [getRequestedConfiguration]
+
+try {
+   configureSerialDevice $requestedConfiguration
+
+   try {
+      withChannel deviceChannel [open $devicePath {RDWR NOCTTY NONBLOCK}] {
+         fconfigure $deviceChannel -buffering none -translation binary
+
+         fileevent $deviceChannel readable {
+            foreach byte [split [read $deviceChannel] ""] {
+               scan $byte %c number
+               puts -nonewline stdout [format "%02x " $number]
+            }
+
+            flush stdout
+         }
+
+         fileevent stdin readable {
+            if {[set length [gets stdin line]] == 0} {
+               set exitStatus 0
+            } elseif {$length > 0} {
+               puts -nonewline $deviceChannel [subst -nocommands -novariables $line]
+               flush $deviceChannel
+            } elseif {[eof stdin]} {
+               set exitStatus 0
+            }
+         }
+
+         vwait exitStatus
+      }
+   } trap {POSIX} {problem} {
+      semanticError $message
+   }
+} finally {
+   configureSerialDevice $originalConfiguration
+}
+
+exit $exitStatus

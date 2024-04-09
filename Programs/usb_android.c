@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -21,8 +21,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/ioctl.h>
+#include <linux/usbdevice_fs.h>
 
 #include "log.h"
+#include "bitfield.h"
 #include "queue.h"
 
 #include "io_usb.h"
@@ -52,6 +55,8 @@ struct UsbDeviceExtensionStruct {
   const UsbHostDevice *host;
   jobject connection;
   jobject interface;
+
+  int fileDescriptor;
 };
 
 struct UsbEndpointExtensionStruct {
@@ -424,6 +429,29 @@ usbOpenConnection (UsbDeviceExtension *devx) {
   return 0;
 }
 
+static int
+usbGetFileDescriptor (UsbDeviceExtension *devx) {
+  if (devx->fileDescriptor != INVALID_FILE_DESCRIPTOR) return 1;
+  JNIEnv *env = devx->host->env;
+
+  if (usbFindConnectionClass(env)) {
+    static jmethodID method = 0;
+
+    if (findJavaInstanceMethod(env, &method, usbConnectionClass, "getFileDescriptor",
+                               JAVA_SIG_METHOD(JAVA_SIG_INT, ))) {
+      jint fileDescriptor = (*env)->CallIntMethod(env, devx->connection, method);
+
+      if (!clearJavaException(env, 1)) {
+        devx->fileDescriptor = fileDescriptor;
+        return 1;
+      }
+    }
+  }
+
+  errno = EIO;
+  return 0;
+}
+
 static void
 usbUnsetInterface (UsbDeviceExtension *devx) {
   if (devx->interface) {
@@ -527,14 +555,31 @@ usbSetAlternative (
 
 int
 usbResetDevice (UsbDevice *device) {
-  logUnsupportedFunction();
+  UsbDeviceExtension *devx = device->extension;
+
+  logMessage(LOG_CATEGORY(USB_IO), "reset device");
+
+  if (usbGetFileDescriptor(devx)) {
+    unsigned int arg = 0;
+    if (ioctl(devx->fileDescriptor, USBDEVFS_RESET, &arg) != -1) return 1;
+    logSystemError("USB device reset");
+  }
+
   return 0;
 }
 
 int
 usbClearHalt (UsbDevice *device, unsigned char endpointAddress) {
+  UsbDeviceExtension *devx = device->extension;
+
   logMessage(LOG_CATEGORY(USB_IO), "clear halt: %02X", endpointAddress);
-  logUnsupportedFunction();
+
+  if (usbGetFileDescriptor(devx)) {
+    unsigned int arg = endpointAddress;
+    if (ioctl(devx->fileDescriptor, USBDEVFS_CLEAR_HALT, &arg) != -1) return 1;
+    logSystemError("USB endpoint clear");
+  }
+
   return 0;
 }
 
@@ -721,11 +766,13 @@ usbReadDeviceDescriptor (UsbDevice *device) {
 int
 usbAllocateEndpointExtension (UsbEndpoint *endpoint) {
   UsbDevice *device = endpoint->device;
+  const UsbInterfaceDescriptor *interface = endpoint->interface;
+
   UsbDeviceExtension *devx = device->extension;
   const UsbHostDevice *host = devx->host;
   JNIEnv *env = host->env;
 
-  if (devx->interface) {
+  if (usbSetInterface(devx, interface->bInterfaceNumber)) {
     jobject localReference = usbGetInterfaceEndpoint(env, devx->interface, endpoint->descriptor->bEndpointAddress);
 
     if (localReference) {
@@ -754,6 +801,9 @@ usbAllocateEndpointExtension (UsbEndpoint *endpoint) {
         logMallocError();
         clearJavaException(env, 0);
       }
+    } else {
+      logMessage(LOG_ERR, "couldn't get endpoint object");
+      errno = EIO;
     }
   } else {
     errno = ENOSYS;
@@ -856,6 +906,7 @@ usbTestHostDevice (void *item, void *data) {
     devx->host = host;
     devx->connection = NULL;
     devx->interface = NULL;
+    devx->fileDescriptor = INVALID_FILE_DESCRIPTOR;
 
     if ((test->device = usbTestDevice(devx, test->chooser, test->data))) return 1;
 

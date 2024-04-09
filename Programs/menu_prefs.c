@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,7 +31,10 @@
 #include "prefs.h"
 #include "profile.h"
 #include "status_types.h"
+#include "blink.h"
 #include "timing.h"
+#include "brl.h"
+#include "spk.h"
 #include "ttb.h"
 #include "atb.h"
 #include "ctb.h"
@@ -61,6 +64,13 @@ PREFS_MENU_ITEM_APPLY(PREFS_MENU_ITEM_GETTER_DECLARE)
   NAME(name); \
   Menu *variable = newSubmenuMenuItem(parent, &itemName); \
   if (!variable) goto noItem
+
+#define PROPERTY(variable, value) \
+  static unsigned char variable; \
+  variable = (value)
+
+#define BLINK_PERIOD(blink) PROPERTY(period, MSECS2PREFS(getBlinkPeriod((blink))))
+#define BLINK_VISIBLE(blink) PROPERTY(visible, getBlinkPercentVisible((blink)))
 
 static int
 testAdvancedSubmenu (void) {
@@ -143,6 +153,17 @@ testBlinkingScreenCursor (void) {
 }
 
 static int
+changedScreenCursorBlinkPeriod (const MenuItem *item UNUSED, unsigned char setting) {
+  setBlinkPeriod(&screenCursorBlinkDescriptor, PREFS2MSECS(setting));
+  return 1;
+}
+
+static int
+changedScreenCursorBlinkPercentage (const MenuItem *item UNUSED, unsigned char setting) {
+  return setBlinkPercentVisible(&screenCursorBlinkDescriptor, setting);
+}
+
+static int
 testShowAttributes (void) {
   return prefs.showAttributes;
 }
@@ -153,8 +174,30 @@ testBlinkingAttributes (void) {
 }
 
 static int
+changedAttributesUnderlineBlinkPeriod (const MenuItem *item UNUSED, unsigned char setting) {
+  setBlinkPeriod(&attributesUnderlineBlinkDescriptor, PREFS2MSECS(setting));
+  return 1;
+}
+
+static int
+changedAttributesUnderlineBlinkPercentage (const MenuItem *item UNUSED, unsigned char setting) {
+  return setBlinkPercentVisible(&attributesUnderlineBlinkDescriptor, setting);
+}
+
+static int
 testBlinkingCapitals (void) {
   return prefs.blinkingCapitals;
+}
+
+static int
+changedUppercaseLettersBlinkPeriod (const MenuItem *item UNUSED, unsigned char setting) {
+  setBlinkPeriod(&uppercaseLettersBlinkDescriptor, PREFS2MSECS(setting));
+  return 1;
+}
+
+static int
+changedUppercaseLettersBlinkPercentage (const MenuItem *item UNUSED, unsigned char setting) {
+  return setBlinkPercentVisible(&uppercaseLettersBlinkDescriptor, setting);
 }
 
 static int
@@ -245,6 +288,13 @@ changedSpeechVolume (const MenuItem *item UNUSED, unsigned char setting) {
   return setSpeechVolume(&spk, setting, !prefs.autospeak);
 }
 
+static void
+formatSpeechVolume (Menu *menu, unsigned char volume, char *buffer, size_t size) {
+  snprintf(
+    buffer, size, "%d", toNormalizedSpeechVolume(volume)
+  );
+}
+
 static int
 testSpeechRate (void) {
   return canSetSpeechRate(&spk);
@@ -255,6 +305,13 @@ changedSpeechRate (const MenuItem *item UNUSED, unsigned char setting) {
   return setSpeechRate(&spk, setting, !prefs.autospeak);
 }
 
+static void
+formatSpeechRate (Menu *menu, unsigned char rate, char *buffer, size_t size) {
+  snprintf(
+    buffer, size, "%d", toNormalizedSpeechRate(rate)
+  );
+}
+
 static int
 testSpeechPitch (void) {
   return canSetSpeechPitch(&spk);
@@ -263,6 +320,13 @@ testSpeechPitch (void) {
 static int
 changedSpeechPitch (const MenuItem *item UNUSED, unsigned char setting) {
   return setSpeechPitch(&spk, setting, !prefs.autospeak);
+}
+
+static void
+formatSpeechPitch (Menu *menu, unsigned char pitch, char *buffer, size_t size) {
+  snprintf(
+    buffer, size, "%d", toNormalizedSpeechPitch(pitch)
+  );
 }
 
 static int
@@ -288,6 +352,17 @@ testShowSpeechCursor (void) {
 static int
 testBlinkingSpeechCursor (void) {
   return testShowSpeechCursor() && prefs.blinkingSpeechCursor;
+}
+
+static int
+changedSpeechCursorBlinkPeriod (const MenuItem *item UNUSED, unsigned char setting) {
+  setBlinkPeriod(&speechCursorBlinkDescriptor, PREFS2MSECS(setting));
+  return 1;
+}
+
+static int
+changedSpeechCursorBlinkPercentage (const MenuItem *item UNUSED, unsigned char setting) {
+  return setBlinkPercentVisible(&speechCursorBlinkDescriptor, setting);
 }
 #endif /* ENABLE_SPEECH_SUPPORT */
 
@@ -373,12 +448,6 @@ STATUS_FIELD_HANDLERS(9)
 #undef STATUS_FIELD_HANDLERS
 
 static int
-changedBrailleVariant (const MenuItem *item, unsigned char setting UNUSED) {
-  onBrailleVariantUpdated();
-  return 1;
-}
-
-static int
 changedSkipIdenticalLines (const MenuItem *item, unsigned char setting UNUSED) {
   api.updateParameter(BRLAPI_PARAM_SKIP_IDENTICAL_LINES, 0);
   return 1;
@@ -399,17 +468,34 @@ changedKeyboardTable (const MenuItem *item, unsigned char setting UNUSED) {
   return changeKeyboardTable(getMenuItemValue(item));
 }
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
+static int
+testComputerBraille (void) {
+  return !isContractedBraille();
+}
+
 static int
 testContractedBraille (void) {
   return isContractedBraille();
 }
 
 static int
+changedContractedBraille (const MenuItem *item, unsigned char setting UNUSED) {
+  setContractedBraille(setting);
+  api.updateParameter(BRLAPI_PARAM_LITERARY_BRAILLE, 0);
+  return 1;
+}
+
+static int
 changedContractionTable (const MenuItem *item, unsigned char setting UNUSED) {
   return changeContractionTable(getMenuItemValue(item));
 }
-#endif /* ENABLE_CONTRACTED_BRAILLE */
+
+static int
+changedComputerBraille (const MenuItem *item, unsigned char setting UNUSED) {
+  setSixDotComputerBraille(setting);
+  api.updateParameter(BRLAPI_PARAM_COMPUTER_BRAILLE_CELL_SIZE, 0);
+  return 1;
+}
 
 static int
 testInputTable (void) {
@@ -452,22 +538,27 @@ newStatusFieldMenuItem (
   MenuItemTester *test, MenuItemChanged *changed
 ) {
   static const MenuString strings[] = {
-    {.label=strtext("End")},
-    {.label=strtext("Braille Window Coordinates"), .comment=strtext("2 cells")},
-    {.label=strtext("Braille Window Column"), .comment=strtext("1 cell")},
-    {.label=strtext("Braille Window Row"), .comment=strtext("1 cell")},
-    {.label=strtext("Screen Cursor Coordinates"), .comment=strtext("2 cells")},
-    {.label=strtext("Screen Cursor Column"), .comment=strtext("1 cell")},
-    {.label=strtext("Screen Cursor Row"), .comment=strtext("1 cell")},
-    {.label=strtext("Screen Cursor and Braille Window Column"), .comment=strtext("2 cells")},
-    {.label=strtext("Screen Cursor and Braille Window Row"), .comment=strtext("2 cells")},
-    {.label=strtext("Screen Number"), .comment=strtext("1 cell")},
-    {.label=strtext("State Dots"), .comment=strtext("1 cell")},
-    {.label=strtext("State Letter"), .comment=strtext("1 cell")},
-    {.label=strtext("Time"), .comment=strtext("2 cells")},
-    {.label=strtext("Alphabetic Braille Window Coordinates"), .comment=strtext("1 cell")},
-    {.label=strtext("Alphabetic Screen Cursor Coordinates"), .comment=strtext("1 cell")},
-    {.label=strtext("Generic")}
+    [sfEnd] = {.label=strtext("End")},
+    [sfWindowCoordinates2] = {.label=strtext("Window Coordinates"), .comment=strtext("2 cells")},
+    [sfWindowColumn] = {.label=strtext("Window Column"), .comment=strtext("1 cell")},
+    [sfWindowRow] = {.label=strtext("Window Row"), .comment=strtext("1 cell")},
+    [sfCursorCoordinates2] = {.label=strtext("Cursor Coordinates"), .comment=strtext("2 cells")},
+    [sfCursorColumn] = {.label=strtext("Cursor Column"), .comment=strtext("1 cell")},
+    [sfCursorRow] = {.label=strtext("Cursor Row"), .comment=strtext("1 cell")},
+    [sfCursorAndWindowColumn2] = {.label=strtext("Cursor and Window Column"), .comment=strtext("2 cells")},
+    [sfCursorAndWindowRow2] = {.label=strtext("Cursor and Window Row"), .comment=strtext("2 cells")},
+    [sfScreenNumber] = {.label=strtext("Screen Number"), .comment=strtext("1 cell")},
+    [sfStateDots] = {.label=strtext("State Dots"), .comment=strtext("1 cell")},
+    [sfStateLetter] = {.label=strtext("State Letter"), .comment=strtext("1 cell")},
+    [sfTime] = {.label=strtext("Time"), .comment=strtext("2 cells")},
+    [sfAlphabeticWindowCoordinates] = {.label=strtext("Alphabetic Window Coordinates"), .comment=strtext("1 cell")},
+    [sfAlphabeticCursorCoordinates] = {.label=strtext("Alphabetic Cursor Coordinates"), .comment=strtext("1 cell")},
+    [sfGeneric] = {.label=strtext("Generic")},
+    [sfCursorCoordinates3] = {.label=strtext("Cursor Coordinates"), .comment=strtext("3 cells")},
+    [sfWindowCoordinates3] = {.label=strtext("Window Coordinates"), .comment=strtext("3 cells")},
+    [sfCursorAndWindowColumn3] = {.label=strtext("Cursor and Window Column"), .comment=strtext("3 cells")},
+    [sfCursorAndWindowRow3] = {.label=strtext("Cursor and Window Row"), .comment=strtext("3 cells")},
+    [sfSpace] = {.label=strtext("Space"), .comment=strtext("1 cell")},
   };
 
   MenuString name = {
@@ -499,14 +590,14 @@ newStatusFieldMenuItem (
 }
 
 static MenuItem *
-newTimeMenuItem (Menu *menu, unsigned char *setting, const MenuString *name) {
-  return newNumericMenuItem(menu, setting, name, 1, 100, 4, strtext("csecs"));
+newBlinkVisibleMenuItem (Menu *menu, unsigned char *setting, const MenuString *name) {
+  return newPercentMenuItem(menu, setting, name, 5);
 }
 
 #if defined(HAVE_PCM_SUPPORT) || defined(HAVE_MIDI_SUPPORT) || defined(HAVE_FM_SUPPORT)
 static MenuItem *
 newVolumeMenuItem (Menu *menu, unsigned char *setting, const MenuString *name) {
-  return newNumericMenuItem(menu, setting, name, 0, 100, 5, strtext("percentage"));
+  return newPercentMenuItem(menu, setting, name, 5);
 }
 #endif /* defined(HAVE_PCM_SUPPORT) || defined(HAVE_MIDI_SUPPORT) || defined(HAVE_FM_SUPPORT) */
 
@@ -516,12 +607,10 @@ makeMidiInstrumentMenuStrings (void) {
   MenuString *strings = malloc(midiInstrumentCount * sizeof(*strings));
 
   if (strings) {
-    unsigned int instrument;
-
-    for (instrument=0; instrument<midiInstrumentCount; instrument+=1) {
+    for (unsigned int instrument=0; instrument<midiInstrumentCount; instrument+=1) {
       MenuString *string = &strings[instrument];
       string->label = midiInstrumentTable[instrument];
-      string->comment = midiGetInstrumentType(instrument);
+      string->comment = midiGetInstrumentGroup(instrument);
     }
   }
 
@@ -572,10 +661,11 @@ updateLogMessagesSubmenu (void) {
 static Menu *
 makePreferencesMenu (void) {
   static const MenuString cursorStyles[] = {
-    {.label=strtext("Underline"), .comment=strtext("dots 7 and 8")},
-    {.label=strtext("Block"), .comment=strtext("all dots")},
-    {.label=strtext("Lower Left Dot"), .comment=strtext("dot 7")},
-    {.label=strtext("Lower Right Dot"), .comment=strtext("dot 8")}
+    [csBottomDots] = {.label=strtext("Underline"), .comment=strtext("dots 7 and 8")},
+    [csAllDots] = {.label=strtext("Block"), .comment=strtext("all dots")},
+    [csLowerLeftDot] = {.label=strtext("Lower Left Dot"), .comment=strtext("dot 7")},
+    [csLowerRightDot] = {.label=strtext("Lower Right Dot"), .comment=strtext("dot 8")},
+    [csNoDots] = {.label=strtext("Hide"), .comment=strtext("no dots")},
   };
 
   Menu *rootMenu = newMenu();
@@ -610,18 +700,16 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("8-Dot Computer")},
-        {.label=strtext("6-Dot Contracted")},
-        {.label=strtext("6-Dot Computer")},
-        {.label=strtext("8-Dot Contracted")}
+        {.label=strtext("Computer Braille")},
+        {.label=strtext("Contracted Braille")},
       };
 
       NAME(strtext("Braille Variant"));
-      ITEM(newEnumeratedMenuItem(presentationSubmenu, &prefs.brailleVariant, &itemName, strings));
-      CHANGED(BrailleVariant);
+      PROPERTY(yes, isContractedBraille());
+      ITEM(newEnumeratedMenuItem(presentationSubmenu, &yes, &itemName, strings));
+      CHANGED(ContractedBraille);
     }
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
     {
       NAME(strtext("Expand Current Word"));
       ITEM(newBooleanMenuItem(presentationSubmenu, &prefs.expandCurrentWord, &itemName));
@@ -630,24 +718,36 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("No Capitalization")},
-        {.label=strtext("Use Capital Sign")},
-        {.label=strtext("Superimpose Dot 7")}
+        [CTB_CAP_NONE] = {.label=strtext("No Capitalization")},
+        [CTB_CAP_SIGN] = {.label=strtext("Use Capital Sign")},
+        [CTB_CAP_DOT7] = {.label=strtext("Superimpose Dot 7")},
       };
 
       NAME(strtext("Capitalization Mode"));
       ITEM(newEnumeratedMenuItem(presentationSubmenu, &prefs.capitalizationMode, &itemName, strings));
       TEST(ContractedBraille);
     }
-#endif /* ENABLE_CONTRACTED_BRAILLE */
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("Minimum")},
-        {.label=strtext("Low")},
-        {.label=strtext("Medium")},
-        {.label=strtext("High")},
-        {.label=strtext("Maximum")}
+        {.label=strtext("8-dot")},
+        {.label=strtext("6-dot")},
+      };
+
+      NAME(strtext("Computer Braille Cell Type"));
+      PROPERTY(yes, isSixDotComputerBraille());
+      ITEM(newEnumeratedMenuItem(presentationSubmenu, &yes, &itemName, strings));
+      TEST(ComputerBraille);
+      CHANGED(ComputerBraille);
+    }
+
+    {
+      static const MenuString strings[] = {
+        [BRL_FIRMNESS_MINIMUM] = {.label=strtext("Minimum")},
+        [BRL_FIRMNESS_LOW] = {.label=strtext("Low")},
+        [BRL_FIRMNESS_MEDIUM] = {.label=strtext("Medium")},
+        [BRL_FIRMNESS_HIGH] = {.label=strtext("High")},
+        [BRL_FIRMNESS_MAXIMUM] = {.label=strtext("Maximum")},
       };
 
       NAME(strtext("Braille Firmness"));
@@ -678,15 +778,19 @@ makePreferencesMenu (void) {
     }
 
     {
-      NAME(strtext("Screen Cursor Visible Time"));
-      ITEM(newTimeMenuItem(indicatorsSubmenu, &prefs.screenCursorVisibleTime, &itemName));
+      NAME(strtext("Screen Cursor Blink Period"));
+      BLINK_PERIOD(&screenCursorBlinkDescriptor);
+      ITEM(newTimeMenuItem(indicatorsSubmenu, &period, &itemName));
       TEST(BlinkingScreenCursor);
+      CHANGED(ScreenCursorBlinkPeriod);
     }
 
     {
-      NAME(strtext("Screen Cursor Invisible Time"));
-      ITEM(newTimeMenuItem(indicatorsSubmenu, &prefs.screenCursorInvisibleTime, &itemName));
+      NAME(strtext("Screen Cursor Percent Visible"));
+      BLINK_VISIBLE(&screenCursorBlinkDescriptor);
+      ITEM(newBlinkVisibleMenuItem(indicatorsSubmenu, &visible, &itemName));
       TEST(BlinkingScreenCursor);
+      CHANGED(ScreenCursorBlinkPercentage);
     }
 
     {
@@ -701,15 +805,19 @@ makePreferencesMenu (void) {
     }
 
     {
-      NAME(strtext("Attributes Visible Time"));
-      ITEM(newTimeMenuItem(indicatorsSubmenu, &prefs.attributesVisibleTime, &itemName));
+      NAME(strtext("Attributes Blink Period"));
+      BLINK_PERIOD(&attributesUnderlineBlinkDescriptor);
+      ITEM(newTimeMenuItem(indicatorsSubmenu, &period, &itemName));
       TEST(BlinkingAttributes);
+      CHANGED(AttributesUnderlineBlinkPeriod);
     }
 
     {
-      NAME(strtext("Attributes Invisible Time"));
-      ITEM(newTimeMenuItem(indicatorsSubmenu, &prefs.attributesInvisibleTime, &itemName));
+      NAME(strtext("Attributes Percent Visible"));
+      BLINK_VISIBLE(&attributesUnderlineBlinkDescriptor);
+      ITEM(newBlinkVisibleMenuItem(indicatorsSubmenu, &visible, &itemName));
       TEST(BlinkingAttributes);
+      CHANGED(AttributesUnderlineBlinkPercentage);
     }
 
     {
@@ -718,15 +826,19 @@ makePreferencesMenu (void) {
     }
 
     {
-      NAME(strtext("Capitals Visible Time"));
-      ITEM(newTimeMenuItem(indicatorsSubmenu, &prefs.capitalsVisibleTime, &itemName));
+      NAME(strtext("Capitals Blink Period"));
+      BLINK_PERIOD(&uppercaseLettersBlinkDescriptor);
+      ITEM(newTimeMenuItem(indicatorsSubmenu, &period, &itemName));
       TEST(BlinkingCapitals);
+      CHANGED(UppercaseLettersBlinkPeriod);
     }
 
     {
-      NAME(strtext("Capitals Invisible Time"));
-      ITEM(newTimeMenuItem(indicatorsSubmenu, &prefs.capitalsInvisibleTime, &itemName));
+      NAME(strtext("Capitals Percent Visible"));
+      BLINK_VISIBLE(&uppercaseLettersBlinkDescriptor);
+      ITEM(newBlinkVisibleMenuItem(indicatorsSubmenu, &visible, &itemName));
       TEST(BlinkingCapitals);
+      CHANGED(UppercaseLettersBlinkPercentage);
     }
   }
 
@@ -737,6 +849,7 @@ makePreferencesMenu (void) {
       NAME(strtext("Word Wrap"));
       ITEM(newBooleanMenuItem(navigationSubmenu, &prefs.wordWrap, &itemName));
     }
+
     {
       NAME(strtext("Skip Identical Lines"));
       ITEM(newBooleanMenuItem(navigationSubmenu, &prefs.skipIdenticalLines, &itemName));
@@ -750,9 +863,9 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("All")},
-        {.label=strtext("End of Line")},
-        {.label=strtext("Rest of Line")}
+        [sbwAll] = {.label=strtext("All")},
+        [sbwEndOfLine] = {.label=strtext("End of Line")},
+        [sbwRestOfLine] = {.label=strtext("Rest of Line")},
       };
 
       NAME(strtext("Skip Which Blank Braille Windows"));
@@ -772,7 +885,7 @@ makePreferencesMenu (void) {
 
     {
       NAME(strtext("Braille Window Overlap"));
-      ITEM(newNumericMenuItem(navigationSubmenu, &prefs.brailleWindowOverlap, &itemName, 0, 20, 1, strtext("cells")));
+      ITEM(newNumericMenuItem(navigationSubmenu, &prefs.brailleWindowOverlap, &itemName, 0, 20, 1, strtext("cells"), NULL));
       CHANGED(BrailleWindowOverlap);
     }
 
@@ -783,11 +896,11 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("None")},
-        {.label=strtext("250 milliseconds")},
-        {.label=strtext("500 milliseconds")},
-        {.label=strtext("1 second")},
-        {.label=strtext("2 seconds")}
+        [ctdNone] = {.label=strtext("None")},
+        [ctd250ms] = {.label=strtext("250 milliseconds")},
+        [ctd500ms] = {.label=strtext("500 milliseconds")},
+        [ctd1s] = {.label=strtext("1 second")},
+        [ctd2s] = {.label=strtext("2 seconds")},
       };
 
       NAME(strtext("Cursor Tracking Delay"));
@@ -799,12 +912,12 @@ makePreferencesMenu (void) {
       ITEM(newBooleanMenuItem(navigationSubmenu, &prefs.trackScreenScroll, &itemName));
     }
 
-#ifdef HAVE_LIBGPM
+  #ifdef HAVE_LIBGPM
     {
       NAME(strtext("Track Screen Pointer"));
       ITEM(newBooleanMenuItem(navigationSubmenu, &prefs.trackScreenPointer, &itemName));
     }
-#endif /* HAVE_LIBGPM */
+  #endif /* HAVE_LIBGPM */
 
     {
       NAME(strtext("Highlight Braille Window Location"));
@@ -827,8 +940,8 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("Translated via Text Table")},
-        {.label=strtext("Dots via Unicode Braille")}
+        [BRL_TYPING_TEXT] = {.label=strtext("Translated via Text Table")},
+        [BRL_TYPING_DOTS] = {.label=strtext("Dots via Unicode Braille")},
       };
 
       NAME(strtext("Typing Mode"));
@@ -846,11 +959,11 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("Off")},
-        {.label=strtext("5 seconds")},
-        {.label=strtext("10 seconds")},
-        {.label=strtext("20 seconds")},
-        {.label=strtext("40 seconds")}
+        [atOff] = {.label=strtext("Off")},
+        [at5s] = {.label=strtext("5 seconds")},
+        [at10s] = {.label=strtext("10 seconds")},
+        [at20s] = {.label=strtext("20 seconds")},
+        [at40s] = {.label=strtext("40 seconds")},
       };
 
       NAME(strtext("Autorelease Time"));
@@ -896,11 +1009,11 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("Minimum")},
-        {.label=strtext("Low")},
-        {.label=strtext("Medium")},
-        {.label=strtext("High")},
-        {.label=strtext("Maximum")}
+        [BRL_SENSITIVITY_MINIMUM] = {.label=strtext("Minimum")},
+        [BRL_SENSITIVITY_LOW] = {.label=strtext("Low")},
+        [BRL_SENSITIVITY_MEDIUM] = {.label=strtext("Medium")},
+        [BRL_SENSITIVITY_HIGH] = {.label=strtext("High")},
+        [BRL_SENSITIVITY_MAXIMUM] = {.label=strtext("Maximum")},
       };
 
       NAME(strtext("Touch Sensitivity"));
@@ -942,10 +1055,10 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("Beeper"), .comment=strtext("console tone generator")},
-        {.label=strtext("PCM"), .comment=strtext("soundcard digital audio")},
-        {.label=strtext("MIDI"), .comment=strtext("Musical Instrument Digital Interface")},
-        {.label=strtext("FM"), .comment=strtext("soundcard synthesizer")}
+        [tdBeeper] = {.label=strtext("Beeper"), .comment=strtext("console tone generator")},
+        [tdPcm] = {.label=strtext("PCM"), .comment=strtext("soundcard digital audio")},
+        [tdMidi] = {.label=strtext("MIDI"), .comment=strtext("Musical Instrument Digital Interface")},
+        [tdFm] = {.label=strtext("FM"), .comment=strtext("soundcard synthesizer")},
       };
 
       NAME(strtext("Tune Device"));
@@ -954,15 +1067,15 @@ makePreferencesMenu (void) {
       CHANGED(TuneDevice);
     }
 
-#ifdef HAVE_PCM_SUPPORT
+  #ifdef HAVE_PCM_SUPPORT
     {
       NAME(strtext("PCM Volume"));
       ITEM(newVolumeMenuItem(alertsSubmenu, &prefs.pcmVolume, &itemName));
       TEST(TunesPcm);
     }
-#endif /* HAVE_PCM_SUPPORT */
+  #endif /* HAVE_PCM_SUPPORT */
 
-#ifdef HAVE_MIDI_SUPPORT
+  #ifdef HAVE_MIDI_SUPPORT
     {
       NAME(strtext("MIDI Volume"));
       ITEM(newVolumeMenuItem(alertsSubmenu, &prefs.midiVolume, &itemName));
@@ -979,15 +1092,15 @@ makePreferencesMenu (void) {
         TEST(TunesMidi);
       }
     }
-#endif /* HAVE_MIDI_SUPPORT */
+  #endif /* HAVE_MIDI_SUPPORT */
 
-#ifdef HAVE_FM_SUPPORT
+  #ifdef HAVE_FM_SUPPORT
     {
       NAME(strtext("FM Volume"));
       ITEM(newVolumeMenuItem(alertsSubmenu, &prefs.fmVolume, &itemName));
       TEST(TunesFm);
     }
-#endif /* HAVE_FM_SUPPORT */
+  #endif /* HAVE_FM_SUPPORT */
 
     {
       NAME(strtext("Alert Dots"));
@@ -998,38 +1111,101 @@ makePreferencesMenu (void) {
       NAME(strtext("Alert Messages"));
       ITEM(newBooleanMenuItem(alertsSubmenu, &prefs.alertMessages, &itemName));
     }
+
+#ifdef ENABLE_SPEECH_SUPPORT
+    {
+      NAME(strtext("Speak Key Context"));
+      ITEM(newBooleanMenuItem(alertsSubmenu, &prefs.speakKeyContext, &itemName));
+    }
+
+    {
+      NAME(strtext("Speak Modifier Key"));
+      ITEM(newBooleanMenuItem(alertsSubmenu, &prefs.speakModifierKey, &itemName));
+    }
+#endif /* ENABLE_SPEECH_SUPPORT */
   }
 
 #ifdef ENABLE_SPEECH_SUPPORT
+  {
+    SUBMENU(autospeakSubmenu, rootMenu, strtext("Autospeak Options"));
+
+    {
+      NAME(strtext("Autospeak"));
+      ITEM(newBooleanMenuItem(autospeakSubmenu, &prefs.autospeak, &itemName));
+    }
+
+    {
+      NAME(strtext("Speak Selected Line"));
+      ITEM(newBooleanMenuItem(autospeakSubmenu, &prefs.autospeakSelectedLine, &itemName));
+      TEST(Autospeak);
+    }
+
+    {
+      NAME(strtext("Speak Selected Character"));
+      ITEM(newBooleanMenuItem(autospeakSubmenu, &prefs.autospeakSelectedCharacter, &itemName));
+      TEST(Autospeak);
+    }
+
+    {
+      NAME(strtext("Speak Inserted Characters"));
+      ITEM(newBooleanMenuItem(autospeakSubmenu, &prefs.autospeakInsertedCharacters, &itemName));
+      TEST(Autospeak);
+    }
+
+    {
+      NAME(strtext("Speak Deleted Characters"));
+      ITEM(newBooleanMenuItem(autospeakSubmenu, &prefs.autospeakDeletedCharacters, &itemName));
+      TEST(Autospeak);
+    }
+
+    {
+      NAME(strtext("Speak Replaced Characters"));
+      ITEM(newBooleanMenuItem(autospeakSubmenu, &prefs.autospeakReplacedCharacters, &itemName));
+      TEST(Autospeak);
+    }
+
+    {
+      NAME(strtext("Speak Completed Words"));
+      ITEM(newBooleanMenuItem(autospeakSubmenu, &prefs.autospeakCompletedWords, &itemName));
+      TEST(Autospeak);
+    }
+
+    {
+      NAME(strtext("Speak Line Indent"));
+      ITEM(newBooleanMenuItem(autospeakSubmenu, &prefs.autospeakLineIndent, &itemName));
+      TEST(Autospeak);
+    }
+  }
+
   {
     SUBMENU(speechSubmenu, rootMenu, strtext("Speech Options"));
 
     {
       NAME(strtext("Speech Volume"));
-      ITEM(newNumericMenuItem(speechSubmenu, &prefs.speechVolume, &itemName, 0, SPK_VOLUME_MAXIMUM, 1, NULL));
+      ITEM(newNumericMenuItem(speechSubmenu, &prefs.speechVolume, &itemName, 0, SPK_VOLUME_MAXIMUM, 1, "%", formatSpeechVolume));
       TEST(SpeechVolume);
       CHANGED(SpeechVolume);
     }
 
     {
       NAME(strtext("Speech Rate"));
-      ITEM(newNumericMenuItem(speechSubmenu, &prefs.speechRate, &itemName, 0, SPK_RATE_MAXIMUM, 1, NULL));
+      ITEM(newNumericMenuItem(speechSubmenu, &prefs.speechRate, &itemName, 0, SPK_RATE_MAXIMUM, 1, NULL, formatSpeechRate));
       TEST(SpeechRate);
       CHANGED(SpeechRate);
     }
 
     {
       NAME(strtext("Speech Pitch"));
-      ITEM(newNumericMenuItem(speechSubmenu, &prefs.speechPitch, &itemName, 0, SPK_PITCH_MAXIMUM, 1, NULL));
+      ITEM(newNumericMenuItem(speechSubmenu, &prefs.speechPitch, &itemName, 0, SPK_PITCH_MAXIMUM, 1, NULL, formatSpeechPitch));
       TEST(SpeechPitch);
       CHANGED(SpeechPitch);
     }
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("None")},
-        {.label=strtext("Some")},
-        {.label=strtext("All")}
+        [SPK_PUNCTUATION_NONE] = {.label=strtext("None")},
+        [SPK_PUNCTUATION_SOME] = {.label=strtext("Some")},
+        [SPK_PUNCTUATION_ALL] = {.label=strtext("All")},
       };
 
       NAME(strtext("Speech Punctuation"));
@@ -1040,11 +1216,11 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("None")},
+        [sucNone] = {.label=strtext("None")},
         // "cap" here, used during speech output, is short for "capital".
         // It is spoken just before an uppercase letter, e.g. "cap A".
-        {.label=strtext("Say Cap")},
-        {.label=strtext("Raise Pitch")}
+        [sucSayCap] = {.label=strtext("Say Cap")},
+        [sucRaisePitch] = {.label=strtext("Raise Pitch")},
       };
 
       NAME(strtext("Speech Uppercase Indicator"));
@@ -1053,8 +1229,8 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("None")},
-        {.label=strtext("Say Space")},
+        [swsNone] = {.label=strtext("None")},
+        [swsSaySpace] = {.label=strtext("Say Space")},
       };
 
       NAME(strtext("Speech Whitespace Indicator"));
@@ -1063,59 +1239,12 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("Immediate")},
-        {.label=strtext("Enqueue")}
+        [sayImmediate] = {.label=strtext("Immediate")},
+        [sayEnqueue] = {.label=strtext("Enqueue")},
       };
 
       NAME(strtext("Say Line Mode"));
       ITEM(newEnumeratedMenuItem(speechSubmenu, &prefs.sayLineMode, &itemName, strings));
-    }
-
-    {
-      NAME(strtext("Autospeak"));
-      ITEM(newBooleanMenuItem(speechSubmenu, &prefs.autospeak, &itemName));
-    }
-
-    {
-      NAME(strtext("Speak Selected Line"));
-      ITEM(newBooleanMenuItem(speechSubmenu, &prefs.autospeakSelectedLine, &itemName));
-      TEST(Autospeak);
-    }
-
-    {
-      NAME(strtext("Speak Selected Character"));
-      ITEM(newBooleanMenuItem(speechSubmenu, &prefs.autospeakSelectedCharacter, &itemName));
-      TEST(Autospeak);
-    }
-
-    {
-      NAME(strtext("Speak Inserted Characters"));
-      ITEM(newBooleanMenuItem(speechSubmenu, &prefs.autospeakInsertedCharacters, &itemName));
-      TEST(Autospeak);
-    }
-
-    {
-      NAME(strtext("Speak Deleted Characters"));
-      ITEM(newBooleanMenuItem(speechSubmenu, &prefs.autospeakDeletedCharacters, &itemName));
-      TEST(Autospeak);
-    }
-
-    {
-      NAME(strtext("Speak Replaced Characters"));
-      ITEM(newBooleanMenuItem(speechSubmenu, &prefs.autospeakReplacedCharacters, &itemName));
-      TEST(Autospeak);
-    }
-
-    {
-      NAME(strtext("Speak Completed Words"));
-      ITEM(newBooleanMenuItem(speechSubmenu, &prefs.autospeakCompletedWords, &itemName));
-      TEST(Autospeak);
-    }
-
-    {
-      NAME(strtext("Speak Line Indent"));
-      ITEM(newBooleanMenuItem(speechSubmenu, &prefs.autospeakLineIndent, &itemName));
-      TEST(Autospeak);
     }
 
     {
@@ -1136,15 +1265,19 @@ makePreferencesMenu (void) {
     }
 
     {
-      NAME(strtext("Speech Cursor Visible Time"));
-      ITEM(newTimeMenuItem(speechSubmenu, &prefs.speechCursorVisibleTime, &itemName));
+      NAME(strtext("Speech Cursor Blink Period"));
+      BLINK_PERIOD(&speechCursorBlinkDescriptor);
+      ITEM(newTimeMenuItem(speechSubmenu, &period, &itemName));
       TEST(BlinkingSpeechCursor);
+      CHANGED(SpeechCursorBlinkPeriod);
     }
 
     {
-      NAME(strtext("Speech Cursor Invisible Time"));
-      ITEM(newTimeMenuItem(speechSubmenu, &prefs.speechCursorInvisibleTime, &itemName));
+      NAME(strtext("Speech Cursor Percent Visible"));
+      BLINK_VISIBLE(&speechCursorBlinkDescriptor);
+      ITEM(newBlinkVisibleMenuItem(speechSubmenu, &visible, &itemName));
       TEST(BlinkingSpeechCursor);
+      CHANGED(SpeechCursorBlinkPercentage);
     }
   }
 #endif /* ENABLE_SPEECH_SUPPORT */
@@ -1154,8 +1287,8 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("24 Hour")},
-        {.label=strtext("12 Hour")}
+        [tf24Hour] = {.label=strtext("24 Hour")},
+        [tf12Hour] = {.label=strtext("12 Hour")},
       };
 
       NAME(strtext("Time Format"));
@@ -1164,8 +1297,8 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("Colon"), ":"},
-        {.label=strtext("Dot"), "."},
+        [tsColon] = {.label=strtext("Colon"), ":"},
+        [tsDot] = {.label=strtext("Dot"), "."},
       };
 
       NAME(strtext("Time Separator"));
@@ -1179,9 +1312,9 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("None")},
-        {.label=strtext("Before Time")},
-        {.label=strtext("After Time")}
+        [dpNone] = {.label=strtext("None")},
+        [dpBeforeTime] = {.label=strtext("Before Time")},
+        [dpAfterTime] = {.label=strtext("After Time")},
       };
 
       NAME(strtext("Date Position"));
@@ -1190,9 +1323,9 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("Year Month Day")},
-        {.label=strtext("Month Day Year")},
-        {.label=strtext("Day Month Year")},
+        [dfYearMonthDay] = {.label=strtext("Year Month Day")},
+        [dfMonthDayYear] = {.label=strtext("Month Day Year")},
+        [dfDayMonthYear] = {.label=strtext("Day Month Year")},
       };
 
       NAME(strtext("Date Format"));
@@ -1202,9 +1335,9 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("Dash"), "-"},
-        {.label=strtext("Slash"), "/"},
-        {.label=strtext("Dot"), "."}
+        [dsDash] = {.label=strtext("Dash"), "-"},
+        [dsSlash] = {.label=strtext("Slash"), "/"},
+        [dsDot] = {.label=strtext("Dot"), "."},
       };
 
       NAME(strtext("Date Separator"));
@@ -1218,9 +1351,9 @@ makePreferencesMenu (void) {
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("None")},
-        {.label=strtext("Left")},
-        {.label=strtext("Right")}
+        [spNone] = {.label=strtext("None")},
+        [spLeft] = {.label=strtext("Left")},
+        [spRight] = {.label=strtext("Right")},
       };
 
       NAME(strtext("Status Position"));
@@ -1231,18 +1364,18 @@ makePreferencesMenu (void) {
 
     {
       NAME(strtext("Status Count"));
-      ITEM(newNumericMenuItem(statusSubmenu, &prefs.statusCount, &itemName, 0, MAX((int)brl.textColumns/2-1, 0), 1, strtext("cells")));
+      ITEM(newNumericMenuItem(statusSubmenu, &prefs.statusCount, &itemName, 0, MAX((int)brl.textColumns/2-1, 0), 1, strtext("cells"), NULL));
       TEST(StatusCount);
       CHANGED(StatusCount);
     }
 
     {
       static const MenuString strings[] = {
-        {.label=strtext("None")},
-        {.label=strtext("Space")},
-        {.label=strtext("Block")},
-        {.label=strtext("Status Side")},
-        {.label=strtext("Text Side")}
+        [ssNone] = {.label=strtext("None")},
+        [ssSpace] = {.label=strtext("Space")},
+        [ssBlock] = {.label=strtext("Block")},
+        [ssStatusSide] = {.label=strtext("Status Side")},
+        [ssTextSide] = {.label=strtext("Text Side")},
       };
 
       NAME(strtext("Status Separator"));
@@ -1252,7 +1385,7 @@ makePreferencesMenu (void) {
     }
 
     {
-#define STATUS_FIELD_ITEM(number) { ITEM(newStatusFieldMenuItem(statusSubmenu, number, testStatusField##number, changedStatusField##number)); }
+      #define STATUS_FIELD_ITEM(number) { ITEM(newStatusFieldMenuItem(statusSubmenu, number, testStatusField##number, changedStatusField##number)); }
       STATUS_FIELD_ITEM(1);
       STATUS_FIELD_ITEM(2);
       STATUS_FIELD_ITEM(3);
@@ -1262,7 +1395,7 @@ makePreferencesMenu (void) {
       STATUS_FIELD_ITEM(7);
       STATUS_FIELD_ITEM(8);
       STATUS_FIELD_ITEM(9);
-#undef STATUS_FIELD_ITEM
+      #undef STATUS_FIELD_ITEM
     }
   }
 
@@ -1277,20 +1410,18 @@ makePreferencesMenu (void) {
     }
 
     {
-      NAME(strtext("Attributes Table"));
-      ITEM(newFilesMenuItem(tablesSubmenu, &itemName, opt_tablesDirectory, ATTRIBUTES_TABLES_SUBDIRECTORY, ATTRIBUTES_TABLE_EXTENSION, opt_attributesTable, 0));
-      CHANGED(AttributesTable);
-      SET(attributesTable);
-    }
-
-#ifdef ENABLE_CONTRACTED_BRAILLE
-    {
       NAME(strtext("Contraction Table"));
       ITEM(newFilesMenuItem(tablesSubmenu, &itemName, opt_tablesDirectory, CONTRACTION_TABLES_SUBDIRECTORY, CONTRACTION_TABLE_EXTENSION, opt_contractionTable, 1));
       CHANGED(ContractionTable);
       SET(contractionTable);
     }
-#endif /* ENABLE_CONTRACTED_BRAILLE */
+
+    {
+      NAME(strtext("Attributes Table"));
+      ITEM(newFilesMenuItem(tablesSubmenu, &itemName, opt_tablesDirectory, ATTRIBUTES_TABLES_SUBDIRECTORY, ATTRIBUTES_TABLE_EXTENSION, opt_attributesTable, 0));
+      CHANGED(AttributesTable);
+      SET(attributesTable);
+    }
   }
 
   {
@@ -1370,14 +1501,14 @@ makePreferencesMenu (void) {
 
   {
     static const MenuString logLevels[] = {
-      {.label=strtext("Emergency")},
-      {.label=strtext("Alert")},
-      {.label=strtext("Critical")},
-      {.label=strtext("Error")},
-      {.label=strtext("Warning")},
-      {.label=strtext("Notice")},
-      {.label=strtext("Information")},
-      {.label=strtext("Debug")}
+      [LOG_EMERG] = {.label=strtext("Emergency")},
+      [LOG_ALERT] = {.label=strtext("Alert")},
+      [LOG_CRIT] = {.label=strtext("Critical")},
+      [LOG_ERR] = {.label=strtext("Error")},
+      [LOG_WARNING] = {.label=strtext("Warning")},
+      [LOG_NOTICE] = {.label=strtext("Notice")},
+      [LOG_INFO] = {.label=strtext("Information")},
+      [LOG_DEBUG] = {.label=strtext("Debug")},
     };
 
     SUBMENU(internalSubmenu, rootMenu, strtext("Internal Parameters"));
@@ -1446,12 +1577,12 @@ makePreferencesMenu (void) {
       ITEM(newToolMenuItem(toolsSubmenu, &itemName, restartBrailleDriver));
     }
 
-#ifdef ENABLE_SPEECH_SUPPORT
+  #ifdef ENABLE_SPEECH_SUPPORT
     {
       NAME(strtext("Restart Speech Driver"));
       ITEM(newToolMenuItem(toolsSubmenu, &itemName, restartSpeechDriver));
     }
-#endif /* ENABLE_SPEECH_SUPPORT */
+  #endif /* ENABLE_SPEECH_SUPPORT */
 
     {
       NAME(strtext("Restart Screen Driver"));

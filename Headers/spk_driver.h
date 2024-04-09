@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -33,11 +33,11 @@ static const char *const spk_parameters[] = {SPKPARMS, NULL};
 #define spk_parameters NULL
 #endif /* SPKPARMS */
 
-static int spk_construct (volatile SpeechSynthesizer *spk, char **parameters);
-static void spk_destruct (volatile SpeechSynthesizer *spk);
+static int spk_construct (SpeechSynthesizer *spk, char **parameters);
+static void spk_destruct (SpeechSynthesizer *spk);
 
-static void spk_say (volatile SpeechSynthesizer *spk, const unsigned char *text, size_t length, size_t count, const unsigned char *attributes);
-static void spk_mute (volatile SpeechSynthesizer *spk);
+static void spk_say (SpeechSynthesizer *spk, const unsigned char *text, size_t length, size_t count, const unsigned char *attributes);
+static void spk_mute (SpeechSynthesizer *spk);
 
 #ifndef SPKSYMBOL
 #define SPKSYMBOL CONCATENATE(spk_driver_,DRIVER_CODE)

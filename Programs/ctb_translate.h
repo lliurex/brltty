@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -89,8 +89,10 @@ getOutputConsumed (BrailleContractionData *bcd) {
 }
 
 static inline void
-assignOffset (BrailleContractionData *bcd, size_t value) {
-  if (bcd->input.offsets) bcd->input.offsets[getInputConsumed(bcd)] = value;
+assignOffset (BrailleContractionData *bcd, int value) {
+  if (bcd->input.offsets) {
+    bcd->input.offsets[getInputConsumed(bcd)] = value;
+  }
 }
 
 static inline void
@@ -103,7 +105,8 @@ clearOffset (BrailleContractionData *bcd) {
   assignOffset(bcd, CTB_NO_OFFSET);
 }
 
-extern CharacterEntry *getCharacterEntry (BrailleContractionData *bcd, wchar_t character);
+extern const CharacterEntry *getCharacterEntry (BrailleContractionData *bcd, wchar_t character);
+extern const CharacterEntry *findCharacterEntry (BrailleContractionData *bcd, wchar_t character, unsigned int *position);
 
 static inline int
 testCharacter (BrailleContractionData *bcd, wchar_t character, ContractionTableCharacterAttributes attributes) {

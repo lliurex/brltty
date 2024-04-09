@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2002-2021 by
+ * Copyright (C) 2002-2023 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -35,6 +36,7 @@
 #include <locale.h>
 #include <assert.h>
 #include <limits.h>
+#include <unistd.h>
 
 #ifndef __MINGW32__
 #ifdef HAVE_LANGINFO_H
@@ -73,7 +75,7 @@
 #include <sys/select.h>
 #endif /* HAVE_SYS_SELECT_H */
 #ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
+#include <poll.h>
 #endif /* HAVE_SYS_POLL_H */
 #endif /* __MINGW32__ */
 
@@ -284,6 +286,8 @@ struct brlapi_handle_t { /* Connection-specific information */
     brlapi_exceptionHandler_t withoutHandle;
     brlapi__exceptionHandler_t withHandle;
   } exceptionHandler;
+  int exception_sync;
+  int exception_error;
   pthread_mutex_t exceptionHandler_mutex;
 
   struct brlapi_parameterCallback_t *parameterCallbacks;
@@ -348,6 +352,8 @@ static void brlapi_initializeHandle(brlapi_handle_t *handle)
     handle->exceptionHandler.withoutHandle = brlapi_defaultExceptionHandler;
   else
     handle->exceptionHandler.withHandle = brlapi__defaultExceptionHandler;
+  handle->exception_sync = 0;
+  handle->exception_error = BRLAPI_ERROR_SUCCESS;
   pthread_mutex_init(&handle->exceptionHandler_mutex, NULL);
   handle->parameterCallbacks = NULL;
   {
@@ -380,7 +386,8 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
   int ret = 0;
 
   struct timeval now;
-  int delay = 0;
+  long delay = 0;
+  int polled = 0; /* Whether we have polled at least once */
 
   do {
     if (deadline) {
@@ -388,10 +395,15 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
       delay = (deadline->tv_sec  - now.tv_sec ) * 1000 +
 	      (deadline->tv_usec - now.tv_usec) / 1000;
       if (delay < 0) {
-	/* The deadline has expired, don't wait more */
-	return -4;
+	if (polled) {
+	  /* The deadline has expired, don't wait more */
+	  return -4;
+	}
+	/* Poll at least once */
+	delay = 0;
       }
     }
+    polled = 1;
 #ifdef __MINGW32__
     DWORD dw;
     dw = WaitForSingleObject(handle->packet.overl.hEvent, deadline ? delay : INFINITE);
@@ -520,21 +532,29 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
   if (type==BRLAPI_PACKET_EXCEPTION) {
     size_t esize;
     int hdrSize = sizeof(errorPacket->code)+sizeof(errorPacket->type);
+    int err = ntohl(errorPacket->code);
 
     if (size<hdrSize)
       esize = 0;
     else
       esize = size-hdrSize;
 
+    pthread_mutex_lock(&handle->exceptionHandler_mutex);
+    if (handle->exception_sync) {
+      handle->exception_error = err;
+      pthread_mutex_unlock(&handle->exceptionHandler_mutex);
+      return -3;
+    }
+    if (handle==&defaultHandle)
+      defaultHandle.exceptionHandler.withoutHandle(err, ntohl(errorPacket->type), &errorPacket->packet, esize);
+    else
+      handle->exceptionHandler.withHandle(handle, err, ntohl(errorPacket->type), &errorPacket->packet, esize);
+    pthread_mutex_unlock(&handle->exceptionHandler_mutex);
+
     pthread_mutex_lock(&handle->fileDescriptor_mutex);
     closeFileDescriptor(handle->fileDescriptor);
     handle->fileDescriptor = BRLAPI_INVALID_FILE_DESCRIPTOR;
     pthread_mutex_unlock(&handle->fileDescriptor_mutex);
-
-    if (handle==&defaultHandle)
-      defaultHandle.exceptionHandler.withoutHandle(ntohl(errorPacket->code), ntohl(errorPacket->type), &errorPacket->packet, esize);
-    else
-      handle->exceptionHandler.withHandle(handle, ntohl(errorPacket->code), ntohl(errorPacket->type), &errorPacket->packet, esize);
 
     return -2;
   }
@@ -557,7 +577,7 @@ static ssize_t brlapi__doWaitForPacket(brlapi_handle_t *handle, brlapi_packetTyp
  * Never returns -2. If loop is WAIT_FOR_EXPECTED_PACKET, never returns -3.
  */
 static ssize_t brlapi__waitForPacket(brlapi_handle_t *handle, brlapi_packetType_t expectedPacketType, void *packet, size_t size, int loop, int timeout_ms) {
-  int doread = 0;
+  int doread;
   ssize_t res;
   sem_t sem;
   struct timeval deadline, *pdeadline = NULL;
@@ -572,6 +592,7 @@ static ssize_t brlapi__waitForPacket(brlapi_handle_t *handle, brlapi_packetType_
     pdeadline = &deadline;
   }
 again:
+  doread = 0;
   pthread_mutex_lock(&handle->read_mutex);
   if (!handle->reading) {
     doread = handle->reading = 1;
@@ -691,6 +712,52 @@ int BRLAPI_STDCALL brlapi__pause(brlapi_handle_t *handle, int timeout_ms) {
 /* brlapi_pause */
 int BRLAPI_STDCALL brlapi_pause(int timeout_ms) {
   return brlapi__pause(&defaultHandle, timeout_ms);
+}
+
+
+/* brlapi__sync */
+int BRLAPI_STDCALL brlapi__sync(brlapi_handle_t *handle) {
+  int res, error;
+
+  pthread_mutex_lock(&handle->exceptionHandler_mutex);
+  handle->exception_sync++;
+  error = handle->exception_error;
+  handle->exception_error = BRLAPI_ERROR_SUCCESS;
+  pthread_mutex_unlock(&handle->exceptionHandler_mutex);
+
+  if (error != BRLAPI_ERROR_SUCCESS) {
+    pthread_mutex_lock(&handle->exceptionHandler_mutex);
+    handle->exception_sync--;
+    pthread_mutex_unlock(&handle->exceptionHandler_mutex);
+    brlapi_errno = error;
+    return -1;
+  }
+
+  res = brlapi__writePacketWaitForAck(handle,BRLAPI_PACKET_SYNCHRONIZE,NULL,0);
+
+  if (res == -1) {
+    pthread_mutex_lock(&handle->exceptionHandler_mutex);
+    handle->exception_sync--;
+    pthread_mutex_unlock(&handle->exceptionHandler_mutex);
+    return -1;
+  }
+
+  pthread_mutex_lock(&handle->exceptionHandler_mutex);
+  handle->exception_sync--;
+  error = handle->exception_error;
+  handle->exception_error = BRLAPI_ERROR_SUCCESS;
+  pthread_mutex_unlock(&handle->exceptionHandler_mutex);
+
+  if (error != BRLAPI_ERROR_SUCCESS) {
+    brlapi_errno = error;
+    return -1;
+  }
+  return 0;
+}
+
+/* brlapi_sync */
+int BRLAPI_STDCALL brlapi_sync(void) {
+  return brlapi__sync(&defaultHandle);
 }
 
 /* Function: tryHost */
@@ -1570,6 +1637,8 @@ static int getControllingTty(void)
   /*if ((env = getenv("WINDOW")) && sscanf(env, "%u", &tty) == 1) return tty;*/
   if ((env = getenv("WINDOWID")) && sscanf(env, "%u", &tty) == 1) return tty;
   if ((env = getenv("CONTROLVT")) && sscanf(env, "%u", &tty) == 1) return tty;
+  if (!getenv("DISPLAY") && !getenv("WAYLAND_DISPLAY"))
+    if ((env = getenv("XDG_VTNR")) && sscanf(env, "%u", &tty) == 1) return tty;
 
 #ifdef WINDOWS
   if (CHECKGETPROC("kernel32.dll", GetConsoleWindow))
@@ -1590,20 +1659,46 @@ static int getControllingTty(void)
 #endif /* WINDOWS */
 
 #ifdef linux
-  {
-    FILE *stream;
-
-    if ((stream = fopen("/proc/self/stat", "r"))) {
-      int vt;
-      int ok = fscanf(stream, "%*d %*s %*c %*d %*d %*d %d", &tty) == 1;
-      fclose(stream);
-
-      if (ok && (major(tty) == TTY_MAJOR)) {
-        vt = minor(tty);
-        if ((vt >= 1) && (vt <= MAXIMUM_VIRTUAL_CONSOLE)) return vt;
-      }
+  do {
+    int fd = open("/proc/self/stat", O_RDONLY, 0);
+    if (fd < 0) {
+      break;
     }
-  }
+
+    char buf[256];
+    ssize_t read_bytes = read(fd, buf, sizeof(buf) - 1);
+    close(fd);
+    if (read_bytes < 0) {
+      break;
+    }
+    /* Append null at the end of buffer to ensure that sscanf doesn't
+     * overflows.*/
+    buf[read_bytes] = '\0';
+
+    /* The line format is "$pid ($comm) $state ...
+     * where comm may contain space and `)` as part of its name, ex:
+     * 12345 (some proc (foo)) R ...
+     * So to process valid identified after comm, we should skip comm by
+     * getting the 1st `)` from end.
+     */
+    char *ptr = buf + read_bytes - 1;
+    while (ptr > buf && *ptr != ')') {
+      ptr -= 1;
+    }
+    if (*ptr != ')') {
+      break;
+    }
+    /* Point to space after ($comm). */
+    ptr += 1;
+
+    int vt;
+    int ok = sscanf(ptr, " %*c %*d %*d %*d %d", &tty) == 1;
+
+    if (ok && (major(tty) == TTY_MAJOR)) {
+      vt = minor(tty);
+      if ((vt >= 1) && (vt <= MAXIMUM_VIRTUAL_CONSOLE)) return vt;
+    }
+  } while (0);
 #endif /* linux */
 
   return -1;
@@ -1631,7 +1726,7 @@ int BRLAPI_STDCALL brlapi_enterTtyMode(int tty, const char *how)
 
 /* Function : brlapi_enterTtyModeWithPath */
 /* Takes control of a tty path */
-int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, int *ttys, int nttys, const char *driverName)
+int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, const int *ttys, int nttys, const char *driverName)
 {
   int res;
   void *packet;
@@ -1649,7 +1744,10 @@ int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, int *tt
     return -1;
   }
 
-  if (brlapi__getDisplaySize(handle, &handle->brlx, &handle->brly)<0) return -1;
+  if (brlapi__getDisplaySize(handle, &handle->brlx, &handle->brly)<0){
+    pthread_mutex_unlock(&handle->state_mutex);
+    return -1;
+  }
 
   /* Clear key buffer before taking the tty, just in case... */
   pthread_mutex_lock(&handle->read_mutex);
@@ -1676,12 +1774,12 @@ int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, int *tt
       } else {
 	char **sessions;
 	/* Not even logind knows :/ we are probably logged in from gdm */
-	ret = sd_uid_get_sessions(getuid(), 0, &sessions);
+	int nsessions = sd_uid_get_sessions(getuid(), 0, &sessions);
 
-	if (ret > 0) {
+	if (nsessions > 0) {
 	  int i, chosen = -1;
 
-	  for (i = 0; i < ret; i++) {
+	  for (i = 0; i < nsessions; i++) {
 	    char *type;
 
 	    ret = sd_session_get_type(sessions[i], &type);
@@ -1703,7 +1801,7 @@ int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, int *tt
 
 	  if (chosen >= 0) sd_session_get_vt(sessions[i], &vtnr);
 
-	  for (i = 0; i < ret; i++) free(sessions[i]);
+	  for (i = 0; i < nsessions; i++) free(sessions[i]);
 	  free(sessions);
 	}
       }
@@ -1754,6 +1852,7 @@ int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, int *tt
   p = (unsigned char *) t;
   if (driverName==NULL) n = 0; else n = strlen(driverName);
   if (n>BRLAPI_MAXNAMELENGTH) {
+    pthread_mutex_unlock(&handle->state_mutex);
     brlapi_errno = BRLAPI_ERROR_INVALID_PARAMETER;
     return -1;
   }
@@ -1782,7 +1881,7 @@ int BRLAPI_STDCALL brlapi__enterTtyModeWithPath(brlapi_handle_t *handle, int *tt
   return res;
 }
 
-int BRLAPI_STDCALL brlapi_enterTtyModeWithPath(int *ttys, int nttys, const char *how)
+int BRLAPI_STDCALL brlapi_enterTtyModeWithPath(const int *ttys, int nttys, const char *how)
 {
   return brlapi__enterTtyModeWithPath(&defaultHandle, ttys, nttys, how);
 }
@@ -1874,11 +1973,9 @@ static size_t getCharset(brlapi_handle_t *handle, void *buffer, int wide) {
 static int brlapi___writeText(brlapi_handle_t *handle, int cursor, const void *str, int wide)
 {
   int dispSize = handle->brlx * handle->brly;
-  unsigned int min;
   brlapi_packet_t packet;
   brlapi_writeArgumentsPacket_t *wa = &packet.writeArguments;
   unsigned char *p = &wa->data;
-  const char *locale;
   int res;
   size_t len;
 
@@ -1890,19 +1987,16 @@ static int brlapi___writeText(brlapi_handle_t *handle, int cursor, const void *s
     old_locale = uselocale(handle->default_locale);
   }
 
-  locale = "default locale";
 #else /* LC_GLOBAL_LOCALE */
-  locale = setlocale(LC_CTYPE,NULL);
+  setlocale(LC_CTYPE,NULL);
 #endif /* LC_GLOBAL_LOCALE */
 
   wa->flags = BRLAPI_WF_REGION;
   *((uint32_t *) p) = htonl(1); p += sizeof(uint32_t);
-  *((uint32_t *) p) = htonl(dispSize); p += sizeof(uint32_t);
+  *((uint32_t *) p) = htonl(-dispSize); p += sizeof(uint32_t);
+
   if (str) {
-    uint32_t *size;
     wa->flags |= BRLAPI_WF_TEXT;
-    size = (uint32_t *) p;
-    p += sizeof(*size);
 #if defined(__MINGW32__)
     if (CHECKGETPROC("ntdll.dll", wcslen) && wide)
       len = sizeof(wchar_t) * wcslenProc(str);
@@ -1912,56 +2006,9 @@ static int brlapi___writeText(brlapi_handle_t *handle, int cursor, const void *s
 #endif /* __MINGW32__ */
     else
       len = strlen(str);
-    if (!wide && locale && strcmp(locale,"C")) {
-      mbstate_t ps;
-      size_t eaten;
-      unsigned i;
-      memset(&ps,0,sizeof(ps));
-      for (min=0;min<dispSize;min++) {
-	if (!*(char*)str)
-	  goto endcount;
-	eaten = mbrlen(str,len,&ps);
-	switch(eaten) {
-	  case (size_t)(-2):
-	    errno = EILSEQ;
-	    /* fall through */
-	  case (size_t)(-1):
-	    brlapi_libcerrno = errno;
-	    brlapi_errfun = "mbrlen";
-	    brlapi_errno = BRLAPI_ERROR_LIBCERR;
-#ifdef LC_GLOBAL_LOCALE
-	    if (handle->default_locale != LC_GLOBAL_LOCALE) {
-	      /* Restore application locale */
-	      uselocale(old_locale);
-            }
-#endif /* LC_GLOBAL_LOCALE */
-	    return -1;
-	  case 0:
-	    goto endcount;
-	}
-	memcpy(p, str, eaten);
-	p += eaten;
-	str += eaten;
-	len -= eaten;
-      }
-endcount:
-      for (i = min; i<dispSize; i++) p += wcrtomb((char *)p, L' ', &ps);
-    } else if (wide) {
-      int extra;
-      min = MIN(len, sizeof(wchar_t) * dispSize);
-      extra = dispSize - min / sizeof(wchar_t);
-      memcpy(p, str, min);
-      p += min;
-      wmemset((wchar_t *) p, L' ', extra);
-      p += sizeof(wchar_t) * extra;
-    } else {
-      min = MIN(len, dispSize);
-      memcpy(p, str, min);
-      p += min;
-      memset(p, ' ', dispSize-min);
-      p += dispSize-min;
-    }
-    *size = htonl((p-(unsigned char *)(size+1)));
+    *((uint32_t *) p) = htonl(len); p += sizeof(uint32_t);
+    memcpy(p, str, len);
+    p += len;
   }
   if (cursor!=BRLAPI_CURSOR_LEAVE) {
     wa->flags |= BRLAPI_WF_CURSOR;
@@ -2073,7 +2120,7 @@ int BRLAPI_STDCALL brlapi__writeDots(brlapi_handle_t *handle, const unsigned cha
   }
 
   wa.regionBegin = 1;
-  wa.regionSize = size;
+  wa.regionSize = -size;
   wa.cursor = BRLAPI_CURSOR_OFF;
 
   return brlapi__write(handle, &wa);
@@ -2093,7 +2140,8 @@ int brlapi__write(brlapi_handle_t *handle, const brlapi_writeArguments_t *s)
 #endif /* WINDOWS */
 {
   int dispSize = handle->brlx * handle->brly;
-  unsigned int rbeg, rsiz, strLen;
+  unsigned int rbeg, strLen;
+  int rsiz;
   brlapi_packet_t packet;
   brlapi_writeArgumentsPacket_t *wa = &packet.writeArguments;
   unsigned char *p = &wa->data;
@@ -2110,11 +2158,13 @@ int brlapi__write(brlapi_handle_t *handle, const brlapi_writeArguments_t *s)
     if (rsiz == 0) return 0;
     wa->flags |= BRLAPI_WF_REGION;
     *((uint32_t *) p) = htonl(rbeg); p += sizeof(uint32_t);
-    *((uint32_t *) p) = htonl(rsiz); p += sizeof(uint32_t);
+    *((uint32_t *) p) = htonl((int32_t) rsiz); p += sizeof(uint32_t);
   } else {
     /* DEPRECATED */
-    rsiz = dispSize;
+    rsiz = -dispSize;
   }
+  if (rsiz < 0)
+    rsiz = -rsiz;
   if (s->text) {
     if (s->textSize != -1)
       strLen = s->textSize;
@@ -2551,38 +2601,73 @@ const char *brlapi_errlist[] = {
 /* brlapi_nerr: number of error codes */
 const int brlapi_nerr = (sizeof(brlapi_errlist)/sizeof(char*));
 
+/* _brlapi_strerror_cpy: store constant-string error message */
+static size_t _brlapi_strerror_cpy(char *buf, size_t buflen, const char *msg)
+{
+  size_t totsize = strlen(msg);
+
+  if (buflen == 0)
+    return totsize;
+
+  if (buflen > totsize+1) {
+    buflen = totsize+1;
+  }
+  memcpy(buf, msg, buflen-1);
+  buf[buflen-1] = '\0';
+
+  return totsize;
+}
+
+/* _brlapi_strerror_snprintf: store formatted error message */
+static size_t _brlapi_strerror_snprintf(char *buf, size_t buflen, const char *fmt, ...)
+{
+  va_list va;
+  int totsize;
+
+  va_start(va, fmt);
+  totsize = vsnprintf(buf, buflen, fmt, va);
+  va_end(va);
+
+  return totsize;
+}
+
+/* brlapi_strerror_r: store error message */
+size_t BRLAPI_STDCALL brlapi_strerror_r(const brlapi_error_t *error, char *buf, size_t buflen)
+{
+  if (error->brlerrno>=brlapi_nerr)
+    return _brlapi_strerror_cpy(buf, buflen, "Unknown error");
+  else if (error->brlerrno==BRLAPI_ERROR_GAIERR) {
+#if defined(EAI_SYSTEM)
+    if (error->gaierrno == EAI_SYSTEM)
+      return _brlapi_strerror_snprintf(buf,buflen,"resolve: %s", strerror(error->libcerrno));
+    else
+#endif /* EAI_SYSTEM */
+      return _brlapi_strerror_snprintf(buf,buflen,"resolve: "
+#if defined(HAVE_GETADDRINFO)
+#if defined(HAVE_GAI_STRERROR)
+	"%s", gai_strerror(error->gaierrno)
+#else
+	"%d", error->gaierrno
+#endif
+#elif defined(HAVE_HSTRERROR) && !defined(__MINGW32__)
+	"%s", hstrerror(error->gaierrno)
+#else
+	"%x", error->gaierrno
+#endif
+	);
+  }
+  else if (error->brlerrno==BRLAPI_ERROR_LIBCERR) {
+    return _brlapi_strerror_snprintf(buf,buflen,"%s: %s", error->errfun?error->errfun:"(null)", strerror(error->libcerrno));
+  } else
+    return _brlapi_strerror_cpy(buf, buflen, brlapi_errlist[error->brlerrno]);
+}
+
 /* brlapi_strerror: return error message */
 const char * BRLAPI_STDCALL brlapi_strerror(const brlapi_error_t *error)
 {
   static char errmsg[128];
-  if (error->brlerrno>=brlapi_nerr)
-    return "Unknown error";
-  else if (error->brlerrno==BRLAPI_ERROR_GAIERR) {
-#if defined(EAI_SYSTEM)
-    if (error->gaierrno == EAI_SYSTEM)
-      snprintf(errmsg,sizeof(errmsg),"resolve: %s", strerror(error->libcerrno));
-    else
-#endif /* EAI_SYSTEM */
-      snprintf(errmsg,sizeof(errmsg),"resolve: "
-#if defined(HAVE_GETADDRINFO)
-#if defined(HAVE_GAI_STRERROR)
-	"%s\n", gai_strerror(error->gaierrno)
-#else
-	"%d\n", error->gaierrno
-#endif
-#elif defined(HAVE_HSTRERROR) && !defined(__MINGW32__)
-	"%s\n", hstrerror(error->gaierrno)
-#else
-	"%x\n", error->gaierrno
-#endif
-	);
-    return errmsg;
-  }
-  else if (error->brlerrno==BRLAPI_ERROR_LIBCERR) {
-    snprintf(errmsg,sizeof(errmsg),"%s: %s", error->errfun?error->errfun:"(null)", strerror(error->libcerrno));
-    return errmsg;
-  } else
-    return brlapi_errlist[error->brlerrno];
+  brlapi_strerror_r(error, errmsg, sizeof(errmsg));
+  return errmsg;
 }
 
 /* brlapi_perror: error message printing */

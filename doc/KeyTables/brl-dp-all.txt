@@ -1,0 +1,197 @@
+Key Table: DotPad
+=================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display:
+  + long FunctionKey.1+FunctionKey.2
+  + Space+Dots125
+* enter/leave command learn mode:
+  + long FunctionKey.3+FunctionKey.4
+  + Space+Dots123
+* enter/leave preferences menu:
+  + long FunctionKey.2+FunctionKey.3
+  + Space+Dots1234
+* enter/leave status display: Space+Dots234
+* set display mode attributes/text: Space+Dots145
+* set display mode attributes: Space+Dots1458
+* set display mode text: Space+Dots1457
+* set screen image frozen/unfrozen: Space+Dots124
+* set screen image frozen: Space+Dots1248
+* set screen image unfrozen: Space+Dots1247
+* show current date and time: FunctionKey.2+FunctionKey.3
+
+Cursor Functions
+* go to screen cursor:
+  + NavCenter
+  + FunctionKey.1+FunctionKey.4
+* go back after cursor tracking:
+  + long NavCenter
+  + long FunctionKey.1+FunctionKey.4
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: Space+Dots1236
+
+Vertical Navigation
+* go up one line:
+  + LeftPrev
+  + NavUp
+  + FunctionKey.1
+* go down one line:
+  + LeftNext
+  + NavDown
+  + FunctionKey.4
+* go to top line:
+  + long LeftPrev
+  + long NavUp
+  + long FunctionKey.1
+* go to bottom line:
+  + long LeftNext
+  + long NavDown
+  + long FunctionKey.4
+* go up to nearest line with different content: FunctionKey.2
+* go down to nearest line with different content: FunctionKey.3
+* go up to nearest line with different highlighting: long FunctionKey.2
+* go down to nearest line with different highlighting: long FunctionKey.3
+* go up to first line of paragraph: FunctionKey.3+FunctionKey.1
+* go down to first line of next paragraph: FunctionKey.3+FunctionKey.4
+* go up to previous command prompt: FunctionKey.1+FunctionKey.2
+* go down to next command prompt: FunctionKey.2+FunctionKey.4
+
+Horizontal Navigation
+* go backward one braille window:
+  + RightPrev
+  + PanLeft
+  + NavLeft
+* go forward one braille window:
+  + RightNext
+  + PanRight
+  + NavRight
+* go to beginning of line:
+  + long RightPrev
+  + long PanLeft
+  + long NavLeft
+* go to end of line:
+  + long RightNext
+  + long PanRight
+  + long NavRight
+
+Clipboard Functions
+* insert clipboard text after screen cursor: Space+Dots1346
+* save clipboard to disk: Space+Dots13468
+* restore clipboard from disk: Space+Dots13467
+
+Configuration Functions
+* set autorepeat on/off: Space+Dots1235
+* set autorepeat on: Space+Dots12358
+* set autorepeat off: Space+Dots12357
+* set contracted/computer braille: Space+Dots1245
+* set contracted braille: Space+Dots12458
+* set computer braille: Space+Dots12457
+* set six dot computer braille: Space+Dots235
+* set eight dot computer braille: Space+Dots236
+* set skipping of lines with identical content on/off: Space+Dots24
+* set skipping of lines with identical content on: Space+Dots248
+* set skipping of lines with identical content off: Space+Dots247
+* set skipping of blank braille windows on/off: Space+Dots12
+* set skipping of blank braille windows on: Space+Dots128
+* set skipping of blank braille windows off: Space+Dots127
+* set sliding braille window on/off: Space+Dots2456
+* set sliding braille window on: Space+Dots24568
+* set sliding braille window off: Space+Dots24567
+* set track screen cursor on/off: Space+Dots2345
+* set track screen cursor on: Space+Dots23458
+* set track screen cursor off: Space+Dots23457
+* set screen cursor visibility on/off: Space+Dots14
+* set screen cursor visibility on: Space+Dots148
+* set screen cursor visibility off: Space+Dots147
+* set attribute underlining on/off: Space+Dots136
+* set attribute underlining on: Space+Dots1368
+* set attribute underlining off: Space+Dots1367
+
+Menu Operations
+* save preferences to disk: Space+Dots12348
+* restore preferences from disk: Space+Dots12347
+* reset preferences to defaults: Space+Dots123478
+
+Keyboard Input
+* braille keyboard dot7: Dot7
+* braille keyboard dot3: Dot3
+* braille keyboard dot2: Dot2
+* braille keyboard dot1: Dot1
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot8: Dot8
+* braille keyboard space: Space
+* type braille dots [7]: Space+Dot7
+* type braille dots [8]: Space+Dot8
+* backspace key: Dot7
+* escape key: Space+Dots26
+* cursor-left key: Space+Dot3
+* cursor-right key: Space+Dot6
+* cursor-up key: Space+Dot1
+* cursor-down key: Space+Dot4
+* page-up key: Space+Dots23
+* page-down key: Space+Dots56
+* home key: Space+Dot2
+* end key: Space+Dot5
+* insert key: Space+Dots35
+* delete key: Space+Dots256
+* enter key: Dot8
+* tab key: Space+Dots45
+* clear all sticky input modifiers: Space+Dots78
+* cycle the Upper sticky input modifier (next, on, off): Space+Dots68
+* cycle the Shift sticky input modifier (next, on, off): Space+Dots48
+* cycle the Control sticky input modifier (next, on, off): Space+Dots38
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Space+Dots28
+* cycle the AltGr (Right Alt) sticky input modifier (next, on, off): Space+Dots58
+* cycle the GUI (Windows) sticky input modifier (next, on, off): Space+Dots18
+* switch to the previous virtual terminal: Space+Dots12367
+* switch to the next virtual terminal: Space+Dots12368
+* set braille keyboard enabled: Space+Dots138
+* set braille keyboard disabled: Space+Dots137
+* set braille typing mode dots: Space+Dots468
+* set braille typing mode text: Space+Dots467
+
+Special Functions
+* refresh braille display: PanLeft+PanRight
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu:
+  + Dot8
+  + long PanRight
+
+Horizontal Navigation
+* go backward one braille window: PanLeft
+* go forward one braille window: PanRight
+
+Menu Operations
+* go up to previous item:
+  + Dot1
+  + FunctionKey.1
+* go down to next item:
+  + Dot4
+  + FunctionKey.4
+* go up to first item:
+  + Dot2
+  + long FunctionKey.1
+* go down to last item:
+  + Dot5
+  + long FunctionKey.4
+* select previous choice:
+  + Dot3
+  + FunctionKey.2
+* select next choice:
+  + Dot6
+  + FunctionKey.3
+* go to previous menu level:
+  + Dot7
+  + long PanLeft
+* save preferences to disk: long FunctionKey.3
+* restore preferences from disk: long FunctionKey.2
+

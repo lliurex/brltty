@@ -3,7 +3,7 @@
 .\" BRLTTY - A background process providing access to the console screen (when in
 .\"          text mode) for a blind person using a refreshable braille display.
 .\"
-.\" Copyright (C) 1995-2021 by The BRLTTY Developers.
+.\" Copyright (C) 1995-2023 by The BRLTTY Developers.
 .\"
 .\" BRLTTY comes with ABSOLUTELY NO WARRANTY.
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" This software is maintained by Dave Mielke <dave@mielke.cc>.
 .\"
-.TH "BRLTTY" "1" "January 2021" "@PACKAGE_TARNAME@ @PACKAGE_VERSION@" "@PACKAGE_NAME@ User's Manual"
+.TH "BRLTTY" "1" "July 2023" "@PACKAGE_TARNAME@ @PACKAGE_VERSION@" "@PACKAGE_NAME@ User's Manual"
 .SH NAME
 brltty \- refreshable braille display driver for Linux/Unix
 .SH SYNOPSIS
@@ -398,7 +398,7 @@ then it's only processed if that speech synthesizer driver is being used.
 .TP
 \fB\-T \fIdirectory\fR (\fB\-\-tables\-directory=\fR)
 The path to the directory which contains
-the text, attributes, contraction, keyboard, and input tables.
+the text, contraction, attributes, keyboard, and input tables.
 The built-in default is
 .RB "@TABLES_DIRECTORY@" "."
 .TP
@@ -714,9 +714,6 @@ BrailComm
 .B bd
 Braudi
 .TP 4
-.B bg
-B2G
-.TP 4
 .B bl
 BrailleLite
 .TP 4
@@ -734,6 +731,9 @@ Cebra
 .TP 4
 .B cn
 Canute
+.TP 4
+.B dp
+DotPad
 .TP 4
 .B ec
 EcoBraille
@@ -834,17 +834,11 @@ TechniBraille Systems Inc.
 .B ts
 Telesensory Systems Inc.
 .TP 4
-.B tt
-TTY
-.TP 4
 .B vd
 VideoBraille
 .TP 4
 .B vo
 Voyager, Part232 (serial adapter), BraillePen/EasyLink
-.TP 4
-.B vr
-Virtual
 .TP 4
 .B vs
 VisioBraille
@@ -854,9 +848,6 @@ ViaVoice
 .TP 4
 .B xs
 ExternalSpeech
-.TP 4
-.B xw
-XWindow
 .PP
 A comma-delimited list of drivers may be specified.
 If this is done then autodetection is performed using each listed driver in sequence.

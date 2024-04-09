@@ -1,0 +1,135 @@
+Key Table: Power Braille 65
+===========================
+
+Notes
+* The keys on the top, from left to right, are named:
+* Button1, Button2, Bar1, Bar2, Bar3, Bar4, Button3, Button4.
+* The keys on the front, from left to right, are named:
+* Switch1, Switch2, LeftRocker, Convex, Concave, RightRocker, Switch3, Switch4.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display:
+  + Button1+Button2
+  + RoutingKey.1+RoutingKey.65
+* enter/leave command learn mode:
+  + Button1+Button2+Button3+Button4
+  + RoutingKey.1+RoutingKey.2+RoutingKey.64+RoutingKey.65
+* enter/leave preferences menu: Bar1+Bar2
+* enter/leave status display: Button3+Button4
+* set display mode attributes: Switch4Up
+* set display mode text: Switch4Down
+* set screen image frozen: Switch2Up
+* set screen image unfrozen: Switch2Down
+
+Cursor Functions
+* go to screen cursor: Concave
+* go back after cursor tracking: Concave+LeftRockerUp
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: LeftRockerDown+RightRockerDown
+
+Vertical Navigation
+* go up one line:
+  + Bar1
+  + RightRockerUp
+* go down one line:
+  + Bar3
+  + Bar4
+  + Bar2
+  + RightRockerDown
+* go to beginning of top line: Button1+Bar1
+* go to beginning of bottom line: Button1+Bar2
+* go up to nearest line with different content: Button2+Bar1
+* go down to nearest line with different content:
+  + Button2+Bar3
+  + Button2+Bar4
+  + Button2+Bar2
+* go up to nearest line with different highlighting: Button2+RightRockerUp
+* go down to nearest line with different highlighting: Button2+RightRockerDown
+* go up to first line of paragraph: RoutingKey.1+RoutingKey.2+RightRockerUp
+* go down to first line of next paragraph: RoutingKey.1+RoutingKey.2+RightRockerDown
+* go up to previous command prompt: RoutingKey.2+RoutingKey.3+RightRockerUp
+* go down to next command prompt: RoutingKey.2+RoutingKey.3+RightRockerDown
+* go up several lines:
+  + Convex+LeftRockerUp
+  + Button1+Button2+Bar1
+* go down several lines:
+  + Convex+LeftRockerDown
+  + Button1+Button2+Bar2
+* go up to nearest line with less indent than character: RoutingKey+RightRockerUp
+* go down to nearest line with less indent than character: RoutingKey+RightRockerDown
+
+Horizontal Navigation
+* go backward one braille window: Button3
+* go forward one braille window: Button4
+* go to beginning of line: LeftRockerUp+Button3
+* go to end of line: LeftRockerUp+Button4
+* go left one character:
+  + Convex+Button1
+  + RoutingKey.1+RoutingKey.2
+* go right one character:
+  + Convex+Button2
+  + RoutingKey.64+RoutingKey.65
+* go left half a braille window:
+  + LeftRockerUp+Button1
+  + RoutingKey.1+RoutingKey.3
+* go right half a braille window:
+  + LeftRockerUp+Button2
+  + RoutingKey.63+RoutingKey.65
+* place left end of braille window at character: RoutingKey+LeftRockerUp
+
+Clipboard Functions
+* start new clipboard at character: RoutingKey+Button1
+* append to clipboard from character: RoutingKey+Button2
+* linear copy to character: RoutingKey+Button4
+* rectangular copy to character: RoutingKey+Button3
+* copy characters to clipboard: RoutingKey+RoutingKey
+* insert clipboard text after screen cursor: RoutingKey.2+RoutingKey.3
+* search backward for clipboard text: RoutingKey.1+RoutingKey.3+RightRockerUp
+* search forward for clipboard text: RoutingKey.1+RoutingKey.3+RightRockerDown
+
+Configuration Functions
+* set text style 6-dot/8-dot: Bar1+Bar2+LeftRockerDown
+* set skipping of lines with identical content on: Switch3Up
+* set skipping of lines with identical content off: Switch3Down
+* set track screen cursor on/off: Convex
+* set screen cursor visibility on/off: Bar1+Bar2+Button1
+* set screen cursor blinking on/off: Bar1+Bar2+Button1+Convex
+* set attribute underlining on: Switch1Up
+* set attribute underlining off: Switch1Down
+* set attribute blinking on: Switch1Up+Convex
+* set attribute blinking off: Switch1Down+Convex
+* set capital letter blinking on/off: Bar1+Bar2+Button2+Convex
+* set alert tunes on/off: Bar1+Bar2+Button2
+
+Menu Operations
+* save preferences to disk: Bar1+Bar2+Concave
+* restore preferences from disk: Bar1+Bar2+Convex+Concave
+
+Speech Functions
+* stop speaking: Bar2+RightRockerUp
+* speak current line: Bar2+RightRockerDown
+* speak from current line through bottom of screen: Bar1+Bar2+RightRockerDown
+* go to current speaking position: Concave+Bar2
+
+Keyboard Input
+* cursor-left key: Button1
+* cursor-right key: Button2
+* cursor-up key: LeftRockerUp
+* cursor-down key: LeftRockerDown
+* switch to specific virtual terminal: RoutingKey+LeftRockerDown
+
+Special Functions
+* remember current braille window position: RoutingKey+Convex
+* go to remembered braille window position: RoutingKey+Concave
+* restart speech driver: Bar1+Bar2+LeftRockerUp+RightRockerUp
+
+Menu Bindings
+-------------
+
+Menu Operations
+* select previous choice: Convex
+* select next choice: Concave
+

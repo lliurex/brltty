@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2006-2021 by
+ * Copyright (C) 2006-2023 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -22,10 +22,6 @@ package org.a11y.brlapi;
 public abstract class ProgramComponent extends Component {
   protected ProgramComponent () {
     super();
-  }
-
-  public static String getProgramName (Class<? extends Program> type) {
-    return type.getSimpleName();
   }
 
   public static boolean isClient (Class <? extends Program> type) {

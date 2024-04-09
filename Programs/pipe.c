@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -26,6 +26,8 @@
 #include "log.h"
 #include "pipe.h"
 #include "file.h"
+#include "io_misc.h"
+#include "async_handle.h"
 #include "async_io.h"
 
 struct NamedPipeObjectStruct {
@@ -238,7 +240,9 @@ setNamedPipeMethods (NamedPipeObject *obj) {
 #elif defined(S_ISFIFO)
 static int
 createFifo (NamedPipeObject *obj) {
+  lockUmask();
   int result = mkfifo(obj->host.path, 0);
+  unlockUmask();
 
   if ((result == -1) && (errno == EEXIST)) {
     struct stat fifo;
@@ -252,12 +256,17 @@ createFifo (NamedPipeObject *obj) {
   }
 
   if (result != -1) {
-    if (chmod(obj->host.path, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) != -1) {
+    lockUmask();
+    int changed = chmod(obj->host.path, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) != -1;
+    unlockUmask();
+
+    if (changed) {
       // open read-write even though we only read to prevent an end-of-file condition
       if ((obj->input.descriptor = open(obj->host.path, O_RDWR|O_NONBLOCK)) != -1) {
         logMessage(LOG_DEBUG, "FIFO created: %s: fd=%d",
                    obj->host.path, obj->input.descriptor);
 
+        setCloseOnExec(obj->input.descriptor, 1);
         return 1;
       } else {
         logMessage(LOG_ERR, "cannot open FIFO: %s: %s",

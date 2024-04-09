@@ -1,0 +1,96 @@
+Key Table: HandyTech Braille Wave
+=================================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: B8
+* enter/leave command learn mode: B4+B5
+* enter/leave preferences menu: B7+B1
+* enter/leave status display:
+  + B7+B6
+  + Escape+Space+Return
+* set display mode attributes/text: B6
+* set screen image frozen/unfrozen: B8+B6
+* describe character: B2+RoutingKey
+* show current date and time: B2+B3+B5+B6
+* switch to Default Bindings: B1+B8+Left
+* switch to Braille Input Mode: B1+B8+Right
+
+Cursor Functions
+* go to screen cursor: B1
+* go back after cursor tracking: B3
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: B4
+* go down one line: B5
+* go to beginning of top line: B2
+* go up to nearest line with different content: B8+B4
+* go down to nearest line with different content: B8+B5
+* go up to nearest line with different highlighting: B6+B4
+* go down to nearest line with different highlighting: B6+B5
+* go up to first line of paragraph: B1+B4
+* go down to first line of next paragraph: B1+B5
+* go up to previous command prompt: B2+B4
+* go down to next command prompt: B2+B5
+* go up several lines: B7+B4
+* go down several lines: B7+B5
+* go up to nearest line with less indent than character: Left+RoutingKey
+* go down to nearest line with less indent than character: Right+RoutingKey
+
+Horizontal Navigation
+* go backward one braille window: Left
+* go forward one braille window: Right
+* place left end of braille window at character: B1+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: B4+RoutingKey
+* append to clipboard from character: B3+RoutingKey
+* linear copy to character: B6+RoutingKey
+* rectangular copy to character: B5+RoutingKey
+* copy characters to clipboard: RoutingKey+RoutingKey
+* insert clipboard text after screen cursor: Left+Right
+* search backward for clipboard text: B3+B4
+* search forward for clipboard text: B3+B5
+
+Configuration Functions
+* set text style 6-dot/8-dot: B7
+* set skipping of lines with identical content on/off: B6+B1
+* set skipping of blank braille windows on/off: B6+B2
+* set sliding braille window on/off: B6+B3
+* set track screen cursor on/off: B8+B1
+* set screen cursor visibility on/off: B8+B2
+* set attribute underlining on/off: B8+B3
+* set alert tunes on/off: B8+B7
+
+Menu Operations
+* save preferences to disk: B7+B3
+* restore preferences from disk: B7+B2
+
+Special Functions
+* remember current braille window position: B7+RoutingKey
+* go to remembered braille window position: B8+RoutingKey
+
+Braille Input Mode
+------------------
+
+Special Modes
+* switch to Default Bindings: B1+B8+Left
+
+Keyboard Input
+* braille keyboard dot7: B1
+* braille keyboard dot3: B2
+* braille keyboard dot2: B3
+* braille keyboard dot1: B4
+* braille keyboard control: Space
+* braille keyboard dot4: B5
+* braille keyboard meta: Return
+* braille keyboard dot5: B6
+* braille keyboard dot6: B7
+* braille keyboard dot8: B8
+* type braille dots [space]: Space
+* backspace key: Space+B1
+* enter key: Return
+

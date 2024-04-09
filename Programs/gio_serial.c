@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -42,6 +42,11 @@ makeSerialResourceIdentifier (GioHandle *handle, char *buffer, size_t size) {
   return serialMakeDeviceIdentifier(handle->device, buffer, size);
 }
 
+static void *
+getSerialResourceObject (GioHandle *handle) {
+  return handle->device;
+}
+
 static ssize_t
 writeSerialData (GioHandle *handle, const void *data, size_t size, int timeout) {
   return serialWriteData(handle->device, data, size);
@@ -62,6 +67,11 @@ readSerialData (
 }
 
 static int
+monitorSerialInput (GioHandle *handle, AsyncMonitorCallback *callback, void *data) {
+  return serialMonitorInput(handle->device, callback, data);
+}
+
+static int
 reconfigureSerialResource (GioHandle *handle, const SerialParameters *parameters) {
   int ok = serialSetParameters(handle->device, parameters);
 
@@ -69,30 +79,17 @@ reconfigureSerialResource (GioHandle *handle, const SerialParameters *parameters
   return ok;
 }
 
-static int
-monitorSerialInput (GioHandle *handle, AsyncMonitorCallback *callback, void *data) {
-  return serialMonitorInput(handle->device, callback, data);
-}
-
-static void *
-getSerialResourceObject (GioHandle *handle) {
-  return handle->device;
-}
-
-static const GioMethods gioSerialMethods = {
+static const GioHandleMethods gioSerialMethods = {
   .disconnectResource = disconnectSerialResource,
 
   .makeResourceIdentifier = makeSerialResourceIdentifier,
+  .getResourceObject = getSerialResourceObject,
 
   .writeData = writeSerialData,
   .awaitInput = awaitSerialInput,
   .readData = readSerialData,
-
-  .reconfigureResource = reconfigureSerialResource,
-
   .monitorInput = monitorSerialInput,
-
-  .getResourceObject = getSerialResourceObject
+  .reconfigureResource = reconfigureSerialResource,
 };
 
 static int
@@ -119,7 +116,7 @@ getSerialOptions (const GioDescriptor *descriptor) {
   return &descriptor->serial.options;
 }
 
-static const GioMethods *
+static const GioHandleMethods *
 getSerialMethods (void) {
   return &gioSerialMethods;
 }
@@ -161,7 +158,7 @@ static const GioPrivateProperties gioPrivateProperties_serial = {
   .isSupported = isSerialSupported,
 
   .getOptions = getSerialOptions,
-  .getMethods = getSerialMethods,
+  .getHandleMethods = getSerialMethods,
 
   .connectResource = connectSerialResource,
   .prepareEndpoint = prepareSerialEndpoint

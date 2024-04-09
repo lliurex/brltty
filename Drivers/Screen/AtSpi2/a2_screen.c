@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -17,6 +17,7 @@
  */
 
 #include "prologue.h"
+#include "embed.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -66,6 +67,7 @@
 #include "parse.h"
 #include "thread.h"
 #include "brl_cmds.h"
+#include "async_handle.h"
 #include "async_io.h"
 #include "async_alarm.h"
 #include "async_event.h"
@@ -1150,36 +1152,13 @@ static void AtSpi2HandleEvent(const char *interface, DBusMessage *message)
   updated = 1;
 }
 
-static DBusHandlerResult AtSpi2Filter(DBusConnection *connection, DBusMessage *message, void *user_data)
-{
-  int type = dbus_message_get_type(message);
-  const char *interface = dbus_message_get_interface(message);
-  const char *member = dbus_message_get_member(message);
+static int closeX = 1;
 
-  if (type == DBUS_MESSAGE_TYPE_SIGNAL) {
-    if (!strncmp(interface, SPI2_DBUS_INTERFACE_EVENT".", strlen(SPI2_DBUS_INTERFACE_EVENT"."))) {
-      AtSpi2HandleEvent(interface + strlen(SPI2_DBUS_INTERFACE_EVENT"."), message);
-    } else if (!strcmp(interface, DBUS_INTERFACE_LOCAL) &&
-               !strcmp(member, "Disconnected")) {
-      logMessage(LOG_CATEGORY(SCREEN_DRIVER),
-                 "DBus disconnected signal, shutting down");
-#if defined(SIGTERM)
-      raise(SIGTERM);
-#elif defined(SIGINT)
-      raise(SIGINT);
-#else /* termination signal */
-#warning no defined termination signal
-#endif /* termination signal */
-    } else {
-      logMessage(LOG_CATEGORY(SCREEN_DRIVER),
-                 "unknown signal: Intf:%s Msg:%s", interface, member);
-    }
-  } else {
-    logMessage(LOG_CATEGORY(SCREEN_DRIVER),
-               "unknown message: Type:%d Intf:%s Msg:%s", type, interface, member);
-  }
-
-  return DBUS_HANDLER_RESULT_HANDLED;
+static void
+onScreenDriverFailure (const char *cause) {
+  logMessage(LOG_ERR, "screen driver failure: %s", cause);
+  closeX = 1;
+  brlttyInterrupt(WAIT_STOP);
 }
 
 #ifdef HAVE_PKG_X11
@@ -1214,6 +1193,12 @@ void a2DropX(void) {
 ASYNC_MONITOR_CALLBACK(a2ProcessX) {
   XEvent ev;
 
+  if (closeX) {
+    asyncCancelRequest(a2XWatch);
+    a2XWatch = NULL;
+    return 1;
+  }
+
   while (XPending(dpy)) {
     XNextEvent(dpy, &ev);
     XSelProcess(dpy, &xselData, &ev, clipboardContent, a2XSelUpdated);
@@ -1240,6 +1225,28 @@ REPORT_LISTENER(a2CoreSelUpdated) {
     }
   }
 }
+
+static int ErrorHandler(Display *dpy, XErrorEvent *ev) {
+  char buffer[128];
+  XGetErrorText(dpy, ev->error_code, buffer, sizeof(buffer));
+  logMessage(LOG_ERR, "X Error %d, %s", ev->type, buffer);
+  logMessage(LOG_ERR, "resource %#010lx, req %u:%u",ev->resourceid,ev->request_code,ev->minor_code);
+  onScreenDriverFailure("X error");
+  return 0;
+}
+
+static int IOErrorHandler(Display *dpy) {
+  onScreenDriverFailure("X I/O error");
+  return 0;
+}
+
+#ifdef HAVE_XSETIOERROREXITHANDLER
+static void IOErrorExitHandler(Display *dpy, void *data) {
+  onScreenDriverFailure("X I/O Error Exit");
+  return;
+}
+#endif
+
 #endif /* HAVE_PKG_X11 */
 
 /* Integration of DBus watches with brltty monitors */
@@ -1453,10 +1460,37 @@ addWatches (void) {
   };
 
   for (const WatchEntry *watch=watchTable; watch->message; watch+=1) {
-    if (!addWatch(watch->message, watch->event)) return 0;
+    if (!addWatch(watch->message, watch->event)) {
+      logMessage(LOG_ERR, "can't add watch %s %s", watch->message, watch->event);
+      return 0;
+    }
   }
 
   return 1;
+}
+
+static DBusHandlerResult AtSpi2Filter(DBusConnection *connection, DBusMessage *message, void *user_data)
+{
+  int type = dbus_message_get_type(message);
+  const char *interface = dbus_message_get_interface(message);
+  const char *member = dbus_message_get_member(message);
+
+  if (type == DBUS_MESSAGE_TYPE_SIGNAL) {
+    if (!strncmp(interface, SPI2_DBUS_INTERFACE_EVENT".", strlen(SPI2_DBUS_INTERFACE_EVENT"."))) {
+      AtSpi2HandleEvent(interface + strlen(SPI2_DBUS_INTERFACE_EVENT"."), message);
+    } else if (!strcmp(interface, DBUS_INTERFACE_LOCAL) &&
+               !strcmp(member, "Disconnected")) {
+      onScreenDriverFailure("DBus disconnected");
+    } else {
+      logMessage(LOG_CATEGORY(SCREEN_DRIVER),
+                 "unknown signal: Intf:%s Msg:%s", interface, member);
+    }
+  } else {
+    logMessage(LOG_CATEGORY(SCREEN_DRIVER),
+               "unknown message: Type:%d Intf:%s Msg:%s", type, interface, member);
+  }
+
+  return DBUS_HANDLER_RESULT_HANDLED;
 }
 
 static int
@@ -1482,7 +1516,10 @@ construct_AtSpi2Screen (void) {
     goto noBus;
   }
 
-  if (!dbus_connection_add_filter(bus, AtSpi2Filter, NULL, NULL)) goto noConnection;
+  if (!dbus_connection_add_filter(bus, AtSpi2Filter, NULL, NULL)) {
+    logMessage(LOG_ERR, "can't add atspi2 filter");
+    goto noConnection;
+  }
   if (!addWatches()) goto noWatches;
 
   if (!curPath) {
@@ -1497,8 +1534,14 @@ construct_AtSpi2Screen (void) {
   dbus_connection_set_timeout_functions(bus, a2AddTimeout, a2RemoveTimeout, a2TimeoutToggled, NULL, NULL);
 
 #ifdef HAVE_PKG_X11
+  closeX = 0;
   dpy = XOpenDisplay(NULL);
   if (dpy) {
+    XSetErrorHandler(ErrorHandler);
+    XSetIOErrorHandler(IOErrorHandler);
+#ifdef HAVE_XSETIOERROREXITHANDLER
+    XSetIOErrorExitHandler(dpy, IOErrorExitHandler, NULL);
+#endif
     XSelInit(dpy, &xselData);
     XFlush(dpy);
 #ifdef HAVE_PTHREAD_ATFORK
@@ -1510,6 +1553,7 @@ construct_AtSpi2Screen (void) {
 #endif /* HAVE_PKG_X11 */
 
   logMessage(LOG_CATEGORY(SCREEN_DRIVER), "SPI2 initialized");
+  brlttyEnableInterrupt();
   return 1;
 
 noWatches:
@@ -1518,16 +1562,23 @@ noConnection:
   dbus_connection_unref(bus);
 
 noBus:
+  onScreenDriverFailure("driver couldn't start");
   return 0;
 }
 
 static void
 destruct_AtSpi2Screen (void) {
+  brlttyDisableInterrupt();
 #ifdef HAVE_PKG_X11
   if (dpy) {
-    unregisterReportListener(coreSelUpdatedListener);
-    coreSelUpdatedListener = NULL;
-    asyncCancelRequest(a2XWatch);
+    if (coreSelUpdatedListener) {
+      unregisterReportListener(coreSelUpdatedListener);
+      coreSelUpdatedListener = NULL;
+    }
+    if (a2XWatch) {
+      asyncCancelRequest(a2XWatch);
+      a2XWatch = NULL;
+    }
     XCloseDisplay(dpy);
     dpy = NULL;
     free(clipboardContent);
@@ -1642,6 +1693,7 @@ insertKey_AtSpi2Screen (ScreenKey key) {
   long keysym;
   int modMeta=0, modControl=0;
 
+  mapScreenKey(&key);
   setScreenKeyModifiers(&key, SCR_KEY_CONTROL);
 
   if (isSpecialKey(key)) {

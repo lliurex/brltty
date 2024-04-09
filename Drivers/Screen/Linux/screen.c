@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -37,6 +37,8 @@
 
 #include "log.h"
 #include "report.h"
+#include "message.h"
+#include "async_handle.h"
 #include "async_io.h"
 #include "device.h"
 #include "io_misc.h"
@@ -55,10 +57,12 @@ typedef enum {
   PARM_FALLBACK_TEXT,
   PARM_HIGH_FONT_BIT,
   PARM_LOG_SCREEN_FONT_MAP,
+  PARM_RPI_SPACES_BUG,
   PARM_UNICODE,
   PARM_VIRTUAL_TERMINAL_NUMBER,
+  PARM_WIDECHAR_PADDING,
 } ScreenParameters;
-#define SCRPARMS "charset", "fallbacktext", "hfb", "logsfm", "unicode", "vt"
+#define SCRPARMS "charset", "fallbacktext", "hfb", "logsfm", "rpispacesbug", "unicode", "vt", "widecharpadding"
 
 #include "scr_driver.h"
 #include "screen.h"
@@ -67,8 +71,10 @@ static const char *problemText;
 static const char *fallbackText;
 
 static unsigned int logScreenFontMap;
+static unsigned int rpiSpacesBug;
 static unsigned int unicodeEnabled;
 static int virtualTerminalNumber;
+static unsigned int widecharPadding;
 
 #define UNICODE_ROW_DIRECT 0XF000
 
@@ -546,7 +552,31 @@ static size_t
 readUnicodeDevice (off_t offset, void *buffer, size_t size) {
   if (openCurrentUnicode()) {
     const ssize_t count = pread(unicodeDescriptor, buffer, size, offset);
-    if (count != -1) return count;
+
+    if (count != -1) {
+      if (rpiSpacesBug) {
+        uint32_t *character = buffer;
+        const uint32_t *end = character + (count / sizeof(*character));
+
+        while (character < end) {
+          if (*character == 0X20202020) {
+            static unsigned char bugLogged = 0;
+
+            if (!bugLogged) {
+              logMessage(LOG_WARNING, "Linux screen driver: RPI spaces bug detected");
+              bugLogged = 1;
+            }
+
+            *character = ' ';
+          }
+
+          character += 1;
+        }
+      }
+
+      return count;
+    }
+
     if (errno != ENODATA) logSystemError("unicode read");
   }
 
@@ -559,10 +589,10 @@ static size_t unicodeCacheUsed;
 
 static size_t
 readUnicodeCache (off_t offset, void *buffer, size_t size) {
-  if (offset <= unicodeCacheSize) {
-    size_t left = unicodeCacheSize - offset;
-
+  if (offset <= unicodeCacheUsed) {
+    size_t left = unicodeCacheUsed - offset;
     if (size > left) size = left;
+
     memcpy(buffer, &unicodeCacheBuffer[offset], size);
     return size;
   } else {
@@ -1110,6 +1140,8 @@ readScreenRow (int row, size_t size, ScreenCharacter *characters, int *offsets) 
         if ((blanks > 0) && (wc == WC_C(' '))) {
           blanks -= 1;
           wc = WEOF;
+        } else if (widecharPadding) {
+          blanks = 0;
         } else {
           blanks = getCharacterWidth(wc) - 1;
         }
@@ -1279,6 +1311,17 @@ processParameters_LinuxScreen (char **parameters) {
     }
   }
 
+  rpiSpacesBug = 0;
+  {
+    const char *parameter = parameters[PARM_RPI_SPACES_BUG];
+
+    if (parameter && *parameter) {
+      if (!validateYesNo(&rpiSpacesBug, parameter)) {
+        logMessage(LOG_WARNING, "%s: %s", "invalid RPI spaces bug setting", parameter);
+      }
+    }
+  }
+
   unicodeEnabled = 1;
   {
     const char *parameter = parameters[PARM_UNICODE];
@@ -1300,6 +1343,17 @@ processParameters_LinuxScreen (char **parameters) {
 
       if (!validateInteger(&virtualTerminalNumber, parameter, &minimum, &maximum)) {
         logMessage(LOG_WARNING, "%s: %s", "invalid virtual terminal number", parameter);
+      }
+    }
+  }
+
+  widecharPadding = 0;
+  {
+    const char *parameter = parameters[PARM_WIDECHAR_PADDING];
+
+    if (parameter && *parameter) {
+      if (!validateYesNo(&widecharPadding, parameter)) {
+        logMessage(LOG_WARNING, "%s: %s", "invalid widechar padding setting", parameter);
       }
     }
   }
@@ -1695,6 +1749,12 @@ hasModGui (ScreenKey key) {
 
 static int
 injectKeyEvent (int key, int press) {
+  logMessage(
+    LOG_CATEGORY(SCREEN_DRIVER) | LOG_DEBUG,
+    "injecting key %s: %02X",
+    (press? "press": "release"), key
+  );
+
   if (!openKeyboard()) return 0;
   return writeKeyEvent(uinputKeyboard, key, press);
 }
@@ -1741,8 +1801,21 @@ insertUinput (
 
 static int
 insertByte (char byte) {
+  logMessage(
+    LOG_CATEGORY(SCREEN_DRIVER) | LOG_DEBUG,
+    "inserting byte: %02X", byte
+  );
+
   if (controlCurrentConsole(TIOCSTI, &byte) != -1) return 1;
   logSystemError("ioctl[TIOCSTI]");
+  logPossibleCause("BRLTTY is running without the CAP_SYS_ADMIN kernel capability (see man 7 capabilities)");
+  logPossibleCause("the sysctl parameter dev.tty.legacy_tiocsti is off (see https://lore.kernel.org/linux-hardening/Y0m9l52AKmw6Yxi1@hostpad/)");
+
+  message(
+    NULL, "Linux character injection (TIOCSTI) is disabled on this system",
+    (MSG_SILENT)
+  );
+
   return 0;
 }
 
@@ -2142,12 +2215,12 @@ insertTranslated (ScreenKey key, int (*insertCharacter)(wchar_t character)) {
 
       switch (meta) {
         case K_ESCPREFIX:
-          *--character = ESC;
+          *--character = ASCII_ESC;
           break;
 
         case K_METABIT:
           if (*character >= 0X80) {
-            logMessage(LOG_WARNING, "can't add meta bit to character: U+%04X", *character);
+            logMessage(LOG_WARNING, "can't add meta bit to character: U+%04X", (uint32_t)*character);
             return 0;
           }
 

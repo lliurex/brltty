@@ -1,0 +1,243 @@
+Key Table: Papenmeier BrailleX EL 2D-80
+=======================================
+
+Notes
+* The long key on the front is the Easy Access Bar.
+  It can be moved two steps in each direction (left, right, up, down).
+* RoutingKey1 refers to the row of keys just behind the text cells.
+* The keys to the left of the status cells are named Status.1 through Status.20.
+* The rockers at each side of the top that don't stay when pressed
+  are named the Left and Right Key.
+* The rockers at each side of the top that stay when pressed
+  are named the Left and Right Switch.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display:
+  + Status.1
+  + RightKeyRear
+* enter/leave command learn mode:
+  + Status.2
+  + RightKeyFront
+* enter/leave preferences menu:
+  + Status.10
+  + LeftKeyFront+BarRight1
+* enter/leave status display:
+  + Status.4
+  + LeftKeyFront+BarLeft1
+* set display mode attributes/text:
+  + Status.7
+  + LeftKeyRear+BarLeft1
+* set display mode attributes: Status.7+BarRight1
+* set display mode text: Status.7+BarLeft1
+* set screen image frozen/unfrozen:
+  + Status.8
+  + LeftKeyFront+BarDown2
+* set screen image frozen: Status.8+BarRight1
+* set screen image unfrozen: Status.8+BarLeft1
+* describe character: BarDown2+RoutingKey1
+* show current date and time: Status.19
+* switch to Advanced Vertical Navigation (left switch rear): press LeftSwitchRear
+* switch to Specialized Navigation (left switch front): press LeftSwitchFront
+* switch to Content-based Navigation (right switch rear): press RightSwitchRear
+* switch to Function Key Emulation (right switch front): press RightSwitchFront
+
+Cursor Functions
+* go to screen cursor: LeftKeyFront
+* go back after cursor tracking:
+  + Status.5
+  + LeftKeyRear
+* bring screen cursor to character: RoutingKey1
+* bring screen cursor to current line:
+  + Status.3
+  + LeftKeyRear+BarDown2
+
+Vertical Navigation
+* go up one line: BarUp1
+* go down one line: BarDown1
+* go to top line: BarUp2
+* go to bottom line: BarDown2
+* go up to nearest line with less indent than character: BarUp1+RoutingKey1
+* go down to nearest line with less indent than character: BarDown1+RoutingKey1
+
+Horizontal Navigation
+* go backward one braille window: BarLeft1
+* go forward one braille window: BarRight1
+* go to beginning of line: BarLeft2
+* go to end of line: BarRight2
+* place left end of braille window at character: BarUp2+RoutingKey1
+
+Clipboard Functions
+* start new clipboard at character:
+  + BarLeft2+RoutingKey1
+  + LeftKeyRear+RoutingKey1
+* append to clipboard from character:
+  + BarLeft1+RoutingKey1
+  + LeftKeyFront+RoutingKey1
+* linear copy to character:
+  + BarRight1+RoutingKey1
+  + RightKeyRear+RoutingKey1
+* rectangular copy to character:
+  + BarRight2+RoutingKey1
+  + RightKeyFront+RoutingKey1
+* insert clipboard text after screen cursor:
+  + Status.20
+  + LeftKeyRear+BarDown1
+
+Configuration Functions
+* set autorepeat on/off:
+  + Status.18
+  + LeftKeyFront+BarDown1
+* set autorepeat on: Status.18+BarRight1
+* set autorepeat off: Status.18+BarLeft1
+* set text style 6-dot/8-dot:
+  + Status.15
+  + LeftKeyRear+BarUp1
+* set text style 6-dot: Status.15+BarRight1
+* set text style 8-dot: Status.15+BarLeft1
+* set skipping of lines with identical content on/off:
+  + Status.14
+  + RightKeyFront+BarLeft1
+* set skipping of lines with identical content on: Status.14+BarRight1
+* set skipping of lines with identical content off: Status.14+BarLeft1
+* set skipping of blank braille windows on/off: RightKeyFront+BarRight1
+* set sliding braille window on/off: RightKeyFront+BarRight2
+* set track screen cursor on/off:
+  + Status.6
+  + LeftKeyRear+BarRight1
+* set track screen cursor on: Status.6+BarRight1
+* set track screen cursor off: Status.6+BarLeft1
+* set screen cursor visibility on/off:
+  + Status.12
+  + LeftKeyRear+BarRight2
+* set screen cursor visibility on: Status.12+BarRight1
+* set screen cursor visibility off: Status.12+BarLeft1
+* set attribute underlining on/off:
+  + Status.13
+  + LeftKeyRear+BarLeft2
+* set attribute underlining on: Status.13+BarRight1
+* set attribute underlining off: Status.13+BarLeft1
+* set capital letter blinking on/off: LeftKeyRear+BarUp2
+* set alert tunes on/off: RightKeyFront+BarDown1
+
+Menu Operations
+* save preferences to disk:
+  + Status.11
+  + LeftKeyFront+BarRight2
+* restore preferences from disk:
+  + Status.9
+  + LeftKeyFront+BarLeft2
+
+Speech Functions
+* stop speaking: RightKeyRear+BarLeft1
+* speak current line: RightKeyRear+BarRight1
+* speak from top of screen through current line: RightKeyRear+BarUp1
+* speak from current line through bottom of screen: RightKeyRear+BarDown1
+* go to current speaking position: RightKeyFront+BarUp1
+* decrease speaking volume: RightKeyRear+BarDown2
+* increase speaking volume: RightKeyRear+BarUp2
+* decrease speaking rate: RightKeyRear+BarLeft2
+* increase speaking rate: RightKeyRear+BarRight2
+* set autospeak on/off:
+  + Status.17
+  + LeftKeyFront+BarUp1
+* set autospeak on: Status.17+BarRight1
+* set autospeak off: Status.17+BarLeft1
+
+Special Functions
+* restart braille driver:
+  + Status.16
+  + LeftKeyFront+BarUp2
+* restart speech driver: RightKeyFront+BarUp2
+
+Menu Bindings
+-------------
+
+Menu Operations
+* go up to previous item: BarUp1
+* go down to next item: BarDown1
+* go up to first item: BarUp2
+* go down to last item: BarDown2
+* select previous choice: BarLeft1
+* select next choice: BarRight1
+* save preferences to disk: BarRight2
+* restore preferences from disk: BarLeft2
+
+Advanced Vertical Navigation (left switch rear)
+-----------------------------------------------
+
+Special Modes
+* switch to Default Bindings: release LeftSwitchRear
+* switch to Unused (left switch rear, right switch rear): press RightSwitchRear
+* switch to Unused (left switch rear, right switch front): press RightSwitchFront
+
+Vertical Navigation
+* go up to nearest line with different content: BarUp1
+* go down to nearest line with different content: BarDown1
+* go up to nearest line with different highlighting: BarUp2
+* go down to nearest line with different highlighting: BarDown2
+* go up to first line of paragraph: BarLeft2
+* go down to first line of next paragraph: BarRight2
+* go up to previous command prompt: BarLeft1
+* go down to next command prompt: BarRight1
+
+Specialized Navigation (left switch front)
+------------------------------------------
+
+Special Modes
+* enter/leave help display: BarUp2
+* enter/leave command learn mode: BarDown2
+* switch to Default Bindings: release LeftSwitchFront
+* switch to Unused (left switch front, right switch rear): press RightSwitchRear
+* switch to Unused (left switch front, right switch front): press RightSwitchFront
+
+Horizontal Navigation
+* go left one character: BarLeft1
+* go right one character: BarRight1
+* go left half a braille window: BarLeft2
+* go right half a braille window: BarRight2
+
+Clipboard Functions
+* search backward for clipboard text: BarUp1
+* search forward for clipboard text: BarDown1
+
+Content-based Navigation (right switch rear)
+--------------------------------------------
+
+Special Modes
+* switch to Unused (left switch rear, right switch rear): press LeftSwitchRear
+* switch to Unused (left switch front, right switch rear): press LeftSwitchFront
+* switch to Default Bindings: release RightSwitchRear
+
+Horizontal Navigation
+* go backward one braille window + route: BarLeft1
+* go forward one braille window + route: BarRight1
+* go to beginning of line + route: BarLeft2
+* go to end of line + route: BarRight2
+
+Keyboard Input
+* cursor-up key: BarUp1
+* cursor-down key: BarDown1
+* page-up key: BarUp2
+* page-down key: BarDown2
+
+Function Key Emulation (right switch front)
+-------------------------------------------
+
+Special Modes
+* switch to Unused (left switch rear, right switch front): press LeftSwitchRear
+* switch to Unused (left switch front, right switch front): press LeftSwitchFront
+* switch to Default Bindings: release RightSwitchFront
+
+Keyboard Input
+* cursor-left key: BarLeft1
+* cursor-right key: BarRight1
+* cursor-up key: BarUp1
+* cursor-down key: BarDown1
+* page-up key: BarUp2
+* page-down key: BarDown2
+* home key: BarLeft2
+* end key: BarRight2
+

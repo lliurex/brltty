@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -38,7 +38,7 @@
 #include "ascii.h"
 #include "message.h"
 
-#define BRL_STATUS_FIELDS sfCursorAndWindowColumn, sfCursorAndWindowRow, sfStateDots
+#define BRL_STATUS_FIELDS sfCursorAndWindowColumn2, sfCursorAndWindowRow2, sfStateDots
 #define BRL_HAVE_STATUS_CELLS
 #include "brl_driver.h"
 
@@ -77,8 +77,8 @@ writeData (BrailleDisplay *brl, const unsigned char *bytes, int count) {
 
 static int
 writeCells  (BrailleDisplay *brl) {
-  static const unsigned char beginSequence[] = {ESC, 'Z', '1'};
-  static const unsigned char endSequence[] = {CR};
+  static const unsigned char beginSequence[] = {ASCII_ESC, 'Z', '1'};
+  static const unsigned char endSequence[] = {ASCII_CR};
 
   unsigned char buffer[sizeof(beginSequence) + sizeof(statusCells) + sizeof(textCells) + sizeof(endSequence)];
   unsigned char *byte = buffer;
@@ -106,7 +106,7 @@ clearCells (unsigned char *cells, size_t count) {
 
 static int
 beep (BrailleDisplay *brl) {
-  static const unsigned char sequence[] = {ESC, 'B', CR};
+  static const unsigned char sequence[] = {ASCII_ESC, 'B', ASCII_CR};
   return writeData(brl, sequence, sizeof(sequence));
 }
 
@@ -349,7 +349,7 @@ brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
       serialCharactersPerSecond = serialBaud / serialGetCharacterBits(serialDevice);
 
       /* hm, how to switch to 38400 ? 
-      static const unsigned char sequence[] = {ESC, 'V', CR};
+      static const unsigned char sequence[] = {ASCII_ESC, 'V', ASCII_CR};
       writeData(brl, sequence, sizeof(sequence));
       serialDiscardInput(serialDevice);
       serialSetBaud(serialDevice, 38400);

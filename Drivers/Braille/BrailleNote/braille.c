@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -290,7 +290,7 @@ writeVisualDisplay (unsigned char c) {
 static int
 doVisualDisplay (BrailleDisplay *brl) {
   int vt = getVirtualTerminal();
-  const unsigned char end[] = {ESC, 0};
+  const unsigned char end[] = {ASCII_ESC, 0};
   unsigned int state = 0;
   openVisualDisplay();
   writeVisualDisplay(BN_RSP_DISPLAY);

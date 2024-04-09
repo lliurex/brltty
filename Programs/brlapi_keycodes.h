@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2002-2021 by
+ * Copyright (C) 2002-2023 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -42,12 +42,18 @@ extern "C" {
  * X11 documentation, a complete list is probably available on your system in
  * /usr/include/X11/keysymdef.h
  *
+ * The second and third part are thus mandatory to tell the type of keycode and
+ * the value of the keycode, and the first part contains optional flags.
+ *
  * The third part is itself split into two parts: a command number and a command
  * value.  The relative sizes of these parts vary according to the key type.
  *
  * For a braille command, bits 28-16 (BRLAPI_KEY_CMD_BLK_MASK) hold the braille
  * command number, while bits 15-0 (BRLAPI_KEY_CMD_ARG_MASK) hold the command
  * value.
+ *
+ * The brlapi_expandKeyCode() function may be used for splitting key codes into
+ * these parts.
  *
  * For a X keysym, if it is a unicode keysym (0x1uvwxyz), then the command
  * number part is 0x1000000 and the value part is 0xuvwxyz. Else, the command
@@ -83,8 +89,21 @@ extern "C" {
  * - (key & BRLAPI_KEY_FLAGS_MASK) == 0, so no modifier key was pressed during
  * the command, and no particular flag applies to the command.
  *
- * The brlapi_expandKeyCode() function may be used for splitting key codes into
- * these parts.
+ * brlapi_ignoreKeyRanges() and brlapi_acceptKeyRanges() manipulate keycode
+ * ranges. They are composed of 2 keycodes: the "first" and the "last"
+ * boundaries. The range expressed by these two keycodes is the set of keycodes
+ * whose lower part (bits 31-0) is between the lower part of the "first" keycode
+ * and the "last" keycode (inclusive), and whose high part (bits 63-32), the
+ * flags, contains at least the flags of the "first" keycode, and at most the
+ * flags of the "last" keycode. Setting the "first" and "last" keycode to the
+ * same value express only one keycode, for instance. Setting the first and last
+ * keycode to the same command code but setting no flags in the "first" keycode
+ * and setting one flag in the "last" keycode expresses only two keycode, with
+ * the same lower part and no flags set except possibly the flag that is set in
+ * the "last" keycode. Setting one flag i in the "first" keycode and setting
+ * the same flag plus another flag j in the "last" keycode expresses that the
+ * keycodes in the range have flag i set and possibly flag j set, but no other
+ * flag.
  * @{
  */
 typedef uint64_t brlapi_keyCode_t;

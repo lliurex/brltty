@@ -1,7 +1,7 @@
 /*
  * libbrlapi - A library providing access to braille terminals for applications.
  *
- * Copyright (C) 2002-2021 by
+ * Copyright (C) 2002-2023 by
  *   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
  *   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
  *
@@ -75,6 +75,7 @@ extern "C" {
 #define BRLAPI_PACKET_EXCEPTION       'E'   /**< Exception                   */
 #define BRLAPI_PACKET_SUSPENDDRIVER   'S'   /**< Suspend driver              */
 #define BRLAPI_PACKET_RESUMEDRIVER    'R'   /**< Resume driver               */
+#define BRLAPI_PACKET_SYNCHRONIZE     'Z'   /**< Synchronize exceptions      */
 #define BRLAPI_PACKET_PARAM_VALUE     (('P'<<8) + 'V') /**< Parameter value  */
 #define BRLAPI_PACKET_PARAM_REQUEST   (('P'<<8) + 'R') /**< Parameter request*/
 #define BRLAPI_PACKET_PARAM_UPDATE    (('P'<<8) + 'U') /**< Parameter update */

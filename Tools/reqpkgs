@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+###############################################################################
+# BRLTTY - A background process providing access to the console screen (when in
+#          text mode) for a blind person using a refreshable braille display.
+#
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
+#
+# BRLTTY comes with ABSOLUTELY NO WARRANTY.
+#
+# This is free software, placed under the terms of the
+# GNU Lesser General Public License, as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any
+# later version. Please see the file LICENSE-LGPL for details.
+#
+# Web Page: http://brltty.app/
+#
+# This software is maintained by Dave Mielke <dave@mielke.cc>.
+###############################################################################
+
+. "$(dirname "${0}")/../brltty-prologue.sh"
+
+processExtraProgramParameters() {
+   requiredPackageNames=( "${@}" )
+}
+
+addProgramOption i flag installNeededPackages "install the needed packages"
+addProgramOption l flag listNeededPackages "list the needed packages"
+optionalProgramParameters
+parseProgramArguments "${@}"
+
+set -e
+. "${programDirectory}/packages.sh"
+
+[ "${#requiredPackageNames[@]}" -gt 0 ] || {
+   loadRequiredPackageNames() {
+      local file="${programDirectory}/${programName}.d/${platformName}"
+      [ -e "${file}" ] || semanticError "platform package list not found: ${file}"
+      [ -f "${file}" ] || semanticError "not a file: ${file}"
+      [ -r "${file}" ] || semanticError "platform package list not readable: ${file}"
+
+      local name
+      while read name
+      do
+         [ -n "${name}" ] || continue
+         [ "${name:0:1}" = "#" ] && continue
+         requiredPackageNames[${#requiredPackageNames[*]}]="${name}"
+      done < <(cat "${file}")
+
+      [ "${#requiredPackageNames[@]}" -gt 0 ] || semanticError "empty package list"
+   }
+
+   case "${packageManager}"
+   in
+      apk)
+         platformName="alpine"
+         ;;
+
+      apt)
+         if [ "$(uname -s)" = "GNU" ]
+         then
+            platformName="hurd"
+         else
+            platformName="debian"
+         fi
+         ;;
+
+      brew)
+         platformName="darwin"
+         ;;
+
+      dnf)
+         platformName="fedora"
+         ;;
+
+      pacman)
+         platformName="arch"
+         ;;
+
+      pkg)
+         platformName="freebsd"
+         ;;
+
+      pkg_info)
+         platformName="openbsd"
+         ;;
+
+      xbps)
+         platformName="void"
+         ;;
+
+      zypper)
+         platformName="opensuse"
+         ;;
+
+      *) semanticError "unknown host platform: ${packageManager}";;
+   esac
+
+   logNote "platform name: ${platformName}"
+   loadRequiredPackageNames
+}
+
+listRequiredPackages() {
+   local name
+
+   for name in "${requiredPackageNames[@]}"
+   do
+      echo "${name}"
+   done
+}
+
+neededPackages=(
+   $(
+      diff <(listInstalledPackages | normalizePackageList) \
+           <(listRequiredPackages | normalizePackageList) |
+      sed -n -e '
+         /^--- /b
+         /^+++ /b
+         s/^+/> /
+	 s/^> //p
+      '
+   )
+)
+
+if [ "${#neededPackages[@]}" -gt 0 ]
+then
+   logMessage task "packages needed: ${#neededPackages[@]}"
+
+   "${listNeededPackages}" && {
+      for package in "${neededPackages[@]}"
+      do
+         echo "${package}"
+      done
+   }
+
+   "${installNeededPackages}" && {
+      installPackages "${neededPackages[@]}"
+   }
+else
+   logMessage task "no needed packages"
+fi
+
+exit 0

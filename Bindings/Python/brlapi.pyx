@@ -101,7 +101,7 @@ except brlapi.ConnectionError as e:
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2005-2021 by
+# Copyright (C) 2005-2023 by
 #   Alexis Robert <alexissoft@free.fr>
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #
@@ -237,6 +237,8 @@ class OperationError(Exception):
 
 	def __str__(self):
 		cdef c_brlapi.brlapi_error_t error
+		cdef c_brlapi.size_t size
+		cdef char *buf
 		if self.exception:
 			return self.exception
 		error.brlerrno = self.brlerrno
@@ -244,7 +246,12 @@ class OperationError(Exception):
 		error.gaierrno = self.gaierrno
 		str = self.errfun
 		error.errfun = str
-		return c_brlapi.brlapi_strerror(&error)
+		size = c_brlapi.brlapi_strerror_r(&error, NULL, 0)
+		buf = <char*>c_brlapi.malloc(size+1)
+		c_brlapi.brlapi_strerror_r(&error, buf, size+1)
+		ret = buf.decode("ASCII", errors="replace")
+		c_brlapi.free(buf)
+		return ret
 
 class ConnectionError(OperationError):
 	"""Error while connecting to BrlTTY"""
@@ -314,17 +321,19 @@ cdef class WriteStruct:
 		def __set__(self, val):
 			cdef c_brlapi.size_t size
 			cdef char *c_val
+			cdef char *text
 			if (type(val) == unicode):
 				val = val.encode('UTF-8')
 				self.charset = 'UTF-8'.encode("ASCII")
 			if (self.props.text):
-				c_brlapi.free(self.props.text)
+				c_brlapi.free(<char*>self.props.text)
 			if (val):
 				size = len(val)
 				c_val = val
-				self.props.text = <char*>c_brlapi.malloc(size+1)
-				c_brlapi.memcpy(<void*>self.props.text,<void*>c_val,size)
-				self.props.text[size] = 0
+				text = <char*>c_brlapi.malloc(size+1)
+				c_brlapi.memcpy(<void*>text,<void*>c_val,size)
+				text[size] = 0
+				self.props.text = text
 				self.props.textSize = size
 			else:
 				self.props.text = NULL
@@ -346,16 +355,18 @@ cdef class WriteStruct:
 		def __set__(self, val):
 			cdef c_brlapi.size_t size
 			cdef char *c_val
+			cdef char *charset
 			if (self.props.charset):
-				c_brlapi.free(self.props.charset)
+				c_brlapi.free(<char*>self.props.charset)
 			if (val):
 				if (type(val) == unicode):
 					val = val.encode('ASCII')
 				size = len(val)
 				c_val = val
-				self.props.charset = <char*>c_brlapi.malloc(size+1)
-				c_brlapi.memcpy(<void*>self.props.charset,<void*>c_val,size)
-				self.props.charset[size] = 0
+				charset = <char*>c_brlapi.malloc(size+1)
+				c_brlapi.memcpy(<void*>charset,<void*>c_val,size)
+				charset[size] = 0
+				self.props.charset = charset
 			else:
 				self.props.charset = NULL
 
@@ -372,7 +383,7 @@ cdef class WriteStruct:
 			cdef c_brlapi.size_t size
 			cdef char *c_val
 			if (self.props.andMask):
-				c_brlapi.free(self.props.andMask)
+				c_brlapi.free(<char*>self.props.andMask)
 			if (val):
 				if (type(val) == unicode):
 					val = val.encode('latin1')
@@ -396,7 +407,7 @@ cdef class WriteStruct:
 			cdef c_brlapi.size_t size
 			cdef char *c_val
 			if (self.props.orMask):
-				c_brlapi.free(self.props.orMask)
+				c_brlapi.free(<char*>self.props.orMask)
 			if (val):
 				if (type(val) == unicode):
 					val = val.encode('latin1')
@@ -747,7 +758,7 @@ cdef class Connection:
 		cdef int retval
 		cdef c_brlapi.brlapi_rangeType_t c_type
 		cdef c_brlapi.brlapi_keyCode_t *c_set
-		cdef unsigned int c_n
+		cdef long c_n
 		c_type = key_type
 		c_n = len(set)
 		c_set = <c_brlapi.brlapi_keyCode_t*>c_brlapi.malloc(c_n * sizeof(c_brlapi.brlapi_keyCode_t))
@@ -771,7 +782,7 @@ cdef class Connection:
 		cdef int retval
 		cdef c_brlapi.brlapi_rangeType_t c_type
 		cdef c_brlapi.brlapi_keyCode_t *c_set
-		cdef unsigned int c_n
+		cdef long c_n
 		c_type = key_type
 		c_n = len(set)
 		c_set = <c_brlapi.brlapi_keyCode_t*>c_brlapi.malloc(c_n * sizeof(c_brlapi.brlapi_keyCode_t))
@@ -822,7 +833,7 @@ cdef class Connection:
 		The given codes should be raw keycodes (i.e. some driver name was given to brlapi_enterTtyMode()) """
 		cdef int retval
 		cdef c_brlapi.brlapi_range_t *c_keys
-		cdef unsigned int c_n
+		cdef long c_n
 		c_n = len(keys)
 		c_keys = <c_brlapi.brlapi_range_t*>c_brlapi.malloc(c_n * sizeof(c_brlapi.brlapi_range_t))
 		for i from 0 <= i < c_n:
@@ -845,7 +856,7 @@ cdef class Connection:
 		The given codes should be raw keycodes (i.e. some driver name was given to brlapi_enterTtyMode()) """
 		cdef int retval
 		cdef c_brlapi.brlapi_range_t *c_keys
-		cdef unsigned int c_n
+		cdef long c_n
 		c_n = len(keys)
 		c_keys = <c_brlapi.brlapi_range_t*>c_brlapi.malloc(c_n * sizeof(c_brlapi.brlapi_range_t))
 		for i from 0 <= i < c_n:
@@ -1079,3 +1090,20 @@ cdef class Connection:
 
 		descr = entry
 		c_brlapi.brlapi_python_unwatchParameter(self.h, <c_brlapi.brlapi_python_paramCallbackDescriptor_t *>descr)
+
+	def pause(self, timeout_ms):
+		"""Wait until an event is received from the BrlAPI server.
+		See brlapi_pause(3).
+		"""
+		c_brlapi.brlapi__pause(self.h, timeout_ms)
+
+	def sync(self):
+		"""Synchronize against any pending exception, and raise it.
+		See brlapi_sync(3).
+		"""
+		cdef int retval
+
+		with nogil:
+			retval = c_brlapi.brlapi__sync(self.h)
+		if retval == -1:
+			raise OperationError()

@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -19,6 +19,12 @@
 
 set -e
 . "`dirname "${0}"`/brltty-prologue.sh"
+
+showProgramUsagePurpose() {
+cat <<END_OF_PROGRAM_USAGE_PURPOSE
+Simplify the job of assigning capabilities to the BRLTTY executable.
+END_OF_PROGRAM_USAGE_PURPOSE
+}
 
 executeCommand() {
    "${useSudo}" && set -- sudo -- "${@}"
@@ -81,7 +87,7 @@ addProgramOption U flag rootUser "set user root execution"
 addProgramParameter executable executablePath "the path to the executable"
 parseProgramArguments "${@}"
 
-verifyExecutable "${executablePath}"
+verifyExecutableFile "${executablePath}"
 
 "${testMode}" || {
    if "${useSudo}"

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,12 +31,14 @@
 #include "log.h"
 #include "strfmt.h"
 #include "parameters.h"
+#include "bitfield.h"
 #include "bitmask.h"
 #include "parse.h"
 #include "file.h"
 #include "utf8.h"
 #include "device.h"
 #include "timing.h"
+#include "async_handle.h"
 #include "async_wait.h"
 #include "async_alarm.h"
 #include "io_misc.h"
@@ -582,9 +584,15 @@ usbEndpointDescriptor (
   unsigned char endpointAddress
 ) {
   const UsbDescriptor *descriptor = NULL;
+  device->scratch.endpointInterfaceDescriptor = NULL;
 
   while (usbNextDescriptor(device, &descriptor)) {
-    if (descriptor->endpoint.bDescriptorType == UsbDescriptorType_Endpoint) {
+    if (descriptor->header.bDescriptorType == UsbDescriptorType_Interface) {
+      device->scratch.endpointInterfaceDescriptor = &descriptor->interface;
+      continue;
+    }
+
+    if (descriptor->header.bDescriptorType == UsbDescriptorType_Endpoint) {
       if (descriptor->endpoint.bEndpointAddress == endpointAddress) {
         return &descriptor->endpoint;
       }
@@ -662,6 +670,9 @@ usbMakeInputPipe (UsbEndpoint *endpoint) {
 
   if (createAnonymousPipe(&endpoint->direction.input.pipe.input,
                           &endpoint->direction.input.pipe.output)) {
+    setCloseOnExec(endpoint->direction.input.pipe.input, 1);
+    setCloseOnExec(endpoint->direction.input.pipe.output, 1);
+
     if (setBlockingIo(endpoint->direction.input.pipe.output, 0)) {
       return 1;
     }
@@ -747,12 +758,11 @@ usbTestEndpoint (const void *item, void *data) {
 
 UsbEndpoint *
 usbGetEndpoint (UsbDevice *device, unsigned char endpointAddress) {
-  UsbEndpoint *endpoint;
-  const UsbEndpointDescriptor *descriptor;
+  UsbEndpoint *endpoint = findItem(device->endpoints, usbTestEndpoint, &endpointAddress);
+  if (endpoint) return endpoint;
+  const UsbEndpointDescriptor *descriptor = usbEndpointDescriptor(device, endpointAddress);
 
-  if ((endpoint = findItem(device->endpoints, usbTestEndpoint, &endpointAddress))) return endpoint;
-
-  if ((descriptor = usbEndpointDescriptor(device, endpointAddress))) {
+  if (descriptor) {
     {
       const char *direction;
       const char *transfer;
@@ -771,15 +781,20 @@ usbGetEndpoint (UsbDevice *device, unsigned char endpointAddress) {
         case UsbEndpointTransfer_Interrupt:   transfer = "int"; break;
       }
 
-      logMessage(LOG_CATEGORY(USB_IO), "ept=%02X dir=%s xfr=%s pkt=%d ivl=%dms",
-                 descriptor->bEndpointAddress, direction, transfer,
-                 getLittleEndian16(descriptor->wMaxPacketSize),
-                 descriptor->bInterval);
+      logMessage(LOG_CATEGORY(USB_IO),
+        "ept=%02X dir=%s xfr=%s pkt=%d ivl=%dms",
+        descriptor->bEndpointAddress,
+        direction, transfer,
+        getLittleEndian16(descriptor->wMaxPacketSize),
+        descriptor->bInterval
+      );
     }
 
     if ((endpoint = malloc(sizeof(*endpoint)))) {
       memset(endpoint, 0, sizeof(*endpoint));
+
       endpoint->device = device;
+      endpoint->interface = device->scratch.endpointInterfaceDescriptor;
       endpoint->descriptor = descriptor;
       endpoint->extension = NULL;
       endpoint->prepare = NULL;
@@ -944,13 +959,17 @@ usbOpenInterface (
   if (!descriptor) return 0;
   if (descriptor == device->interface) return 1;
 
-  if (device->interface)
-    if (device->interface->bInterfaceNumber != interface)
+  if (device->interface) {
+    if (device->interface->bInterfaceNumber != interface) {
       usbCloseInterface(device);
+    }
+  }
 
-  if (!device->interface)
-    if (!usbClaimInterface(device, interface))
+  if (!device->interface) {
+    if (!usbClaimInterface(device, interface)) {
       return 0;
+    }
+  }
 
   if (usbAlternativeCount(device, interface) == 1) goto done;
 
@@ -1008,6 +1027,7 @@ usbCloseDevice (UsbDevice *device) {
 static UsbDevice *
 usbOpenDevice (UsbDeviceExtension *extension) {
   UsbDevice *device;
+
   if ((device = malloc(sizeof(*device)))) {
     memset(device, 0, sizeof(*device));
     device->extension = extension;
@@ -1043,9 +1063,11 @@ usbTestDevice (UsbDeviceExtension *extension, UsbDeviceChooser *chooser, UsbChoo
   UsbDevice *device;
 
   if ((device = usbOpenDevice(extension))) {
-    logMessage(LOG_CATEGORY(USB_IO), "testing device: vendor=%04X product=%04X",
-               getLittleEndian16(device->descriptor.idVendor),
-               getLittleEndian16(device->descriptor.idProduct));
+    logMessage(LOG_CATEGORY(USB_IO),
+      "testing device: vendor=%04X product=%04X",
+      getLittleEndian16(device->descriptor.idVendor),
+      getLittleEndian16(device->descriptor.idProduct)
+    );
 
     if (chooser(device, data)) {
       usbLogString(device, device->descriptor.iManufacturer, "Manufacturer Name");
@@ -1502,14 +1524,19 @@ struct UsbChooseChannelDataStruct {
 static int
 usbChooseChannel (UsbDevice *device, UsbChooseChannelData *data) {
   const UsbDeviceDescriptor *descriptor = &device->descriptor;
+  logBytes(LOG_CATEGORY(USB_IO), "device descriptor", descriptor, sizeof(*descriptor));
 
   if (!(descriptor->iManufacturer || descriptor->iProduct || descriptor->iSerialNumber)) {
     UsbDeviceDescriptor actualDescriptor;
     ssize_t result = usbGetDeviceDescriptor(device, &actualDescriptor);
 
     if (result == UsbDescriptorSize_Device) {
-      logMessage(LOG_CATEGORY(USB_IO), "using actual device descriptor");
       device->descriptor = actualDescriptor;
+
+      logBytes(LOG_CATEGORY(USB_IO),
+        "using actual device descriptor",
+        descriptor, sizeof(*descriptor)
+      );
     }
   }
 
@@ -1571,13 +1598,13 @@ usbNewChannel (UsbChooseChannelData *data) {
 }
 
 typedef enum {
-  USB_CHAN_SERIAL_NUMBER,
-  USB_CHAN_VENDOR_IDENTIFIER,
-  USB_CHAN_PRODUCT_IDENTIFIER,
-  USB_CHAN_GENERIC_DEVICES
-} UsbChannelParameter;
+  USB_PARM_SERIAL_NUMBER,
+  USB_PARM_VENDOR_IDENTIFIER,
+  USB_PARM_PRODUCT_IDENTIFIER,
+  USB_PARM_GENERIC_DEVICES
+} UsbDeviceParameter;
 
-static const char *const usbChannelParameters[] = {
+static const char *const usbDeviceParameterNames[] = {
   "serialNumber",
   "vendorIdentifier",
   "productIdentifier",
@@ -1586,29 +1613,29 @@ static const char *const usbChannelParameters[] = {
 };
 
 static char **
-usbGetChannelParameters (const char *identifier) {
+usbGetDeviceParameters (const char *identifier) {
   if (!identifier) identifier = "";
-  return getDeviceParameters(usbChannelParameters, identifier);
+  return getDeviceParameters(usbDeviceParameterNames, identifier);
 }
 
 UsbChannel *
 usbOpenChannel (const UsbChannelDefinition *definitions, const char *identifier) {
   UsbChannel *channel = NULL;
-  char **parameters = usbGetChannelParameters(identifier);
+  char **parameters = usbGetDeviceParameters(identifier);
 
   if (parameters) {
     int ok = 1;
 
     UsbChooseChannelData choose = {
       .definition = definitions,
-      .serialNumber = parameters[USB_CHAN_SERIAL_NUMBER]
+      .serialNumber = parameters[USB_PARM_SERIAL_NUMBER]
     };
 
-    if (!usbParseVendorIdentifier(&choose.vendorIdentifier, parameters[USB_CHAN_VENDOR_IDENTIFIER])) ok = 0;
-    if (!usbParseProductIdentifier(&choose.productIdentifier, parameters[USB_CHAN_PRODUCT_IDENTIFIER])) ok = 0;
+    if (!usbParseVendorIdentifier(&choose.vendorIdentifier, parameters[USB_PARM_VENDOR_IDENTIFIER])) ok = 0;
+    if (!usbParseProductIdentifier(&choose.productIdentifier, parameters[USB_PARM_PRODUCT_IDENTIFIER])) ok = 0;
 
     {
-      const char *parameter = parameters[USB_CHAN_GENERIC_DEVICES];
+      const char *parameter = parameters[USB_PARM_GENERIC_DEVICES];
 
       if (!(parameter && *parameter)) {
         choose.genericDevices = 1;
@@ -1668,7 +1695,7 @@ usbMakeChannelIdentifier (UsbChannel *channel, char *buffer, size_t size) {
     if (vendorIdentifier) {
       STR_PRINTF(
         "%s%c0X%04X%c",
-        usbChannelParameters[USB_CHAN_VENDOR_IDENTIFIER],
+        usbDeviceParameterNames[USB_PARM_VENDOR_IDENTIFIER],
         PARAMETER_ASSIGNMENT_CHARACTER,
         vendorIdentifier,
         DEVICE_PARAMETER_SEPARATOR
@@ -1682,7 +1709,7 @@ usbMakeChannelIdentifier (UsbChannel *channel, char *buffer, size_t size) {
     if (productIdentifier) {
       STR_PRINTF(
         "%s%c0X%04X%c",
-        usbChannelParameters[USB_CHAN_PRODUCT_IDENTIFIER],
+        usbDeviceParameterNames[USB_PARM_PRODUCT_IDENTIFIER],
         PARAMETER_ASSIGNMENT_CHARACTER,
         productIdentifier,
         DEVICE_PARAMETER_SEPARATOR
@@ -1697,7 +1724,7 @@ usbMakeChannelIdentifier (UsbChannel *channel, char *buffer, size_t size) {
       if (!strchr(serialNumber, DEVICE_PARAMETER_SEPARATOR)) {
         STR_PRINTF(
           "%s%c%s%c",
-          usbChannelParameters[USB_CHAN_SERIAL_NUMBER],
+          usbDeviceParameterNames[USB_PARM_SERIAL_NUMBER],
           PARAMETER_ASSIGNMENT_CHARACTER,
           serialNumber,
           DEVICE_PARAMETER_SEPARATOR

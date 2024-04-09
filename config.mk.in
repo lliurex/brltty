@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -89,8 +89,8 @@ INSTALL_ROOT = @install_root@
 EXECUTE_ROOT = @execute_root@
 
 PROGRAM_DIRECTORY = @program_directory@
+COMMANDS_DIRECTORY = @commands_directory@
 DRIVERS_DIRECTORY = @drivers_directory@
-SCRIPTS_DIRECTORY = @scripts_directory@
 UPDATABLE_DIRECTORY = @updatable_directory@
 WRITABLE_DIRECTORY = @writable_directory@
 TABLES_DIRECTORY = @tables_directory@
@@ -104,7 +104,7 @@ POLKIT_RULE_DIR = @POLKIT_RULE_DIR@
 SYSTEMD_SYSUSERS_DIR = @SYSTEMD_SYSUSERS_DIR@
 SYSTEMD_TMPFILES_DIR = @SYSTEMD_TMPFILES_DIR@
 SYSTEMD_UNIT_DIR = @SYSTEMD_UNIT_DIR@
-UDEV_DIR = @UDEV_DIR@
+SYSTEMD_CONF_DIR = @SYSTEMD_CONF_DIR@
 
 EXPAT_INCLUDES = @expat_includes@
 EXPAT_LIBS = @expat_libs@
@@ -270,27 +270,35 @@ FM_LIBS = @fm_libs@
 
 SERIAL_PACKAGE = @serial_package@
 SERIAL_OBJECT = serial_$(SERIAL_PACKAGE)
-SERIAL_OBJECTS = gio_serial.$O serial.$O $(SERIAL_OBJECT).$O
+SERIAL_OBJECTS = serial.$O $(SERIAL_OBJECT).$O
 SERIAL_INCLUDES = @serial_includes@
 SERIAL_LIBS = @serial_libs@
 
 USB_PACKAGE = @usb_package@
 USB_OBJECT = usb_$(USB_PACKAGE)
-USB_OBJECTS = gio_usb.$O usb.$O usb_hid.$O usb_devices.$O usb_serial.$O usb_adapters.$O usb_cdc_acm.$O usb_belkin.$O usb_cp2101.$O usb_cp2110.$O usb_ftdi.$O $(USB_OBJECT).$O
+USB_OBJECTS = usb.$O usb_hid.$O usb_devices.$O usb_serial.$O usb_adapters.$O usb_cdc_acm.$O usb_belkin.$O usb_ch341.$O usb_cp2101.$O usb_cp2110.$O usb_ftdi.$O $(USB_OBJECT).$O
 USB_INCLUDES = @usb_includes@
 USB_LIBS = @usb_libs@
 
 BLUETOOTH_PACKAGE = @bluetooth_package@
 BLUETOOTH_OBJECT = bluetooth_$(BLUETOOTH_PACKAGE)
-BLUETOOTH_OBJECTS = gio_bluetooth.$O bluetooth.$O bluetooth_names.$O $(BLUETOOTH_OBJECT).$O
+BLUETOOTH_OBJECTS = bluetooth.$O bluetooth_names.$O $(BLUETOOTH_OBJECT).$O
 BLUETOOTH_INCLUDES = @bluetooth_includes@
 BLUETOOTH_LIBS = @bluetooth_libs@
+
+HID_PACKAGE = @hid_package@
+HID_OBJECT = hid_$(HID_PACKAGE)
+HID_OBJECTS = hid.$O hid_items.$O hid_braille.$O $(HID_OBJECT).$O
+HID_INCLUDES = @hid_includes@
+HID_LIBS = @hid_libs@
 
 PORTS_PACKAGE = @ports_package@
 PORTS_OBJECT = ports_$(PORTS_PACKAGE)
 PORTS_OBJECTS = $(PORTS_OBJECT).$O
 PORTS_INCLUDES = @ports_includes@
 PORTS_LIBS = @ports_libs@
+
+FUZZER_LIBS = @fuzzer_libs@
 
 CC = @CC@
 CPPFLAGS = -I$(BLD_DIR) -I$(SRC_DIR) -I$(BLD_TOP:/=)/$(PGM_DIR) -I$(SRC_TOP:/=)/$(PGM_DIR) -I$(SRC_TOP:/=)/$(HDR_DIR) -I$(BLD_TOP:/=) -I$(SRC_TOP:/=) @CPPFLAGS@ @DEFS@
@@ -303,7 +311,7 @@ LIBCXXFLAGS = $(CXXFLAGS) @LIBCXXFLAGS@
 
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LDLIBS = $(ICU_LIBS) $(SYSTEM_LIBS) @LIBS@
+LDLIBS = $(ICU_LIBS) $(SYSTEM_LIBS) $(FUZZER_LIBS) @LIBS@
 
 MKSHR = @MKSHR@
 MKREL = @MKREL@
@@ -339,19 +347,19 @@ CONFLIBDIR = @CONFLIBDIR@
 LIB_VAR = @libsearch_variable@
 
 TEXT_TABLES_SUBDIRECTORY = @TEXT_TABLES_SUBDIRECTORY@
-ATTRIBUTES_TABLES_SUBDIRECTORY = @ATTRIBUTES_TABLES_SUBDIRECTORY@
 CONTRACTION_TABLES_SUBDIRECTORY = @CONTRACTION_TABLES_SUBDIRECTORY@
+ATTRIBUTES_TABLES_SUBDIRECTORY = @ATTRIBUTES_TABLES_SUBDIRECTORY@
 KEYBOARD_TABLES_SUBDIRECTORY = @KEYBOARD_TABLES_SUBDIRECTORY@
 INPUT_TABLES_SUBDIRECTORY = @INPUT_TABLES_SUBDIRECTORY@
 
 TEXT_TABLE_EXTENSION = @TEXT_TABLE_EXTENSION@
 TEXT_SUBTABLE_EXTENSION = @TEXT_SUBTABLE_EXTENSION@
 
-ATTRIBUTES_TABLE_EXTENSION = @ATTRIBUTES_TABLE_EXTENSION@
-ATTRIBUTES_SUBTABLE_EXTENSION = @ATTRIBUTES_SUBTABLE_EXTENSION@
-
 CONTRACTION_TABLE_EXTENSION = @CONTRACTION_TABLE_EXTENSION@
 CONTRACTION_SUBTABLE_EXTENSION = @CONTRACTION_SUBTABLE_EXTENSION@
+
+ATTRIBUTES_TABLE_EXTENSION = @ATTRIBUTES_TABLE_EXTENSION@
+ATTRIBUTES_SUBTABLE_EXTENSION = @ATTRIBUTES_SUBTABLE_EXTENSION@
 
 KEY_TABLE_EXTENSION = @KEY_TABLE_EXTENSION@
 KEY_SUBTABLE_EXTENSION = @KEY_SUBTABLE_EXTENSION@
@@ -404,20 +412,18 @@ SWIFT_ROOT = @swift_root@
 THETA_ROOT = @theta_root@
 
 INSTALL_TEXT_TABLES = @install_text_tables@
-INSTALL_ATTRIBUTES_TABLES = @install_attributes_tables@
 INSTALL_CONTRACTION_TABLES = @install_contraction_tables@
+INSTALL_ATTRIBUTES_TABLES = @install_attributes_tables@
 INSTALL_DRIVERS = @install_drivers@
 INSTALL_MESSAGES = @install_messages@
 
 TEXT_TABLE = @text_table@
+CONTRACTION_TABLE = @contraction_table@
 ATTRIBUTES_TABLE = @attributes_table@
 
+CTB_OBJECTS = @contracted_braille_objects@
 SPEECH_OBJECT = @speech_support_object@
 XSEL_OBJECT = @xsel_object@
-
-CTB_OBJECTS = @contracted_braille_objects@
-ALL_BRLTTY_CTB = @all_brltty_ctb@
-INSTALL_BRLTTY_CTB = @install_brltty_ctb@
 
 API_VERSION = @api_version@
 API_RELEASE = @api_release@
@@ -440,11 +446,15 @@ INSTALL_API_BINDINGS = @install_api_bindings@
 ALL_XBRLAPI = @all_xbrlapi@
 INSTALL_XBRLAPI = @install_xbrlapi@
 
+ALL_BRLTTY_PTY = @all_brltty_pty@
+INSTALL_BRLTTY_PTY = @install_brltty_pty@
+
 MOUNT_OBJECTS = $(MNTPT_OBJECTS) $(MNTFS_OBJECTS)
-IO_OBJECTS = io_misc.$O gio.$O gio_null.$O $(SERIAL_OBJECTS) $(USB_OBJECTS) $(BLUETOOTH_OBJECTS) $(MOUNT_OBJECTS)
+GIO_OBJECTS = gio.$O gio_serial.$O gio_usb.$O gio_bluetooth.$O gio_hid.$O gio_null.$O
+IO_OBJECTS = io_log.$O $(SERIAL_OBJECTS) $(USB_OBJECTS) $(BLUETOOTH_OBJECTS) $(HID_OBJECTS) $(GIO_OBJECTS) $(MOUNT_OBJECTS)
 TUNE_OBJECTS = tune.$O notes.$O $(BEEP_OBJECTS) $(PCM_OBJECTS) $(MIDI_OBJECTS) $(FM_OBJECTS)
 ASYNC_OBJECTS = async_handle.$O async_data.$O async_wait.$O async_alarm.$O async_task.$O async_io.$O async_event.$O async_signal.$O thread.$O
-BASE_OBJECTS = messages.$O log.$O log_history.$O addresses.$O file.$O device.$O parse.$O variables.$O datafile.$O unicode.$O utf8.$O timing.$O $(ASYNC_OBJECTS) queue.$O lock.$O $(DYNLD_OBJECTS) $(PORTS_OBJECTS) $(SYSTEM_OBJECTS)
-OPTIONS_OBJECTS = options.$O $(PARAMS_OBJECTS)
-PROGRAM_OBJECTS = program.$O $(PGMPATH_OBJECTS) pid.$O $(OPTIONS_OBJECTS) $(BASE_OBJECTS)
+BASE_OBJECTS = messages.$O log.$O log_history.$O addresses.$O file.$O device.$O parse.$O variables.$O datafile.$O unicode.$O utf8.$O timing.$O $(ASYNC_OBJECTS) io_misc.$O queue.$O lock.$O $(DYNLD_OBJECTS) $(PORTS_OBJECTS) $(SYSTEM_OBJECTS)
+CMDLINE_OBJECTS = cmdline.$O $(PARAMS_OBJECTS)
+PROGRAM_OBJECTS = program.$O $(PGMPATH_OBJECTS) pid.$O $(CMDLINE_OBJECTS) $(BASE_OBJECTS)
 

@@ -1,0 +1,94 @@
+Key Table: MDV (with function keys and status cells)
+====================================================
+
+Notes
+* RoutingKey refers to any of the keys immediately behind the text cells.
+* The long key in the center of the front surface is named Shift.
+  The two round keys to its left, from left to right, are named: Left, Up.
+  The two round keys to its right, from left to right, are named: Down, Right.
+* There are five square keys at each end of the front surface.
+  The ones at the left, from left to right, are named: F5, F4, F3, F2, F1.
+  The ones at the right, from left to right, are named: F6, F7, F8, F9, F10.
+* StatusKey refers to any of the keys immediately behind the status cells.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: F9
+* enter/leave command learn mode: Shift+F9
+* enter/leave preferences menu: F10
+* enter/leave status display: Shift+F2
+* set display mode attributes/text: Shift+F6
+* set screen image frozen/unfrozen: Shift+F1
+* show current date and time: Long+F9
+* set hidden screen cursor on: press StatusKey.1
+* set hidden screen cursor off: release StatusKey.1
+
+Cursor Functions
+* go to screen cursor: F4
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: Up
+* go down one line: Down
+* go to top line: Long+Up
+* go to bottom line: Long+Down
+* go to beginning of top line: F1
+* go to beginning of bottom line: F2
+* go up to first line of paragraph: Shift+Long+Left
+* go down to first line of next paragraph: Shift+Long+Right
+* go up to previous command prompt: Shift+Long+Up
+* go down to next command prompt: Shift+Long+Down
+
+Horizontal Navigation
+* go backward one braille window: Left
+* go forward one braille window: Right
+* go to beginning of line: Long+Left
+* go to end of line: Long+Right
+* go left one character: F3
+* go right one character: F8
+* go left half a braille window: Shift+F3
+* go right half a braille window: Shift+F8
+
+Clipboard Functions
+* start new clipboard at character: RoutingKey+Left
+* linear copy to character: RoutingKey+Right
+* rectangular copy to character: RoutingKey+Down
+* copy characters to clipboard: RoutingKey+RoutingKey
+* append characters to clipboard: RoutingKey+Up
+* insert clipboard text after screen cursor:
+  + Shift+F10
+  + RoutingKey.2+RoutingKey.3
+
+Configuration Functions
+* set skipping of lines with identical content on/off: F6
+* set skipping of blank braille windows on/off: F7
+* set track screen cursor on/off: F5
+* set screen cursor style block/underline: Shift+F4
+* set screen cursor visibility on/off: Shift+F5
+* set screen cursor blinking on/off: Long+F4
+* set attribute underlining on/off: Shift+Long+F6
+* set attribute blinking on/off: Long+F6
+* set capital letter blinking on/off: Long+F5
+
+Menu Operations
+* save preferences to disk: Shift+Long+F10
+* restore preferences from disk: Long+F10
+
+Keyboard Input
+* cursor-left key: Shift+Left
+* cursor-right key: Shift+Right
+* cursor-up key: Shift+Up
+* cursor-down key: Shift+Down
+
+Menu Bindings
+-------------
+
+Menu Operations
+* go up to previous item: Up
+* go down to next item: Down
+* select previous choice: Shift+F9
+* select next choice: F9
+* go to previous menu level: Shift+F10
+

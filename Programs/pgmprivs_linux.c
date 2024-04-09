@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -1968,7 +1968,9 @@ setProcessOwnership (uid_t uid, gid_t gid) {
           logSystemError("setresuid");
         }
 
-        setresgid(oldRgid, oldEgid, oldSgid);
+        if (setresgid(oldRgid, oldEgid, oldSgid) == -1) {
+          logSystemError("setresgid");
+        }
       } else {
         logSystemError("setresgid");
       }
@@ -2215,13 +2217,15 @@ typedef enum {
   PARM_USER,
 } Parameters;
 
-const char *const *
-getPrivilegeParameterNames (void) {
-  static const char *const names[] = NULL_TERMINATED_STRING_ARRAY(
+
+static const char *const *const privilegeParameterNames =
+  NULL_TERMINATED_STRING_ARRAY(
     "path", "scfmode", "shell", "user"
   );
 
-  return names;
+const char *const *
+getPrivilegeParameterNames (void) {
+  return privilegeParameterNames;
 }
 
 const char *

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -44,6 +44,11 @@ makeNullResourceIdentifier (GioHandle *handle, char *buffer, size_t size) {
   return buffer;
 }
 
+static ssize_t
+writeNullData (GioHandle *handle, const void *data, size_t size, int timeout) {
+  return size;
+}
+
 static int
 awaitNullInput (GioHandle *handle, int timeout) {
   return 1;
@@ -62,14 +67,14 @@ monitorNullInput (GioHandle *handle, AsyncMonitorCallback *callback, void *data)
   return 1;
 }
 
-static const GioMethods gioNullMethods = {
+static const GioHandleMethods gioNullMethods = {
   .disconnectResource = disconnectNullResource,
 
   .makeResourceIdentifier = makeNullResourceIdentifier,
 
+  .writeData = writeNullData,
   .awaitInput = awaitNullInput,
   .readData = readNullData,
-
   .monitorInput = monitorNullInput
 };
 
@@ -97,7 +102,7 @@ getNullOptions (const GioDescriptor *descriptor) {
   return &descriptor->null.options;
 }
 
-static const GioMethods *
+static const GioHandleMethods *
 getNullMethods (void) {
   return &gioNullMethods;
 }
@@ -124,7 +129,7 @@ static const GioPrivateProperties gioPrivateProperties_null = {
   .isSupported = isNullSupported,
 
   .getOptions = getNullOptions,
-  .getMethods = getNullMethods,
+  .getHandleMethods = getNullMethods,
 
   .connectResource = connectNullResource
 };

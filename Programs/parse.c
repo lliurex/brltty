@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -69,8 +69,10 @@ changeStringSetting (char **setting, const char *value) {
 
 int
 extendStringSetting (char **setting, const char *value, int prepend) {
-  if (value && *value) {
-    if (*setting) {
+  if (!value) value = "";
+
+  if (*setting && **setting) {
+    if (*value) {
       size_t newSize = strlen(*setting) + 1 + strlen(value) + 1;
       char newSetting[newSize];
 
@@ -81,9 +83,9 @@ extendStringSetting (char **setting, const char *value, int prepend) {
       }
 
       if (!changeStringSetting(setting, newSetting)) return 0;
-    } else if (!changeStringSetting(setting, value)) {
-      return 0;
     }
+  } else if (!changeStringSetting(setting, value)) {
+    return 0;
   }
 
   return 1;
@@ -386,6 +388,66 @@ validateFloat (float *value, const char *string, const float *minimum, const flo
 }
 #endif /* NO_FLOAT */
 
+#if defined(HAVE_PWD_H) && defined(HAVE_GRP_H)
+#include <pwd.h>
+#include <grp.h>
+
+int
+validateUser (uid_t *value, const char *string, gid_t *group) {
+  {
+    int integer = geteuid();
+    static const int minimum = 0;
+
+    if (validateInteger(&integer, string, &minimum, NULL)) {
+      *value = integer;
+
+      if (group) {
+        struct passwd *user = getpwuid(*value);
+        *group = user? user->pw_gid: 0;
+      }
+
+      return 1;
+    }
+  }
+
+  {
+    struct passwd *user = getpwnam(string);
+
+    if (user) {
+      *value = user->pw_uid;
+      if (group) *group = user->pw_gid;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+int
+validateGroup (gid_t *value, const char *string) {
+  {
+    int integer = geteuid();
+    static const int minimum = 0;
+
+    if (validateInteger(&integer, string, &minimum, NULL)) {
+      *value = integer;
+      return 1;
+    }
+  }
+
+  {
+    struct group *group = getgrnam(string);
+
+    if (group) {
+      *value = group->gr_gid;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+#endif /* defined(HAVE_PWD_H) && defined(HAVE_GRP_H) */
+
 int
 hasQualifier (const char **identifier, const char *qualifier) {
   const char *delimiter = strchr(*identifier, PARAMETER_QUALIFIER_CHARACTER);
@@ -421,19 +483,18 @@ parseParameters (
     while (1) {
       const char *parameterEnd = strchr(parameter, PARAMETER_SEPARATOR_CHARACTER);
       int done = !parameterEnd;
-      int parameterLength;
 
       if (done) parameterEnd = parameter + strlen(parameter);
-      parameterLength = parameterEnd - parameter;
+      int parameterLength = parameterEnd - parameter;
 
       if (parameterLength > 0) {
         const char *value = memchr(parameter, PARAMETER_ASSIGNMENT_CHARACTER, parameterLength);
 
         if (!value) {
-          logMessage(LOG_ERR, "%s: %.*s",
+          logMessage(LOG_WARNING, "%s: %.*s",
                      gettext("missing parameter value"),
                      parameterLength, parameter);
-          return 0;
+          goto NEXT_PARAMETER;
         }
 
         {
@@ -454,10 +515,10 @@ parseParameters (
               isEligible = 0;
 
               if (!qualifierLength) {
-                logMessage(LOG_ERR, "%s: %.*s",
+                logMessage(LOG_WARNING, "%s: %.*s",
                            gettext("missing parameter qualifier"),
                            parameterLength, parameter);
-                return 0;
+                goto NEXT_PARAMETER;
               }
 
               if ((qualifierLength == strlen(qualifier)) &&
@@ -468,10 +529,10 @@ parseParameters (
           }
 
           if (!nameLength) {
-            logMessage(LOG_ERR, "%s: %.*s",
+            logMessage(LOG_WARNING, "%s: %.*s",
                        gettext("missing parameter name"),
                        parameterLength, parameter);
-            return 0;
+            goto NEXT_PARAMETER;
           }
 
           if (isEligible) {
@@ -491,21 +552,21 @@ parseParameters (
 
                 free(values[index]);
                 values[index] = newValue;
-                goto parameterDone;
+                goto NEXT_PARAMETER;
               }
 
               index += 1;
             }
 
-            logMessage(LOG_ERR, "%s: %.*s",
+            logMessage(LOG_WARNING, "%s: %.*s",
                        gettext("unsupported parameter"),
                        parameterLength, parameter);
-            return 0;
+            goto NEXT_PARAMETER;
           }
         }
       }
 
-    parameterDone:
+    NEXT_PARAMETER:
       if (done) break;
       parameter = parameterEnd + 1;
     }

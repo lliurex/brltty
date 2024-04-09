@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 ###############################################################################
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -17,7 +17,7 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-. "${0%/*}/brltty-prologue.sh"
+. "${0%/*}/prologue.sh"
 
 executeCommand() {
    "${@}"
@@ -42,25 +42,22 @@ updateFiles() {
 outputRoot=""
 sourceRoot=""
 buildRoot=""
-documentsSubdirectory=""
-tablesSubdirectory=""
 
-while getopts ":o:s:b:d:t:" option
+while getopts ":o:s:b:" option
 do
    case "${option}"
    in
       o) outputRoot="${OPTARG}";;
       s) sourceRoot="${OPTARG}";;
       b) buildRoot="${OPTARG}";;
-      d) documentsSubdirectory="${OPTARG}";;
-      t) tablesSubdirectory="${OPTARG}";;
+
       :) syntaxError "missing value: -${OPTARG}";;
      \?) syntaxError "unknown option: -${OPTARG}";;
       *) syntaxError "unimplemented option: -${option}";;
    esac
 done
-shift `expr "${OPTIND}" - 1`
 
+shift `expr "${OPTIND}" - 1`
 [ "${#}" -eq 0 ] || syntaxError "too many parameters"
 
 [ -n "${outputRoot}" ] || outputRoot="doc"
@@ -80,27 +77,30 @@ fi
 
 updateFiles "${sourceRoot}" "." "." "README" "LICENSE-*"
 
-[ -z "${documentsSubdirectory}" ] || {
-   updateFiles "${sourceRoot}" "${documentsSubdirectory}" "." "ChangeLog" "CONTRIBUTORS" "README.*" "TODO"
-   updateFiles "${buildRoot}" "${documentsSubdirectory}" "." "brltty.conf"
+sourceDocuments="${sourceRoot}/${documentsSubdirectory}"
+buildDocuments="${buildRoot}/${documentsSubdirectory}"
 
-   for manual in `cd "${sourceRoot}/${documentsSubdirectory}" && echo Manual-*/*`
+for document in `cd "${sourceDocuments}" && echo README.*`
+do
+   make -s -C "${buildDocuments}" "${document#README.}.html"
+done
+
+updateFiles "${sourceRoot}" "${documentsSubdirectory}" "." "BUGS" "ChangeLog" "CONTRIBUTORS" "HISTORY" "TODO" "*.csv"
+updateFiles "${buildRoot}" "${documentsSubdirectory}" "." "brltty.conf" "*.html"
+
+for manual in `cd "${sourceDocuments}" && echo Manual-*/*`
+do
+   for documentExtension in doc htm html pdf sgml txt
    do
-      for documentExtension in doc htm html pdf sgml txt
-      do
-         updateFiles "${sourceRoot}" "${documentsSubdirectory}/${manual}" "${manual}" "*.${documentExtension}"
-      done
+      updateFiles "${sourceRoot}" "${documentsSubdirectory}/${manual}" "${manual}" "*.${documentExtension}"
    done
+done
 
-   for manual in BrlAPIref
-   do
-      updateFiles "${buildRoot}" "${documentsSubdirectory}/${manual}/html" "${manual}" "*.html"
-   done
-}
+for manual in BrlAPIref
+do
+   updateFiles "${buildRoot}" "${documentsSubdirectory}/${manual}/html" "${manual}" "*.html"
+done
 
-[ -z "${tablesSubdirectory}" ] || {
-   updateFiles "${sourceRoot}" "${tablesSubdirectory}" "." "README-*"
-   executeCommand "${sourceRoot}/mkdocktb" -o "${outputRoot}/KeyTables" -s "${sourceRoot}" -b "${buildRoot}"
-}
+executeCommand "${sourceRoot}/mkdocktb" -o "${outputRoot}/KeyTables" -s "${sourceRoot}" -b "${buildRoot}"
 
 exit 0

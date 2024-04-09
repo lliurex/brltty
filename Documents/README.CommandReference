@@ -1,0 +1,1887 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The BRLTTY Command Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. contents::
+
+Alphabetical Command Index
+==========================
+
+* `ALERT`_
+* `ALTGR`_
+* `ASPK_CMP_WORDS`_
+* `ASPK_DEL_CHARS`_
+* `ASPK_INDENT`_
+* `ASPK_INS_CHARS`_
+* `ASPK_REP_CHARS`_
+* `ASPK_SEL_CHAR`_
+* `ASPK_SEL_LINE`_
+* `ATTRBLINK`_
+* `ATTRDN`_
+* `ATTRUP`_
+* `ATTRVIS`_
+* `AUTOREPEAT`_
+* `AUTOSPEAK`_
+* `BACK`_
+* `BOT`_
+* `BOT_LEFT`_
+* `BRLKBD`_
+* `BRLUCDOTS`_
+* `BRL_START`_
+* `BRL_STOP`_
+* `CAPBLINK`_
+* `CHRLT`_
+* `CHRRT`_
+* `CLIP_ADD`_
+* `CLIP_APPEND`_
+* `CLIP_COPY`_
+* `CLIP_NEW`_
+* `CLIP_RESTORE`_
+* `CLIP_SAVE`_
+* `COMPBRL6`_
+* `CONTEXT`_
+* `CONTRACTED`_
+* `CONTROL`_
+* `COPY_LINE`_
+* `COPY_RECT`_
+* `CSRBLINK`_
+* `CSRHIDE`_
+* `CSRJMP_VERT`_
+* `CSRSIZE`_
+* `CSRTRK`_
+* `CSRVIS`_
+* `DESCCHAR`_
+* `DESC_CURR_CHAR`_
+* `DISPMD`_
+* `FREEZE`_
+* `FWINLT`_
+* `FWINLTSKIP`_
+* `FWINRT`_
+* `FWINRTSKIP`_
+* `GOTOLINE`_
+* `GOTOMARK`_
+* `GUI`_
+* `GUI_APP_ALERTS`_
+* `GUI_APP_LIST`_
+* `GUI_APP_MENU`_
+* `GUI_AREA_ACTV`_
+* `GUI_AREA_NEXT`_
+* `GUI_AREA_PREV`_
+* `GUI_BACK`_
+* `GUI_BRL_ACTIONS`_
+* `GUI_DEV_OPTIONS`_
+* `GUI_DEV_SETTINGS`_
+* `GUI_HOME`_
+* `GUI_ITEM_FRST`_
+* `GUI_ITEM_LAST`_
+* `GUI_ITEM_NEXT`_
+* `GUI_ITEM_PREV`_
+* `GUI_TITLE`_
+* `HELP`_
+* `HOME`_
+* `HOSTCMD`_
+* `HOST_COPY`_
+* `HOST_CUT`_
+* `HOST_PASTE`_
+* `HWINLT`_
+* `HWINRT`_
+* `INDICATORS`_
+* `INFO`_
+* `KEY_BACKSPACE`_
+* `KEY_CURSOR_DOWN`_
+* `KEY_CURSOR_LEFT`_
+* `KEY_CURSOR_RIGHT`_
+* `KEY_CURSOR_UP`_
+* `KEY_DELETE`_
+* `KEY_END`_
+* `KEY_ENTER`_
+* `KEY_ESCAPE`_
+* `KEY_FUNCTION`_
+* `KEY_HOME`_
+* `KEY_INSERT`_
+* `KEY_PAGE_DOWN`_
+* `KEY_PAGE_UP`_
+* `KEY_TAB`_
+* `LEARN`_
+* `LNBEG`_
+* `LNDN`_
+* `LNEND`_
+* `LNUP`_
+* `MACRO`_
+* `MENU_FIRST_ITEM`_
+* `MENU_LAST_ITEM`_
+* `MENU_NEXT_ITEM`_
+* `MENU_NEXT_SETTING`_
+* `MENU_PREV_ITEM`_
+* `MENU_PREV_LEVEL`_
+* `MENU_PREV_SETTING`_
+* `META`_
+* `MUTE`_
+* `NOOP`_
+* `NXDIFCHAR`_
+* `NXDIFLN`_
+* `NXINDENT`_
+* `NXNBWIN`_
+* `NXPGRPH`_
+* `NXPROMPT`_
+* `NXSEARCH`_
+* `OFFLINE`_
+* `PASSAT`_
+* `PASSCHAR`_
+* `PASSDOTS`_
+* `PASSPS2`_
+* `PASSXT`_
+* `PASTE`_
+* `PASTE_HISTORY`_
+* `PRDIFCHAR`_
+* `PRDIFLN`_
+* `PREFLOAD`_
+* `PREFMENU`_
+* `PREFRESET`_
+* `PREFSAVE`_
+* `PRINDENT`_
+* `PRNBWIN`_
+* `PRPGRPH`_
+* `PRPROMPT`_
+* `PRSEARCH`_
+* `REFRESH`_
+* `REFRESH_LINE`_
+* `RESTARTBRL`_
+* `RESTARTSPEECH`_
+* `RETURN`_
+* `ROUTE`_
+* `ROUTE_CURR_LOCN`_
+* `ROUTE_LINE`_
+* `ROUTE_SPEECH`_
+* `SAY_ABOVE`_
+* `SAY_ALL`_
+* `SAY_BELOW`_
+* `SAY_FASTER`_
+* `SAY_HIGHER`_
+* `SAY_LINE`_
+* `SAY_LOUDER`_
+* `SAY_LOWER`_
+* `SAY_SLOWER`_
+* `SAY_SOFTER`_
+* `SCR_START`_
+* `SCR_STOP`_
+* `SELECTVT`_
+* `SELECTVT_NEXT`_
+* `SELECTVT_PREV`_
+* `SETLEFT`_
+* `SETMARK`_
+* `SET_ATTRIBUTES_TABLE`_
+* `SET_CONTRACTION_TABLE`_
+* `SET_KEYBOARD_TABLE`_
+* `SET_LANGUAGE_PROFILE`_
+* `SET_TEXT_TABLE`_
+* `SHIFT`_
+* `SHOW_CURR_LOCN`_
+* `SIXDOTS`_
+* `SKPBLNKWINS`_
+* `SKPIDLNS`_
+* `SLIDEWIN`_
+* `SPEAK_CURR_CHAR`_
+* `SPEAK_CURR_LINE`_
+* `SPEAK_CURR_LOCN`_
+* `SPEAK_CURR_WORD`_
+* `SPEAK_FRST_CHAR`_
+* `SPEAK_FRST_LINE`_
+* `SPEAK_INDENT`_
+* `SPEAK_LAST_CHAR`_
+* `SPEAK_LAST_LINE`_
+* `SPEAK_NEXT_CHAR`_
+* `SPEAK_NEXT_LINE`_
+* `SPEAK_NEXT_WORD`_
+* `SPEAK_PREV_CHAR`_
+* `SPEAK_PREV_LINE`_
+* `SPEAK_PREV_WORD`_
+* `SPELL_CURR_WORD`_
+* `SPKHOME`_
+* `SPK_START`_
+* `SPK_STOP`_
+* `SWITCHVT`_
+* `SWITCHVT_NEXT`_
+* `SWITCHVT_PREV`_
+* `TIME`_
+* `TOP`_
+* `TOP_LEFT`_
+* `TOUCH_AT`_
+* `TOUCH_NAV`_
+* `TUNES`_
+* `TXTSEL_ALL`_
+* `TXTSEL_CLEAR`_
+* `TXTSEL_SET`_
+* `TXTSEL_START`_
+* `UNSTICK`_
+* `UPPER`_
+* `WINDN`_
+* `WINUP`_
+
+Special Modes
+=============
+
+* `HELP`_
+* `LEARN`_
+* `PREFMENU`_
+* `INFO`_
+* `DISPMD`_
+* `FREEZE`_
+* `DESCCHAR`_
+* `TIME`_
+* `INDICATORS`_
+* `CONTEXT`_
+
+.. _HELP:
+
+**HELP** - Enter/leave help display.
+
+.. _LEARN:
+
+**LEARN** - Enter/leave command learn mode.
+
+.. _PREFMENU:
+
+**PREFMENU** - Enter/leave preferences menu.
+
+.. _INFO:
+
+**INFO** - Enter/leave status display.
+
+.. _DISPMD:
+
+**DISPMD** - Set display mode attributes/text.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _FREEZE:
+
+**FREEZE** - Set screen image frozen/unfrozen.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _DESCCHAR:
+
+**DESCCHAR** - Describe character.
+
+The following modifiers may be specified:
+
+* a column number
+
+.. _TIME:
+
+**TIME** - Show current date and time.
+
+.. _INDICATORS:
+
+**INDICATORS** - Show various device status indicators.
+
+.. _CONTEXT:
+
+**CONTEXT** - Switch to command context.
+
+The following modifiers may be specified:
+
+* an offset
+
+Cursor Functions
+================
+
+* `HOME`_
+* `BACK`_
+* `RETURN`_
+* `ROUTE`_
+* `ROUTE_LINE`_
+* `CSRJMP_VERT`_
+* `ROUTE_CURR_LOCN`_
+
+.. _HOME:
+
+**HOME** - Go to screen cursor.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _BACK:
+
+**BACK** - Go back after cursor tracking.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _RETURN:
+
+**RETURN** - Go to screen cursor or go back after cursor tracking.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _ROUTE:
+
+**ROUTE** - Bring screen cursor to character.
+
+The following modifiers may be specified:
+
+* a column number
+
+.. _ROUTE_LINE:
+
+**ROUTE_LINE** - Bring screen cursor to line.
+
+The following modifiers may be specified:
+
+* Row: scaled
+* Vertical: toleft
+
+.. _CSRJMP_VERT:
+
+**CSRJMP_VERT** - Bring screen cursor to current line.
+
+.. _ROUTE_CURR_LOCN:
+
+**ROUTE_CURR_LOCN** - Bring screen cursor to speech cursor.
+
+Vertical Navigation
+===================
+
+* `LNUP`_
+* `LNDN`_
+* `TOP`_
+* `BOT`_
+* `TOP_LEFT`_
+* `BOT_LEFT`_
+* `PRDIFLN`_
+* `NXDIFLN`_
+* `ATTRUP`_
+* `ATTRDN`_
+* `PRPGRPH`_
+* `NXPGRPH`_
+* `PRPROMPT`_
+* `NXPROMPT`_
+* `WINUP`_
+* `WINDN`_
+* `PRINDENT`_
+* `NXINDENT`_
+* `PRDIFCHAR`_
+* `NXDIFCHAR`_
+* `GOTOLINE`_
+
+.. _LNUP:
+
+**LNUP** - Go up one line.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _LNDN:
+
+**LNDN** - Go down one line.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _TOP:
+
+**TOP** - Go to top line.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _BOT:
+
+**BOT** - Go to bottom line.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _TOP_LEFT:
+
+**TOP_LEFT** - Go to beginning of top line.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _BOT_LEFT:
+
+**BOT_LEFT** - Go to beginning of bottom line.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _PRDIFLN:
+
+**PRDIFLN** - Go up to nearest line with different content.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _NXDIFLN:
+
+**NXDIFLN** - Go down to nearest line with different content.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _ATTRUP:
+
+**ATTRUP** - Go up to nearest line with different highlighting.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _ATTRDN:
+
+**ATTRDN** - Go down to nearest line with different highlighting.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _PRPGRPH:
+
+**PRPGRPH** - Go up to first line of paragraph.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _NXPGRPH:
+
+**NXPGRPH** - Go down to first line of next paragraph.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _PRPROMPT:
+
+**PRPROMPT** - Go up to previous command prompt.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _NXPROMPT:
+
+**NXPROMPT** - Go down to next command prompt.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _WINUP:
+
+**WINUP** - Go up several lines.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _WINDN:
+
+**WINDN** - Go down several lines.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _PRINDENT:
+
+**PRINDENT** - Go up to nearest line with less indent than character.
+
+The following modifiers may be specified:
+
+* a column number
+* Motion: route
+* Vertical: toleft
+
+.. _NXINDENT:
+
+**NXINDENT** - Go down to nearest line with less indent than character.
+
+The following modifiers may be specified:
+
+* a column number
+* Motion: route
+* Vertical: toleft
+
+.. _PRDIFCHAR:
+
+**PRDIFCHAR** - Go up to nearest line with different character.
+
+The following modifiers may be specified:
+
+* a column number
+* Motion: route
+* Vertical: toleft
+
+.. _NXDIFCHAR:
+
+**NXDIFCHAR** - Go down to nearest line with different character.
+
+The following modifiers may be specified:
+
+* a column number
+* Motion: route
+* Vertical: toleft
+
+.. _GOTOLINE:
+
+**GOTOLINE** - Go to selected line.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Row: scaled
+* Vertical: toleft
+
+Horizontal Navigation
+=====================
+
+* `FWINLT`_
+* `FWINRT`_
+* `FWINLTSKIP`_
+* `FWINRTSKIP`_
+* `PRNBWIN`_
+* `NXNBWIN`_
+* `LNBEG`_
+* `LNEND`_
+* `CHRLT`_
+* `CHRRT`_
+* `HWINLT`_
+* `HWINRT`_
+* `SETLEFT`_
+
+.. _FWINLT:
+
+**FWINLT** - Go backward one braille window.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _FWINRT:
+
+**FWINRT** - Go forward one braille window.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _FWINLTSKIP:
+
+**FWINLTSKIP** - Go backward skipping blank braille windows.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _FWINRTSKIP:
+
+**FWINRTSKIP** - Go forward skipping blank braille windows.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _PRNBWIN:
+
+**PRNBWIN** - Go backward to nearest non-blank braille window.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _NXNBWIN:
+
+**NXNBWIN** - Go forward to nearest non-blank braille window.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _LNBEG:
+
+**LNBEG** - Go to beginning of line.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _LNEND:
+
+**LNEND** - Go to end of line.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _CHRLT:
+
+**CHRLT** - Go left one character.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _CHRRT:
+
+**CHRRT** - Go right one character.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _HWINLT:
+
+**HWINLT** - Go left half a braille window.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _HWINRT:
+
+**HWINRT** - Go right half a braille window.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SETLEFT:
+
+**SETLEFT** - Place left end of braille window at character.
+
+The following modifiers may be specified:
+
+* a column number
+
+Window Navigation
+=================
+
+* `GUI_TITLE`_
+* `GUI_BRL_ACTIONS`_
+* `GUI_HOME`_
+* `GUI_BACK`_
+* `GUI_DEV_SETTINGS`_
+* `GUI_DEV_OPTIONS`_
+* `GUI_APP_LIST`_
+* `GUI_APP_MENU`_
+* `GUI_APP_ALERTS`_
+* `GUI_AREA_ACTV`_
+* `GUI_AREA_PREV`_
+* `GUI_AREA_NEXT`_
+* `GUI_ITEM_FRST`_
+* `GUI_ITEM_PREV`_
+* `GUI_ITEM_NEXT`_
+* `GUI_ITEM_LAST`_
+
+.. _GUI_TITLE:
+
+**GUI_TITLE** - Show the window title.
+
+.. _GUI_BRL_ACTIONS:
+
+**GUI_BRL_ACTIONS** - Open the braille actions window.
+
+.. _GUI_HOME:
+
+**GUI_HOME** - Go to the home screen.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _GUI_BACK:
+
+**GUI_BACK** - Go back to the previous screen.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _GUI_DEV_SETTINGS:
+
+**GUI_DEV_SETTINGS** - Open the device settings window.
+
+.. _GUI_DEV_OPTIONS:
+
+**GUI_DEV_OPTIONS** - Open the device options window.
+
+.. _GUI_APP_LIST:
+
+**GUI_APP_LIST** - Open the application list window.
+
+.. _GUI_APP_MENU:
+
+**GUI_APP_MENU** - Open the application-specific menu.
+
+.. _GUI_APP_ALERTS:
+
+**GUI_APP_ALERTS** - Open the application alerts window.
+
+.. _GUI_AREA_ACTV:
+
+**GUI_AREA_ACTV** - Return to the active screen area.
+
+.. _GUI_AREA_PREV:
+
+**GUI_AREA_PREV** - Switch to the previous screen area.
+
+.. _GUI_AREA_NEXT:
+
+**GUI_AREA_NEXT** - Switch to the next screen area.
+
+.. _GUI_ITEM_FRST:
+
+**GUI_ITEM_FRST** - Move to the first item in the screen area.
+
+.. _GUI_ITEM_PREV:
+
+**GUI_ITEM_PREV** - Move to the previous item in the screen area.
+
+.. _GUI_ITEM_NEXT:
+
+**GUI_ITEM_NEXT** - Move to the next item in the screen area.
+
+.. _GUI_ITEM_LAST:
+
+**GUI_ITEM_LAST** - Move to the last item in the screen area.
+
+Clipboard Functions
+===================
+
+* `CLIP_NEW`_
+* `CLIP_ADD`_
+* `COPY_LINE`_
+* `COPY_RECT`_
+* `CLIP_COPY`_
+* `CLIP_APPEND`_
+* `PASTE`_
+* `PASTE_HISTORY`_
+* `PRSEARCH`_
+* `NXSEARCH`_
+* `CLIP_SAVE`_
+* `CLIP_RESTORE`_
+
+.. _CLIP_NEW:
+
+**CLIP_NEW** - Start new clipboard at character.
+
+The following modifiers may be specified:
+
+* a column number
+
+.. _CLIP_ADD:
+
+**CLIP_ADD** - Append to clipboard from character.
+
+The following modifiers may be specified:
+
+* a column number
+
+.. _COPY_LINE:
+
+**COPY_LINE** - Linear copy to character.
+
+The following modifiers may be specified:
+
+* a column number
+
+.. _COPY_RECT:
+
+**COPY_RECT** - Rectangular copy to character.
+
+The following modifiers may be specified:
+
+* a column number
+
+.. _CLIP_COPY:
+
+**CLIP_COPY** - Copy characters to clipboard.
+
+.. _CLIP_APPEND:
+
+**CLIP_APPEND** - Append characters to clipboard.
+
+.. _PASTE:
+
+**PASTE** - Insert clipboard text after screen cursor.
+
+.. _PASTE_HISTORY:
+
+**PASTE_HISTORY** - Insert clipboard history entry after screen cursor.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _PRSEARCH:
+
+**PRSEARCH** - Search backward for clipboard text.
+
+.. _NXSEARCH:
+
+**NXSEARCH** - Search forward for clipboard text.
+
+.. _CLIP_SAVE:
+
+**CLIP_SAVE** - Save clipboard to disk.
+
+.. _CLIP_RESTORE:
+
+**CLIP_RESTORE** - Restore clipboard from disk.
+
+Text Selection and the Host Clipboard
+=====================================
+
+* `TXTSEL_CLEAR`_
+* `TXTSEL_SET`_
+* `TXTSEL_START`_
+* `TXTSEL_ALL`_
+* `HOST_COPY`_
+* `HOST_CUT`_
+* `HOST_PASTE`_
+
+.. _TXTSEL_CLEAR:
+
+**TXTSEL_CLEAR** - Clear the text selection.
+
+.. _TXTSEL_SET:
+
+**TXTSEL_SET** - Set text selection.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _TXTSEL_START:
+
+**TXTSEL_START** - Start text selection.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _TXTSEL_ALL:
+
+**TXTSEL_ALL** - Select all of the text.
+
+.. _HOST_COPY:
+
+**HOST_COPY** - Copy selected text to host clipboard.
+
+.. _HOST_CUT:
+
+**HOST_CUT** - Cut selected text to host clipboard.
+
+.. _HOST_PASTE:
+
+**HOST_PASTE** - Insert host clipboard text after screen cursor.
+
+Configuration Functions
+=======================
+
+* `TOUCH_NAV`_
+* `AUTOREPEAT`_
+* `SIXDOTS`_
+* `CONTRACTED`_
+* `COMPBRL6`_
+* `SKPIDLNS`_
+* `SKPBLNKWINS`_
+* `SLIDEWIN`_
+* `CSRTRK`_
+* `CSRSIZE`_
+* `CSRVIS`_
+* `CSRHIDE`_
+* `CSRBLINK`_
+* `ATTRVIS`_
+* `ATTRBLINK`_
+* `CAPBLINK`_
+* `TUNES`_
+* `SET_TEXT_TABLE`_
+* `SET_ATTRIBUTES_TABLE`_
+* `SET_CONTRACTION_TABLE`_
+* `SET_KEYBOARD_TABLE`_
+* `SET_LANGUAGE_PROFILE`_
+
+.. _TOUCH_NAV:
+
+**TOUCH_NAV** - Set touch navigation on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _AUTOREPEAT:
+
+**AUTOREPEAT** - Set autorepeat on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _SIXDOTS:
+
+**SIXDOTS** - Set text style 6-dot/8-dot.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _CONTRACTED:
+
+**CONTRACTED** - Set contracted/computer braille.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _COMPBRL6:
+
+**COMPBRL6** - Set six/eight dot computer braille.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _SKPIDLNS:
+
+**SKPIDLNS** - Set skipping of lines with identical content on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _SKPBLNKWINS:
+
+**SKPBLNKWINS** - Set skipping of blank braille windows on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _SLIDEWIN:
+
+**SLIDEWIN** - Set sliding braille window on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _CSRTRK:
+
+**CSRTRK** - Set track screen cursor on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _CSRSIZE:
+
+**CSRSIZE** - Set screen cursor style block/underline.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _CSRVIS:
+
+**CSRVIS** - Set screen cursor visibility on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _CSRHIDE:
+
+**CSRHIDE** - Set hidden screen cursor on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _CSRBLINK:
+
+**CSRBLINK** - Set screen cursor blinking on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _ATTRVIS:
+
+**ATTRVIS** - Set attribute underlining on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _ATTRBLINK:
+
+**ATTRBLINK** - Set attribute blinking on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _CAPBLINK:
+
+**CAPBLINK** - Set capital letter blinking on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _TUNES:
+
+**TUNES** - Set alert tunes on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _SET_TEXT_TABLE:
+
+**SET_TEXT_TABLE** - Set text table.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _SET_ATTRIBUTES_TABLE:
+
+**SET_ATTRIBUTES_TABLE** - Set attributes table.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _SET_CONTRACTION_TABLE:
+
+**SET_CONTRACTION_TABLE** - Set contraction table.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _SET_KEYBOARD_TABLE:
+
+**SET_KEYBOARD_TABLE** - Set keyboard table.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _SET_LANGUAGE_PROFILE:
+
+**SET_LANGUAGE_PROFILE** - Set language profile.
+
+The following modifiers may be specified:
+
+* an offset
+
+Menu Operations
+===============
+
+* `MENU_PREV_ITEM`_
+* `MENU_NEXT_ITEM`_
+* `MENU_FIRST_ITEM`_
+* `MENU_LAST_ITEM`_
+* `MENU_PREV_SETTING`_
+* `MENU_NEXT_SETTING`_
+* `MENU_PREV_LEVEL`_
+* `PREFSAVE`_
+* `PREFLOAD`_
+* `PREFRESET`_
+
+.. _MENU_PREV_ITEM:
+
+**MENU_PREV_ITEM** - Go up to previous item.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _MENU_NEXT_ITEM:
+
+**MENU_NEXT_ITEM** - Go down to next item.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _MENU_FIRST_ITEM:
+
+**MENU_FIRST_ITEM** - Go up to first item.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _MENU_LAST_ITEM:
+
+**MENU_LAST_ITEM** - Go down to last item.
+
+The following modifiers may be specified:
+
+* Motion: route
+* Vertical: toleft
+
+.. _MENU_PREV_SETTING:
+
+**MENU_PREV_SETTING** - Select previous choice.
+
+.. _MENU_NEXT_SETTING:
+
+**MENU_NEXT_SETTING** - Select next choice.
+
+.. _MENU_PREV_LEVEL:
+
+**MENU_PREV_LEVEL** - Go to previous menu level.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _PREFSAVE:
+
+**PREFSAVE** - Save preferences to disk.
+
+.. _PREFLOAD:
+
+**PREFLOAD** - Restore preferences from disk.
+
+.. _PREFRESET:
+
+**PREFRESET** - Reset preferences to defaults.
+
+Speech Functions
+================
+
+* `MUTE`_
+* `SAY_LINE`_
+* `SAY_ALL`_
+* `SAY_ABOVE`_
+* `SAY_BELOW`_
+* `SPKHOME`_
+* `SAY_SOFTER`_
+* `SAY_LOUDER`_
+* `SAY_SLOWER`_
+* `SAY_FASTER`_
+* `SAY_LOWER`_
+* `SAY_HIGHER`_
+* `AUTOSPEAK`_
+* `ASPK_SEL_LINE`_
+* `ASPK_SEL_CHAR`_
+* `ASPK_INS_CHARS`_
+* `ASPK_DEL_CHARS`_
+* `ASPK_REP_CHARS`_
+* `ASPK_CMP_WORDS`_
+* `ASPK_INDENT`_
+
+.. _MUTE:
+
+**MUTE** - Stop speaking.
+
+.. _SAY_LINE:
+
+**SAY_LINE** - Speak current line.
+
+.. _SAY_ALL:
+
+**SAY_ALL** - Speak from top of screen through bottom of screen.
+
+.. _SAY_ABOVE:
+
+**SAY_ABOVE** - Speak from top of screen through current line.
+
+.. _SAY_BELOW:
+
+**SAY_BELOW** - Speak from current line through bottom of screen.
+
+.. _SPKHOME:
+
+**SPKHOME** - Go to current speaking position.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SAY_SOFTER:
+
+**SAY_SOFTER** - Decrease speaking volume.
+
+.. _SAY_LOUDER:
+
+**SAY_LOUDER** - Increase speaking volume.
+
+.. _SAY_SLOWER:
+
+**SAY_SLOWER** - Decrease speaking rate.
+
+.. _SAY_FASTER:
+
+**SAY_FASTER** - Increase speaking rate.
+
+.. _SAY_LOWER:
+
+**SAY_LOWER** - Decrease speaking pitch.
+
+.. _SAY_HIGHER:
+
+**SAY_HIGHER** - Increase speaking pitch.
+
+.. _AUTOSPEAK:
+
+**AUTOSPEAK** - Set autospeak on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _ASPK_SEL_LINE:
+
+**ASPK_SEL_LINE** - Set autospeak selected line on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _ASPK_SEL_CHAR:
+
+**ASPK_SEL_CHAR** - Set autospeak selected character on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _ASPK_INS_CHARS:
+
+**ASPK_INS_CHARS** - Set autospeak inserted characters on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _ASPK_DEL_CHARS:
+
+**ASPK_DEL_CHARS** - Set autospeak deleted characters on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _ASPK_REP_CHARS:
+
+**ASPK_REP_CHARS** - Set autospeak replaced characters on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _ASPK_CMP_WORDS:
+
+**ASPK_CMP_WORDS** - Set autospeak completed words on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _ASPK_INDENT:
+
+**ASPK_INDENT** - Set autospeak indent of current line on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+Speech Navigation
+=================
+
+* `ROUTE_SPEECH`_
+* `SPEAK_CURR_CHAR`_
+* `DESC_CURR_CHAR`_
+* `SPEAK_PREV_CHAR`_
+* `SPEAK_NEXT_CHAR`_
+* `SPEAK_FRST_CHAR`_
+* `SPEAK_LAST_CHAR`_
+* `SPEAK_CURR_WORD`_
+* `SPELL_CURR_WORD`_
+* `SPEAK_PREV_WORD`_
+* `SPEAK_NEXT_WORD`_
+* `SPEAK_CURR_LINE`_
+* `SPEAK_PREV_LINE`_
+* `SPEAK_NEXT_LINE`_
+* `SPEAK_FRST_LINE`_
+* `SPEAK_LAST_LINE`_
+* `SPEAK_INDENT`_
+* `SPEAK_CURR_LOCN`_
+* `SHOW_CURR_LOCN`_
+
+.. _ROUTE_SPEECH:
+
+**ROUTE_SPEECH** - Bring speech cursor to character.
+
+The following modifiers may be specified:
+
+* a column number
+
+.. _SPEAK_CURR_CHAR:
+
+**SPEAK_CURR_CHAR** - Speak current character.
+
+.. _DESC_CURR_CHAR:
+
+**DESC_CURR_CHAR** - Describe current character.
+
+.. _SPEAK_PREV_CHAR:
+
+**SPEAK_PREV_CHAR** - Go to and speak previous character.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_NEXT_CHAR:
+
+**SPEAK_NEXT_CHAR** - Go to and speak next character.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_FRST_CHAR:
+
+**SPEAK_FRST_CHAR** - Go to and speak first non-blank character on line.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_LAST_CHAR:
+
+**SPEAK_LAST_CHAR** - Go to and speak last non-blank character on line.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_CURR_WORD:
+
+**SPEAK_CURR_WORD** - Speak current word.
+
+.. _SPELL_CURR_WORD:
+
+**SPELL_CURR_WORD** - Spell current word.
+
+.. _SPEAK_PREV_WORD:
+
+**SPEAK_PREV_WORD** - Go to and speak previous word.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_NEXT_WORD:
+
+**SPEAK_NEXT_WORD** - Go to and speak next word.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_CURR_LINE:
+
+**SPEAK_CURR_LINE** - Speak current line.
+
+.. _SPEAK_PREV_LINE:
+
+**SPEAK_PREV_LINE** - Go to and speak previous line.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_NEXT_LINE:
+
+**SPEAK_NEXT_LINE** - Go to and speak next line.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_FRST_LINE:
+
+**SPEAK_FRST_LINE** - Go to and speak first non-blank line on screen.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_LAST_LINE:
+
+**SPEAK_LAST_LINE** - Go to and speak last non-blank line on screen.
+
+The following modifiers may be specified:
+
+* Motion: route
+
+.. _SPEAK_INDENT:
+
+**SPEAK_INDENT** - Speak indent of current line.
+
+.. _SPEAK_CURR_LOCN:
+
+**SPEAK_CURR_LOCN** - Speak speech cursor location.
+
+.. _SHOW_CURR_LOCN:
+
+**SHOW_CURR_LOCN** - Set speech cursor visibility on/off.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+Keyboard Input
+==============
+
+* `PASSDOTS`_
+* `PASSCHAR`_
+* `KEY_BACKSPACE`_
+* `KEY_ENTER`_
+* `KEY_TAB`_
+* `KEY_CURSOR_LEFT`_
+* `KEY_CURSOR_RIGHT`_
+* `KEY_CURSOR_UP`_
+* `KEY_CURSOR_DOWN`_
+* `KEY_PAGE_UP`_
+* `KEY_PAGE_DOWN`_
+* `KEY_HOME`_
+* `KEY_END`_
+* `KEY_INSERT`_
+* `KEY_DELETE`_
+* `UNSTICK`_
+* `UPPER`_
+* `SHIFT`_
+* `CONTROL`_
+* `META`_
+* `ALTGR`_
+* `GUI`_
+* `KEY_ESCAPE`_
+* `KEY_FUNCTION`_
+* `SWITCHVT`_
+* `SWITCHVT_PREV`_
+* `SWITCHVT_NEXT`_
+* `SELECTVT`_
+* `SELECTVT_PREV`_
+* `SELECTVT_NEXT`_
+* `BRLKBD`_
+* `BRLUCDOTS`_
+
+.. _PASSDOTS:
+
+**PASSDOTS** - Type braille dots.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+* Character: upper, escaped
+* Braille: dot1, dot2, dot3, dot4, dot5, dot6, dot7, dot8, space
+
+.. _PASSCHAR:
+
+**PASSCHAR** - Type unicode character.
+
+The following modifiers may be specified:
+
+* a single character
+* Input: shift, control, meta, altgr, gui
+* Character: upper, escaped
+
+.. _KEY_BACKSPACE:
+
+**KEY_BACKSPACE** - Backspace key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_ENTER:
+
+**KEY_ENTER** - Enter key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_TAB:
+
+**KEY_TAB** - Tab key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_CURSOR_LEFT:
+
+**KEY_CURSOR_LEFT** - Cursor-left key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_CURSOR_RIGHT:
+
+**KEY_CURSOR_RIGHT** - Cursor-right key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_CURSOR_UP:
+
+**KEY_CURSOR_UP** - Cursor-up key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_CURSOR_DOWN:
+
+**KEY_CURSOR_DOWN** - Cursor-down key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_PAGE_UP:
+
+**KEY_PAGE_UP** - Page-up key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_PAGE_DOWN:
+
+**KEY_PAGE_DOWN** - Page-down key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_HOME:
+
+**KEY_HOME** - Home key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_END:
+
+**KEY_END** - End key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_INSERT:
+
+**KEY_INSERT** - Insert key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_DELETE:
+
+**KEY_DELETE** - Delete key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _UNSTICK:
+
+**UNSTICK** - Clear all sticky input modifiers.
+
+.. _UPPER:
+
+**UPPER** - Cycle the Upper sticky input modifier (next, on, off).
+
+.. _SHIFT:
+
+**SHIFT** - Cycle the Shift sticky input modifier (next, on, off).
+
+.. _CONTROL:
+
+**CONTROL** - Cycle the Control sticky input modifier (next, on, off).
+
+.. _META:
+
+**META** - Cycle the Meta (Left Alt) sticky input modifier (next, on, off).
+
+.. _ALTGR:
+
+**ALTGR** - Cycle the AltGr (Right Alt) sticky input modifier (next, on, off).
+
+.. _GUI:
+
+**GUI** - Cycle the GUI (Windows) sticky input modifier (next, on, off).
+
+.. _KEY_ESCAPE:
+
+**KEY_ESCAPE** - Escape key.
+
+The following modifiers may be specified:
+
+* Input: shift, control, meta, altgr, gui
+
+.. _KEY_FUNCTION:
+
+**KEY_FUNCTION** - Function key.
+
+The following modifiers may be specified:
+
+* an offset
+* Input: shift, control, meta, altgr, gui
+
+.. _SWITCHVT:
+
+**SWITCHVT** - Switch to specific virtual terminal.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _SWITCHVT_PREV:
+
+**SWITCHVT_PREV** - Switch to the previous virtual terminal.
+
+.. _SWITCHVT_NEXT:
+
+**SWITCHVT_NEXT** - Switch to the next virtual terminal.
+
+.. _SELECTVT:
+
+**SELECTVT** - Bind to specific virtual terminal.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _SELECTVT_PREV:
+
+**SELECTVT_PREV** - Bind to the previous virtual terminal.
+
+.. _SELECTVT_NEXT:
+
+**SELECTVT_NEXT** - Bind to the next virtual terminal.
+
+.. _BRLKBD:
+
+**BRLKBD** - Set braille keyboard enabled/disabled.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+.. _BRLUCDOTS:
+
+**BRLUCDOTS** - Set braille typing mode dots/text.
+
+The following modifiers may be specified:
+
+* Toggle: on, off
+
+Special Functions
+=================
+
+* `SETMARK`_
+* `GOTOMARK`_
+* `REFRESH`_
+* `REFRESH_LINE`_
+* `RESTARTBRL`_
+* `BRL_STOP`_
+* `BRL_START`_
+* `RESTARTSPEECH`_
+* `SPK_STOP`_
+* `SPK_START`_
+* `SCR_STOP`_
+* `SCR_START`_
+
+.. _SETMARK:
+
+**SETMARK** - Remember current braille window position.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _GOTOMARK:
+
+**GOTOMARK** - Go to remembered braille window position.
+
+The following modifiers may be specified:
+
+* an offset
+* Motion: route
+
+.. _REFRESH:
+
+**REFRESH** - Refresh braille display.
+
+.. _REFRESH_LINE:
+
+**REFRESH_LINE** - Refresh braille line.
+
+The following modifiers may be specified:
+
+* Row: scaled
+* Vertical: toleft
+
+.. _RESTARTBRL:
+
+**RESTARTBRL** - Restart braille driver.
+
+.. _BRL_STOP:
+
+**BRL_STOP** - Stop the braille driver.
+
+.. _BRL_START:
+
+**BRL_START** - Start the braille driver.
+
+.. _RESTARTSPEECH:
+
+**RESTARTSPEECH** - Restart speech driver.
+
+.. _SPK_STOP:
+
+**SPK_STOP** - Stop the speech driver.
+
+.. _SPK_START:
+
+**SPK_START** - Start the speech driver.
+
+.. _SCR_STOP:
+
+**SCR_STOP** - Stop the screen driver.
+
+.. _SCR_START:
+
+**SCR_START** - Start the screen driver.
+
+Internal Functions
+==================
+
+* `NOOP`_
+* `OFFLINE`_
+* `ALERT`_
+* `PASSXT`_
+* `PASSAT`_
+* `PASSPS2`_
+* `TOUCH_AT`_
+* `MACRO`_
+* `HOSTCMD`_
+
+.. _NOOP:
+
+**NOOP** - Do nothing.
+
+.. _OFFLINE:
+
+**OFFLINE** - Braille display temporarily unavailable.
+
+.. _ALERT:
+
+**ALERT** - Render an alert.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _PASSXT:
+
+**PASSXT** - XT (set 1) keyboard scan code.
+
+The following modifiers may be specified:
+
+* Keyboard: release, emul0, emul1
+
+.. _PASSAT:
+
+**PASSAT** - AT (set 2) keyboard scan code.
+
+The following modifiers may be specified:
+
+* Keyboard: release, emul0, emul1
+
+.. _PASSPS2:
+
+**PASSPS2** - PS/2 (set 3) keyboard scan code.
+
+The following modifiers may be specified:
+
+* Keyboard: release, emul0, emul1
+
+.. _TOUCH_AT:
+
+**TOUCH_AT** - Current reading location.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _MACRO:
+
+**MACRO** - Execute command macro.
+
+The following modifiers may be specified:
+
+* an offset
+
+.. _HOSTCMD:
+
+**HOSTCMD** - Run host command.
+
+The following modifiers may be specified:
+
+* an offset

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -38,6 +38,7 @@
 #include "timing.h"
 #include "addresses.h"
 #include "stdiox.h"
+#include "io_misc.h"
 #include "thread.h"
 
 const char logCategoryName_all[] = "all";
@@ -59,12 +60,6 @@ typedef struct {
 } LogCategoryEntry;
 
 static const LogCategoryEntry logCategoryTable[LOG_CATEGORY_COUNT] = {
-  [LOG_CATEGORY_INDEX(GENERIC_INPUT)] = {
-    .name = "ingio",
-    .title = strtext("Generic Input"),
-    .prefix = "generic input"
-  },
-
   [LOG_CATEGORY_INDEX(INPUT_PACKETS)] = {
     .name = "inpkts",
     .title = strtext("Input Packets"),
@@ -125,6 +120,12 @@ static const LogCategoryEntry logCategoryTable[LOG_CATEGORY_COUNT] = {
     .prefix = "server"
   },
 
+  [LOG_CATEGORY_INDEX(GENERIC_IO)] = {
+    .name = "gio",
+    .title = strtext("generic I/O"),
+    .prefix = "GIO"
+  },
+
   [LOG_CATEGORY_INDEX(SERIAL_IO)] = {
     .name = "serial",
     .title = strtext("Serial I/O"),
@@ -138,9 +139,15 @@ static const LogCategoryEntry logCategoryTable[LOG_CATEGORY_COUNT] = {
   },
 
   [LOG_CATEGORY_INDEX(BLUETOOTH_IO)] = {
-    .name = "bluetooth",
+    .name = "bt",
     .title = strtext("Bluetooth I/O"),
     .prefix = "Bluetooth"
+  },
+
+  [LOG_CATEGORY_INDEX(HID_IO)] = {
+    .name = "hid",
+    .title = strtext("Human Interface I/O"),
+    .prefix = "HID"
   },
 
   [LOG_CATEGORY_INDEX(BRAILLE_DRIVER)] = {
@@ -281,8 +288,13 @@ closeLogFile (void) {
 void
 openLogFile (const char *path) {
   closeLogFile();
-  logFile = fopen(path, "w");
-  if (logFile) writeUtf8ByteOrderMark(logFile);
+  FILE *stream = fopen(path, "w");
+
+  if (stream) {
+  //setCloseOnExec(fileno(stream), 1);
+    writeUtf8ByteOrderMark(stream);
+    logFile = stream;
+  }
 }
 
 static void
@@ -365,84 +377,88 @@ closeSystemLog (void) {
 #endif /* close system log */
 }
 
-void
+int
 logData (int level, LogDataFormatter *formatLogData, const void *data) {
-  const char *prefix = NULL;
-  int push = 0;
+  LogCategoryIndex category = level >> LOG_LEVEL_WIDTH;
+  level &= LOG_LEVEL_MASK;
 
-  if (level & LOG_FLG_CATEGORY) {
-    int category = level & LOG_MSK_CATEGORY;
-    if (!logCategoryFlags[category]) return;
+  const char *prefix;
+  int push;
+
+  if (category) {
+    category -= 1;
+
+    if (!logCategoryFlags[category]) return 0;
+    if (!level) level = categoryLogLevel;
+
     const LogCategoryEntry *ctg = &logCategoryTable[category];
-
     prefix = ctg->prefix;
-    level = categoryLogLevel;
+    push = 0;
   } else {
+    prefix = NULL;
     push = level <= LOG_WARNING;
   }
 
-  {
-    int write = level <= systemLogLevel;
-    int print = level <= stderrLogLevel;
+  int write = level <= systemLogLevel;
+  int print = level <= stderrLogLevel;
+  if (!(write || print || push)) return 0;
 
-    if (write || print || push) {
-      int oldErrno = errno;
+  int oldErrno = errno;
 
-      char record[0X1000];
-      STR_BEGIN(record, sizeof(record));
-      if (prefix) STR_PRINTF("%s: ", prefix);
-      STR_FORMAT(formatLogData, data);
-      STR_END;
+  char record[0X1000];
+  STR_BEGIN(record, sizeof(record));
+  if (prefix) STR_PRINTF("%s: ", prefix);
+  STR_FORMAT(formatLogData, data);
+  STR_END;
 
-      if (write) {
-        writeLogRecord(record);
+  if (write) {
+    writeLogRecord(record);
 
 #if defined(WINDOWS)
-        if (windowsEventLog != INVALID_HANDLE_VALUE) {
-          const char *strings[] = {record};
+    if (windowsEventLog != INVALID_HANDLE_VALUE) {
+      const char *strings[] = {record};
 
-          ReportEvent(
-            windowsEventLog, toWindowsEventType(level), 0, 0, NULL,
-            ARRAY_COUNT(strings), 0, strings, NULL
-          );
-        }
+      ReportEvent(
+        windowsEventLog, toWindowsEventType(level), 0, 0, NULL,
+        ARRAY_COUNT(strings), 0, strings, NULL
+      );
+    }
 
 #elif defined(__MSDOS__)
 
 #elif defined(__ANDROID__)
-        __android_log_write(
-          toAndroidLogPriority(level), PACKAGE_TARNAME, record
-        );
+    __android_log_write(
+      toAndroidLogPriority(level), PACKAGE_TARNAME, record
+    );
 
 #elif defined(HAVE_SYSLOG_H)
-        if (syslogOpened) syslog(level, "%s", record);
+    if (syslogOpened) syslog(level, "%s", record);
 #endif /* write system log */
-      }
-
-      if (print) {
-        FILE *stream = stderr;
-        lockStream(stream);
-
-        if (logPrefixStack) {
-          const char *prefix = getLogEntryText(logPrefixStack);
-
-          if (*prefix) {
-            fputs(prefix, stream);
-            fputs(": ", stream);
-          }
-        }
-
-        writeWithConsoleEncoding(stream, record, strlen(record));
-        fputc('\n', stream);
-
-        flushStream(stream);
-        unlockStream(stream);
-      }
-
-      if (push) pushLogMessage(record);
-      errno = oldErrno;
-    }
   }
+
+  if (print) {
+    FILE *stream = stderr;
+    lockStream(stream);
+
+    if (logPrefixStack) {
+      const char *prefix = getLogEntryText(logPrefixStack);
+
+      if (*prefix) {
+        fputs(prefix, stream);
+        fputs(": ", stream);
+      }
+    }
+
+    writeWithConsoleEncoding(stream, record, strlen(record));
+    fputc('\n', stream);
+
+    flushStream(stream);
+    unlockStream(stream);
+  }
+
+  if (push) pushLogMessage(record);
+  errno = oldErrno;
+  return 1;
 }
 
 static size_t
@@ -464,23 +480,26 @@ formatLogMessageData (char *buffer, size_t size, const void *data) {
   return formatLogArguments(buffer, size, msg->format, msg->arguments);
 }
 
-void
+int
 vlogMessage (int level, const char *format, va_list *arguments) {
   const LogMessageData msg = {
     .format = format,
     .arguments = arguments
   };
 
-  logData(level, formatLogMessageData, &msg);
+  return logData(level, formatLogMessageData, &msg);
 }
 
-void
+int
 logMessage (int level, const char *format, ...) {
+  int wasLogged;
   va_list arguments;
 
   va_start(arguments, format);
-  vlogMessage(level, format, &arguments);
+  wasLogged = vlogMessage(level, format, &arguments);
   va_end(arguments);
+
+  return wasLogged;
 }
 
 typedef struct {
@@ -507,11 +526,12 @@ STR_BEGIN_FORMATTER(formatLogBytesData, const void *data)
   }
 STR_END_FORMATTER
 
-void
+int
 logBytes (int level, const char *label, const void *data, size_t length, ...) {
+  int wasLogged;
   va_list arguments;
-  va_start(arguments, length);
 
+  va_start(arguments, length);
   {
     const LogBytesData bytes = {
       .label = label,
@@ -520,10 +540,11 @@ logBytes (int level, const char *label, const void *data, size_t length, ...) {
       .length = length
     };
 
-    logData(level, formatLogBytesData, &bytes);
+    wasLogged = logData(level, formatLogBytesData, &bytes);
   }
-
   va_end(arguments);
+
+  return wasLogged;
 }
 
 typedef struct {
@@ -549,11 +570,12 @@ STR_BEGIN_FORMATTER(formatLogSymbolData, const void *data)
   }
 STR_END_FORMATTER
 
-void
+int
 logSymbol (int level, void *address, const char *format, ...) {
+  int wasLogged;
   va_list arguments;
-  va_start(arguments, format);
 
+  va_start(arguments, format);
   {
     const LogSymbolData symbol = {
       .address = address,
@@ -561,55 +583,56 @@ logSymbol (int level, void *address, const char *format, ...) {
       .arguments = &arguments
     };
 
-    logData(level, formatLogSymbolData, &symbol);
+    wasLogged = logData(level, formatLogSymbolData, &symbol);
   }
-
   va_end(arguments);
+
+  return wasLogged;
 }
 
-void
+int
 logActionProblem (int level, int error, const char *action) {
-  logMessage(level, "%s error %d: %s", action, error, strerror(error));
+  return logMessage(level, "%s error %d: %s", action, error, strerror(error));
 }
 
-void
+int
 logActionError (int error, const char *action) {
-  logActionProblem(LOG_ERR, error, action);
+  return logActionProblem(LOG_ERR, error, action);
 }
 
-void
+int
 logSystemProblem (int level, const char *action) {
-  logActionProblem(level, errno, action);
+  return logActionProblem(level, errno, action);
 }
 
-void
+int
 logSystemError (const char *action) {
-  logSystemProblem(LOG_ERR, action);
+  return logSystemProblem(LOG_ERR, action);
 }
 
-void
+int
 logMallocError (void) {
-  logSystemError("malloc");
+  return logSystemError("malloc");
 }
 
-void
+int
 logUnsupportedFeature (const char *name) {
-  logMessage(LOG_WARNING, "feature not supported: %s", name);
+  return logMessage(LOG_WARNING, "feature not supported: %s", name);
 }
 
-void
+int
 logUnsupportedOperation (const char *name) {
   errno = ENOSYS;
-  logSystemError(name);
+  return logSystemError(name);
 }
 
-void
+int
 logPossibleCause (const char *cause) {
-  logMessage(LOG_WARNING, "possible cause: %s", cause);
+  return logMessage(LOG_WARNING, "possible cause: %s", cause);
 }
 
 #ifdef WINDOWS
-void
+int
 logWindowsError (DWORD error, const char *action) {
   char *message;
   DWORD count = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
@@ -625,36 +648,35 @@ logWindowsError (DWORD error, const char *action) {
     message = "unknown";
   }
 
-  logMessage(LOG_ERR, "%s error %d: %s", action, (int)error, message);
+  int wasLogged = logMessage(LOG_ERR, "%s error %d: %s", action, (int)error, message);
   if (count) LocalFree(message);
+  return wasLogged;
 }
 
-void
+int
 logWindowsSystemError (const char *action) {
   DWORD error = GetLastError();
-
-  logWindowsError(error, action);
+  return logWindowsError(error, action);
 }
 
 #ifdef __MINGW32__
-void
+int
 logWindowsSocketError (const char *action) {
   DWORD error = WSAGetLastError();
-
-  logWindowsError(error, action);
+  return logWindowsError(error, action);
 }
 #endif /* __MINGW32__ */
 #endif /* WINDOWS */
 
-static void
+static int
 logBacktraceString (const char *string) {
-  logMessage(LOG_DEBUG, "backtrace: %s", string);
+  return logMessage(LOG_DEBUG, "backtrace: %s", string);
 }
 
 #if defined(HAVE_EXECINFO_H)
 #include <execinfo.h>
 
-void
+int
 logBacktrace (void) {
   const int limit = 30;
   void *frames[limit];
@@ -668,12 +690,12 @@ logBacktrace (void) {
       char **end = string + count;
 
       while (string < end) {
-        logBacktraceString(*string);
+        if (!logBacktraceString(*string)) return 0;
         string += 1;
       }
 
       if (count == limit) {
-        logBacktraceString("...");
+        if (!logBacktraceString("...")) return 0;
       }
 
       free(strings);
@@ -681,13 +703,15 @@ logBacktrace (void) {
       logSystemError("backtrace_symbols");
     }
   } else {
-    logBacktraceString("no frames");
+    if (!logBacktraceString("no frames")) return 0;
   }
+
+  return 1;
 }
 
 #else /* log backtrace */
-void
+int
 logBacktrace (void) {
-  logBacktraceString("not supported");
+  return logBacktraceString("not supported");
 }
 #endif /* log backtrace */

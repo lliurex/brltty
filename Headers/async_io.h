@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -19,19 +19,12 @@
 #ifndef BRLTTY_INCLUDED_ASYNC_IO
 #define BRLTTY_INCLUDED_ASYNC_IO
 
-#include "async.h"
+#include "async_types_io.h"
+#include "async_types_handle.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-typedef struct {
-  void *data;
-  int error;
-} AsyncMonitorCallbackParameters;
-
-#define ASYNC_MONITOR_CALLBACK(name) int name (const AsyncMonitorCallbackParameters *parameters)
-typedef ASYNC_MONITOR_CALLBACK(AsyncMonitorCallback);
 
 extern int asyncMonitorFileInput (
   AsyncHandle *handle,
@@ -69,18 +62,6 @@ extern int asyncMonitorSocketAlert (
   AsyncMonitorCallback *callback, void *data
 );
 
-typedef struct {
-  void *data;
-  const void *buffer;
-  size_t size;
-  size_t length;
-  int error;
-  unsigned end:1;
-} AsyncInputCallbackParameters;
-
-#define ASYNC_INPUT_CALLBACK(name) size_t name (const AsyncInputCallbackParameters *parameters)
-typedef ASYNC_INPUT_CALLBACK(AsyncInputCallback);
-
 extern int asyncReadFile (
   AsyncHandle *handle,
   FileDescriptor fileDescriptor,
@@ -94,16 +75,6 @@ extern int asyncReadSocket (
   size_t size,
   AsyncInputCallback *callback, void *data
 );
-
-typedef struct {
-  void *data;
-  const void *buffer;
-  size_t size;
-  int error;
-} AsyncOutputCallbackParameters;
-
-#define ASYNC_OUTPUT_CALLBACK(name) void name (const AsyncOutputCallbackParameters *parameters)
-typedef ASYNC_OUTPUT_CALLBACK(AsyncOutputCallback);
 
 extern int asyncWriteFile (
   AsyncHandle *handle,

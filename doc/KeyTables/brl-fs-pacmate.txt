@@ -1,0 +1,87 @@
+Key Table: FreedomScientific PAC Mate
+=====================================
+
+Notes
+* The rear row of cursor routing keys is actually a set of navigation keys.
+* The 10 middle keys (5 on each side of the center) are special.
+* The two outer ones are named LeftSelector and RightSelector.
+* The eight inner ones are named Hot1 through Hot8.
+* The PanLeft key is any key to the left of the special keys.
+* The PanRight key is any key to the right of the special keys.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Hot5
+* enter/leave command learn mode: Hot6
+* enter/leave preferences menu: Hot7
+* enter/leave status display: Hot8
+* set display mode attributes/text: Hot2
+* set screen image frozen/unfrozen: RightSelector+Hot5
+* describe character: RightWheelPress+RoutingKey
+
+Cursor Functions
+* go to screen cursor: RightSelector
+* go back after cursor tracking: LeftSelector
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line:
+  + PanLeft+PanRight
+  + RightSelector+Hot8
+
+Vertical Navigation
+* go up one line: LeftWheelUp
+* go down one line: LeftWheelDown
+* go to top line: RightSelector+PanLeft
+* go to bottom line: RightSelector+PanRight
+* go to beginning of top line:
+  + long LeftSelector
+  + LeftSelector+PanLeft
+* go to beginning of bottom line:
+  + long RightSelector
+  + LeftSelector+PanRight
+* go up to nearest line with different content: LeftWheelPress+LeftWheelUp
+* go down to nearest line with different content: LeftWheelPress+LeftWheelDown
+* go up to nearest line with different highlighting: LeftSelector+LeftWheelUp
+* go down to nearest line with different highlighting: LeftSelector+LeftWheelDown
+* go up to first line of paragraph: PanRight+LeftWheelUp
+* go down to first line of next paragraph: PanRight+LeftWheelDown
+* go up to previous command prompt: PanLeft+LeftWheelUp
+* go down to next command prompt: PanLeft+LeftWheelDown
+
+Horizontal Navigation
+* go backward one braille window:
+  + RightWheelUp
+  + PanLeft
+* go forward one braille window:
+  + RightWheelDown
+  + PanRight
+* go to beginning of line: LeftWheelPress
+* go to end of line: RightWheelPress
+* go left one character: RightWheelPress+RightWheelUp
+* go right one character: RightWheelPress+RightWheelDown
+* place left end of braille window at character: LeftWheelPress+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: PanLeft+RoutingKey
+* append to clipboard from character: LeftSelector+RoutingKey
+* linear copy to character: RightSelector+RoutingKey
+* rectangular copy to character: PanRight+RoutingKey
+* copy characters to clipboard: RoutingKey+RoutingKey
+* insert clipboard text after screen cursor: LeftSelector+RightSelector
+* search backward for clipboard text: RightSelector+LeftWheelUp
+* search forward for clipboard text: RightSelector+LeftWheelDown
+
+Configuration Functions
+* set autorepeat on/off: RightSelector+Hot4
+* set text style 6-dot/8-dot: Hot4
+* set skipping of lines with identical content on/off: Hot1
+* set skipping of blank braille windows on/off: RightSelector+Hot1
+* set track screen cursor on/off: Hot3
+* set screen cursor visibility on/off: RightSelector+Hot3
+* set attribute underlining on/off: RightSelector+Hot2
+
+Menu Operations
+* save preferences to disk: RightSelector+Hot7
+* restore preferences from disk: RightSelector+Hot6
+

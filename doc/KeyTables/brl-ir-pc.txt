@@ -1,0 +1,57 @@
+Key Table: Iris (with PC keyboard)
+==================================
+
+Notes
+* The eight extra keys at the ends of the keyboard are known as linear keys.
+  The four at the left, from top to bottom, are named L1 through L4.
+  The four at the right, from bottom to top, are named L5 through L8.
+* RoutingKey refers to any of the keys behind the text cells.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: L1+L2+L7
+* enter/leave command learn mode: L1+L2+L3
+* enter/leave preferences menu: L1+L2+L3+L8
+* enter/leave status display: L2+L8
+* set screen image frozen/unfrozen: L1+L2+L8
+* describe character: L6+RoutingKey
+
+Cursor Functions
+* go to screen cursor: L7+L6
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: L5+XtE0.73
+* go down one line: L5+XtE0.81
+* go to beginning of top line: L7
+* go to beginning of bottom line: L6
+
+Horizontal Navigation
+* go backward one braille window: L5+XtE0.76
+* go forward one braille window: L5+XtE0.78
+* go backward skipping blank braille windows: L1
+* go forward skipping blank braille windows: L8
+* place left end of braille window at character: L3+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: L1+RoutingKey
+* append to clipboard from character: L2+RoutingKey
+* linear copy to character: L8+RoutingKey
+* rectangular copy to character: L7+RoutingKey
+* insert clipboard text after screen cursor: L2+L3
+* insert clipboard history entry after screen cursor: L2+L3+L4, RoutingKey
+
+Configuration Functions
+* set text style 6-dot/8-dot: L4+L5
+* set text style 6-dot: L2+L3+L7
+* set text style 8-dot: L2+L3+L6
+* set screen cursor visibility on/off: L4
+* set alert tunes on/off: L1+L2
+
+Internal Functions
+* XT (set 1) keyboard scan code: Xt
+* XT (set 1) keyboard scan code: XtE0
+* XT (set 1) keyboard scan code: XtE1
+

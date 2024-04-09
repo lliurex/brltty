@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -33,7 +33,7 @@
 # Each configuration entry consists of a keyword followed by its operand.
 # An arbitrary amount of white space, (blanks and/or tabs), may occur
 # before the keyword, as well as before and after the operand. Keyword
-# processing is not case sensitive. Examples of valid entries are:
+# processing isn't case sensitive. Examples of valid entries are:
 #
 #	Braille-Driver	pm	# Papenmeier braille displays.
 #	braille-device	serial:@serial_first_device@	# The first serial device.
@@ -60,22 +60,22 @@
 #braille-driver	ba	# BrlAPI
 #braille-driver	bc	# BrailComm
 #braille-driver	bd	# Braudi
-#braille-driver	bg	# B2G
 #braille-driver	bl	# BrailleLite
-#braille-driver	bm	# Baum
+#braille-driver	bm	# Baum;; Refreshabraille, Orbit, NLS eReader Zoomax, NBP B2G
 #braille-driver	bn	# BrailleNote
 #braille-driver	cb	# CombiBraille
 #braille-driver	ce	# Cebra
 #braille-driver	cn	# Canute
+#braille-driver	dp	# DotPad
 #braille-driver	ec	# EcoBraille
 #braille-driver	eu	# EuroBraille
 #braille-driver	fa	# FrankAudiodata
-#braille-driver	fs	# FreedomScientific
+#braille-driver	fs	# FreedomScientific; VFO, Vispero
 #braille-driver	hd	# Hedo
 #braille-driver	hm	# HIMS
-#braille-driver	ht	# HandyTech
-#braille-driver	hw	# HumanWare
-#braille-driver	ic	# Inceptor
+#braille-driver	ht	# HandyTech; HelpTech
+#braille-driver	hw	# HumanWare;; APH Chameleon, APH Mantis, NLS eReader
+#braille-driver	ic	# Inceptor; Innovision
 #braille-driver	ir	# Iris
 #braille-driver	lb	# Libbraille
 #braille-driver	lt	# LogText
@@ -90,12 +90,9 @@
 #braille-driver	sk	# Seika
 #braille-driver	tn	# TechniBraille
 #braille-driver	ts	# TSI
-#braille-driver	tt	# TTY
 #braille-driver	vd	# VideoBraille
-#braille-driver	vo	# Voyager, BraillePen/EasyLink
-#braille-driver	vr	# Virtual
+#braille-driver	vo	# Voyager;; Braille Pen, Easy Link
 #braille-driver	vs	# VisioBraille
-#braille-driver	xw	# XWindow
 
 # The braille-device directive specifies the device to which the braille
 # display is connected. The generic syntax is type:device. The device
@@ -113,9 +110,9 @@
 #braille-device	usb:nnnnn	# Specific USB device by serial number.
 #braille-device	bluetooth:		# First paired Bluetooth device matching braille driver.
 #braille-device	bluetooth:xx:xx:xx:xx:xx:xx	# Specific bluetooth device by address.
-#
+
 # NOTE: If the device is connected via a serial-to-USB adapter then setting
-# braille-device to usb: will not work. In this case it needs to identify the
+# braille-device to usb: will not work. In this case, you needs to identify the
 # virtual serial device which the kernel has created for the adapter, i.e. to
 # something like serial:ttyUSB0 or ttyACM0 (see the kernel messages on device
 # plug to get the actual device name).
@@ -145,7 +142,7 @@
 #text-table	cs	# Czech
 #text-table	cy	# Welsh
 #text-table	da	# Danish
-#text-table	da-1252	# Danish (Svend Thougaard, 2002-11-18)
+#text-table	da-1252	# Danish (Svend Thougaard, 2002–11–18)
 #text-table	da-lt	# Danish (LogText)
 #text-table	de	# German
 #text-table	dra	# Dravidian
@@ -222,6 +219,49 @@
 #text-table	uk	# Ukrainian
 #text-table	vi	# Vietnamese
 
+# The contraction-table directive specifies which contraction table to use.
+# Relative paths are anchored at "@TABLES_DIRECTORY@/@CONTRACTION_TABLES_SUBDIRECTORY@". If not specified, no
+# contraction table will be available.
+# (can be overridden with the --contraction-table= [-c] option)
+#contraction-table	auto	# locale-based autoselection
+#contraction-table	af	# Afrikaans (contracted)
+#contraction-table	am	# Amharic (uncontracted)
+#contraction-table	de	# German
+#contraction-table	de-g0	# German (uncontracted)
+#contraction-table	de-g1	# German (basic contractions)
+#contraction-table	de-g2	# German (contracted)
+#contraction-table	de-1998	# German (contracted - 1998 standard)
+#contraction-table	de-2015	# German (contracted - 2015 standard)
+#contraction-table	en	# English
+#contraction-table	en_US	# English (United States)
+#contraction-table	en-ueb-g1	# English (Unified, uncontracted)
+#contraction-table	en-ueb-g2	# English (Unified, contracted)
+#contraction-table	en-us-g2	# English (United States, contracted)
+#contraction-table	es	# Spanish (contracted)
+#contraction-table	fr	# French
+#contraction-table	fr-g1	# French (uncontracted)
+#contraction-table	fr-g2	# French (contracted)
+#contraction-table	ha	# Hausa (contracted)
+#contraction-table	id	# Indonesian (contracted)
+#contraction-table	ipa	# International Phonetic Alphabet
+#contraction-table	ja	# Japanese (uncontracted)
+#contraction-table	ko	# Korean
+#contraction-table	ko-g0	# Korean (uncontracted)
+#contraction-table	ko-g1	# Korean (partially contracted)
+#contraction-table	ko-g2	# Korean (contracted)
+#contraction-table	lt	# Lithuanian (uncontracted)
+#contraction-table	mg	# Malagasy (contracted)
+#contraction-table	mun	# Munda (contracted)
+#contraction-table	nl	# Dutch (contracted)
+#contraction-table	ny	# Chichewa (contracted)
+#contraction-table	pt	# Portuguese (contracted)
+#contraction-table	ru	# Russian (contracted)
+#contraction-table	si	# Sinhalese (uncontracted)
+#contraction-table	sw	# Swahili (contracted)
+#contraction-table	th	# Thai (contracted)
+#contraction-table	zh_TW	# Chinese (Taiwan, uncontracted)
+#contraction-table	zu	# Zulu (contracted)
+
 # The attributes-table directive specifies which attributes table to use.
 # Relative paths are anchored at "@TABLES_DIRECTORY@/@ATTRIBUTES_TABLES_SUBDIRECTORY@". If not specified,
 # "@attributes_table@" will be used.
@@ -229,41 +269,6 @@
 #attributes-table	left_right	# foreground colour in the left column and background colour in the right column
 #attributes-table	invleft_right	# inverse foreground colour in the left column and background colour in the right column
 #attributes-table	upper_lower	# foreground colour in the upper square and background colour in the lower square
-
-# The contraction-table directive specifies which contraction table to use.
-# Relative paths are anchored at "@TABLES_DIRECTORY@/@CONTRACTION_TABLES_SUBDIRECTORY@". If not specified, no
-# contraction table will be available.
-# (can be overridden with the --contraction-table= [-c] option)
-#contraction-table	af	# Afrikaans (contracted)
-#contraction-table	am	# Amharic (uncontracted)
-#contraction-table	de-g0	# German (uncontracted)
-#contraction-table	de-g1	# German (basic contractions)
-#contraction-table	de-g2	# German (contracted - 1998 standard)
-#contraction-table	de-1998	# German (contracted - 1998 standard)
-#contraction-table	de-2015	# German (contracted - 2015 standard)
-#contraction-table	en-ueb-g2	# English (Unified English Braille, grade 2)
-#contraction-table	en-us-g2	# English (US, grade 2)
-#contraction-table	es	# Spanish (grade 2)
-#contraction-table	fr-g1	# French (uncontracted)
-#contraction-table	fr-g2	# French (contracted)
-#contraction-table	ha	# Hausa (contracted)
-#contraction-table	id	# Indonesian (contracted)
-#contraction-table	ja	# Japanese (uncontracted)
-#contraction-table	ko-g1	# Korean (grade 1)
-#contraction-table	ko-g2	# Korean (grade 2)
-#contraction-table	ko	# Korean (uncontracted)
-#contraction-table	lt	# Lithuanian (uncontracted)
-#contraction-table	mg	# Malagasy (contracted)
-#contraction-table	mun	# Munda (contracted)
-#contraction-table	nl	# Dutch (contracted)
-#contraction-table	ny	# Chichewa (contracted)
-#contraction-table	ipa	# International Phonetic Alphabet
-#contraction-table	pt	# Portuguese (grade 2)
-#contraction-table	si	# Sinhalese (uncontracted)
-#contraction-table	sw	# Swahili (contracted)
-#contraction-table	th	# Thai (contracted)
-#contraction-table	zh-tw	# Chinese (Taiwan, uncontracted)
-#contraction-table	zu	# Zulu (contracted)
 
 
 #############################
@@ -283,6 +288,7 @@
 # BrlAPI Braille Driver Parameters
 #braille-parameters ba:Auth=@CONFIGURATION_DIRECTORY@/@api_authkeyfile@
 #braille-parameters ba:Host=:0
+#braille-parameters ba:SpeechChanges=yes # [yes,no]
 
 # BrailleLite Braille Driver Parameters
 #braille-parameters bl:BaudRate=9600 # [300,600,1200,2400,4800,9600,19200,38400]
@@ -291,6 +297,9 @@
 # Baum Braille Driver Parameters
 #braille-parameters bm:Protocol=default # [default,escape,hid1,hid2,ht,pb]
 #braille-parameters bm:VarioKeys=no # [no,yes]
+
+# DotPad Braille Driver Parameters
+#brailledd-parameters dp:Display=default # [default,text,graphic]
 
 # EuroBraille Braille Driver Parameters
 #braille-parameters eu:Protocol= # [auto,azerbraille,clio,eurobraille,notebraille,pupibraille,scriba,esys,esytime,iris,esysiris]
@@ -346,25 +355,20 @@
 # (can be overridden with the --speech-driver= [-s] option)
 #speech-driver	auto	# autodetect
 #speech-driver	al	# Alva
-#speech-driver	an	# Android (text to speech engine)
+#speech-driver	an	# Android
 #speech-driver	bl	# BrailleLite
 #speech-driver	cb	# CombiBraille
-#speech-driver	en	# eSpeak-NG (text to speech engine)
-#speech-driver	es	# eSpeak (text to speech engine)
-#speech-driver	fl	# FestivalLite (text to speech engine)
-#speech-driver	fv	# Festival (text to speech engine)
-#speech-driver	gs	# GenericSay (pipes to /usr/local/bin/say)
-#speech-driver	mp	# Mikropuhe (text to speech engine)
-#speech-driver	sd	# SpeechDispatcher (text to speech server)
-#speech-driver	sw	# Swift (text to speech engine)
-#speech-driver	th	# Theta (text to speech engine)
-#speech-driver	vv	# ViaVoice (text to speech engine)
-#speech-driver	xs	# ExternalSpeech (executes /usr/local/bin/externalspeech)
-
-# The quiet-if-no-braille directive fully disables the autospeak feature.
-# Screen content won't be automatically spoken when braille isn't being used.
-# (can be overridden with the --quiet-if-no-braille= [-Q] option)
-#quiet-if-no-braille	off	# [off,on]
+#speech-driver	en	# eSpeak-NG
+#speech-driver	es	# eSpeak
+#speech-driver	fl	# FestivalLite
+#speech-driver	fv	# Festival
+#speech-driver	gs	# GenericSay
+#speech-driver	mp	# Mikropuhe
+#speech-driver	sd	# SpeechDispatcher
+#speech-driver	sw	# Swift
+#speech-driver	th	# Theta
+#speech-driver	vv	# ViaVoice; Voxin
+#speech-driver	xs	# ExternalSpeech
 
 # The speech-input directive specifies the name of the file system object
 # (FIFO, named pipe, named socket, etc) which can be used by external
@@ -373,6 +377,16 @@
 # specified, the file system object isn't created.
 # (can be overridden with the --speech-input= [-i] option)
 #speech-input	/path/to/file-system-object
+
+# The quiet-if-no-braille directive specifies that the autospeak feature
+# isn't to be implicitly enabled when the braille driver is not running.
+# (can be overridden with the --quiet-if-no-braille= [-Q] option)
+#quiet-if-no-braille	off	# [off,on]
+
+# The autospeak-threshold directive specifies the minimum screen content
+# quality that will trigger the autospeak feature.
+# (can be overridden with the --autospeak-threshold= option)
+#autospeak-threshold	none
 
 
 ############################
@@ -456,6 +470,7 @@
 # The keyboard-table directive specifies which keyboard table to use. Relative paths are
 # anchored at "@TABLES_DIRECTORY@/@KEYBOARD_TABLES_SUBDIRECTORY@". If not specified, no keyboard table is used.
 # (can be overridden with the --keyboard-table= [-k] option)
+#keyboard-table	off	# no keyboard table
 #keyboard-table	braille	# bindings for braille keyboards
 #keyboard-table	desktop	# bindings for full keyboards
 #keyboard-table	keypad	# bindings for keypad-based navigation
@@ -494,6 +509,11 @@
 # Logging Options #
 ###################
 
+# The quiet directive reduces the logging level to standard error by one
+# level and also suppresses the braille and speech driver banners.
+# (can be overridden with the --quiet [-q] option)
+#quiet off	# [off,on]
+
 # The log-file directive specifies the file to which diagnostics are written.
 # Relative paths are anchored at the current working directory. If not
 # specified, diagnostics are written to the system log.
@@ -509,36 +529,37 @@
 # Only one severity threshold may be specified. Less severe uncategorized
 # events will not be logged. If not specified, "notice" will be assumed.
 # The severity thresholds are:
-#	emergency
-#	alert
-#	critical
-#	error
-#	warning
-#	notice
-#	information
-#	debug
+#log-level	emergency
+#log-level	alert
+#log-level	critical
+#log-level	error
+#log-level	warning
+#log-level	notice
+#log-level	information
+#log-level	debug
 
 # Any number of event categories may be enabled. Prefixing a category name
 # with a minus sign [-] disables it (particularly useful if "all" is used).
 # The categories are:
-#	all	enable all of the categories
-#	ingio	generic input
-#	inpkts	input packets
-#	outpkts	output packets
-#	brlkeys	braille device key events
-#	kbdkeys	keyboard key events
-#	csrtrk	cursor tracking
-#	csrrtg	cursor routing
-#	update	update events
-#	speech	speech events
-#	async	asynchronous event scheduling
-#	server	BrlAPI server events
-#	serial	serial I/O
-#	usb	USB I/O
-#	bluetooth	Bluetooth I/O
-#	brldrv	braille driver events
-#	spkdrv	speech driver events
-#	scrdrv	screen driver events
+#log-level	all	# enable all of the categories
+#log-level	inpkts	# input packets
+#log-level	outpkts	# output packets
+#log-level	brlkeys	# braille device key events
+#log-level	kbdkeys	# keyboard key events
+#log-level	csrtrk	# cursor tracking
+#log-level	csrrtg	# cursor routing
+#log-level	update	# update events
+#log-level	speech	# speech events
+#log-level	async	# asynchronous event scheduling
+#log-level	server	# BrlAPI server events
+#log-level	gio	# generic I/O
+#log-level	serial	# serial I/O
+#log-level	usb	# USB I/O
+#log-level	bt	# Bluetooth I/O
+#log-level	hid	# Human Interface I/O
+#log-level	brldrv	# braille driver events
+#log-level	spkdrv	# speech driver events
+#log-level	scrdrv	# screen driver events
 
 
 #######################
@@ -594,7 +615,7 @@
 #drivers-directory @DRIVERS_DIRECTORY@
 
 # The tables-directory directive specifies the absolute path to the directory
-# which contains the text, attributes, contraction, keyboard, and input tables.
+# which contains the text, contraction, attributes, keyboard, and input tables.
 # If not specified, "@TABLES_DIRECTORY@" will be used.
 # (can be overridden with the --tables-directory= [-T] option)
 #tables-directory @TABLES_DIRECTORY@
@@ -632,7 +653,7 @@
 # The stay-privileged directive disables switching to an unprivilegdd user
 # as well as the relinquishing of any privileges (group memberships,
 # capabilities, etc).
-# (can be overridden with the --stay-privileged= [-Z] option)
+# (can be overridden with the --stay-privileged= [-z] option)
 #stay-privileged	off	# [off,on]
 
 # The privilege-parameters directive specifies the default privilege
@@ -640,7 +661,7 @@
 # user (e.g. by root on a Linux/Unix system). The configured defaults are:
 # "@privilege_parameters@".
 # (can be specified more than once)
-# (can be overridden with the --privilege-parameters= [-z] option)
+# (can be overridden with the --privilege-parameters= [-Z] option)
 #privilege-parameters platform:name=value,...
 
 # Linux Privilege Parameters
@@ -683,9 +704,11 @@
 #screen-driver	an	# Android
 #screen-driver	as	# AtSpi
 #screen-driver	a2	# AtSpi2
+#screen-driver	em	# Terminal Emulator
+#screen-driver	fv	# File Viewer
 #screen-driver	hd	# Hurd
 #screen-driver	lx	# Linux
-#screen-driver	pb	# PCBIOS
+#screen-driver	pb	# PcBios
 #screen-driver	sc	# Screen
 #screen-driver	wn	# Windows
 
@@ -707,13 +730,27 @@
 #screen-parameters a2:Release=yes # [yes,no]
 #screen-parameters a2:Type=default # [default,all,{terminal,text}+...]
 
+# File Viewer Screen Driver Parameters
+#screen-parameters fv:File=path #
+
 # Linux Screen Driver Parameters
 #screen-parameters lx:Charset=name+... # []
 #screen-parameters lx:FallbackText=text # ""
 #screen-parameters lx:HFB=auto # [auto,vga,fb,0-7]
 #screen-parameters lx:LogSFM=no # [no,yes]
+#screen-parameters lx:RpiSpacesBug=no # [no,yes]
 #screen-parameters lx:Unicode=yes # [yes,no]
 #screen-parameters lx:VT=0 # [0-63]
+#screen-parameters lx:WidecharPadding=no # [no,yes]
+
+# Terminal Emulator Screen Driver Parameters
+#screen-parameters em:Directory=path # []
+#screen-parameters em:Emulator=command # [brltty-pty]
+#screen-parameters em:Group=name/number # []
+#screen-parameters em:Home=path # []
+#screen-parameters em:Path=path # []
+#screen-parameters em:Shell=command # [$SHELL]
+#screen-parameters em:User=name/number # []
 
 # Windows Screen Driver Parameters
 #screen-parameters wn:Root=no # [no,yes]

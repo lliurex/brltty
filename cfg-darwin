@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -17,40 +17,55 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
-./configure \
-   --disable-gpm \
-   --disable-iconv \
-   --disable-polkit \
-   \
-   --without-libbraille \
-   \
-   --without-espeak \
-   --without-espeak-ng \
-   --without-flite \
-   --without-mikropuhe \
-   --without-speechd \
-   --without-swift \
-   --without-theta \
-   \
-   --without-pgmpath-package \
-   --without-service-package \
-   --without-params-package \
-   --without-charset-package \
-   --without-mntpt-package \
-   --without-mntfs-package \
-   --without-kbd-package \
-   --without-bell-package \
-   --without-leds-package \
-   --without-beep-package \
-   --without-pcm-package \
-   --without-fm-package \
-   --without-ports-package \
-   \
-   --disable-java-bindings \
-   --disable-ocaml-bindings \
-   --disable-python-bindings \
-   --disable-tcl-bindings \
-   \
-   --quiet \
-   "${@}"
+. "`dirname "${0}"`/brltty-prologue.sh"
+
+handleInitialHelpOption "${@}" <<END-OF-HELP
+Configure a BRLTTY build for the Darwin (Mac OS X) platform.
+
+Syntax: ${programName} {-h | [-option ...]}
+
+All of the options are passed through, unmodified, as additional options to the configure script.
+END-OF-HELP
+
+configureOptions=(
+   --prefix=/usr/local 
+
+   --disable-gpm
+   --disable-iconv
+   --disable-icu
+   --disable-polkit
+   --disable-x
+
+   --without-libbraille
+
+   --without-espeak
+   --without-espeak-ng
+   --without-flite
+   --without-mikropuhe
+   --without-speechd
+   --without-swift
+   --without-theta
+
+   --without-pgmpath-package
+   --without-pgmprivs-package
+   --without-service-package
+   --without-params-package
+   --without-charset-package
+   --without-mntpt-package
+   --without-mntfs-package
+   --without-kbd-package
+   --without-bell-package
+   --without-leds-package
+   --without-beep-package
+   --without-pcm-package
+   --without-midi-package
+   --without-fm-package
+   --without-hid-package
+   --without-ports-package
+
+   --disable-java-bindings
+   --disable-python-bindings
+)
+
+"${programDirectory}/configure" --quiet "${configureOptions[@]}" "${@}"
 exit "${?}"

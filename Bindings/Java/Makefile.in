@@ -1,7 +1,7 @@
 ###############################################################################
 # libbrlapi - A library providing access to braille terminals for applications.
 #
-# Copyright (C) 2006-2021 by
+# Copyright (C) 2006-2023 by
 #   Samuel Thibault <Samuel.Thibault@ens-lyon.org>
 #   Sébastien Hinderer <Sebastien.Hinderer@ens-lyon.org>
 #
@@ -42,8 +42,8 @@ JAVA_SOURCES = Constants.java $(SRC_DIR)/*.java $(SRC_DIR)/*/*.java
 JAVA_JNI_FILE = $(LIB_PFX)$(API_NAME)_java.$(LIB_EXT)
 jni: $(JAVA_JNI_FILE)
 
-$(JAVA_JNI_FILE): bindings.$O $(API_NAME)
-	$(MKLIB:<name>=$(API_NAME)) $@ bindings.$O $(API_LDFLAGS)
+$(JAVA_JNI_FILE): bindings.$O | $(API_NAME)
+	$(MKLIB:<name>=$(JAVA_JNI_FILE).$(API_VERSION)) $@ bindings.$O $(API_LDFLAGS)
 
 bindings.$O:
 	$(CC) $(LIBCFLAGS) $(JAVA_JNI_FLAGS) -o $@ -c $(SRC_DIR)/bindings.c
@@ -52,7 +52,7 @@ JAVA_JAR_FILE = $(API_NAME).jar
 jar: $(JAVA_JAR_FILE)
 
 $(JAVA_JAR_FILE): classes.made
-	$(JAR) cf $@ -C classes .
+	$(JAR) cfm $@ $(SRC_DIR)/manifest -C classes .
 
 JAVAC_LINT_OPTIONS = cast,deprecation,fallthrough,finally,overrides,rawtypes,unchecked
 

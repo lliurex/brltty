@@ -3,7 +3,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -17,11 +17,14 @@
 # This software is maintained by Dave Mielke <dave@mielke.cc>.
 ###############################################################################
 
+defaultModifiedIndicator="+"
+
 . "`dirname "${0}"`/brltty-prologue.sh"
 addProgramOption a string.anything appendText "text to append to the revision identifier"
 addProgramOption d string.anything defaultIdentifier "the default revision identifier"
 addProgramOption f string.file outputFile "the file in which to write the revision identifier" "standard output"
 addProgramOption i flag asInteger "render the revision identifier as a 32-bit integer"
+addProgramOption m string.anything modifiedIndicator "the modified indicator" "${defaultModifiedIndicator}"
 addProgramOption p string.anything prependText "text to prepend to the revision identifier"
 addProgramOption r string.anything revisionIdentifier "the revision identifier"
 addProgramOption s flag asString "render the revision identifier as a quoted string"
@@ -31,13 +34,12 @@ parseProgramArguments "${@}"
 [ -e "${sourceRoot}" ] || semanticError "directory not found: ${sourceRoot}"
 [ -d "${sourceRoot}" ] || semanticError "not a directory: ${sourceRoot}"
 
-export GIT_WORK_TREE="${sourceRoot}"
-export GIT_DIR="${GIT_WORK_TREE}/.git"
+[ -n "${modifiedIndicator}" ] || modifiedIndicator="${defaultModifiedIndicator}"
 
 [ -n "${revisionIdentifier}" ] || {
-  if [ -d "${GIT_DIR}" -o -f "${GIT_DIR}" ]
+  if [ -e "${sourceRoot}/.git" ]
   then
-     revisionIdentifier="`git describe --tags --abbrev=8 --dirty='M' --match='BRLTTY-*' 2>/dev/null`"
+     revisionIdentifier="`git -C "${sourceRoot}" describe --tags --abbrev=8 --dirty="${modifiedIndicator}" --match="BRLTTY-*" 2>/dev/null`"
   elif [ -d "${sourceRoot}/.svn" ]
   then
      revisionIdentifier="`svnversion -n "${sourceRoot}" 2>/dev/null`"
@@ -47,7 +49,7 @@ export GIT_DIR="${GIT_WORK_TREE}/.git"
      [ -f "${revisionFile}" ] && read <"${revisionFile}" revisionIdentifier
   fi
 
-  [ -n "${revisionIdentifier}" ] || logMessage warning "unrecognized source repository type: ${sourceRoot}"
+  [ -n "${revisionIdentifier}" ] || logWarning "unrecognized source repository type: ${sourceRoot}"
 }
 
 [ -n "${revisionIdentifier}" ] || {

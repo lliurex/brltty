@@ -2,7 +2,7 @@
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -18,13 +18,37 @@
 
 # This key subtable is for FreedomScientific displays which have bumper bars.
 
-bind LeftBumperUp KEY_CURSOR_UP
-bind LeftBumperDown KEY_CURSOR_DOWN
-bind RightBumperUp LNUP
-bind RightBumperDown LNDN
+note The left and right bumpers are long, up/down, rocker bars.
+note * Newer models refer to them as panning rockers.
+note * On some models, each bumper is a pair of shorter bars.
 
-bind LeftSelector+LeftBumperUp TOP
-bind LeftSelector+LeftBumperDown BOT
-bind RightSelector+RightBumperUp TOP
-bind RightSelector+RightBumperDown BOT
+bind LeftBumperUp FWINLT
+bind LeftBumperDown FWINRT
+bind RightBumperUp FWINLT
+bind RightBumperDown FWINRT
+
+bind LeftBumperUp+PanLeft CHRLT
+bind LeftBumperDown+PanLeft CHRRT
+bind RightBumperUp+PanLeft HWINLT
+bind RightBumperDown+PanLeft HWINRT
+
+bind LeftBumperUp+LeftSelector FWINLTSKIP
+bind LeftBumperDown+LeftSelector FWINRTSKIP
+bind RightBumperUp+LeftSelector PRNBWIN
+bind RightBumperDown+LeftSelector NXNBWIN
+
+bind LeftBumperUp+RightSelector PRPROMPT
+bind LeftBumperDown+RightSelector NXPROMPT
+bind RightBumperUp+RightSelector PRPGRPH
+bind RightBumperDown+RightSelector NXPGRPH
+
+bind LeftBumperUp+PanRight FREEZE+on
+bind LeftBumperDown+PanRight FREEZE+off
+bind RightBumperUp+PanRight DISPMD+on
+bind RightBumperDown+PanRight DISPMD+off
+
+bind LeftBumperUp+RoutingKey PRDIFCHAR
+bind LeftBumperDown+RoutingKey NXDIFCHAR
+bind RightBumperUp+RoutingKey PRINDENT
+bind RightBumperDown+RoutingKey NXINDENT
 

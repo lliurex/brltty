@@ -1,0 +1,1120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="Docutils 0.16: http://docutils.sourceforge.net/" />
+<title>BRLTTY on Windows</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7952 2016-07-26 18:15:59Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left, table.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right, table.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table.align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+.align-top    {
+  vertical-align: top }
+
+.align-middle {
+  vertical-align: middle }
+
+.align-bottom {
+  vertical-align: bottom }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math, pre.code {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="brltty-on-windows">
+<h1 class="title">BRLTTY on Windows</h1>
+
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#building-brltty" id="id5">Building BRLTTY</a><ul>
+<li><a class="reference internal" href="#system-requirements" id="id6">System Requirements</a></li>
+<li><a class="reference internal" href="#windows-98-and-me-limitation" id="id7">Windows 98 and ME Limitation</a></li>
+<li><a class="reference internal" href="#package-management-via-the-command-line" id="id8">Package Management via the Command Line</a><ul>
+<li><a class="reference internal" href="#managing-cygwin-packages" id="id9">Managing Cygwin Packages</a></li>
+<li><a class="reference internal" href="#managing-mingw-packages" id="id10">Managing MinGW Packages</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#usb-support" id="id11">USB Support</a><ul>
+<li><a class="reference internal" href="#libusb-win32" id="id12">LibUSB-Win32</a></li>
+<li><a class="reference internal" href="#libusb-1-0" id="id13">LibUSB-1.0</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuring-a-brltty-build" id="id14">Configuring a BRLTTY Build</a></li>
+<li><a class="reference internal" href="#missing-java-class-definitions-on-cygwin" id="id15">Missing Java Class Definitions on Cygwin</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#using-brltty" id="id16">Using BRLTTY</a><ul>
+<li><a class="reference internal" href="#windows-scripts-for-managing-brltty" id="id17">Windows Scripts for Managing BRLTTY</a><ul>
+<li><a class="reference internal" href="#run-brltty-bat" id="id18"><tt class="docutils literal"><span class="pre">run-brltty.bat</span></tt></a></li>
+<li><a class="reference internal" href="#debug-brltty-bat" id="id19"><tt class="docutils literal"><span class="pre">debug-brltty.bat</span></tt></a></li>
+<li><a class="reference internal" href="#kill-brltty-bat" id="id20"><tt class="docutils literal"><span class="pre">kill-brltty.bat</span></tt></a></li>
+<li><a class="reference internal" href="#enable-brlapi-bat" id="id21"><tt class="docutils literal"><span class="pre">enable-brlapi.bat</span></tt></a></li>
+<li><a class="reference internal" href="#disable-brlapi-bat" id="id22"><tt class="docutils literal"><span class="pre">disable-brlapi.bat</span></tt></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sticking-to-a-console" id="id23">Sticking to a Console</a></li>
+<li><a class="reference internal" href="#sharing-the-braille-device-with-other-screen-readers" id="id24">Sharing the Braille Device with Other Screen Readers</a><ul>
+<li><a class="reference internal" href="#sharing-with-jaws" id="id25">Sharing with JAWS</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mingw-scripts-for-building-brltty" id="id26">MinGW Scripts for Building BRLTTY</a><ul>
+<li><a class="reference internal" href="#the-mkwin-script" id="id27">The <tt class="docutils literal">mkwin</tt> Script</a><ul>
+<li><a class="reference internal" href="#software-components-required-by-mkwin" id="id28">Software Components Required by <tt class="docutils literal">mkwin</tt></a></li>
+<li><a class="reference internal" href="#more-mkwin-options" id="id29">More <tt class="docutils literal">mkwin</tt> Options</a></li>
+<li><a class="reference internal" href="#mkwin-parameters" id="id30"><tt class="docutils literal">mkwin</tt> Parameters</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-winsetup-script" id="id31">The <tt class="docutils literal">winsetup</tt> Script</a><ul>
+<li><a class="reference internal" href="#winsetup-options" id="id32"><tt class="docutils literal">winsetup</tt> Options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="building-brltty">
+<h2><a class="toc-backref" href="#id5">Building BRLTTY</a></h2>
+<div class="section" id="system-requirements">
+<h3><a class="toc-backref" href="#id6">System Requirements</a></h3>
+<p>The earliest release of Windows that is supported by BRLTTY is Windows 98.</p>
+<p>Pre-built versions of BRLTTY are available for download on
+<a class="reference external" href="https://brltty.app/">BRLTTY's Web Site</a>. Their names begin with <tt class="docutils literal"><span class="pre">brltty-win-</span></tt>. Those with the
+<tt class="docutils literal">.zip</tt> extension are archives, and those with the <tt class="docutils literal">.exe</tt> extension are
+installers.</p>
+<p>In order to build BRLTTY yourself from a prepared source tarball, you'll need
+Cygwin (see <a class="reference external" href="http://www.cygwin.com/">Cygwin's Web Site</a>) and/or MinGW (see <a class="reference external" href="http://mingw.sourceforge.net/">MinGW's Web Site</a>).
+You'll also need the following additional packages:</p>
+<ul class="simple">
+<li>gcc</li>
+<li>make</li>
+<li>w32api (version 3.6 or later)</li>
+</ul>
+<p>If you'd like to build BRLTTY from its source repository (rather than from one
+of the prepared source tarballs) then you'll also need these packages:</p>
+<ul class="simple">
+<li>autoconf</li>
+<li>tcltk</li>
+</ul>
+<p>If you'd like to prepare the documentation (by doing <tt class="docutils literal">make</tt> within the
+<tt class="docutils literal">Documents/</tt> subdirectory) then you'll need these packages:</p>
+<ul class="simple">
+<li>linuxdoc-tools (not pre-packaged in Cygwin)</li>
+<li>doxygen</li>
+</ul>
+<p>If you're using MSYS (the MinGW command shell) for running <tt class="docutils literal">configure</tt> and
+<tt class="docutils literal">make</tt>, you should always use Windows-like paths (e.g. <tt class="docutils literal"><span class="pre">c:/brltty</span></tt>) rather
+than MSYS paths (e.g. <tt class="docutils literal">/c/brltty</tt>) because BRLTTY does <strong>not</strong> understand
+MSYS paths.</p>
+</div>
+<div class="section" id="windows-98-and-me-limitation">
+<h3><a class="toc-backref" href="#id7">Windows 98 and ME Limitation</a></h3>
+<p>On Windows versions 2000, XP, 2003, and later, BRLTTY automatically accesses
+the Windows console that you're currently using as you switch between them.
+This isn't possible on earlier versions. One way to still achieve this
+functionality, though, is to run one BRLTTY on the root window that directly
+accesses your braille device, and another one on each console that indirectly
+accesses your braille device via BrlAPI. This scheme may sound complicated,
+but it can be set up to run automatically.</p>
+<p>The first (or root) BRLTTY should be run as part of Windows startup. It must be
+run with the options that are necessary for it to access your braille device,
+e.g. <tt class="docutils literal"><span class="pre">-b</span></tt> (to specify the driver), <tt class="docutils literal"><span class="pre">-d</span></tt> (to specify the device), and
+(maybe) <tt class="docutils literal"><span class="pre">-B</span></tt> (to specify driver-sspecific parameters). It must also be given
+the <tt class="docutils literal"><span class="pre">-Xroot=yes</span></tt> option (which attaches it to the root window).</p>
+<p>An additional BRLTTY must then be run for each new console. It should be
+invoked like this:</p>
+<pre class="literal-block">
+brltty -bba -N
+</pre>
+<p>The <tt class="docutils literal"><span class="pre">-bba</span></tt> option tells it to access the root BRLTTY via BrlAPI, and the
+<tt class="docutils literal"><span class="pre">-N</span></tt> option tells it not to start a BrlAPI server of its own.</p>
+<p>These (non-root) BRLTTYs can be started automatically by, for example, invoking
+them from your <tt class="docutils literal">.bashrc</tt> script. Each of these BRLTTYs only reviews the
+console it's running within, and connects, via BrlAPI, to the root BRLTTY in
+order to access your braille device.</p>
+<p>If you're not concerned with security, and would rather not fiddle with the
+<tt class="docutils literal">brlapi.key</tt> file, then add the <tt class="docutils literal"><span class="pre">-Aauth=none</span></tt> option to the command line
+that starts the root BRLTTY. You don't need to worry about unauthorized access
+over the network since the default is that only locally running programs can
+connect to BrlAPI.</p>
+</div>
+<div class="section" id="package-management-via-the-command-line">
+<h3><a class="toc-backref" href="#id8">Package Management via the Command Line</a></h3>
+<div class="section" id="managing-cygwin-packages">
+<h4><a class="toc-backref" href="#id9">Managing Cygwin Packages</a></h4>
+<p>A convenient way to manage Cygwin packages from the command line
+is to use the <tt class="docutils literal"><span class="pre">apt-cyg</span></tt> command.
+It's similar to the <tt class="docutils literal"><span class="pre">apt-get</span></tt> command which some Linux distributions use.</p>
+<p>As of the time of this writing, this is how you can install it:</p>
+<pre class="literal-block">
+svn --force export http://apt-cyg.googlecode.com/svn/trunk/ /usr/local/bin/
+chmod +x /usr/local/bin/apt-cyg
+</pre>
+<p>If you're using the 64-bit Cygwin platform, then, after installing apt-cyg,
+you'll need to make a couple of simple modifications to it. Using your
+favourite text editor, and remembering that the actual line numbers within your
+version may differ from those shown below, edit <tt class="docutils literal"><span class="pre">/usr/local/bin/apt-cyg</span></tt> and
+make the following changes:</p>
+<ol class="arabic simple">
+<li>On line 98, change <tt class="docutils literal">$mirror/setup.bz2</tt> to <tt class="docutils literal">$mirror/x86_64/setup.bz2</tt>.</li>
+<li>On line 105, change <tt class="docutils literal">$mirror/setup.ini</tt> to <tt class="docutils literal">$mirror/x86_64/setup.ini</tt>.</li>
+</ol>
+<p>To search for a package, you can do:</p>
+<pre class="literal-block">
+apt-cyg find <em>pattern</em>
+</pre>
+<p>To install a package, you can do:</p>
+<pre class="literal-block">
+apt-cyg install <em>name</em>
+</pre>
+<p>For full details, you can do:</p>
+<pre class="literal-block">
+apt-cyg help
+</pre>
+</div>
+<div class="section" id="managing-mingw-packages">
+<h4><a class="toc-backref" href="#id10">Managing MinGW Packages</a></h4>
+<p>A convenient way to manage MinGW packages from the command line
+is to use the <tt class="docutils literal"><span class="pre">mingw-get</span></tt> command.
+Be sure to invoke it with arguments because
+when invoked with no arguments its graphical interface is used.</p>
+<p>To list all of the packages, you can do:</p>
+<pre class="literal-block">
+mingw-get list
+</pre>
+<p>To install a package, you can do:</p>
+<pre class="literal-block">
+mingw-get install <em>name</em>
+</pre>
+<p>For full details, you can do:</p>
+<pre class="literal-block">
+mingw-get -h
+</pre>
+</div>
+</div>
+<div class="section" id="usb-support">
+<h3><a class="toc-backref" href="#id11">USB Support</a></h3>
+<p>USB devices are supported thanks to the <tt class="docutils literal"><span class="pre">LibUSB-Win32</span></tt> and the <tt class="docutils literal"><span class="pre">LibUSB-1.0</span></tt>
+packages. If both are installed, preferrence is given to <tt class="docutils literal"><span class="pre">LibUSB-1.0</span></tt>.</p>
+<p>Pre-built versions of BRLTTY have USB support compiled in, and the required
+Windows drivers are also included, so you just need to let the installer set
+them up.</p>
+<p>In order to build BRLTTY yourself with USB support enabled, you'll need to
+<strong>first</strong> install at least one of LibUSB-Win32 or LibUSB-1.0.</p>
+<div class="section" id="libusb-win32">
+<h4><a class="toc-backref" href="#id12">LibUSB-Win32</a></h4>
+<p>At the time of this writing, LibUSB-Win32 binaries can be found on
+<a class="reference external" href="http://libusb-win32.sourceforge.net/">LibUSB-Win32's Web Site</a>. They'll be named something like
+<tt class="docutils literal"><span class="pre">libusb-win32-bin-&lt;version&gt;.exe</span></tt>, and should be available on
+<tt class="docutils literal"><span class="pre">http://sourceforge.net/project/showfiles.php?group_id=78138</span></tt>.</p>
+<ul>
+<li><p class="first">On Cygwin:</p>
+<ol class="arabic simple">
+<li>Install the <tt class="docutils literal"><span class="pre">libusb-win32</span></tt> package.</li>
+</ol>
+</li>
+<li><p class="first">On MinGW:</p>
+<ol class="arabic">
+<li><p class="first">Unpack the archive somewhere.</p>
+</li>
+<li><p class="first">Symlink the header and library files into your MinGW
+installation:</p>
+<pre class="literal-block">
+ln -s LibUSB-Win32/include/lusb0_usb.h /mingw/include/usb.h
+ln -s LibUSB-Win32/lib/gcc/libusb.a /mingw/lib/
+ln -s LibUSB-Win32/bin/x86/libusb0_x86.dll /mingw/bin/libusb0.dll
+</pre>
+</li>
+</ol>
+</li>
+</ul>
+<p>In order to be able to use the LibUSB-Win32 driver, you'll need to copy its
+run-time files into BRLTTY's source tree:</p>
+<pre class="literal-block">
+cp LibUSB-Win32/bin/x86/libusb0.sys brltty/hotplug/libusb0.sys
+cp LibUSB-Win32/bin/x86/libusb0_x86.dll brltty/hotplug/libusb0.dll
+cp LibUSB-Win32/bin/amd64/libusb0.sys brltty/hotplug/libusb0_x64.sys
+cp LibUSB-Win32/bin/amd64/libusb0.dll brltty/hotplug/libusb0_x64.dll
+</pre>
+<p>Then, either right-click on <tt class="docutils literal">brltty/hotplug/brltty.inf</tt> and select
+<tt class="docutils literal">install</tt>, or, on braille device plug, point at the
+<tt class="docutils literal">brltty/hotplug/brltty.inf</tt> file.</p>
+</div>
+<div class="section" id="libusb-1-0">
+<h4><a class="toc-backref" href="#id13">LibUSB-1.0</a></h4>
+<p>As of the time of this writing, LibUSB-1.0 binary snapshots can be found on
+<a class="reference external" href="http://www.libusb.org/wiki/windows_backend">LibUSB-1.0's Web Site</a>. They'll be named something like
+<tt class="docutils literal"><span class="pre">libusb_&lt;date&gt;.7z</span></tt>.</p>
+<ul>
+<li><p class="first">On Cygwin:</p>
+<ol class="arabic simple">
+<li>Install the <tt class="docutils literal"><span class="pre">libusb1.0-devel</span></tt> package.</li>
+</ol>
+</li>
+<li><p class="first">On MinGW:</p>
+<ol class="arabic">
+<li><p class="first">Unpack the archive somewhere.</p>
+</li>
+<li><p class="first">Symlink the header and library files into your MinGW
+installation:</p>
+<pre class="literal-block">
+ln -s LibUSB-1.0/include/libusbx-1.0 /mingw/include/libusb-1.0
+ln -s LibUSB-1.0/MinGW32/dll/libusb-1.0.dll.a /mingw/lib/
+ln -s LibUSB-1.0/MinGW32/dll/libusb-1.0.dll /mingw/bin/
+</pre>
+</li>
+<li><p class="first">Copy the file <tt class="docutils literal"><span class="pre">libusb-1.0.pc</span></tt> in the <tt class="docutils literal">Windows/</tt> subdirectory of
+BRLTTY's source tree into MinGW's <tt class="docutils literal">/mingw/lib/pkgconfig/</tt> directory. If
+the <tt class="docutils literal">pkgconfig/</tt> subdirectory doesn't already exist then create it.</p>
+</li>
+</ol>
+</li>
+</ul>
+<p>In order to be able to use the LibUSB-1.0 driver, you'll need to either
+right-click on <tt class="docutils literal"><span class="pre">brltty/hotplug/brltty-libusb-1.0.inf</span></tt> and select <tt class="docutils literal">install</tt>,
+or, on braille device plug, point at the
+<tt class="docutils literal"><span class="pre">brltty/hotplug/brltty-libusb-1.0.inf</span></tt> file.</p>
+</div>
+</div>
+<div class="section" id="configuring-a-brltty-build">
+<h3><a class="toc-backref" href="#id14">Configuring a BRLTTY Build</a></h3>
+<p>Some of BRLTTY's configure options are of particular interest to users of the
+Windows platform:</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">--enable-relocatable-install</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>The default is for BRLTTY to refer to its components via absolute paths. On
+the Windows platform, however, the convention is for a package to use
+relative paths so that it's entirely self-contained. This enables it to be
+installed into an arbitrary directory, and to be moved around thereafter at
+well. This option builds BRLTTY such that relative paths are used.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="missing-java-class-definitions-on-cygwin">
+<h3><a class="toc-backref" href="#id15">Missing Java Class Definitions on Cygwin</a></h3>
+<p>You may get a Java failure that looks something like this:</p>
+<pre class="literal-block">
+Exception in thread &quot;main&quot; java.lang.NoClassDefFoundError:
+org.eclipse.jdt.internal.compiler.batch.GCCMain
+   at gnu.java.lang.MainThread.run(Unknown Source)
+Caused by: java.lang.ClassNotFoundException:
+org.eclipse.jdt.internal.compiler.batch.GCCMain
+not found in gnu.gcj.runtime.SystemClassLoader
+{urls=[], parent=gnu.gcj.runtime.ExtensionClassLoader{urls=[], parent=null}}
+</pre>
+<p>This problem occurs when the <tt class="docutils literal"><span class="pre">java-ecj</span></tt> package isn't installed. It can be
+obtained from <a class="reference external" href="http://cygwinports.org/">Cygwin Ports</a>. You can also resolve the probem by downloading
+the <a class="reference external" href="ftp://sourceware.org/pub/java/ecj-4.5.jar">Cygwin java-ecj jar</a>, and installing it into <tt class="docutils literal">/usr/share/java/ecj.jar</tt>.</p>
+</div>
+</div>
+<div class="section" id="using-brltty">
+<h2><a class="toc-backref" href="#id16">Using BRLTTY</a></h2>
+<div class="section" id="windows-scripts-for-managing-brltty">
+<h3><a class="toc-backref" href="#id17">Windows Scripts for Managing BRLTTY</a></h3>
+<p>These <tt class="docutils literal">.bat</tt> scripts are in the top-level folder where BRLTTY has been installed.
+They should be run by a user that has administrative privileges.</p>
+<div class="section" id="run-brltty-bat">
+<h4><a class="toc-backref" href="#id18"><tt class="docutils literal"><span class="pre">run-brltty.bat</span></tt></a></h4>
+<p>Manually run BRLTTY with a log level of <tt class="docutils literal">info</tt>.
+Logs are written to the file <tt class="docutils literal">brltty.log</tt>
+in the top-level folder where BRLTTY has been installed.
+All arguments are passed through to BRLTTY.</p>
+</div>
+<div class="section" id="debug-brltty-bat">
+<h4><a class="toc-backref" href="#id19"><tt class="docutils literal"><span class="pre">debug-brltty.bat</span></tt></a></h4>
+<p>Manually run BRLTTY, via the <tt class="docutils literal"><span class="pre">run-brltty.bat</span></tt> script, with options that
+set the log level to <tt class="docutils literal">debug</tt> and enable several useful log categories.
+All arguments are passed through to the <tt class="docutils literal"><span class="pre">run-brltty.bat</span></tt> script.</p>
+</div>
+<div class="section" id="kill-brltty-bat">
+<h4><a class="toc-backref" href="#id20"><tt class="docutils literal"><span class="pre">kill-brltty.bat</span></tt></a></h4>
+<p>Forceably terminate the manually-run BRLTTY process.</p>
+</div>
+<div class="section" id="enable-brlapi-bat">
+<h4><a class="toc-backref" href="#id21"><tt class="docutils literal"><span class="pre">enable-brlapi.bat</span></tt></a></h4>
+<p>Install the BrlAPI service and start it.</p>
+</div>
+<div class="section" id="disable-brlapi-bat">
+<h4><a class="toc-backref" href="#id22"><tt class="docutils literal"><span class="pre">disable-brlapi.bat</span></tt></a></h4>
+<p>Stop the BrlAPI service and uninstall it.</p>
+</div>
+</div>
+<div class="section" id="sticking-to-a-console">
+<h3><a class="toc-backref" href="#id23">Sticking to a Console</a></h3>
+<p>It may be useful to have BRLTTY only review the console that it's started in,
+i.e.  for it not to follow the keyboard focus. To achieve this, set the
+<tt class="docutils literal">FollowFocus</tt> parameter of BRLTTY's <tt class="docutils literal">Windows</tt> screen driver to <tt class="docutils literal">no</tt>. This
+can be done:</p>
+<dl class="docutils">
+<dt>On the Command Line:</dt>
+<dd><tt class="docutils literal"><span class="pre">-Xwn:FollowFocus=no</span></tt></dd>
+<dt>In <tt class="docutils literal">brltty.conf</tt>:</dt>
+<dd><tt class="docutils literal"><span class="pre">screen-parameter</span> wn:FollowFocus=no</tt></dd>
+</dl>
+</div>
+<div class="section" id="sharing-the-braille-device-with-other-screen-readers">
+<h3><a class="toc-backref" href="#id24">Sharing the Braille Device with Other Screen Readers</a></h3>
+<p>When you're not on a window that BRLTTY can handle, its default action is to
+retain control of the braille device and to present a short message explaining
+the problem. If you have another braille-capable screen reader and would like
+it to take over instead, then both BRLTTY and that other screen reader must be
+instructed to share the braille device.</p>
+<p>BRLTTY can be instructed to share the braille device via its
+<tt class="docutils literal"><span class="pre">--release-device</span></tt> option (the short form of this option is <tt class="docutils literal"><span class="pre">-r</span></tt>). When
+this option is in effect, BRLTTY releases the braille device when you move onto
+a window that it can't handle, and then tries to regain control of the braille
+device when you move onto a window that it can handle. Note that these actions
+take a noticeable amount of time so you should only use this option if it's
+actually needed.</p>
+<div class="section" id="sharing-with-jaws">
+<h4><a class="toc-backref" href="#id25">Sharing with JAWS</a></h4>
+<p>A common case wherein a JAWS user might want BRLTTY to be in control of the
+braille device when on a console window is when using Cygwin.</p>
+<p>There are two phases to configuring JAWS to run in the background while BRLTTY
+controls the braille device. First, a usable window title must be established
+and stable. Second, JAWS braille must be put to sleep.</p>
+<div class="topic">
+<p class="topic-title">What is a Window Title?</p>
+<p>Every window in Windows has a title bar that contains the name of the
+application that's running in it, as well as some controls to do things like
+move and resize the window. BRLTTY doesn't show this title bar.</p>
+<p>For a program window, JAWS uses the name of the program's executable as the
+name of the configuration files to load when that program gains focus. For a
+console application such as Cygwin, however, it uses the title of the window
+instead. You must, therefore, tell JAWS within the window title that this is
+a Cygwin window.</p>
+</div>
+<div class="topic">
+<p class="topic-title">Setting the Window Title</p>
+<p>JAWS uses one of the words in the window title as the name of the
+configuration file set to load. This file set is what tells JAWS the
+specifics of how to handle the application. It is, therefore, where JAWS
+must be instructed to put its braille component to sleep.</p>
+<p>As of this writing, it appears that JAWS uses the following algorithm for
+choosing which word in the title to use as the name of the file set:</p>
+<ol class="arabic simple">
+<li>If there are no slashes (<tt class="docutils literal">/</tt>) or backslashes (<tt class="docutils literal">\</tt>) in the title then
+JAWS uses the first word. Thus, if the title is <tt class="docutils literal">Cygwin Bash Shell</tt>
+then JAWS will load the <tt class="docutils literal">Cygwin</tt> configuration file set.</li>
+<li>If there's at least one slash (<tt class="docutils literal">/</tt>) or backslash (<tt class="docutils literal">\</tt>) in the title
+then JAWS uses the last word. Thus, if the title is <tt class="docutils literal">$PWD - Cygwin</tt>
+then JAWS will similarly load the <tt class="docutils literal">Cygwin</tt> configuration file set.</li>
+</ol>
+</div>
+<div class="topic">
+<p class="topic-title">Setting Cygwin's Window Title</p>
+<p>First, it is imperative that you replace, or at least modify, the default
+<tt class="docutils literal">PS1</tt> (primary shell prompt) setting. The default for this setting, as
+distributed by Cygwin, places <tt class="docutils literal">$PWD</tt> (the path to the current working
+directory) in the window title, thus requiring you to have a separate JAWS
+configuration for every directory on the system! One possible way to resolve
+this &quot;problem&quot; is to uncomment the <tt class="docutils literal">settitle</tt> function (which can be found
+near the end of <tt class="docutils literal">.bashrc</tt>). This function allows you to place a string of
+your own choice in the title. You can use this function, therefore, as
+follows:</p>
+<pre class="literal-block">
+export PROMPT_COMMAND='settitle &quot;$PWD - Cygwin&quot;'
+export PS1='$ '
+</pre>
+<p>The first of these lines causes the window title to be set just before each
+shell prompt. Since <tt class="docutils literal">$PWD</tt> always contains at least one slash (<tt class="docutils literal">/</tt>), the
+operative word in the title will be <tt class="docutils literal">Cygwin</tt> (the last word), and JAWS,
+therefore, will load any <tt class="docutils literal">Cygwin</tt> configuration files that it finds.</p>
+<p>The second of these lines sets the primary shell prompt to the customary
+dollar (<tt class="docutils literal">$</tt>) sign. More importantly, though, it replaces Cygwin's default
+<tt class="docutils literal">PS1</tt> setting which, because it contains escape sequences that overwrite
+the title with <tt class="docutils literal">$PWD</tt>, renders the window unrecognizable by JAWS.</p>
+</div>
+<div class="topic">
+<p class="topic-title">Putting JAWS Braille to Sleep</p>
+<p>Now that a stable window title has been established, JAWS braille can
+finally be put to sleep. While in Cygwin, and with BRLTTY not running, do
+the following:</p>
+<ol class="arabic simple">
+<li>Press Insert+F2 to bring up the <tt class="docutils literal">Run JAWS Manager</tt> dialog.</li>
+<li>Down-Arrow to <tt class="docutils literal">Configuration Manager</tt>, and press Enter. Verify that the
+title on the top line contains <tt class="docutils literal">Cygwin.jcf</tt>.</li>
+<li>Press Alt+S for <tt class="docutils literal">Set Options</tt>.</li>
+<li>Press B for <tt class="docutils literal">Braille</tt>.</li>
+<li>Press S for <tt class="docutils literal">Braille Sleep Mode</tt>.</li>
+<li>Verify that the box is checked. It should look like <tt class="docutils literal">&lt;x&gt;</tt> (rather than
+like <tt class="docutils literal">&lt; &gt;</tt>). Press Space to toggle the setting if the <tt class="docutils literal">x</tt> isn't there.</li>
+<li>Press Enter to leave the menu.</li>
+<li>Press Control+S to save the file.</li>
+<li>Press Alt+F4 to exit the configuration manager.</li>
+</ol>
+</div>
+<div class="topic">
+<p class="topic-title">Putting JAWS Speech to Sleep</p>
+<p>If you'd like to use JAWS speech in Windows, but not in Cygwin, you can do
+the following:</p>
+<ol class="arabic simple">
+<li>Press Insert+F2 to bring up the <tt class="docutils literal">Run JAWS Manager</tt> dialog.</li>
+<li>Down-Arrow to <tt class="docutils literal">Configuration Manager</tt> and press Enter. Verify that the
+title on the top line contains <tt class="docutils literal">Cygwin.jcf</tt>.</li>
+<li>Press Alt+S for <tt class="docutils literal">Set Options</tt>.</li>
+<li>Press A for <tt class="docutils literal">Advanced</tt>.</li>
+<li>You should be on an item labelled <tt class="docutils literal">Sleep Mode Enable</tt> with an empty
+check box (<tt class="docutils literal">&lt; &gt;</tt>). Press Space to check it (<tt class="docutils literal">&lt;x&gt;</tt>).</li>
+<li>Press Enter to leave the menu.</li>
+<li>Press Control+S to save the file.</li>
+<li>Press Alt+F4 to exit the configuration manager.</li>
+</ol>
+</div>
+<div class="topic">
+<p class="topic-title">Known Problem</p>
+<p>You'll always be able to switch to Cygwin, and BRLTTY (if it's running) will
+take control of the braille device automatically. Switching back to Windows
+and JAWS, however, may be problematic. The degree of success seems to depend
+on the type of braille device being used. It usually works properly.
+Sometimes, however, when using a USB device, the cable needs to be
+unplugged/replugged to allow JAWS to regain control. In extreme cases, you
+may need to exit BRLTTY before going to Windows.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="mingw-scripts-for-building-brltty">
+<h2><a class="toc-backref" href="#id26">MinGW Scripts for Building BRLTTY</a></h2>
+<div class="section" id="the-mkwin-script">
+<h3><a class="toc-backref" href="#id27">The <tt class="docutils literal">mkwin</tt> Script</a></h3>
+<p>The <tt class="docutils literal">mkwin</tt> script,
+which can be found in the <tt class="docutils literal">Windows/</tt> subdirectory of BRLTTY's source tree,
+builds the Windows archive and installer for BRLTTY.</p>
+<div class="section" id="software-components-required-by-mkwin">
+<h4><a class="toc-backref" href="#id28">Software Components Required by <tt class="docutils literal">mkwin</tt></a></h4>
+<p>Links to the pages where we found these
+installers, components, and files are listed.
+In case any of these links becomes out-of-date, however,
+copies of some of them have been preserived at
+<a class="reference external" href="http://BRLTTY.app/archive/Windows/">http://BRLTTY.app/archive/Windows/</a>.</p>
+<p>The following software components should already be installed:</p>
+<ul class="simple">
+<li><tt class="docutils literal">MinGW</tt> [32-bit] (from <a class="reference external" href="http://mingw.org/">http://mingw.org/</a>)</li>
+</ul>
+<p>The following <tt class="docutils literal">MinGW</tt> packages may still need to be installed:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">msys-bison</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">msys-dos2unix</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">msys-groff</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">msys-m4</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">msys-tar</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">msys-unzip</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">msys-wget</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">msys-zip</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">mingw32-libpdcurses</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">mingw32-pthreads-w32</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">mingw32-tcl</span></tt></li>
+</ul>
+<p>The following packages should also be installed:</p>
+<ul>
+<li><p class="first"><tt class="docutils literal">AutoHotkey</tt> (from <a class="reference external" href="http://www.autohotkey.com/">http://www.autohotkey.com/</a>)</p>
+<p>The <tt class="docutils literal">mkwin</tt> script assumes that it has been installed in
+<tt class="docutils literal"><span class="pre">C:\Program</span> Files <span class="pre">(x86)\AutoHotkey</span></tt>.
+The <tt class="docutils literal"><span class="pre">-A</span></tt> (AutoHotkey) option can be used to specify another location.
+The installer currently being used is named <tt class="docutils literal">AutoHotkey104805_Install.exe</tt>.</p>
+</li>
+<li><p class="first"><tt class="docutils literal">NSIS</tt> (from <a class="reference external" href="http://nsis.sourceforge.net/">http://nsis.sourceforge.net/</a>)</p>
+<p>The <tt class="docutils literal">mkwin</tt> script assumes that it has been installed in
+<tt class="docutils literal"><span class="pre">C:\Program</span> Files <span class="pre">(x86)\NSIS</span></tt>.
+The <tt class="docutils literal"><span class="pre">-N</span></tt> (NSIS) option can be used to specify another location.
+The installer currently being used is named <tt class="docutils literal"><span class="pre">nsis-3.0b0-setup.exe</span></tt>.</p>
+</li>
+<li><p class="first"><tt class="docutils literal">Python</tt> (from <a class="reference external" href="http://www.python.org/">http://www.python.org/</a>)</p>
+<p>The 32-bit variants are required. Version 2 or 3 may be used. If the
+<tt class="docutils literal">python</tt> command isn't in your command search path, or if you'd like to
+use a different version of <tt class="docutils literal">Python</tt>, then use the <tt class="docutils literal"><span class="pre">-P</span></tt> (Python) option
+to specify the top-level directory of the desired <tt class="docutils literal">Python</tt> version.</p>
+</li>
+<li><p class="first"><tt class="docutils literal">Cython</tt> (from <a class="reference external" href="http://cython.org/">http://cython.org/</a>)</p>
+<p>A corresponding version of <tt class="docutils literal">Cython</tt> must be installed for each version of
+<tt class="docutils literal">Python</tt>. Each <tt class="docutils literal">Cython</tt> version is installed within the corresponding
+<tt class="docutils literal">Python</tt> version's hierarchy. Install <tt class="docutils literal">Cython</tt> with the command:</p>
+<pre class="literal-block">
+pip install cython
+</pre>
+<p>Some systems, either in addition to or in place of the <tt class="docutils literal">pip</tt> command,
+have the <tt class="docutils literal">pip2</tt> and/or the <tt class="docutils literal">pip3</tt> command. As you might have guessed,
+<tt class="docutils literal">pip2</tt> corresponds to <tt class="docutils literal">Python2</tt> and <tt class="docutils literal">pip3</tt> corresponds to <tt class="docutils literal">Python3</tt>.
+It's best to use the one with the most explicit version suffix.</p>
+<p>If the <tt class="docutils literal">pip</tt> command isn't already included within  the version of
+<tt class="docutils literal">Python</tt> that you're using (usually within its <tt class="docutils literal">scripts</tt> subdirectory)
+then you can install it from <a class="reference external" href="https://pip.pypa.io/en/stable/installing/">https://pip.pypa.io/en/stable/installing/</a>.</p>
+<p>Copies of the files mentioned below are at
+<a class="reference external" href="http://BRLTTY.app/archive/Windows/Cython/">http://BRLTTY.app/archive/Windows/Cython/</a>:</p>
+<ul>
+<li><p class="first">To force use of MinGW's (rather than Microsoft's) C compiler,
+add <tt class="docutils literal">distutils.cfg</tt> to the <tt class="docutils literal">Python/lib/distutils/</tt> directory.
+It should contain these lines:</p>
+<pre class="literal-block">
+[build]
+compiler = mingw32
+</pre>
+</li>
+<li><p class="first">If you get a message like &quot;Unknown MS Compiler version 1900&quot;
+then you'll probably need to apply the patch <tt class="docutils literal">patch1</tt>
+(from <a class="reference external" href="https://bugs.python.org/file40608/patch.diff">https://bugs.python.org/file40608/patch.diff</a>)
+when within the <tt class="docutils literal">Python/lib/distutils/</tt> directory:</p>
+<pre class="literal-block">
+cd Python/lib/distutils
+patch patch1
+</pre>
+</li>
+<li><p class="first">If you get a message like &quot;cannot find -lvcruntime140&quot;
+then you'll need to add the 32-bit version of <tt class="docutils literal">vcruntime140.dll</tt>
+(from <a class="reference external" href="http://www.dll-files.com/">http://www.dll-files.com/</a>)
+to the <tt class="docutils literal">Python/libs/</tt> directory.
+You can verify that you have the 32-bit version with the <tt class="docutils literal">file</tt> command:</p>
+<pre class="literal-block">
+file vcruntime140.dll
+vcruntime140.dll: PE32 executable (DLL) (console) Intel 80386, for MS Windows
+</pre>
+<p>A message like &quot;vcruntime140.dll: file not recognized: File format not recognized&quot;
+probably means that you don't have the 32-bit version of the DLL.</p>
+</li>
+</ul>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">LibUSB-Win32</span></tt> (from <a class="reference external" href="http://libusb-win32.sourceforge.net/">http://libusb-win32.sourceforge.net/</a>)</p>
+<p>The <tt class="docutils literal">mkwin</tt> script assumes that it has been installed in
+<tt class="docutils literal"><span class="pre">C:\LibUSB-Win32</span></tt>.
+The <tt class="docutils literal"><span class="pre">-U</span></tt> (LibUSB-Win32) option can be used to specify another location.
+The archive currently being used is named <tt class="docutils literal"><span class="pre">libusb-win32-bin-1.2.6.0.zip</span></tt>.
+Our copy of this archive has a top-level directory named <tt class="docutils literal"><span class="pre">libusb-win32-bin-1.2.6.0</span></tt>.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">LibUSB-1.0</span></tt> (from <a class="reference external" href="http://www.libusb.org/wiki/windows_backend">http://www.libusb.org/wiki/windows_backend</a>)</p>
+<p>The <tt class="docutils literal">mkwin</tt> script assumes that it has been installed in
+<tt class="docutils literal"><span class="pre">C:\LibUSB-1.0</span></tt>.
+The <tt class="docutils literal"><span class="pre">-X</span></tt> (libusbx) option can be used to specify another location.
+The archive currently being used is named <tt class="docutils literal"><span class="pre">libusbx-1.0.18-win.7z</span></tt>.
+Our copy of this archive doesn't have a top-level directory.
+We have an alternate copy of this archive named <tt class="docutils literal"><span class="pre">libusbx-1.0.18-win.tar.gz</span></tt>.</p>
+</li>
+<li><p class="first"><tt class="docutils literal">WinUSB</tt> (from <a class="reference external" href="http://www.libusb.org/wiki/windows_backend">http://www.libusb.org/wiki/windows_backend</a>)</p>
+<p>The <tt class="docutils literal">mkwin</tt> script assumes that it has been installed in
+<tt class="docutils literal"><span class="pre">C:\WinUSB</span></tt>.
+The <tt class="docutils literal"><span class="pre">-W</span></tt> (WinUSB) option can be used to specify another location.
+The archive currently being used is named <tt class="docutils literal">winusb.zip</tt>.
+Our copy of this archive doesn't have a top-level directory.</p>
+</li>
+<li><p class="first"><tt class="docutils literal">ICU</tt> (from <a class="reference external" href="http://icu-project.org/">http://icu-project.org/</a>)</p>
+<p>The <tt class="docutils literal">mkwin</tt> script assumes that it has been installed in <tt class="docutils literal"><span class="pre">C:\ICU</span></tt>.
+The <tt class="docutils literal"><span class="pre">-I</span></tt> (ICU) option can be used to specify another location.
+The archive currently being used is named <tt class="docutils literal"><span class="pre">icu4c-53_1-Win32-msvc10.zip</span></tt>.
+Our copy of this archive has a top-level directory named <tt class="docutils literal">icu</tt>.
+Since Windows file systems don't have case sensitive names,
+renaming it from <tt class="docutils literal">icu</tt> to <tt class="docutils literal">ICU</tt> is optional.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">pkg-config</span></tt> (from <a class="reference external" href="http://gtk.org/download/win32.php">http://gtk.org/download/win32.php</a>)</p>
+<p>The archive currently being used is named <tt class="docutils literal"><span class="pre">pkg-config_0.28-1_win32.zip</span></tt>.
+Our copy of this archive doesn't have a top-level directory.
+It should be unpacked when in MinGW's <tt class="docutils literal">/mingw/</tt> directory.</p>
+</li>
+<li><p class="first"><tt class="docutils literal">Glib</tt> (from <a class="reference external" href="http://gtk.org/download/win32.php">http://gtk.org/download/win32.php</a>)</p>
+<p>The archive currently being used is named <tt class="docutils literal"><span class="pre">glib_2.34.3-1_win32.zip</span></tt>.
+Our copy of this archive doesn't have a top-level directory.
+It should be unpacked when in MinGW's <tt class="docutils literal">/mingw/</tt> directory.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">gettext-runtime</span></tt> (from <a class="reference external" href="http://gtk.org/download/win32.php">http://gtk.org/download/win32.php</a>)</p>
+<p>Only install it if your MinGW installation doesn't already have it.
+Check for the presence of a <tt class="docutils literal">libintl</tt> DLL in MinGW's <tt class="docutils literal">/mingw/bin/</tt> directory.</p>
+</li>
+</ul>
+<p>The <tt class="docutils literal">mkwin</tt> script uses the <tt class="docutils literal">lib</tt> command,
+which belongs to MSVC (Microsoft Visual C++).
+On newer Windows systems, MSVC has become
+a component of Microsoft Visual Studio.
+If you don't have it then you'll need to get
+the following files from someone who does.
+Copies of them are at <a class="reference external" href="http://BRLTTY.app/archive/Windows/MSVC/">http://BRLTTY.app/archive/Windows/MSVC/</a>.</p>
+<ul class="simple">
+<li>lib.exe</li>
+<li>link.exe</li>
+<li>mspdb100.dll</li>
+<li>msvcr100.dll</li>
+</ul>
+<p>All of them should be placed within the same directory
+(MinGW's <tt class="docutils literal">/usr/local/bin/</tt> directory may be a good place).
+Either add this directory to your command search path
+or use the <tt class="docutils literal"><span class="pre">-M</span></tt> (MSVC) option to specify its location.</p>
+<p>If you'd like to have USB support then create the symbolic links as described
+within the MinGW instructions for using <a class="reference internal" href="#libusb-win32">LibUSB-Win32</a> and/or <a class="reference internal" href="#libusb-1-0">LibUSB-1.0</a>.
+You'll also need to create <tt class="docutils literal">.pc</tt> (pkg-config) files for them within MinGW's
+<tt class="docutils literal">/mingw/lib/pkgconfig&gt;</tt> directory. The ones we've created are at
+<a class="reference external" href="http://BRLTTY.app/archive/Windows/pkgconfig/">http://BRLTTY.app/archive/Windows/pkgconfig/</a>.</p>
+<p>If you'd like to have Bluetooth support then you'll need to add
+the files listed below to MinGW's <tt class="docutils literal">/mingw/include/</tt> directory.
+Copies of them are at <a class="reference external" href="http://BRLTTY.app/archive/Windows/Bluetooth/">http://BRLTTY.app/archive/Windows/Bluetooth/</a>.</p>
+<ul class="simple">
+<li>ws2bth.h</li>
+<li>bthdef.h</li>
+<li>bthsdpdef.h</li>
+</ul>
+</div>
+<div class="section" id="more-mkwin-options">
+<h4><a class="toc-backref" href="#id29">More <tt class="docutils literal">mkwin</tt> Options</a></h4>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">-u</span></tt> (USB)</dt>
+<dd><p class="first">Specify which USB package is to be used. The following USB packages are
+supported:</p>
+<ul class="last simple">
+<li>libusb (for LibUSB-Win32)</li>
+<li>libusb-1.0 (for LibUSB-1.0 + WinUSB)</li>
+</ul>
+</dd>
+<dt><tt class="docutils literal"><span class="pre">-C</span></tt> (Cygwin)</dt>
+<dd>Specify the root (top-level) directory of a Cygwin installation.
+If it isn't specified then <tt class="docutils literal">/cygwin</tt> (if it exists) is assumed.
+Cygwin's <tt class="docutils literal">bin/</tt> directory is added to the end of the command search path
+as a last resort for finding needed commands that MinGW may not have.</dd>
+<dt><tt class="docutils literal"><span class="pre">-s</span></tt> (shell)</dt>
+<dd>Invoke an interactive shell just before the archive is created so that you
+can have a look at and/or modify what it will contain. If the <tt class="docutils literal">SHELL</tt>
+environment variable is set then that shell is used. If not, <tt class="docutils literal">/bin/sh</tt> is
+assumed.</dd>
+<dt><tt class="docutils literal"><span class="pre">-t</span></tt> (temporary directory)</dt>
+<dd>Specify the temporary directory that is to be used for the build.
+It must not already exist.
+If it isn't specified then an internally generated path is used.</dd>
+<dt><tt class="docutils literal"><span class="pre">-k</span></tt> (keep)</dt>
+<dd>Don't remove the temporary directory
+at the end of a successful build.
+It isn't removed if the build fails
+so that you can have a look at what went wrong.</dd>
+</dl>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">-v</span></tt> (verbose)</dt>
+<dd>Increase output verbosity. This option complements the <tt class="docutils literal"><span class="pre">-q</span></tt> option. It may
+be specified multiple times.</dd>
+<dt><tt class="docutils literal"><span class="pre">-q</span></tt> (quiet)</dt>
+<dd>Decrease output verbosity. This option complements the <tt class="docutils literal"><span class="pre">-v</span></tt> option. It may
+be specified multiple times.</dd>
+<dt><tt class="docutils literal"><span class="pre">-h</span></tt> (help)</dt>
+<dd>Write a brief command line usage summary on standard output, and then exit.</dd>
+</dl>
+</div>
+<div class="section" id="mkwin-parameters">
+<h4><a class="toc-backref" href="#id30"><tt class="docutils literal">mkwin</tt> Parameters</a></h4>
+<p>The <tt class="docutils literal">mkwin</tt> script accepts two parameters:</p>
+<ol class="arabic simple">
+<li>The path to the top-level directory of BRLTTY's source tree.
+It may be either relative or absolute.
+This parameter is required.</li>
+<li>The build revision.
+It may be any character sequence that doesn't include whitespace.
+It is appended, with a prepended dash (<tt class="docutils literal">-</tt>), to
+BRLTTY's version number in order to construct the build version.
+This parameter is optional - if it isn't specified then
+the revision number part of the build identifier is used.</li>
+</ol>
+<p>The build name is used as:</p>
+<ul class="simple">
+<li>the name of the top-level directory within the archive</li>
+<li>the file name of the archive (which has the <tt class="docutils literal">.zip</tt> extension)</li>
+<li>the file name of the installer (which has the <tt class="docutils literal">.exe</tt> extension)</li>
+</ul>
+<p>It has the following form:</p>
+<pre class="literal-block">
+brltty-win-buildVersion-buildRevision-usbPackage
+</pre>
+<p>For example:</p>
+<ul class="simple">
+<li>if your current working directory is the <tt class="docutils literal">Windows/</tt> subdirectory of
+BRLTTY's source tree,</li>
+<li>if the current BRLTTY version is 5.2,</li>
+<li>and remembering that the default USB package is <tt class="docutils literal">libusb</tt>,</li>
+</ul>
+<p>then invoking the following command:</p>
+<pre class="literal-block">
+./mkwin .. 4
+</pre>
+<p>will create these files within the current working directory:</p>
+<ul class="simple">
+<li>brltty-win-5.2-4-libusb.zip (the archive)</li>
+<li>brltty-win-5.2-4-libusb.exe (the installer)</li>
+</ul>
+</div>
+</div>
+<div class="section" id="the-winsetup-script">
+<h3><a class="toc-backref" href="#id31">The <tt class="docutils literal">winsetup</tt> Script</a></h3>
+<p>The <tt class="docutils literal">winsetup</tt> script,
+which can be found in the <tt class="docutils literal">Windows/</tt> subdirectory of BRLTTY's source tree,
+ensures that all needed components are installed on your system
+so that <a class="reference internal" href="#the-mkwin-script">the mkwin script</a> can successfully build BRLTTY.</p>
+<div class="section" id="winsetup-options">
+<h4><a class="toc-backref" href="#id32"><tt class="docutils literal">winsetup</tt> Options</a></h4>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">-a</span></tt> (archive URL)</dt>
+<dd>Specify the location for BRLTTY's Windows archive.</dd>
+<dt><tt class="docutils literal"><span class="pre">-d</span></tt> (dry run)</dt>
+<dd>Don't actually install anything.</dd>
+<dt><tt class="docutils literal"><span class="pre">-k</span></tt> (keep)</dt>
+<dd>Don't remove the temporary directory.</dd>
+<dt><tt class="docutils literal"><span class="pre">-p</span></tt> (Python directory)</dt>
+<dd>Specify the location where Python has been installed.</dd>
+<dt><tt class="docutils literal"><span class="pre">-t</span></tt> (temporary directory)</dt>
+<dd>Specify the temporary directory that is to be used for the installs.
+It must not already exist.
+If it isn't specified then an internally generated path is used.</dd>
+</dl>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">-v</span></tt> (verbose)</dt>
+<dd>Increase output verbosity. This option complements the <tt class="docutils literal"><span class="pre">-q</span></tt> option. It may
+be specified multiple times.</dd>
+<dt><tt class="docutils literal"><span class="pre">-q</span></tt> (quiet)</dt>
+<dd>Decrease output verbosity. This option complements the <tt class="docutils literal"><span class="pre">-v</span></tt> option. It may
+be specified multiple times.</dd>
+<dt><tt class="docutils literal"><span class="pre">-h</span></tt> (help)</dt>
+<dd>Write a brief command line usage summary on standard output, and then exit.</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

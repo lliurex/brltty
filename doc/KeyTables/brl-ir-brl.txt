@@ -1,0 +1,112 @@
+Key Table: Iris (with braille keyboard)
+=======================================
+
+Notes
+* The braille keyboard has two thumb keys rather than a single space bar.
+  The left one is named Backspace, and the right one is named Space.
+* The eight keys behind the braille keyboard are known as linear keys.
+  From left to right, they're named L1 through L8.
+* RoutingKey refers to any of the keys behind the text cells.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: L4+L3+L6
+* enter/leave command learn mode: L4+L3+L2
+* enter/leave preferences menu:
+  + L4
+  + L4+L3+L2+L5
+* enter/leave status display:
+  + L5
+  + L3+L5
+* set screen image frozen/unfrozen: L4+L3+L5
+* describe character: L6+RoutingKey
+
+Cursor Functions
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: L2
+* go down one line: L7
+* go to top line: L1+L2
+* go to bottom line: L7+L8
+* go up to previous command prompt: L3
+* go down to next command prompt: L6
+
+Horizontal Navigation
+* go backward one braille window: L1
+* go forward one braille window: L8
+* place left end of braille window at character: L3+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: L1+RoutingKey
+* append to clipboard from character: L2+RoutingKey
+* linear copy to character: L8+RoutingKey
+* rectangular copy to character: L7+RoutingKey
+* insert clipboard text after screen cursor: L5+L7
+* insert clipboard history entry after screen cursor: L5+L6+L7, RoutingKey
+
+Configuration Functions
+* set text style 6-dot: L3+L2+L6
+* set text style 8-dot: L3+L2+L7
+* set screen cursor visibility on/off: L2+L3
+* set alert tunes on/off: L6+L7
+
+Keyboard Input
+* braille keyboard upper: L3
+* braille keyboard control: L4
+* braille keyboard meta: L5
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot7: Dot7
+* braille keyboard dot8: Dot8
+* braille keyboard space: Space
+* backspace key: Backspace
+* escape key: Space+Dots15
+* cursor-left key: Space+Dot2
+* cursor-right key: Space+Dot5
+* cursor-up key: Space+Dot4
+* cursor-down key: Space+Dot6
+* page-up key: Space+Dots45
+* page-down key: Space+Dots56
+* home key: Space+Dot1
+* end key: Space+Dot3
+* insert key: Space+Dots24
+* delete key: Space+Dots145
+* function key #1: Backspace+Dot1
+* function key #2: Backspace+Dots12
+* function key #3: Backspace+Dots14
+* function key #4: Backspace+Dots145
+* function key #5: Backspace+Dots15
+* function key #6: Backspace+Dots124
+* function key #7: Backspace+Dots1245
+* function key #8: Backspace+Dots125
+* function key #9: Backspace+Dots24
+* function key #10: Backspace+Dots245
+* function key #11: Backspace+Dots13
+* function key #12: Backspace+Dots123
+* enter key: Backspace+Space
+* tab key: Space+Dots2345
+* switch to specific virtual terminal #1: Backspace+Dot2
+* switch to specific virtual terminal #2: Backspace+Dots23
+* switch to specific virtual terminal #3: Backspace+Dots25
+* switch to specific virtual terminal #4: Backspace+Dots256
+* switch to specific virtual terminal #5: Backspace+Dots26
+* switch to specific virtual terminal #6: Backspace+Dots235
+* switch to specific virtual terminal #7: Backspace+Dots2356
+* switch to specific virtual terminal #8: Backspace+Dots236
+* switch to specific virtual terminal #9: Backspace+Dots35
+* switch to specific virtual terminal #10: Backspace+Dots356
+* switch to specific virtual terminal #11: Backspace+Dots27
+* switch to specific virtual terminal #12: Backspace+Dots237
+* switch to the previous virtual terminal: Backspace+Dot3
+* switch to the next virtual terminal: Backspace+Dot6
+
+Special Functions
+* restart speech driver: L6+L8
+

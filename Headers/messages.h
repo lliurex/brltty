@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -34,8 +34,8 @@ extern const char *getMessagesDomain (void);
 
 extern void ensureAllMessagesProperties (void);
 
-extern int loadMessagesData (void);
-extern void releaseMessagesData (void);
+extern int loadMessageCatalog (void);
+extern void releaseMessageCatalog (void);
 
 extern uint32_t getMessageCount (void);
 extern const char *getMessagesMetadata (void);
@@ -60,10 +60,10 @@ typedef struct MessageStruct Message;
 extern const char *getMessageText (const Message *message);
 extern uint32_t getMessageLength (const Message *message);
 
-extern const Message *getOriginalMessage (unsigned int index);
+extern const Message *getSourceMessage (unsigned int index);
 extern const Message *getTranslatedMessage (unsigned int index);
 
-extern int findOriginalMessage (const char *text, size_t textLength, unsigned int *index);
+extern int findSourceMessage (const char *text, size_t textLength, unsigned int *index);
 extern const Message *findSimpleTranslation (const char *text, size_t length);
 extern const Message *findPluralTranslation (const char *const *strings);
 

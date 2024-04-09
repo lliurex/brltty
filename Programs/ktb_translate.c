@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -25,13 +25,16 @@
 #include "strfmt.h"
 #include "alert.h"
 #include "prefs.h"
+#include "unicode.h"
 #include "ktb.h"
 #include "ktb_internal.h"
 #include "ktb_inspect.h"
+#include "brl_types.h"
 #include "brl_cmds.h"
 #include "cmd.h"
 #include "cmd_enqueue.h"
 #include "async_alarm.h"
+#include "hostcmd.h"
 
 #define BRL_CMD_ALERT(alert) BRL_CMD_ARG(ALERT, ALERT_##alert)
 
@@ -335,14 +338,84 @@ processCommand (KeyTable *table, int command) {
                 BRL_CMD_ALERT(CONTEXT_PERSISTENT);
             }
 
-            if (!enqueueCommand(command)) return 0;
+            if (prefs.speakKeyContext) {
+              if (ctx->title) {
+                speakAlertText(ctx->title);
+              } else {
+                const wchar_t *name = ctx->name;
+                const wchar_t *from = name;
+
+                wchar_t text[(wcslen(name) * 2) + 1];
+                wchar_t *to = text;
+
+                while (*from) {
+                  wchar_t character = *from++;
+
+                  if (iswupper(character)) {
+                    if (to != text) {
+                      *to++ = WC_C(' ');
+                    }
+                  }
+
+                  *to++ = character;
+                }
+
+                *to = 0;
+                speakAlertText(text);
+              }
+            } else if (!enqueueCommand(command)) {
+              return 0;
+            }
+
             command = BRL_CMD_NOOP;
           }
 
           break;
         }
 
+        case BRL_CMD_BLK(MACRO): {
+          if (arg < table->commandMacros.count) {
+            const CommandMacro *macro = &table->commandMacros.table[arg];
+            const BoundCommand *cmd = macro->commands;
+            const BoundCommand *end = cmd + macro->count;
+
+            while (cmd < end) {
+              if (!processCommand(table, (cmd++)->value)) return 0;
+            }
+          }
+
+          command = BRL_CMD_NOOP;
+          break;
+        }
+
+        case BRL_CMD_BLK(HOSTCMD): {
+          if (arg < table->hostCommands.count) {
+            const HostCommand *hc = &table->hostCommands.table[arg];
+
+            HostCommandOptions options;
+            initializeHostCommandOptions(&options);
+            options.asynchronous = 1;
+
+            runHostCommand((const char *const *)hc->arguments, &options);
+          }
+
+          command = BRL_CMD_NOOP;
+          break;
+        }
+
         case BRL_CMD_BLK(PASSDOTS):
+          switch (prefs.brailleTypingMode) {
+            case BRL_TYPING_DOTS: {
+              wchar_t character = UNICODE_BRAILLE_ROW | arg;
+              int flags = command & BRL_MSK_FLG;
+              command = BRL_CMD_BLK(PASSCHAR) | BRL_ARG_SET(character) | flags;
+              break;
+            }
+          }
+
+          isInput = 1;
+          break;
+
         case BRL_CMD_BLK(PASSCHAR):
           isInput = 1;
           break;
@@ -476,6 +549,29 @@ isRepeatableCommand (int command) {
   return 0;
 }
 
+static int
+getPressedKeysCommand (
+  KeyTable *table, unsigned char context,
+  const KeyValue *key, unsigned int position,
+  const KeyBinding **binding, int *wasInserted,
+  int *isIncomplete, int *isImmediate
+) {
+  *binding = findKeyBinding(table, context, key, isIncomplete);
+  *wasInserted = insertPressedKey(table, key, position);
+
+  if (*binding) {
+    *isImmediate = 1;
+    return (*binding)->primaryCommand.value;
+  }
+
+  if ((*binding = findKeyBinding(table, context, NULL, isIncomplete))) {
+    *isImmediate = 0;
+    return (*binding)->primaryCommand.value;
+  }
+
+  return EOF;
+}
+
 KeyTableState
 processKeyEvent (
   KeyTable *table, unsigned char context,
@@ -517,33 +613,53 @@ processKeyEvent (
     if (wasPressed) removePressedKey(table, keyPosition);
 
     if (press) {
+      const KeyBinding *binding;
       int isIncomplete = 0;
-      const KeyBinding *binding = findKeyBinding(table, context, &keyValue, &isIncomplete);
-      int inserted = insertPressedKey(table, &keyValue, keyPosition);
+      int wasInserted;
 
-      if (binding) {
-        command = binding->primaryCommand.value;
-      } else if ((binding = findKeyBinding(table, context, NULL, &isIncomplete))) {
-        command = binding->primaryCommand.value;
-        isImmediate = 0;
-      } else if ((command = makeKeyboardCommand(table, context, 0)) != EOF) {
-        isImmediate = 0;
-      } else if (context == KTB_CTX_DEFAULT) {
-        command = EOF;
-      } else if (!inserted) {
-        command = EOF;
-      } else {
-        removePressedKey(table, keyPosition);
-        binding = findKeyBinding(table, KTB_CTX_DEFAULT, &keyValue, &isIncomplete);
-        inserted = insertPressedKey(table, &keyValue, keyPosition);
+      int command = getPressedKeysCommand(
+        table, context,
+        &keyValue, keyPosition,
+        &binding, &wasInserted,
+        &isIncomplete, &isImmediate
+      );
 
-        if (binding) {
-          command = binding->primaryCommand.value;
-        } else if ((binding = findKeyBinding(table, KTB_CTX_DEFAULT, NULL, &isIncomplete))) {
-          command = binding->primaryCommand.value;
+      if (command == EOF) {
+        if ((command = makeKeyboardCommand(table, context, 0)) != EOF) {
           isImmediate = 0;
-        } else {
-          command = EOF;
+        }       ;
+      }
+
+      if (command == EOF) {
+        int tryDefaultContext = wasInserted && (context != KTB_CTX_DEFAULT);
+
+        if (tryDefaultContext) {
+          const KeyContext *ctx = getKeyContext(table, context);
+
+          if (ctx && ctx->isIsolated) {
+            tryDefaultContext = 0;
+            command = BRL_CMD_NOOP;
+          }
+        }
+
+        if (tryDefaultContext) {
+          removePressedKey(table, keyPosition);
+
+          command = getPressedKeysCommand(
+            table, KTB_CTX_DEFAULT,
+            &keyValue, keyPosition,
+            &binding, &wasInserted,
+            &isIncomplete, &isImmediate
+          );
+
+          if (command != EOF) {
+            switch (command & BRL_MSK_BLK) {
+              case BRL_CMD_BLK(PASSDOTS): {
+                command = BRL_CMD_ALERT(COMMAND_REJECTED);
+                break;
+              }
+            }
+          }
         }
       }
 

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #include "log.h"
+#include "io_log.h"
 #include "strfmt.h"
 #include "parameters.h"
 #include "parse.h"
@@ -110,7 +111,7 @@ serialSetBaud (SerialDevice *serial, unsigned int baud) {
   if (entry) {
     logMessage(LOG_CATEGORY(SERIAL_IO), "set baud: %u", baud);
     if (serialPutSpeed(&serial->pendingAttributes, entry->speed)) return 1;
-    logMessage(LOG_WARNING, "unsupported serial baud: %u", baud);
+    logUnsupportedBaud(baud);
   }
 
   return 0;
@@ -145,7 +146,7 @@ serialSetDataBits (SerialDevice *serial, unsigned int bits) {
   logMessage(LOG_CATEGORY(SERIAL_IO), "set data bits: %u", bits);
   if (serialPutDataBits(&serial->pendingAttributes, bits)) return 1;
 
-  logMessage(LOG_WARNING, "unsupported serial data bit count: %u", bits);
+  logUnsupportedDataBits(bits);
   return 0;
 }
 
@@ -154,7 +155,7 @@ serialSetStopBits (SerialDevice *serial, SerialStopBits bits) {
   logMessage(LOG_CATEGORY(SERIAL_IO), "set stop bits: %u", bits);
   if (serialPutStopBits(&serial->pendingAttributes, bits)) return 1;
 
-  logMessage(LOG_WARNING, "unsupported serial stop bit count: %u", bits);
+  logUnsupportedStopBits(bits);
   return 0;
 }
 
@@ -163,7 +164,7 @@ serialSetParity (SerialDevice *serial, SerialParity parity) {
   logMessage(LOG_CATEGORY(SERIAL_IO), "set parity: %u", parity);
   if (serialPutParity(&serial->pendingAttributes, parity)) return 1;
 
-  logMessage(LOG_WARNING, "unsupported serial parity: %u", parity);
+  logUnsupportedParity(parity);
   return 0;
 }
 
@@ -240,7 +241,7 @@ serialSetFlowControl (SerialDevice *serial, SerialFlowControl flow) {
 #endif /* HAVE_POSIX_THREADS */
 
   if (!flow) return 1;
-  logMessage(LOG_WARNING, "unsupported serial flow control: 0X%02X", flow);
+  logUnsupportedFlowControl(flow);
   return 0;
 }
 
@@ -675,15 +676,15 @@ serialConfigureFlowControl (SerialDevice *serial, const char *string) {
 }
 
 typedef enum {
-  SERIAL_DEV_NAME,
-  SERIAL_DEV_BAUD,
-  SERIAL_DEV_DATA_BITS,
-  SERIAL_DEV_STOP_BITS,
-  SERIAL_DEV_PARITY,
-  SERIAL_DEV_FLOW_CONTROL
+  SERIAL_PARM_NAME,
+  SERIAL_PARM_BAUD,
+  SERIAL_PARM_DATA_BITS,
+  SERIAL_PARM_STOP_BITS,
+  SERIAL_PARM_DATA_PARITY,
+  SERIAL_PARM_FLOW_CONTROL
 } SerialDeviceParameter;
 
-static const char *const serialDeviceParameters[] = {
+static const char *const serialDeviceParameterNames[] = {
   "name",
   "baud",
   "dataBits",
@@ -696,7 +697,7 @@ static const char *const serialDeviceParameters[] = {
 static char **
 serialGetDeviceParameters (const char *identifier) {
   if (!identifier) identifier = "";
-  return getDeviceParameters(serialDeviceParameters, identifier);
+  return getDeviceParameters(serialDeviceParameterNames, identifier);
 }
 
 SerialDevice *
@@ -710,7 +711,7 @@ serialOpenDevice (const char *identifier) {
       memset(serial, 0, sizeof(*serial));
 
       {
-        const char *name = parameters[SERIAL_DEV_NAME];
+        const char *name = parameters[SERIAL_PARM_NAME];
         if (!*name) name = SERIAL_FIRST_DEVICE;
         serial->devicePath = getDevicePath(name);
       }
@@ -722,11 +723,11 @@ serialOpenDevice (const char *identifier) {
         if (serialConnectDevice(serial, serial->devicePath)) {
           int ok = 1;
 
-          if (!serialConfigureBaud(serial, parameters[SERIAL_DEV_BAUD])) ok = 0;
-          if (!serialConfigureDataBits(serial, parameters[SERIAL_DEV_DATA_BITS])) ok = 0;
-          if (!serialConfigureStopBits(serial, parameters[SERIAL_DEV_STOP_BITS])) ok = 0;
-          if (!serialConfigureParity(serial, parameters[SERIAL_DEV_PARITY])) ok = 0;
-          if (!serialConfigureFlowControl(serial, parameters[SERIAL_DEV_FLOW_CONTROL])) ok = 0;
+          if (!serialConfigureBaud(serial, parameters[SERIAL_PARM_BAUD])) ok = 0;
+          if (!serialConfigureDataBits(serial, parameters[SERIAL_PARM_DATA_BITS])) ok = 0;
+          if (!serialConfigureStopBits(serial, parameters[SERIAL_PARM_STOP_BITS])) ok = 0;
+          if (!serialConfigureParity(serial, parameters[SERIAL_PARM_DATA_PARITY])) ok = 0;
+          if (!serialConfigureFlowControl(serial, parameters[SERIAL_PARM_FLOW_CONTROL])) ok = 0;
 
           deallocateStrings(parameters);
           if (ok) return serial;
@@ -777,7 +778,7 @@ serialMakeDeviceIdentifier (SerialDevice *serial, char *buffer, size_t size) {
     "%s%c%s%c%s",
     SERIAL_DEVICE_QUALIFIER,
     PARAMETER_QUALIFIER_CHARACTER,
-    serialDeviceParameters[SERIAL_DEV_NAME],
+    serialDeviceParameterNames[SERIAL_PARM_NAME],
     PARAMETER_ASSIGNMENT_CHARACTER,
     serialGetDevicePath(serial)
   );

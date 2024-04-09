@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -206,6 +206,21 @@ static DATA_OPERANDS_PROCESSOR(processGlyphOperands) {
   return 1;
 }
 
+static DATA_OPERANDS_PROCESSOR(processInputOperands) {
+  TextTableData *ttd = data;
+  wchar_t character;
+
+  if (getCharacterOperand(file, &character)) {
+    unsigned char dots;
+
+    if (getDotsOperand(file, &dots)) {
+      if (!setTextTableInput(ttd, character, dots)) return 0;
+    }
+  }
+
+  return 1;
+}
+
 static DATA_CONDITION_TESTER(testGlyphDefined) {
   TextTableData *ttd = data;
 
@@ -232,9 +247,9 @@ static DATA_OPERANDS_PROCESSOR(processIfNotGlyphOperands) {
   return processGlyphTestOperands(file, 1, data);
 }
 
-static const char cellDescription[] = "braille cell";
+static const char inputDescription[] = "dot number(s)";
 
-static DATA_CONDITION_TESTER(testCellDefined) {
+static DATA_CONDITION_TESTER(testInputDefined) {
   TextTableData *ttd = data;
 
   ByteOperand cells;
@@ -242,26 +257,26 @@ static DATA_CONDITION_TESTER(testCellDefined) {
 
   if (cells.length != 1) {
     reportDataError(file, "not a single %s: %.*" PRIws,
-                    cellDescription, identifier->length, identifier->characters);
+                    inputDescription, identifier->length, identifier->characters);
 
     return 0;
   }
 
   const TextTableHeader *header = getTextTableHeader(ttd);
-  return !!BITMASK_TEST(header->dotsCharacterDefined, cells.bytes[0]);
+  return !!BITMASK_TEST(header->inputCharacterDefined, cells.bytes[0]);
 }
 
 static int
-processCellTestOperands (DataFile *file, int not, void *data) {
-  return processConditionOperands(file, testCellDefined, not, cellDescription, data);
+processInputTestOperands (DataFile *file, int not, void *data) {
+  return processConditionOperands(file, testInputDefined, not, inputDescription, data);
 }
 
-static DATA_OPERANDS_PROCESSOR(processIfCellOperands) {
-  return processCellTestOperands(file, 0, data);
+static DATA_OPERANDS_PROCESSOR(processIfInputOperands) {
+  return processInputTestOperands(file, 0, data);
 }
 
-static DATA_OPERANDS_PROCESSOR(processIfNotCellOperands) {
-  return processCellTestOperands(file, 1, data);
+static DATA_OPERANDS_PROCESSOR(processIfNotInputOperands) {
+  return processInputTestOperands(file, 1, data);
 }
 
 static DATA_OPERANDS_PROCESSOR(processNativeTextTableOperands) {
@@ -273,10 +288,11 @@ static DATA_OPERANDS_PROCESSOR(processNativeTextTableOperands) {
     {.name=WS_C("byte"), .processor=processByteOperands},
     {.name=WS_C("char"), .processor=processCharOperands},
     {.name=WS_C("glyph"), .processor=processGlyphOperands},
+    {.name=WS_C("input"), .processor=processInputOperands},
     {.name=WS_C("ifglyph"), .processor=processIfGlyphOperands, .unconditional=1},
     {.name=WS_C("ifnotglyph"), .processor=processIfNotGlyphOperands, .unconditional=1},
-    {.name=WS_C("ifcell"), .processor=processIfCellOperands, .unconditional=1},
-    {.name=WS_C("ifnotcell"), .processor=processIfNotCellOperands, .unconditional=1},
+    {.name=WS_C("ifinput"), .processor=processIfInputOperands, .unconditional=1},
+    {.name=WS_C("ifnotinput"), .processor=processIfNotInputOperands, .unconditional=1},
   END_DATA_DIRECTIVE_TABLE
 
   return processDirectiveOperand(file, &directives, "text table directive", data);

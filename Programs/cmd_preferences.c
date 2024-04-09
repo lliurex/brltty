@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -28,6 +28,7 @@
 #include "menu.h"
 #include "menu_prefs.h"
 #include "scr_special.h"
+#include "scr_menu.h"
 #include "message.h"
 #include "alert.h"
 #include "core.h"
@@ -35,6 +36,19 @@
 typedef struct {
   PreferenceSettings savedPreferences;
 } PreferencesCommandData;
+
+static int
+save (void) {
+  int saved = savePreferences();
+
+  if (saved) {
+    alert(ALERT_COMMAND_DONE);
+  } else {
+    message(NULL, gettext("not saved"), 0);
+  }
+
+  return saved;
+}
 
 static int
 handlePreferencesCommands (int command, void *data) {
@@ -46,12 +60,7 @@ handlePreferencesCommands (int command, void *data) {
       int ok = 0;
 
       if (isSpecialScreen(SCR_MENU)) {
-        if (prefs.saveOnExit) {
-          if (savePreferences()) {
-            alert(ALERT_COMMAND_DONE);
-          }
-        }
-
+        if (prefs.saveOnExit) save();
         deactivateSpecialScreen(SCR_MENU);
         ok = 1;
       } else if (activateSpecialScreen(SCR_MENU)) {
@@ -72,11 +81,9 @@ handlePreferencesCommands (int command, void *data) {
 
     case BRL_CMD_PREFSAVE:
       if (isSpecialScreen(SCR_MENU)) {
-        if (savePreferences()) alert(ALERT_COMMAND_DONE);
+        save();
         deactivateSpecialScreen(SCR_MENU);
-      } else if (savePreferences()) {
-        alert(ALERT_COMMAND_DONE);
-      } else {
+      } else if (!save()) {
         alert(ALERT_COMMAND_REJECTED);
       }
       break;
@@ -84,8 +91,19 @@ handlePreferencesCommands (int command, void *data) {
     case BRL_CMD_PREFLOAD:
       if (isSpecialScreen(SCR_MENU)) {
         setPreferences(&pcd->savedPreferences);
+        menuScreenUpdated();
         message(modeString_preferences, gettext("changes discarded"), 0);
-      } else if (loadPreferences()) {
+      } else if (loadPreferences(0)) {
+        menuScreenUpdated();
+        alert(ALERT_COMMAND_DONE);
+      } else {
+        alert(ALERT_COMMAND_REJECTED);
+      }
+      break;
+
+    case BRL_CMD_PREFRESET:
+      if (loadPreferences(1)) {
+        menuScreenUpdated();
         alert(ALERT_COMMAND_DONE);
       } else {
         alert(ALERT_COMMAND_REJECTED);

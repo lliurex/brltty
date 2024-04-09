@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -27,6 +27,7 @@
 #include "report.h"
 #include "strfmt.h"
 #include "update.h"
+#include "async_handle.h"
 #include "async_alarm.h"
 #include "timing.h"
 #include "unicode.h"
@@ -45,8 +46,372 @@
 #include "api_control.h"
 #include "core.h"
 
-static int oldwinx;
-static int oldwiny;
+static void
+overlayAttributesUnderline (unsigned char *cell, unsigned char attributes) {
+  unsigned char dots;
+
+  switch (attributes) {
+    case SCR_COLOUR_FG_DARK_GREY | SCR_COLOUR_BG_BLACK:
+    case SCR_COLOUR_FG_LIGHT_GREY | SCR_COLOUR_BG_BLACK:
+    case SCR_COLOUR_FG_LIGHT_GREY | SCR_COLOUR_BG_BLUE:
+    case SCR_COLOUR_FG_BLACK | SCR_COLOUR_BG_CYAN:
+      return;
+
+    case SCR_COLOUR_FG_BLACK | SCR_COLOUR_BG_LIGHT_GREY:
+      dots = BRL_DOT_7 | BRL_DOT_8;
+      break;
+
+    case SCR_COLOUR_FG_WHITE | SCR_COLOUR_BG_BLACK:
+    default:
+      dots = BRL_DOT_8;
+      break;
+  }
+
+  {
+    BlinkDescriptor *blink = &attributesUnderlineBlinkDescriptor;
+
+    requireBlinkDescriptor(blink);
+    if (isBlinkVisible(blink)) *cell |= dots;
+  }
+}
+
+static void
+readBrailleWindow (ScreenCharacter *characters, size_t count) {
+  int screenColumns = MIN(textCount, scr.cols-ses->winx);
+  int screenRows = MIN(brl.textRows, scr.rows-ses->winy);
+
+  if (prefs.wordWrap) {
+    int length = getWordWrapLength(ses->winy, ses->winx, screenColumns);
+    if (length < screenColumns) screenColumns = length;
+  }
+
+  if (screenColumns > 0) {
+    readScreen(ses->winx, ses->winy, screenColumns, screenRows, characters);
+  }
+
+  if (screenColumns < textCount) {
+    /* We got a rectangular piece of text with readScreen but the display
+     * is in an off-right position with some cells at the end blank
+     * so we'll insert these cells and blank them.
+     */
+
+    {
+      int lastRow = screenRows - 1;
+      const ScreenCharacter *source = characters + (lastRow * screenColumns);
+      ScreenCharacter *target = characters + (lastRow * textCount);
+      size_t size = screenColumns * sizeof(*target);
+
+      while (source > characters) {
+        memmove(target, source, size);
+        source -= screenColumns;
+        target -= textCount;
+      }
+    }
+
+    {
+      ScreenCharacter *row = characters + screenColumns;
+      const ScreenCharacter *end = characters + (screenRows * textCount);
+      size_t count = textCount - screenColumns;
+
+      while (row < end) {
+        clearScreenCharacters(row, count);
+        row += textCount;
+      }
+    }
+  }
+
+  if (screenRows < brl.textRows) {
+    clearScreenCharacters(
+      characters + (screenRows * textCount),
+      (brl.textRows - screenRows) * textCount
+    );
+  }
+}
+
+typedef void ScreenCharacterTranslator (
+  const ScreenCharacter *character, unsigned char *cell, wchar_t *text
+);
+
+static void
+translateScreenCharacter_text (
+  const ScreenCharacter *character, unsigned char *cell, wchar_t *text
+) {
+  *cell = convertCharacterToDots(textTable, character->text);
+  *text = character->text;
+
+  {
+    const unsigned char dots = BRL_DOT_7 | BRL_DOT_8;
+
+    if (*cell & dots) {
+      if (isSixDotComputerBraille()) {
+        *cell &= ~dots;
+      }
+    }
+  }
+
+  if (prefs.showAttributes) {
+    overlayAttributesUnderline(cell, character->attributes);
+  }
+
+  {
+    BlinkDescriptor *blink = &uppercaseLettersBlinkDescriptor;
+
+    if (isBlinkEnabled(blink)) {
+      if (iswupper(character->text)) {
+        requireBlinkDescriptor(blink);
+        if (!isBlinkVisible(blink)) *cell = 0;
+      }
+    }
+  }
+}
+
+static void
+translateScreenCharacter_attributes (
+  const ScreenCharacter *character, unsigned char *cell, wchar_t *text
+) {
+  *text = UNICODE_BRAILLE_ROW | (*cell = convertAttributesToDots(attributesTable, character->attributes));
+}
+
+static void
+translateBrailleWindow (
+  const ScreenCharacter *characters, wchar_t *textBuffer
+) {
+  ScreenCharacterTranslator *translateScreenCharacter =
+    ses->displayMode?
+    translateScreenCharacter_attributes:
+    translateScreenCharacter_text;
+
+  for (unsigned int row=0; row<brl.textRows; row+=1) {
+    const ScreenCharacter *character = &characters[row * textCount];
+    const ScreenCharacter *end = character + textCount;
+
+    unsigned int start = (row * brl.textColumns) + textStart;
+    unsigned char *cell = &brl.buffer[start];
+    wchar_t *text = &textBuffer[start];
+
+    while (character < end) {
+      translateScreenCharacter(character++, cell++, text++);
+    }
+  }
+}
+
+int isContracted = 0;
+int contractedTrack = 0;
+
+static void
+constructContractionCache (ContractionCache *cache) {
+  cache->input.characters = NULL;
+  cache->input.size = 0;
+  cache->input.count = 0;
+
+  cache->output.cells = NULL;
+  cache->output.size = 0;
+  cache->output.count = 0;
+
+  cache->offsets.array = NULL;
+  cache->offsets.size = 0;
+  cache->offsets.count = 0;
+}
+
+static void
+constructBrailleRowDescriptor (BrailleRowDescriptor *brd) {
+  constructContractionCache(&brd->contracted.cache);
+  brd->contracted.length = 0;
+  brd->contracted.offsets.array = NULL;
+  brd->contracted.offsets.size = 0;
+}
+
+BrailleRowDescriptor *
+getBrailleRowDescriptor (unsigned int row) {
+  if (row >= brl.rowDescriptors.size) {
+    size_t newSize = row + 1;
+
+    BrailleRowDescriptor *newArray = realloc(
+      brl.rowDescriptors.array,
+      ARRAY_SIZE(brl.rowDescriptors.array, newSize)
+    );
+
+    if (!newArray) {
+      logMallocError();
+      return NULL;
+    }
+
+    while (brl.rowDescriptors.size < newSize) {
+      BrailleRowDescriptor *brd = &newArray[brl.rowDescriptors.size++];
+      constructBrailleRowDescriptor(brd);
+    }
+
+    brl.rowDescriptors.array = newArray;
+  }
+
+  return &brl.rowDescriptors.array[row];
+}
+
+static int
+ensureContractedOffsetsSize (BrailleRowDescriptor *brd, size_t size) {
+  if (++size > brd->contracted.offsets.size) {
+    size_t newSize = 1;
+    while (newSize < size) newSize <<= 1;
+
+    int *newArrayets = realloc(
+      brd->contracted.offsets.array,
+      ARRAY_SIZE(brd->contracted.offsets.array, newSize)
+    );
+
+    if (!newArrayets) {
+      logMallocError();
+      return 0;
+    }
+
+    brd->contracted.offsets.array = newArrayets;
+    brd->contracted.offsets.size = newSize;
+  }
+
+  return 1;
+}
+
+int
+getCursorOffsetForContracting (void) {
+  if (scr.posy != ses->winy) return CTB_NO_CURSOR;
+  if (scr.posx < ses->winx) return CTB_NO_CURSOR;
+  return scr.posx - ses->winx;
+}
+
+static int
+contractScreenRow (BrailleRowDescriptor *brd, unsigned int screenRow, unsigned char *cells, unsigned int cellCount) {
+  int isCursorRow = scr.posy == ses->winy;
+
+  int inputLength = scr.cols - ses->winx;
+  wchar_t inputText[inputLength];
+  int outputLength = cellCount;
+
+  ScreenCharacter inputCharacters[inputLength];
+  readScreen(ses->winx, screenRow, inputLength, 1, inputCharacters);
+
+  for (int i=0; i<inputLength; i+=1) {
+    inputText[i] = inputCharacters[i].text;
+  }
+
+  ensureContractedOffsetsSize(brd, inputLength);
+  int *offsetsArray = brd->contracted.offsets.array;
+
+  contractText(
+    contractionTable, &brd->contracted.cache,
+    inputText, &inputLength,
+    cells, &outputLength,
+    offsetsArray, getCursorOffsetForContracting()
+  );
+
+  {
+    int inputEnd = inputLength;
+
+    if (contractedTrack && isCursorRow) {
+      if (outputLength == cellCount) {
+        int inputIndex = inputEnd;
+
+        while (inputIndex) {
+          int offset = offsetsArray[--inputIndex];
+
+          if (offset != CTB_NO_OFFSET) {
+            if (offset != outputLength) break;
+            inputEnd = inputIndex;
+          }
+        }
+      }
+
+      if (scr.posx >= (ses->winx + inputEnd)) {
+        int offset = 0;
+        int length = scr.cols - ses->winx;
+        int onSpace = 0;
+
+        while (offset < length) {
+          if ((iswspace(inputCharacters[offset].text) != 0) != onSpace) {
+            if (onSpace) break;
+            onSpace = 1;
+          }
+
+          offset += 1;
+        }
+
+        if ((offset += ses->winx) > scr.posx) {
+          ses->winx = scr.posx;
+        } else {
+          ses->winx = offset;
+        }
+
+        return 0;
+      }
+    }
+  }
+
+  if (ses->displayMode || prefs.showAttributes) {
+    int outputOffset = 0;
+    unsigned char attributes = 0;
+    unsigned char attributesBuffer[outputLength];
+
+    for (int inputOffset=0; inputOffset<inputLength; inputOffset+=1) {
+      int offset = offsetsArray[inputOffset];
+
+      if (offset != CTB_NO_OFFSET) {
+        while (outputOffset < offset) attributesBuffer[outputOffset++] = attributes;
+        attributes = 0;
+      }
+
+      attributes |= inputCharacters[inputOffset].attributes;
+    }
+
+    while (outputOffset < outputLength) {
+      attributesBuffer[outputOffset++] = attributes;
+    }
+
+    if (ses->displayMode) {
+      for (unsigned int i=0; i<outputLength; i+=1) {
+        cells[i] = convertAttributesToDots(attributesTable, attributesBuffer[i]);
+      }
+    } else {
+      for (unsigned int i=0; i<outputLength; i+=1) {
+        overlayAttributesUnderline(&cells[i], attributesBuffer[i]);
+      }
+    }
+  }
+
+  brd->contracted.length = inputLength;
+  return 1;
+}
+
+static int
+generateContractedBraille (wchar_t *text) {
+  unsigned int brailleRow = 0;
+  unsigned char *cells = &brl.buffer[textStart];
+  text += textStart;
+
+  while (brailleRow < brl.textRows) {
+    unsigned int screenRow = brailleRow + ses->winy;
+    if (screenRow >= scr.rows) break;
+
+    BrailleRowDescriptor *brd = getBrailleRowDescriptor(brailleRow);
+    if (!contractScreenRow(brd, screenRow, cells, textCount)) return 0;
+
+    for (unsigned int i=0; i<textCount; i+=1) {
+      text[i] = UNICODE_BRAILLE_ROW | cells[i];
+    }
+
+    cells += brl.textColumns;
+    text += brl.textColumns;
+    brailleRow += 1;
+  }
+
+  while (brailleRow < brl.textRows) {
+    memset(cells, 0, textCount);
+    wmemset(text, WC_C(' '), textCount);
+
+    cells += brl.textColumns;
+    text += brl.textColumns;
+    brailleRow += 1;
+  }
+
+  return 1;
+}
 
 static int
 checkScreenPointer (void) {
@@ -106,10 +471,11 @@ highlightBrailleWindowLocation (void) {
 }
 
 static const unsigned char cursorStyles[] = {
-  [csUnderline] = (BRL_DOT_7 | BRL_DOT_8),
-  [csBlock] = BRL_DOTS_ALL,
+  [csBottomDots] = (BRL_DOT_7 | BRL_DOT_8),
+  [csAllDots] = BRL_DOTS_ALL,
   [csLowerLeftDot] = (BRL_DOT_7),
-  [csLowerRightDot] = (BRL_DOT_8)
+  [csLowerRightDot] = (BRL_DOT_8),
+  [csNoDots] = (0)
 };
 
 unsigned char
@@ -150,7 +516,7 @@ setSpeechCursorDots (unsigned char dots) {
   return setCursorDots(&prefs.speechCursorStyle, dots);
 }
 
-static unsigned char
+unsigned char
 mapCursorDots (unsigned char dots) {
   if (!hasEightDotCells(&brl)) {
     brlRemapDot(&dots, BRL_DOT_7, BRL_DOT_3);
@@ -162,73 +528,41 @@ mapCursorDots (unsigned char dots) {
 
 static int
 getScreenCursorPosition (int x, int y) {
-  int position = BRL_NO_CURSOR;
+  if (y < ses->winy) return BRL_NO_CURSOR;
+  if (y >= scr.rows) return BRL_NO_CURSOR;
+  if (y >= (int)(ses->winy + brl.textRows)) return BRL_NO_CURSOR;
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
+  if (x < ses->winx) return BRL_NO_CURSOR;
+  if (x >= scr.cols) return BRL_NO_CURSOR;
+
+  int rowIndex = y - ses->winy;
+  int rowPosition = (rowIndex * brl.textColumns) + textStart;
+
   if (isContracted) {
-    int uncontractedOffset = getUncontractedCursorOffset(x, y);
+    BrailleRowDescriptor *brd = getBrailleRowDescriptor(rowIndex);
+    if (!brd) return BRL_NO_CURSOR;
 
-    if (uncontractedOffset != BRL_NO_CURSOR) {
-      if (uncontractedOffset < contractedLength) {
-        const unsigned int windowLength = brl.textColumns * brl.textRows;
+    int *offsets = brd->contracted.offsets.array;
+    if (!offsets) return BRL_NO_CURSOR;
 
-        while (uncontractedOffset >= 0) {
-          int contractedOffset = contractedOffsets[uncontractedOffset];
+    x -= ses->winx;
+    if (x >= brd->contracted.length) return BRL_NO_CURSOR;
 
-          if (contractedOffset != CTB_NO_OFFSET) {
-            int offset = ((contractedOffset / textCount) * brl.textColumns)
-                       + textStart + (contractedOffset % textCount);
+    while (x >= 0) {
+      int offset = offsets[x];
 
-            if (offset < windowLength) position = offset;
-            break;
-          }
-
-          uncontractedOffset -= 1;
-        }
+      if (offset != CTB_NO_OFFSET) {
+        if (offset < textCount) return rowPosition + offset;
+        break;
       }
+
+      x -= 1;
     }
-  } else
-#endif /* ENABLE_CONTRACTED_BRAILLE */
-
-  {
-    if ((x >= ses->winx) && (x < (int)(ses->winx + textCount)) &&
-        (y >= ses->winy) && (y < (int)(ses->winy + brl.textRows)) &&
-        (x < scr.cols) && (y < scr.rows)) {
-      position = ((y - ses->winy) * brl.textColumns)
-               + textStart + (x - ses->winx);
-    }
+  } else if (x < (int)(ses->winx + textCount)) {
+    return rowPosition + (x - ses->winx);
   }
 
-  return position;
-}
-
-static void
-overlayAttributesUnderline (unsigned char *cell, unsigned char attributes) {
-  unsigned char dots;
-
-  switch (attributes) {
-    case SCR_COLOUR_FG_DARK_GREY | SCR_COLOUR_BG_BLACK:
-    case SCR_COLOUR_FG_LIGHT_GREY | SCR_COLOUR_BG_BLACK:
-    case SCR_COLOUR_FG_LIGHT_GREY | SCR_COLOUR_BG_BLUE:
-    case SCR_COLOUR_FG_BLACK | SCR_COLOUR_BG_CYAN:
-      return;
-
-    case SCR_COLOUR_FG_BLACK | SCR_COLOUR_BG_LIGHT_GREY:
-      dots = BRL_DOT_7 | BRL_DOT_8;
-      break;
-
-    case SCR_COLOUR_FG_WHITE | SCR_COLOUR_BG_BLACK:
-    default:
-      dots = BRL_DOT_8;
-      break;
-  }
-
-  {
-    BlinkDescriptor *blink = &attributesUnderlineBlinkDescriptor;
-
-    requireBlinkDescriptor(blink);
-    if (isBlinkVisible(blink)) *cell |= dots;
-  }
+  return BRL_NO_CURSOR;
 }
 
 static int
@@ -260,17 +594,16 @@ getScreenCursorTrackingCharacter (void) {
 
 static inline char
 getScreenCursorVisibilityCharacter (void) {
-  return prefs.showScreenCursor? (prefs.blinkingScreenCursor? 'b': 'v'):
-                                 (prefs.blinkingScreenCursor? 'B': ' ');
+  return prefs.showScreenCursor? 'c': ' ';
 }
 
 static inline char
-getDisplayModeCharacter (void) {
-  return ses->displayMode? 'a': 't';
+getAttributesUnderlineVisibilityCharacter (void) {
+  return prefs.showAttributes? 'u': ' ';
 }
 
 static inline char
-getScreenTypeCharacter (void) {
+getSpecialScreenCharacter (void) {
   if (isSpecialScreen(SCR_FROZEN)) return 'f';
   if (isSpecialScreen(SCR_HELP)) return 'h';
   if (isSpecialScreen(SCR_MENU)) return 'm';
@@ -278,17 +611,26 @@ getScreenTypeCharacter (void) {
 }
 
 static inline char
-getTextStyleCharacter (void) {
-  return isSixDotBraille()? '6': '8';
+getBrailleVariantCharacter (void) {
+  return ses->displayMode? 'a':
+         isContractedBraille()? 'c':
+         isSixDotComputerBraille()? '6': '8';
 }
 
 static inline char
-getUppercaseIndicatorCharacter (void) {
-  return prefs.blinkingCapitals? 'B': ' ';
+getBrailleKeyboardCharacter (void) {
+  if (!prefs.brailleKeyboardEnabled) return 'd';
+  if (prefs.brailleTypingMode) return 'b';
+  return ' ';
+}
+
+static inline char
+getSpeechCursorVisibilityCharacter (void) {
+  return prefs.showSpeechCursor? 's': ' ';
 }
 
 static int
-showInfo (void) {
+renderInfoLine (void) {
   brl.cursor = BRL_NO_CURSOR;
 
   static const char mode[] = "info";
@@ -299,10 +641,10 @@ showInfo (void) {
    * Also, some displays (e.g. Braille Me) have only six dots per cell.
    */
   const size_t size = brl.textColumns * brl.textRows;
-  int compact = (size < 21) && hasEightDotCells(&brl);
+  int compact = (size < 22) && hasEightDotCells(&brl);
 
   static const unsigned char compactFields[] = {
-    sfCursorAndWindowColumn, sfCursorAndWindowRow, sfStateDots, sfEnd
+    sfCursorAndWindowColumn2, sfCursorAndWindowRow2, sfStateDots, sfEnd
   };
 
   static unsigned int compactLength = 0;
@@ -330,14 +672,15 @@ showInfo (void) {
   }
 
   STR_PRINTF(
-    " %02d %c%c%c%c%c%c",
+    " %02d %c%c%c%c%c%c%c",
     scr.number, 
     getScreenCursorTrackingCharacter(),
     getScreenCursorVisibilityCharacter(),
-    getDisplayModeCharacter(),
-    getScreenTypeCharacter(),
-    getTextStyleCharacter(),
-    getUppercaseIndicatorCharacter()
+    getAttributesUnderlineVisibilityCharacter(),
+    getSpeechCursorVisibilityCharacter(),
+    getSpecialScreenCharacter(),
+    getBrailleVariantCharacter(),
+    getBrailleKeyboardCharacter()
   );
 
   if ((STR_LENGTH + 6) <= size) {
@@ -454,6 +797,9 @@ checkScreenScroll (int track) {
     oldWidth = newWidth;
   }
 }
+
+static int oldwinx;
+static int oldwiny;
 
 #ifdef ENABLE_SPEECH_SUPPORT
 static int wasAutospeaking;
@@ -582,9 +928,9 @@ autospeak (AutospeakMode mode) {
                     last -= 1;
                   }
 
-                  if (last > first) {
+                  if (++last > first) {
                     column = first;
-                    count = last - first + 1;
+                    count = (last + 1) - first;
                     reason = "word inserted";
                     goto autospeak;
                   }
@@ -640,9 +986,9 @@ autospeak (AutospeakMode mode) {
                 }
               }
 
-              if ((length -= first) > 1) {
+              if ((length -= first) > 0) {
                 column = first;
-                count = length;
+                count = length + 1;
                 reason = "word appended";
                 goto autospeak;
               }
@@ -666,11 +1012,13 @@ autospeak (AutospeakMode mode) {
       }
     }
 
-    if (count) {
+    if (count && (scr.quality >= autospeakMinimumScreenContentQuality)) {
       if (!reason) reason = "unknown reason";
+
       logMessage(LOG_CATEGORY(SPEECH_EVENTS),
-                 "autospeak: %s: [%d,%d] %d.%d",
-                 reason, ses->winx, ses->winy, column, count);
+        "autospeak: %s: [%d,%d] %d.%d",
+        reason, ses->winx, ses->winy, column, count
+      );
 
       speakCharacters(characters, count, 0, interrupt);
     }
@@ -724,108 +1072,6 @@ writeBrailleWindow (BrailleDisplay *brl, const wchar_t *text, unsigned char qual
 
   brl->quality = quality;
   return braille->writeWindow(brl, text);
-}
-
-static void
-readBrailleWindow (ScreenCharacter *characters, size_t count) {
-  int screenColumns = MIN(textCount, scr.cols-ses->winx);
-  int screenRows = MIN(brl.textRows, scr.rows-ses->winy);
-
-  if (prefs.wordWrap) {
-    int length = getWordWrapLength(ses->winy, ses->winx, screenColumns);
-    if (length < screenColumns) screenColumns = length;
-  }
-
-  if (screenColumns > 0) {
-    readScreen(ses->winx, ses->winy, screenColumns, screenRows, characters);
-  }
-
-  if (screenColumns < textCount) {
-    /* We got a rectangular piece of text with readScreen but the display
-     * is in an off-right position with some cells at the end blank
-     * so we'll insert these cells and blank them.
-     */
-
-    {
-      int lastRow = screenRows - 1;
-      const ScreenCharacter *source = characters + (lastRow * screenColumns);
-      ScreenCharacter *target = characters + (lastRow * textCount);
-      size_t size = screenColumns * sizeof(*target);
-
-      while (source > characters) {
-        memmove(target, source, size);
-        source -= screenColumns;
-        target -= textCount;
-      }
-    }
-
-    {
-      ScreenCharacter *row = characters + screenColumns;
-      const ScreenCharacter *end = characters + (screenRows * textCount);
-      size_t count = textCount - screenColumns;
-
-      while (row < end) {
-        clearScreenCharacters(row, count);
-        row += textCount;
-      }
-    }
-  }
-
-  if (screenRows < brl.textRows) {
-    clearScreenCharacters(characters + (screenRows * textCount),
-                          (brl.textRows - screenRows) * textCount);
-  }
-}
-
-typedef void ScreenCharacterTranslator (
-  const ScreenCharacter *character, unsigned char *cell, wchar_t *text
-);
-
-static void
-translateScreenCharacterText (
-  const ScreenCharacter *character, unsigned char *cell, wchar_t *text
-) {
-  *cell = convertCharacterToDots(textTable, character->text);
-  *text = character->text;
-
-  if (isSixDotBraille()) *cell &= ~(BRL_DOT_7 | BRL_DOT_8);
-  if (prefs.showAttributes) overlayAttributesUnderline(cell, character->attributes);
-
-  if (iswupper(character->text)) {
-    BlinkDescriptor *blink = &uppercaseLettersBlinkDescriptor;
-    requireBlinkDescriptor(blink);
-    if (!isBlinkVisible(blink)) *cell = 0;
-  }
-}
-
-static void
-translateScreenCharacterAttributes (
-  const ScreenCharacter *character, unsigned char *cell, wchar_t *text
-) {
-  *text = UNICODE_BRAILLE_ROW | (*cell = convertAttributesToDots(attributesTable, character->attributes));
-}
-
-static void
-translateBrailleWindow (
-  const ScreenCharacter *characters, wchar_t *textBuffer
-) {
-  ScreenCharacterTranslator *translateScreenCharacter =
-    ses->displayMode?
-    translateScreenCharacterAttributes:
-    translateScreenCharacterText;
-
-  for (unsigned int row=0; row<brl.textRows; row+=1) {
-    const ScreenCharacter *character = &characters[row * textCount];
-    const ScreenCharacter *end = character + textCount;
-
-    unsigned int start = (row * brl.textColumns) + textStart;
-    unsigned char *cell = &brl.buffer[start];
-    wchar_t *text = &textBuffer[start];
-
-    while (character < end) {
-      translateScreenCharacter(character++, cell++, text++);
-    }
-  }
 }
 
 static void
@@ -955,129 +1201,24 @@ doUpdate (void) {
     api.claimDriver();
 
     if (infoMode) {
-      if (!showInfo()) brl.hasFailed = 1;
+      if (!renderInfoLine()) brl.hasFailed = 1;
     } else {
       const unsigned int windowLength = brl.textColumns * brl.textRows;
-      const unsigned int textLength = textCount * brl.textRows;
-      wchar_t textBuffer[windowLength];
-
       memset(brl.buffer, 0, windowLength);
+
+      wchar_t textBuffer[windowLength];
       wmemset(textBuffer, WC_C(' '), windowLength);
 
-#ifdef ENABLE_CONTRACTED_BRAILLE
-      isContracted = 0;
+      unsigned int textLength = textCount * brl.textRows;
+      isContracted = isContracting();
 
-      if (isContracting()) {
+      if (isContracted) {
         while (1) {
-          int inputLength = scr.cols - ses->winx;
-          ScreenCharacter inputCharacters[inputLength];
-          wchar_t inputText[inputLength];
-
-          int outputLength = textLength;
-          unsigned char outputBuffer[outputLength];
-
-          readScreen(ses->winx, ses->winy, inputLength, 1, inputCharacters);
-
-          for (int i=0; i<inputLength; ++i) {
-            inputText[i] = inputCharacters[i].text;
-          }
-
-          contractText(
-            contractionTable,
-            inputText, &inputLength,
-            outputBuffer, &outputLength,
-            contractedOffsets, getContractedCursor()
-          );
-
-          {
-            int inputEnd = inputLength;
-
-            if (contractedTrack) {
-              if (outputLength == textLength) {
-                int inputIndex = inputEnd;
-
-                while (inputIndex) {
-                  int offset = contractedOffsets[--inputIndex];
-
-                  if (offset != CTB_NO_OFFSET) {
-                    if (offset != outputLength) break;
-                    inputEnd = inputIndex;
-                  }
-                }
-              }
-
-              if (scr.posx >= (ses->winx + inputEnd)) {
-                int offset = 0;
-                int length = scr.cols - ses->winx;
-                int onspace = 0;
-
-                while (offset < length) {
-                  if ((iswspace(inputCharacters[offset].text) != 0) != onspace) {
-                    if (onspace) break;
-                    onspace = 1;
-                  }
-
-                  offset += 1;
-                }
-
-                if ((offset += ses->winx) > scr.posx) {
-                  ses->winx = scr.posx;
-                } else {
-                  ses->winx = offset;
-                }
-
-                continue;
-              }
-            }
-          }
-
-          contractedStart = ses->winx;
-          contractedLength = inputLength;
+          int generated = generateContractedBraille(textBuffer);
           contractedTrack = 0;
-          isContracted = 1;
-
-          if (ses->displayMode || prefs.showAttributes) {
-            int inputOffset;
-            int outputOffset = 0;
-            unsigned char attributes = 0;
-            unsigned char attributesBuffer[outputLength];
-
-            for (inputOffset=0; inputOffset<contractedLength; ++inputOffset) {
-              int offset = contractedOffsets[inputOffset];
-
-              if (offset != CTB_NO_OFFSET) {
-                while (outputOffset < offset) attributesBuffer[outputOffset++] = attributes;
-                attributes = 0;
-              }
-
-              attributes |= inputCharacters[inputOffset].attributes;
-            }
-
-            while (outputOffset < outputLength) attributesBuffer[outputOffset++] = attributes;
-
-            if (ses->displayMode) {
-              for (outputOffset=0; outputOffset<outputLength; ++outputOffset) {
-                outputBuffer[outputOffset] = convertAttributesToDots(attributesTable, attributesBuffer[outputOffset]);
-              }
-            } else {
-              unsigned int i;
-
-              for (i=0; i<outputLength; i+=1) {
-                overlayAttributesUnderline(&outputBuffer[i], attributesBuffer[i]);
-              }
-            }
-          }
-
-          fillDotsRegion(textBuffer, brl.buffer,
-                         textStart, textCount, brl.textColumns, brl.textRows,
-                         outputBuffer, outputLength);
-          break;
+          if (generated) break;
         }
-      }
-
-      if (!isContracted)
-#endif /* ENABLE_CONTRACTED_BRAILLE */
-      {
+      } else {
         ScreenCharacter characters[textLength];
         readBrailleWindow(characters, ARRAY_COUNT(characters));
         translateBrailleWindow(characters, textBuffer);

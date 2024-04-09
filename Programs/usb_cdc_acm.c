@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -38,10 +38,13 @@ struct UsbSerialDataStruct {
 
 static int
 usbGetParameters_CDC_ACM (UsbDevice *device, uint8_t request, uint16_t value, void *data, uint16_t size) {
-  ssize_t result = usbControlRead(device, UsbControlRecipient_Interface,
-                                  UsbControlType_Class, request, value,
-                                   device->serial.data->interface->bInterfaceNumber,
-                                   data, size, 1000);
+  UsbSerialData *usd = usbGetSerialData(device);
+
+  ssize_t result = usbControlRead(device,
+    UsbControlRecipient_Interface, UsbControlType_Class,
+    request, value, usd->interface->bInterfaceNumber,
+    data, size, 1000
+  );
 
   return result != -1;
 }
@@ -53,10 +56,13 @@ usbGetParameter_CDC_ACM (UsbDevice *device, uint8_t request, void *data, uint16_
 
 static int
 usbSetParameters_CDC_ACM (UsbDevice *device, uint8_t request, uint16_t value, const void *data, uint16_t size) {
-  ssize_t result = usbControlWrite(device, UsbControlRecipient_Interface,
-                                   UsbControlType_Class, request, value,
-                                   device->serial.data->interface->bInterfaceNumber,
-                                   data, size, 1000);
+  UsbSerialData *usd = usbGetSerialData(device);
+
+  ssize_t result = usbControlWrite(device,
+    UsbControlRecipient_Interface, UsbControlType_Class,
+    request, value, usd->interface->bInterfaceNumber,
+    data, size, 1000
+  );
 
   return result != -1;
 }
@@ -122,7 +128,7 @@ case USB_CDC_ACM_PARITY_##value: parity = #name; break;
   }
 
   STR_END;
-  logMessage(LOG_CATEGORY(USB_IO), "%s", log);
+  logMessage(LOG_CATEGORY(SERIAL_IO), "%s", log);
 }
 
 static int
@@ -142,7 +148,7 @@ usbSetLineProperties_CDC_ACM (UsbDevice *device, unsigned int baud, unsigned int
       break;
 
     default:
-      logMessage(LOG_WARNING, "unsupported CDC ACM data bits: %u", dataBits);
+      logUnsupportedDataBits(dataBits);
       errno = EINVAL;
       return 0;
   }
@@ -161,7 +167,7 @@ usbSetLineProperties_CDC_ACM (UsbDevice *device, unsigned int baud, unsigned int
       break;
 
     default:
-      logMessage(LOG_WARNING, "unsupported CDC ACM stop bits: %u", stopBits);
+      logUnsupportedStopBits(stopBits);
       errno = EINVAL;
       return 0;
   }
@@ -188,13 +194,14 @@ usbSetLineProperties_CDC_ACM (UsbDevice *device, unsigned int baud, unsigned int
       break;
 
     default:
-      logMessage(LOG_WARNING, "unsupported CDC ACM parity: %u", parity);
+      logUnsupportedParity(parity);
       errno = EINVAL;
       return 0;
   }
 
   {
-    USB_CDC_ACM_LineCoding *oldCoding = &device->serial.data->lineCoding;
+    UsbSerialData *usd = usbGetSerialData(device);
+    USB_CDC_ACM_LineCoding *oldCoding = &usd->lineCoding;
 
     if (memcmp(&lineCoding, oldCoding, sizeof(lineCoding)) != 0) {
       if (!usbSetParameters_CDC_ACM(device, USB_CDC_ACM_CTL_SetLineCoding, 0,
@@ -213,7 +220,7 @@ usbSetLineProperties_CDC_ACM (UsbDevice *device, unsigned int baud, unsigned int
 static int
 usbSetFlowControl_CDC_ACM (UsbDevice *device, SerialFlowControl flow) {
   if (flow) {
-    logMessage(LOG_WARNING, "unsupported CDC ACM flow control: %02X", flow);
+    logUnsupportedFlowControl(flow);
     errno = EINVAL;
     return 0;
   }
@@ -299,7 +306,7 @@ usbDestroyData_CDC_ACM (UsbSerialData *usd) {
 
 static int
 usbEnableAdapter_CDC_ACM (UsbDevice *device) {
-  UsbSerialData *usd = device->serial.data;
+  UsbSerialData *usd = usbGetSerialData(device);
 
   if (!usbSetControlLines_CDC_ACM(device, 0)) return 0;
   if (!usbSetControlLines_CDC_ACM(device, USB_CDC_ACM_LINE_DTR)) return 0;

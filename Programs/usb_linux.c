@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -37,12 +37,14 @@
 #define USBDEVFS_CONNECT _IO('U', 23)
 #endif /* USBDEVFS_CONNECT */
 
-#include "parameters.h"
 #include "log.h"
+#include "parameters.h"
+#include "bitfield.h"
 #include "strfmt.h"
 #include "file.h"
 #include "parse.h"
 #include "timing.h"
+#include "async_handle.h"
 #include "async_wait.h"
 #include "async_alarm.h"
 #include "async_io.h"
@@ -79,7 +81,13 @@ struct UsbEndpointExtensionStruct {
 static int
 usbOpenUsbfsFile (UsbDeviceExtension *devx) {
   if (devx->usbfsFile == -1) {
-    if ((devx->usbfsFile = open(devx->host->usbfsPath, O_RDWR)) == -1) {
+    int openFlags = O_RDWR;
+
+    #ifdef O_CLOEXEC
+    openFlags |= O_CLOEXEC;
+    #endif /* O_CLOEXEC */
+
+    if ((devx->usbfsFile = open(devx->host->usbfsPath, openFlags)) == -1) {
       logMessage(LOG_ERR, "USBFS open error: %s: %s",
                  devx->host->usbfsPath, strerror(errno));
       return 0;
@@ -109,7 +117,13 @@ usbDisableAutosuspend (UsbDevice *device) {
     char *path = makePath(devx->host->sysfsPath, "power/autosuspend");
 
     if (path) {
-      int file = open(path, O_WRONLY);
+      int openFlags = O_WRONLY;
+
+      #ifdef O_CLOEXEC
+      openFlags |= O_CLOEXEC;
+      #endif /* O_CLOEXEC */
+
+      int file = open(path, openFlags);
 
       if (file != -1) {
         static const char *const values[] = {"-1", "0", NULL};
@@ -216,6 +230,7 @@ usbDisconnectInterface (UsbDevice *device, unsigned char interface) {
 
     if (isUsbfs) {
       logPossibleCause("another " PACKAGE_TARNAME " process may be accessing the same device");
+      logPossibleCause("the device may be attached to a virtual machine running on this host");
       errno = EBUSY;
     } else if (usbDisconnectDriver(device, interface)) {
       return 1;
@@ -1303,7 +1318,13 @@ usbReadHostDeviceDescriptor (UsbHostDevice *host) {
       char *path;
 
       if ((path = makePath(host->sysfsPath, "descriptors"))) {
-        if ((file = open(path, O_RDONLY)) != -1) {
+        int openFlags = O_RDONLY;
+
+        #ifdef O_CLOEXEC
+        openFlags |= O_CLOEXEC;
+        #endif /* O_CLOEXEC */
+
+        if ((file = open(path, openFlags)) != -1) {
           sysfs = 1;
         }
 
@@ -1313,7 +1334,13 @@ usbReadHostDeviceDescriptor (UsbHostDevice *host) {
   }
 
   if (file == -1) {
-    file = open(host->usbfsPath, O_RDONLY);
+    int openFlags = O_RDONLY;
+
+    #ifdef O_CLOEXEC
+    openFlags |= O_CLOEXEC;
+    #endif /* O_CLOEXEC */
+
+    file = open(host->usbfsPath, openFlags);
   }
 
   if (file != -1) {

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -39,38 +39,11 @@ STR_BEGIN_FORMATTER(formatSpeechDate, const TimeFormattingData *fmt)
   const char *dayFormat = "%u";
 
   uint16_t year = fmt->components.year;
-  const char *month;
   uint8_t day = fmt->components.day + 1;
 
-#ifdef MON_1
-  {
-    static const int months[] = {
-      MON_1, MON_2, MON_3, MON_4, MON_5, MON_6,
-      MON_7, MON_8, MON_9, MON_10, MON_11, MON_12
-    };
-
-    month = (fmt->components.month < ARRAY_COUNT(months))? nl_langinfo(months[fmt->components.month]): "?";
-  }
-#else /* MON_1 */
-  {
-    static const char *const months[] = {
-      strtext("January"),
-      strtext("February"),
-      strtext("March"),
-      strtext("April"),
-      strtext("May"),
-      strtext("June"),
-      strtext("July"),
-      strtext("August"),
-      strtext("September"),
-      strtext("October"),
-      strtext("November"),
-      strtext("December")
-    };
-
-    month = (fmt->components.month < ARRAY_COUNT(months))? gettext(months[fmt->components.month]): "?";
-  }
-#endif /* MON_1 */
+  char month[0X20];
+  size_t length = strftime(month, sizeof(month), "%B", &fmt->components.time);
+  month[length] = 0;
 
   switch (prefs.dateFormat) {
     default:
@@ -102,9 +75,19 @@ STR_END_FORMATTER
 
 static
 STR_BEGIN_FORMATTER(formatSpeechTime, const TimeFormattingData *fmt)
-  STR_PRINTF("%u", fmt->components.hour);
-  if (fmt->components.minute < 10) STR_PRINTF(" 0");
-  STR_PRINTF(" %u", fmt->components.minute);
+  unsigned int hours = fmt->components.hour;
+  unsigned int minutes = fmt->components.minute;
+  unsigned int seconds = fmt->components.second;
+
+  if (minutes > 0) {
+    STR_PRINTF("%u", hours);
+    if (minutes < 10) STR_PRINTF(" 0");
+    STR_PRINTF(" %u", minutes);
+  } else if (!fmt->meridian) {
+    // xgettext: This is how to say when the time is exactly on (i.e. zero minutes after) an hour.
+    // xgettext: (%u represents the number of hours)
+    STR_PRINTF(ngettext("%u o'clock", "%u o'clock", hours), hours);
+  }
 
   if (fmt->meridian) {
     const char *character = fmt->meridian;
@@ -114,12 +97,14 @@ STR_BEGIN_FORMATTER(formatSpeechTime, const TimeFormattingData *fmt)
   if (prefs.showSeconds) {
     STR_PRINTF(", ");
 
-    if (fmt->components.second == 0) {
+    if (seconds == 0) {
+      // xgettext: This is the term used when the time is exactly on (i.e. zero seconds after) a minute.
       STR_PRINTF("%s", gettext("exactly"));
     } else {
-      STR_PRINTF("%s %u %s",
-                 gettext("and"), fmt->components.second,
-                 ngettext("second", "seconds", fmt->components.second));
+      STR_PRINTF("%s", gettext("and"));
+
+      // xgettext: This is a number (%u) of seconds (time units).
+      STR_PRINTF(ngettext("%u second", "%u seconds", seconds), seconds);
     }
   }
 STR_END_FORMATTER

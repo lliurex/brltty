@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -20,7 +20,7 @@
 #define BRLTTY_INCLUDED_IO_GENERIC
 
 #include "gio_types.h"
-#include "async_io.h"
+#include "async_types_io.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,18 +36,23 @@ extern GioEndpoint *gioConnectResource (
   const GioDescriptor *descriptor
 );
 
+extern const void *gioGetApplicationData (GioEndpoint *endpoint);
 extern int gioDisconnectResource (GioEndpoint *endpoint);
 
-extern const void *gioGetApplicationData (GioEndpoint *endpoint);
 extern const char *gioMakeResourceIdentifier (GioEndpoint *endpoint, char *buffer, size_t size);
 extern char *gioGetResourceIdentifier (GioEndpoint *endpoint);
+
 extern char *gioGetResourceName (GioEndpoint *endpoint);
+extern GioTypeIdentifier gioGetResourceType (GioEndpoint *endpoint);
+extern void *gioGetResourceObject (GioEndpoint *endpoint);
 
 extern ssize_t gioWriteData (GioEndpoint *endpoint, const void *data, size_t size);
 extern int gioAwaitInput (GioEndpoint *endpoint, int timeout);
 extern ssize_t gioReadData (GioEndpoint *endpoint, void *buffer, size_t size, int wait);
 extern int gioReadByte (GioEndpoint *endpoint, unsigned char *byte, int wait);
 extern int gioDiscardInput (GioEndpoint *endpoint);
+
+extern int gioMonitorInput (GioEndpoint *endpoint, AsyncMonitorCallback *callback, void *data);
 
 extern int gioReconfigureResource (
   GioEndpoint *endpoint,
@@ -71,39 +76,66 @@ extern ssize_t gioAskResource (
   void *buffer, uint16_t size
 );
 
-extern size_t gioGetHidReportSize (GioEndpoint *endpoint, unsigned char report);
+extern int gioGetHidReportSize (
+  GioEndpoint *endpoint,
+  HidReportIdentifier identifier,
+  HidReportSize *size
+);
+
+extern size_t gioGetHidInputSize (
+  GioEndpoint *endpoint,
+  HidReportIdentifier identifier
+);
+
+extern size_t gioGetHidOutputSize (
+  GioEndpoint *endpoint,
+  HidReportIdentifier identifier
+);
+
+extern size_t gioGetHidFeatureSize (
+  GioEndpoint *endpoint,
+  HidReportIdentifier identifier
+);
+
+extern ssize_t gioGetHidReport (
+  GioEndpoint *endpoint, HidReportIdentifier identifier,
+  unsigned char *buffer, size_t size
+);
+
+extern ssize_t gioReadHidReport (
+  GioEndpoint *endpoint,
+  unsigned char *buffer, size_t size
+);
 
 extern ssize_t gioSetHidReport (
-  GioEndpoint *endpoint, unsigned char report,
-  const void *data, uint16_t size
+  GioEndpoint *endpoint, HidReportIdentifier identifier,
+  const unsigned char *data, size_t size
 );
 
 extern ssize_t gioWriteHidReport (
   GioEndpoint *endpoint,
-  const unsigned char *data, uint16_t size
+  const unsigned char *data, size_t size
 );
 
-extern ssize_t gioGetHidReport (
-  GioEndpoint *endpoint, unsigned char report,
-  void *buffer, uint16_t size
+extern ssize_t gioGetHidFeature (
+  GioEndpoint *endpoint, HidReportIdentifier identifier,
+  unsigned char *buffer, size_t size
+);
+
+extern ssize_t gioReadHidFeature (
+  GioEndpoint *endpoint,
+  unsigned char *buffer, size_t size
 );
 
 extern ssize_t gioSetHidFeature (
-  GioEndpoint *endpoint, unsigned char report,
-  const void *data, uint16_t size
+  GioEndpoint *endpoint, HidReportIdentifier identifier,
+  const unsigned char *data, size_t size
 );
 
 extern ssize_t gioWriteHidFeature (
   GioEndpoint *endpoint,
-  const unsigned char *data, uint16_t size
+  const unsigned char *data, size_t size
 );
-
-extern ssize_t gioGetHidFeature (
-  GioEndpoint *endpoint, unsigned char report,
-  void *buffer, uint16_t size
-);
-
-extern int gioMonitorInput (GioEndpoint *endpoint, AsyncMonitorCallback *callback, void *data);
 
 typedef struct {
   void *const data;
@@ -120,9 +152,6 @@ extern GioHandleInputObject *gioNewHandleInputObject (
 );
 
 extern void gioDestroyHandleInputObject (GioHandleInputObject *hio);
-
-extern GioTypeIdentifier gioGetResourceType (GioEndpoint *endpoint);
-extern void *gioGetResourceObject (GioEndpoint *endpoint);
 
 #ifdef __cplusplus
 }

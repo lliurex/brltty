@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -23,41 +23,9 @@
 
 #include "log.h"
 #include "pgmpath.h"
+#include "file.h"
 
 char *
 getProgramPath (void) {
-  char *path = NULL;
-  size_t size = 0X80;
-  char *buffer = NULL;
-
-  while (1) {
-    {
-      char *newBuffer = realloc(buffer, size<<=1);
-
-      if (!newBuffer) {
-        logMallocError();
-        break;
-      }
-
-      buffer = newBuffer;
-    }
-
-    {
-      int length = readlink("/proc/self/path/a.out", buffer, size);
-
-      if (length == -1) {
-        if (errno != ENOENT) logSystemError("readlink");
-        break;
-      }
-
-      if (length < size) {
-        buffer[length] = 0;
-        if (!(path = strdup(buffer))) logMallocError();
-        break;
-      }
-    }
-  }
-
-  if (buffer) free(buffer);
-  return path;
+  return readSymbolicLink("/proc/self/path/a.out");
 }

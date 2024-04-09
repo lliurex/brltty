@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -33,6 +33,7 @@
 #include "parse.h"
 #include "file.h"
 #include "device.h"
+#include "async_handle.h"
 #include "async_wait.h"
 #include "async_io.h"
 #include "hostcmd.h"
@@ -952,8 +953,12 @@ installUinputModule (void) {
 }
 
 static int
-openDevice (const char *path, mode_t flags, int allowModeSubset) {
+openDevice (const char *path, int flags, int allowModeSubset) {
   int descriptor;
+
+  #ifdef O_CLOEXEC
+  flags |= O_CLOEXEC;
+  #endif /* O_CLOEXEC */
 
   if ((descriptor = open(path, flags)) != -1) goto opened;
   if (!allowModeSubset) goto failed;

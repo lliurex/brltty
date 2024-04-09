@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -27,6 +27,11 @@ static inline const KeyContext *
 getKeyContext (KeyTable *table, unsigned char context) {
   if (context < table->keyContexts.count) return &table->keyContexts.table[context];
   return NULL;
+}
+
+static inline const KeyContext *
+getCurrentKeyContext (KeyTable *table) {
+  return getKeyContext(table, table->context.current);
 }
 
 static inline int

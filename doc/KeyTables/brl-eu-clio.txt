@@ -1,0 +1,118 @@
+Key Table: EuroBraille AzerBraille, Clio, NoteBraille, PupiBraille, Scriba
+==========================================================================
+
+Notes
+* The eight dot keys of the braille keyboard are behind the cursor routing keys.
+* From left to right, they are: Dot7, Dot3, Dot2, Dot1, Dot4, Dot5, Dot6, Dot8.
+* The two keys of the braille keyboard in front of the braille cells, from left to right, are: Backspace, Space.
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Sharp, H
+* enter/leave command learn mode:
+  + Sharp, One
+  + Sharp, L
+* enter/leave preferences menu: H
+* enter/leave status display: I
+* set display mode attributes/text: Sharp, A
+* set screen image frozen/unfrozen: A
+* switch to Default Bindings:
+  + Star, Star
+  + Sharp, Sharp
+
+Cursor Functions
+* go to screen cursor:
+  + Sharp, Up
+  + Five
+* go back after cursor tracking: Sharp, Down
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line: F
+* go down one line: L
+* go to beginning of top line:
+  + Sharp, Three
+  + Sharp, E
+  + One
+* go to beginning of bottom line:
+  + Sharp, Nine
+  + Sharp, M
+  + Seven
+* go up to nearest line with different content: Three
+* go down to nearest line with different content: Nine
+* go up to previous command prompt: G
+* go down to next command prompt: K
+
+Horizontal Navigation
+* go backward one braille window: E
+* go forward one braille window: M
+* go to beginning of line: Sharp, Left
+* go to end of line: Sharp, Right
+
+Clipboard Functions
+* start new clipboard at character: Star, E, RoutingKey
+* append to clipboard from character: Star, F, RoutingKey
+* linear copy to character: Star, M, RoutingKey
+* rectangular copy to character: Star, K, RoutingKey
+* insert clipboard text after screen cursor: Star, L
+* search backward for clipboard text: Sharp, G
+* search forward for clipboard text: Sharp, K
+
+Configuration Functions
+* set track screen cursor on/off:
+  + Star, Down
+  + Zero
+* set screen cursor visibility on/off: Star, G
+* set alert tunes on/off: Star, Right
+
+Keyboard Input
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard space: Space
+* braille keyboard dot7: Dot7
+* braille keyboard dot8: Dot8
+* backspace key: Backspace
+* escape key: Space+Dots1245
+* cursor-left key:
+  + Left
+  + Space+Dot2
+* cursor-right key:
+  + Right
+  + Space+Dot5
+* cursor-up key:
+  + Up
+  + Space+Dot4
+* cursor-down key:
+  + Down
+  + Space+Dot6
+* page-up key: Space+Dots13
+* page-down key: Space+Dots46
+* home key: Space+Dots123
+* end key: Space+Dots456
+* insert key: Space+Dots135
+* delete key: Space+Dots36
+* function key #1: Backspace+Dot1
+* function key #2: Backspace+Dots12
+* function key #3: Backspace+Dots14
+* function key #4: Backspace+Dots145
+* function key #5: Backspace+Dots15
+* function key #6: Backspace+Dots124
+* function key #7: Backspace+Dots1245
+* function key #8: Backspace+Dots125
+* function key #9: Backspace+Dots24
+* function key #10: Backspace+Dots245
+* function key #11: Backspace+Dots13
+* function key #12: Backspace+Dots123
+* enter key: Backspace+Space
+* tab key: Space+Dots256
+* tab key + shift: Space+Dots236
+* cycle the Shift sticky input modifier (next, on, off): Space+Dot7
+* cycle the Control sticky input modifier (next, on, off): Space+Dots78
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Space+Dot8
+

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -44,11 +44,6 @@ isMainScreen (void) {
 const char *const *
 getScreenParameters (const ScreenDriver *driver) {
   return driver->parameters;
-}
-
-const DriverDefinition *
-getScreenDriverDefinition (const ScreenDriver *driver) {
-  return &driver->definition;
 }
 
 static void
@@ -102,6 +97,7 @@ refreshScreen (void) {
 void
 describeScreen (ScreenDescription *description) {
   describeBaseScreen(currentScreen, description);
+  if (description->unreadable) description->quality = SCQ_NONE;
 }
 
 int
@@ -148,9 +144,8 @@ readScreenText (short left, short top, short width, short height, wchar_t *buffe
   ScreenCharacter characters[count];
   if (!readScreen(left, top, width, height, characters)) return 0;
 
-  {
-    int i;
-    for (i=0; i<count; ++i) buffer[i] = characters[i].text;
+  for (int i=0; i<count; i+=1) {
+    buffer[i] = characters[i].text;
   }
 
   return 1;

@@ -1,0 +1,120 @@
+#!/usr/bin/env -S java --source 11
+/*
+ * BRLTTY - A background process providing access to the console screen (when in
+ *          text mode) for a blind person using a refreshable braille display.
+ *
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
+ *
+ * BRLTTY comes with ABSOLUTELY NO WARRANTY.
+ *
+ * This is free software, placed under the terms of the
+ * GNU Lesser General Public License, as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any
+ * later version. Please see the file LICENSE-LGPL for details.
+ *
+ * Web Page: http://brltty.app/
+ *
+ * This software is maintained by Dave Mielke <dave@mielke.cc>.
+ */
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.ArrayList;
+
+/* This is the class that contains the main() method.
+ * Don't be misled by the fact that it seems to have a required name.
+ * It can actually have any name so we chose to give it a descriptive one.
+ * The only rule is that the main() method must be within the first class.
+ */
+public class ScriptImplementation extends ScriptHelper {
+  public static void main (String[] arguments) {
+    var operands = new ScriptOperands(arguments);
+
+    String action = operands.next();
+    if (action == null) syntaxError("action not specified");
+
+    switch (action) {
+      case "jvmpath": {
+        verifyNoMoreParameters(operands);
+
+        String path = getProcessInformation().command().orElse(null);
+        if (path != null) putScriptOutput("%s", path);
+
+        break;
+      }
+
+      default: {
+        syntaxError("unknown action: %s", action);
+      }
+    }
+  }
+}
+
+public class ScriptHelper {
+  public static ProcessHandle.Info getProcessInformation () {
+    return ProcessHandle.current().info();
+  }
+
+  public static String getScriptPath () {
+    String[] arguments = getProcessInformation().arguments().orElse(null);
+    if (arguments == null) return null;
+
+    final int index = 2;
+    if (arguments.length <= index) return null;
+    return arguments[index];
+  }
+
+  public static File getScriptFile () {
+    String path = getScriptPath();
+    if (path == null) return null;
+    return new File(path);
+  }
+
+  public static String getScriptName () {
+    File file = getScriptFile();
+    if (file == null) return null;
+    return file.getName();
+  }
+
+  public static void putScriptMessage (String format, Object... arguments) {
+    String message = String.format(format, arguments);
+    String tag = getScriptName();
+
+    if ((tag != null) && !tag.isEmpty()) {
+      String prefix = tag + ": ";
+      message = prefix + message;
+
+      prefix = " ".repeat(prefix.length());
+      message = message.replaceAll("(\n)", ("$1" + prefix));
+    }
+
+    System.err.println(message);
+  }
+
+  public static void syntaxError (String format, Object... arguments) {
+    putScriptMessage(format, arguments);
+    System.exit(2);
+  }
+
+  public static void putTooManyParameters () {
+    syntaxError("too many parameters");
+  }
+
+  public static void verifyNoMoreParameters (ScriptOperands operands) {
+    if (!operands.isEmpty()) putTooManyParameters();
+  }
+
+  public static void putScriptOutput (String format, Object... arguments) {
+    System.out.println(String.format(format, arguments));
+  }
+}
+
+public class ScriptOperands extends ArrayList<String> {
+  public ScriptOperands (String... operands) {
+    super(Arrays.asList(operands));
+  }
+
+  public String next () {
+    return isEmpty()? null: remove(0);
+  }
+}

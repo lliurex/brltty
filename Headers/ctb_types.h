@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,6 +31,32 @@ typedef enum {
   CTB_CAP_SIGN,
   CTB_CAP_DOT7
 } CTB_CapitalizationMode;
+
+typedef struct {
+  struct {
+    wchar_t *characters;
+    unsigned int size;
+    unsigned int count;
+    unsigned int consumed;
+  } input;
+
+  struct {
+    unsigned char *cells;
+    unsigned int size;
+    unsigned int count;
+    unsigned int maximum;
+  } output;
+
+  struct {
+    int *array;
+    unsigned int size;
+    unsigned int count;
+  } offsets;
+
+  int cursorOffset;
+  unsigned char expandCurrentWord;
+  unsigned char capitalizationMode;
+} ContractionCache;
 
 #ifdef __cplusplus
 }

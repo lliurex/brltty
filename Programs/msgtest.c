@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,7 +24,7 @@
 
 #include "log.h"
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "messages.h"
 #include "parse.h"
 #include "file.h"
@@ -64,7 +64,7 @@ BEGIN_OPTION_TABLE(programOptions)
     .setting.flag = &opt_utf8Output,
     .description = strtext("write the translations using UTF-8")
   },
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 static int
 noOutputErrorYet (void) {
@@ -112,23 +112,23 @@ putMessage (const Message *message) {
 }
 
 static int
-listTranslation (const Message *original, const Message *translation) {
-  return putMessage(original)
+listTranslation (const Message *source, const Message *translation) {
+  return putMessage(source)
       && putString(" -> ")
       && putMessage(translation)
       && putNewline();
 }
 
 static int
-listTranslations (void) {
+listAllTranslations (void) {
   uint32_t count = getMessageCount();
 
   for (unsigned int index=0; index<count; index+=1) {
-    const Message *original = getOriginalMessage(index);
-    if (getMessageLength(original) == 0) continue;
+    const Message *source = getSourceMessage(index);
+    if (getMessageLength(source) == 0) continue;
 
     const Message *translation = getTranslatedMessage(index);
-    if (!listTranslation(original, translation)) return 0;
+    if (!listTranslation(source, translation)) return 0;
   }
 
   return 1;
@@ -139,7 +139,7 @@ showSimpleTranslation (const char *text) {
   {
     unsigned int index;
 
-    if (findOriginalMessage(text, strlen(text), &index)) {
+    if (findSourceMessage(text, strlen(text), &index)) {
       return putMessage(getTranslatedMessage(index)) && putNewline();
     }
   }
@@ -235,7 +235,7 @@ beginAction (char ***argv, int *argc) {
 
   if (*opt_localeSpecifier) setMessagesLocale(opt_localeSpecifier);
   if (*opt_domainName) setMessagesDomain(opt_domainName);
-  if (!loadMessagesData()) exit(PROG_EXIT_FATAL);
+  if (!loadMessageCatalog()) exit(PROG_EXIT_FATAL);
 }
 
 int
@@ -243,10 +243,14 @@ main (int argc, char *argv[]) {
   outputStream = stdout;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "msgtest",
-      .argumentsSummary = "action [argument ...]"
+
+      .usage = {
+        .purpose = strtext("Test message localization using the message catalog reader."),
+        .parameters = "action [argument ...]",
+      }
     };
 
     PROCESS_OPTIONS(descriptor, argc, argv);
@@ -261,7 +265,7 @@ main (int argc, char *argv[]) {
   argc -= 1;
   int ok = 1;
 
-  if (isAbbreviation("translate", action)) {
+  if (isAbbreviation("translation", action)) {
     const char *message = nextParameter(&argv, &argc, "message");
     const char *plural = nextParameter(&argv, &argc, NULL);
 
@@ -281,9 +285,9 @@ main (int argc, char *argv[]) {
     beginAction(&argv, &argc);
     fprintf(outputStream, "%u\n", getMessageCount());
     ok = noOutputErrorYet();
-  } else if (isAbbreviation("list", action)) {
+  } else if (isAbbreviation("all", action)) {
     beginAction(&argv, &argc);
-    ok = listTranslations();
+    ok = listAllTranslations();
   } else if (isAbbreviation("metadata", action)) {
     beginAction(&argv, &argc);
     fprintf(outputStream, "%s\n", getMessagesMetadata());

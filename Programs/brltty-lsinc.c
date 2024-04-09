@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -24,11 +24,11 @@
 
 #include "log.h"
 #include "program.h"
-#include "options.h"
+#include "cmdline.h"
 #include "file.h"
 
 BEGIN_OPTION_TABLE(programOptions)
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 static void
 noMemory (void) {
@@ -87,10 +87,14 @@ main (int argc, char *argv[]) {
   ProgramExitStatus exitStatus;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "brltty-lsinc",
-      .argumentsSummary = "file ..."
+
+      .usage = {
+        .purpose = strtext("List the paths to a data file and those which it recursively includes."),
+        .parameters = "file ...",
+      }
     };
 
     PROCESS_OPTIONS(descriptor, argc, argv);

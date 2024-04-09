@@ -1,0 +1,928 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="Docutils 0.16: http://docutils.sourceforge.net/" />
+<title>Key Table: Baum VarioUltra</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 7952 2016-07-26 18:15:59Z milde $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+.subscript {
+  vertical-align: sub;
+  font-size: smaller }
+
+.superscript {
+  vertical-align: super;
+  font-size: smaller }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+object[type="image/svg+xml"], object[type="application/x-shockwave-flash"] {
+  overflow: hidden;
+}
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title, .code .error {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left, .figure.align-left, object.align-left, table.align-left {
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
+
+img.align-right, .figure.align-right, object.align-right, table.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+img.align-center, .figure.align-center, object.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+table.align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: inherit }
+
+/* div.align-center * { */
+/*   text-align: left } */
+
+.align-top    {
+  vertical-align: top }
+
+.align-middle {
+  vertical-align: middle }
+
+.align-bottom {
+  vertical-align: bottom }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font: inherit }
+
+pre.literal-block, pre.doctest-block, pre.math, pre.code {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+pre.code .ln { color: grey; } /* line numbers */
+pre.code, code { background-color: #eeeeee }
+pre.code .comment, code .comment { color: #5C6576 }
+pre.code .keyword, code .keyword { color: #3B0D06; font-weight: bold }
+pre.code .literal.string, code .literal.string { color: #0C5404 }
+pre.code .name.builtin, code .name.builtin { color: #352B84 }
+pre.code .deleted, code .deleted { background-color: #DEB0A1}
+pre.code .inserted, code .inserted { background-color: #A3D289}
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+/* "booktabs" style (no vertical lines) */
+table.docutils.booktabs {
+  border: 0px;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-collapse: collapse;
+}
+table.docutils.booktabs * {
+  border: 0px;
+}
+table.docutils.booktabs th {
+  border-bottom: thin solid;
+  text-align: left;
+}
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="key-table-baum-varioultra">
+<h1 class="title">Key Table: Baum VarioUltra</h1>
+
+<ul class="simple">
+<li><a class="reference external" href="brl-bm-ultra.txt">Help Screen Version</a></li>
+</ul>
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#notes" id="id4">Notes</a></li>
+<li><a class="reference internal" href="#default-bindings" id="id5">Default Bindings</a><ul>
+<li><a class="reference internal" href="#special-modes" id="id6">Special Modes</a></li>
+<li><a class="reference internal" href="#cursor-functions" id="id7">Cursor Functions</a></li>
+<li><a class="reference internal" href="#vertical-navigation" id="id8">Vertical Navigation</a></li>
+<li><a class="reference internal" href="#horizontal-navigation" id="id9">Horizontal Navigation</a></li>
+<li><a class="reference internal" href="#clipboard-functions" id="id10">Clipboard Functions</a></li>
+<li><a class="reference internal" href="#configuration-functions" id="id11">Configuration Functions</a></li>
+<li><a class="reference internal" href="#menu-operations" id="id12">Menu Operations</a></li>
+<li><a class="reference internal" href="#speech-functions" id="id13">Speech Functions</a></li>
+<li><a class="reference internal" href="#speech-navigation" id="id14">Speech Navigation</a></li>
+<li><a class="reference internal" href="#keyboard-input" id="id15">Keyboard Input</a></li>
+<li><a class="reference internal" href="#special-functions" id="id16">Special Functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#menu-bindings" id="id17">Menu Bindings</a><ul>
+<li><a class="reference internal" href="#id1" id="id18">Special Modes</a></li>
+<li><a class="reference internal" href="#id2" id="id19">Horizontal Navigation</a></li>
+<li><a class="reference internal" href="#id3" id="id20">Menu Operations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="notes">
+<h2><a class="toc-backref" href="#id4">Notes</a></h2>
+<ul class="simple">
+<li>There are three display keys at each end of the braille cells.
+From top to bottom:<ul>
+<li>The three at the left are named Display1, Display2, and Display3.</li>
+<li>The three at the right are named Display4, Display5, and Display6.</li>
+</ul>
+</li>
+<li>RoutingKey refers to any of the keys immediately behind the braille cells.</li>
+<li>B9 and B10 are the keys immediately to the left and right of the joystick.</li>
+<li>The five joystick motions are named Left, Right, Up, Down, and Press.</li>
+</ul>
+</div>
+<div class="section" id="default-bindings">
+<h2><a class="toc-backref" href="#id5">Default Bindings</a></h2>
+<div class="section" id="special-modes">
+<h3><a class="toc-backref" href="#id6">Special Modes</a></h3>
+<ul class="simple">
+<li>enter/leave help display:<ul>
+<li>Display1+Display2+Display5</li>
+<li>B10+Dots125</li>
+</ul>
+</li>
+<li>enter/leave command learn mode:<ul>
+<li>Display1+Display4+Display5+Display6</li>
+<li>B10+Dots123</li>
+</ul>
+</li>
+<li>enter/leave preferences menu:<ul>
+<li>Display1+Display3+Display4</li>
+<li>Dots456+Up</li>
+<li>B10+Dots1234</li>
+</ul>
+</li>
+<li>enter/leave status display:<ul>
+<li>Display2+Display5</li>
+<li>B10+Dots234</li>
+</ul>
+</li>
+<li>set display mode attributes/text:<ul>
+<li>Display1+Display4+Display5</li>
+<li>Dots45+Down</li>
+<li>B10+Dots145</li>
+</ul>
+</li>
+<li>set display mode attributes: B10+Dots1458</li>
+<li>set display mode text: B10+Dots1457</li>
+<li>set screen image frozen/unfrozen:<ul>
+<li>Display1+Display2+Display4</li>
+<li>Dots45+Up</li>
+<li>B10+Dots124</li>
+</ul>
+</li>
+<li>set screen image frozen: B10+Dots1248</li>
+<li>set screen image unfrozen: B10+Dots1247</li>
+<li>describe character:<ul>
+<li>Display3+RoutingKey</li>
+<li>RoutingKey+Press</li>
+</ul>
+</li>
+<li>show current date and time:<ul>
+<li>Display1+Display5</li>
+<li>Dots456+Down</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="cursor-functions">
+<h3><a class="toc-backref" href="#id7">Cursor Functions</a></h3>
+<ul class="simple">
+<li>go to screen cursor: Display2+Display4+Display6</li>
+<li>go back after cursor tracking: Display1+Display6</li>
+<li>go to screen cursor or go back after cursor tracking: Press</li>
+<li>bring screen cursor to character: RoutingKey</li>
+<li>bring screen cursor to current line:<ul>
+<li>Display1+Display3+Display4+Display6</li>
+<li>B10+Dots1236</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="vertical-navigation">
+<h3><a class="toc-backref" href="#id8">Vertical Navigation</a></h3>
+<ul class="simple">
+<li>go up one line:<ul>
+<li>Display4</li>
+<li>Up</li>
+</ul>
+</li>
+<li>go down one line:<ul>
+<li>Display6</li>
+<li>Down</li>
+</ul>
+</li>
+<li>go to top line:<ul>
+<li>Display1+Display4</li>
+<li>Dot4+Up</li>
+</ul>
+</li>
+<li>go to bottom line:<ul>
+<li>Display3+Display6</li>
+<li>Dot4+Down</li>
+</ul>
+</li>
+<li>go to beginning of top line: Display2+Display4</li>
+<li>go to beginning of bottom line: Display2+Display6</li>
+<li>go up to nearest line with different content:<ul>
+<li>Display5+Display4</li>
+<li>Dot5+Up</li>
+</ul>
+</li>
+<li>go down to nearest line with different content:<ul>
+<li>Display5+Display6</li>
+<li>Dot5+Down</li>
+</ul>
+</li>
+<li>go up to nearest line with different highlighting:<ul>
+<li>Display2+Display1</li>
+<li>Dot6+Up</li>
+</ul>
+</li>
+<li>go down to nearest line with different highlighting:<ul>
+<li>Display2+Display3</li>
+<li>Dot6+Down</li>
+</ul>
+</li>
+<li>go up to first line of paragraph:<ul>
+<li>Display2+Display5+Display4</li>
+<li>Dots46+Up</li>
+</ul>
+</li>
+<li>go down to first line of next paragraph:<ul>
+<li>Display2+Display5+Display6</li>
+<li>Dots46+Down</li>
+</ul>
+</li>
+<li>go up to previous command prompt:<ul>
+<li>Dots46+Left</li>
+<li>Display2+Display5+Display1+Display4</li>
+</ul>
+</li>
+<li>go down to next command prompt:<ul>
+<li>Dots46+Right</li>
+<li>Display2+Display5+Display3+Display6</li>
+</ul>
+</li>
+<li>go up to nearest line with less indent than character: Display2+Display1+RoutingKey</li>
+<li>go down to nearest line with less indent than character: Display2+Display3+RoutingKey</li>
+<li>go up to nearest line with different character: Display5+Display4+RoutingKey</li>
+<li>go down to nearest line with different character: Display5+Display6+RoutingKey</li>
+</ul>
+</div>
+<div class="section" id="horizontal-navigation">
+<h3><a class="toc-backref" href="#id9">Horizontal Navigation</a></h3>
+<ul class="simple">
+<li>go backward one braille window:<ul>
+<li>Display2</li>
+<li>Left</li>
+</ul>
+</li>
+<li>go forward one braille window:<ul>
+<li>Display5</li>
+<li>Right</li>
+</ul>
+</li>
+<li>go backward skipping blank braille windows: Dot5+Left</li>
+<li>go forward skipping blank braille windows: Dot5+Right</li>
+<li>go to beginning of line:<ul>
+<li>Dot4+Left</li>
+<li>Display1+Display2+Display3</li>
+</ul>
+</li>
+<li>go to end of line:<ul>
+<li>Dot4+Right</li>
+<li>Display4+Display5+Display6</li>
+</ul>
+</li>
+<li>go left one character:<ul>
+<li>Display1+Display3</li>
+<li>Dot6+Left</li>
+</ul>
+</li>
+<li>go right one character:<ul>
+<li>Display4+Display6</li>
+<li>Dot6+Right</li>
+</ul>
+</li>
+<li>place left end of braille window at character:<ul>
+<li>Display6+RoutingKey</li>
+<li>B9+RoutingKey</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="clipboard-functions">
+<h3><a class="toc-backref" href="#id10">Clipboard Functions</a></h3>
+<ul class="simple">
+<li>start new clipboard at character:<ul>
+<li>Display1+RoutingKey</li>
+<li>RoutingKey+Left</li>
+</ul>
+</li>
+<li>append to clipboard from character:<ul>
+<li>Display2+RoutingKey</li>
+<li>RoutingKey+Up</li>
+</ul>
+</li>
+<li>linear copy to character:<ul>
+<li>Display4+RoutingKey</li>
+<li>RoutingKey+Right</li>
+</ul>
+</li>
+<li>rectangular copy to character:<ul>
+<li>Display5+RoutingKey</li>
+<li>RoutingKey+Down</li>
+</ul>
+</li>
+<li>copy characters to clipboard: RoutingKey+RoutingKey</li>
+<li>append characters to clipboard:<ul>
+<li>Display2+RoutingKey+RoutingKey</li>
+<li>B10+RoutingKey+RoutingKey</li>
+</ul>
+</li>
+<li>insert clipboard text after screen cursor:<ul>
+<li>Display1+Display2+Display3+Display4</li>
+<li>B10+Dots1346</li>
+</ul>
+</li>
+<li>search backward for clipboard text:<ul>
+<li>Dots56+Up</li>
+<li>Display2+Display4+Display6+Display1</li>
+</ul>
+</li>
+<li>search forward for clipboard text:<ul>
+<li>Dots56+Down</li>
+<li>Display2+Display4+Display6+Display3</li>
+</ul>
+</li>
+<li>save clipboard to disk: B10+Dots13468</li>
+<li>restore clipboard from disk: B10+Dots13467</li>
+</ul>
+</div>
+<div class="section" id="configuration-functions">
+<h3><a class="toc-backref" href="#id11">Configuration Functions</a></h3>
+<ul class="simple">
+<li>set autorepeat on/off: B10+Dots1235</li>
+<li>set autorepeat on: B10+Dots12358</li>
+<li>set autorepeat off: B10+Dots12357</li>
+<li>set text style 6-dot: Display2+Display3+Display5</li>
+<li>set text style 8-dot: Display2+Display3+Display6</li>
+<li>set contracted/computer braille:<ul>
+<li>Dots45+Right</li>
+<li>B10+Dots1245</li>
+</ul>
+</li>
+<li>set contracted braille: B10+Dots12458</li>
+<li>set computer braille: B10+Dots12457</li>
+<li>set six/eight dot computer braille: Dots45+Left</li>
+<li>set six dot computer braille: B10+Dots235</li>
+<li>set eight dot computer braille: B10+Dots236</li>
+<li>set skipping of lines with identical content on/off: B10+Dots24</li>
+<li>set skipping of lines with identical content on: B10+Dots248</li>
+<li>set skipping of lines with identical content off: B10+Dots247</li>
+<li>set skipping of blank braille windows on/off: B10+Dots12</li>
+<li>set skipping of blank braille windows on: B10+Dots128</li>
+<li>set skipping of blank braille windows off: B10+Dots127</li>
+<li>set sliding braille window on/off: B10+Dots2456</li>
+<li>set sliding braille window on: B10+Dots24568</li>
+<li>set sliding braille window off: B10+Dots24567</li>
+<li>set track screen cursor on/off: B10+Dots2345</li>
+<li>set track screen cursor on:<ul>
+<li>Display1</li>
+<li>B10+Dots23458</li>
+</ul>
+</li>
+<li>set track screen cursor off:<ul>
+<li>Display3</li>
+<li>B10+Dots23457</li>
+</ul>
+</li>
+<li>set screen cursor visibility on/off: B10+Dots14</li>
+<li>set screen cursor visibility on: B10+Dots148</li>
+<li>set screen cursor visibility off: B10+Dots147</li>
+<li>set attribute underlining on/off:<ul>
+<li>Display2+Display3+Display4+Display5</li>
+<li>B10+Dots136</li>
+</ul>
+</li>
+<li>set attribute underlining on: B10+Dots1368</li>
+<li>set attribute underlining off: B10+Dots1367</li>
+</ul>
+</div>
+<div class="section" id="menu-operations">
+<h3><a class="toc-backref" href="#id12">Menu Operations</a></h3>
+<ul class="simple">
+<li>save preferences to disk:<ul>
+<li>Display2+Display4+Display5+Display6</li>
+<li>Dots456+Right</li>
+<li>B10+Dots12348</li>
+</ul>
+</li>
+<li>restore preferences from disk:<ul>
+<li>Display1+Display2+Display3+Display5</li>
+<li>Dots456+Left</li>
+<li>B10+Dots12347</li>
+</ul>
+</li>
+<li>reset preferences to defaults: B10+Dots123478</li>
+</ul>
+</div>
+<div class="section" id="speech-functions">
+<h3><a class="toc-backref" href="#id13">Speech Functions</a></h3>
+<ul class="simple">
+<li>stop speaking:<ul>
+<li>Display3+Display4</li>
+<li>Dots12+Left</li>
+</ul>
+</li>
+<li>speak current line:<ul>
+<li>Display3+Display5</li>
+<li>Dots12+Right</li>
+</ul>
+</li>
+<li>speak from top of screen through bottom of screen: Dots13+Right</li>
+<li>speak from top of screen through current line:<ul>
+<li>Display3+Display5+Display4</li>
+<li>Dots12+Up</li>
+</ul>
+</li>
+<li>speak from current line through bottom of screen:<ul>
+<li>Display3+Display5+Display6</li>
+<li>Dots12+Down</li>
+</ul>
+</li>
+<li>go to current speaking position:<ul>
+<li>Display1+Display3+Display5</li>
+<li>Dots13+Down</li>
+</ul>
+</li>
+<li>decrease speaking volume: Dots23+Down</li>
+<li>increase speaking volume: Dots23+Up</li>
+<li>decrease speaking rate: Dots23+Left</li>
+<li>increase speaking rate: Dots23+Right</li>
+<li>set autospeak on/off:<ul>
+<li>Display3+Display4+Display6</li>
+<li>Dots13+Up</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="speech-navigation">
+<h3><a class="toc-backref" href="#id14">Speech Navigation</a></h3>
+<ul class="simple">
+<li>speak indent of current line: Dots13+Left</li>
+</ul>
+</div>
+<div class="section" id="keyboard-input">
+<h3><a class="toc-backref" href="#id15">Keyboard Input</a></h3>
+<ul class="simple">
+<li>braille keyboard space: B9</li>
+<li>braille keyboard space: B10</li>
+<li>braille keyboard dot1: Dot1</li>
+<li>braille keyboard dot2: Dot2</li>
+<li>braille keyboard dot3: Dot3</li>
+<li>braille keyboard dot4: Dot4</li>
+<li>braille keyboard dot5: Dot5</li>
+<li>braille keyboard dot6: Dot6</li>
+<li>braille keyboard dot7: Dot7</li>
+<li>braille keyboard dot8: Dot8</li>
+<li>type braille dots [7]: B10+Dot7</li>
+<li>type braille dots [8]: B10+Dot8</li>
+<li>backspace key: Dot7</li>
+<li>escape key:<ul>
+<li>Dot3+Up</li>
+<li>B10+Dots26</li>
+</ul>
+</li>
+<li>cursor-left key:<ul>
+<li>B10+Dot3</li>
+<li>Dot1+Left</li>
+</ul>
+</li>
+<li>cursor-right key:<ul>
+<li>B10+Dot6</li>
+<li>Dot1+Right</li>
+</ul>
+</li>
+<li>cursor-up key:<ul>
+<li>B10+Dot1</li>
+<li>Dot1+Up</li>
+</ul>
+</li>
+<li>cursor-down key:<ul>
+<li>B10+Dot4</li>
+<li>Dot1+Down</li>
+</ul>
+</li>
+<li>page-up key:<ul>
+<li>Dot2+Up</li>
+<li>B10+Dots23</li>
+</ul>
+</li>
+<li>page-down key:<ul>
+<li>Dot2+Down</li>
+<li>B10+Dots56</li>
+</ul>
+</li>
+<li>home key:<ul>
+<li>B10+Dot2</li>
+<li>Dot2+Left</li>
+</ul>
+</li>
+<li>end key:<ul>
+<li>B10+Dot5</li>
+<li>Dot2+Right</li>
+</ul>
+</li>
+<li>insert key:<ul>
+<li>Dot3+Right</li>
+<li>B10+Dots35</li>
+</ul>
+</li>
+<li>delete key:<ul>
+<li>Dot3+Left</li>
+<li>B10+Dots256</li>
+</ul>
+</li>
+<li>function key: B10+RoutingKey</li>
+<li>enter key: Dot8</li>
+<li>tab key:<ul>
+<li>Dot3+Down</li>
+<li>B10+Dots45</li>
+</ul>
+</li>
+<li>clear all sticky input modifiers: B10+Dots78</li>
+<li>cycle the Upper sticky input modifier (next, on, off): B10+Dots68</li>
+<li>cycle the Shift sticky input modifier (next, on, off): B10+Dots48</li>
+<li>cycle the Control sticky input modifier (next, on, off): B10+Dots38</li>
+<li>cycle the Meta (Left Alt) sticky input modifier (next, on, off): B10+Dots28</li>
+<li>cycle the AltGr (Right Alt) sticky input modifier (next, on, off): B10+Dots58</li>
+<li>cycle the GUI (Windows) sticky input modifier (next, on, off): B10+Dots18</li>
+<li>switch to specific virtual terminal: Display4+Display5+Display6+RoutingKey</li>
+<li>switch to the previous virtual terminal:<ul>
+<li>Dots56+Left</li>
+<li>Display3+Display4+Display5+Display6</li>
+<li>B10+Dots12367</li>
+</ul>
+</li>
+<li>switch to the next virtual terminal:<ul>
+<li>Dots56+Right</li>
+<li>Display1+Display2+Display3+Display6</li>
+<li>B10+Dots12368</li>
+</ul>
+</li>
+<li>set braille keyboard enabled: B10+Dots138</li>
+<li>set braille keyboard disabled: B10+Dots137</li>
+<li>set braille typing mode dots: B10+Dots468</li>
+<li>set braille typing mode text: B10+Dots467</li>
+</ul>
+</div>
+<div class="section" id="special-functions">
+<h3><a class="toc-backref" href="#id16">Special Functions</a></h3>
+<ul class="simple">
+<li>remember current braille window position: Display1+Display3+RoutingKey</li>
+<li>go to remembered braille window position: Display4+Display6+RoutingKey</li>
+<li>restart speech driver: Display2+Display3+Display4</li>
+</ul>
+</div>
+</div>
+<div class="section" id="menu-bindings">
+<h2><a class="toc-backref" href="#id17">Menu Bindings</a></h2>
+<div class="section" id="id1">
+<h3><a class="toc-backref" href="#id18">Special Modes</a></h3>
+<ul class="simple">
+<li>enter/leave preferences menu:<ul>
+<li>Dot8</li>
+<li>Press</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3><a class="toc-backref" href="#id19">Horizontal Navigation</a></h3>
+<ul class="simple">
+<li>go backward one braille window: B10+Left</li>
+<li>go forward one braille window: B10+Right</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3><a class="toc-backref" href="#id20">Menu Operations</a></h3>
+<ul class="simple">
+<li>go up to previous item:<ul>
+<li>Dot1</li>
+<li>Up</li>
+</ul>
+</li>
+<li>go down to next item:<ul>
+<li>Dot4</li>
+<li>Down</li>
+</ul>
+</li>
+<li>go up to first item:<ul>
+<li>Dot2</li>
+<li>B10+Up</li>
+</ul>
+</li>
+<li>go down to last item:<ul>
+<li>Dot5</li>
+<li>B10+Down</li>
+</ul>
+</li>
+<li>select previous choice:<ul>
+<li>Dot3</li>
+<li>Left</li>
+</ul>
+</li>
+<li>select next choice:<ul>
+<li>Dot6</li>
+<li>Right</li>
+</ul>
+</li>
+<li>go to previous menu level:<ul>
+<li>B10</li>
+<li>Dot7</li>
+</ul>
+</li>
+<li>save preferences to disk: B10+Press</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

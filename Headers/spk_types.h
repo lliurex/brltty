@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -53,24 +53,24 @@ typedef struct SpeechDataStruct SpeechData;
 #define SPK_SCR_NONE -1
 #define SPK_LOC_NONE -1
 
-typedef void SetSpeechVolumeMethod (volatile SpeechSynthesizer *spk, unsigned char setting);
-typedef void SetSpeechRateMethod (volatile SpeechSynthesizer *spk, unsigned char setting);
-typedef void SetSpeechPitchMethod (volatile SpeechSynthesizer *spk, unsigned char setting);
-typedef void SetSpeechPunctuationMethod (volatile SpeechSynthesizer *spk, SpeechPunctuation setting);
-typedef void DrainSpeechMethod (volatile SpeechSynthesizer *spk);
+typedef void SetSpeechVolumeMethod (SpeechSynthesizer *spk, unsigned char setting);
+typedef void SetSpeechRateMethod (SpeechSynthesizer *spk, unsigned char setting);
+typedef void SetSpeechPitchMethod (SpeechSynthesizer *spk, unsigned char setting);
+typedef void SetSpeechPunctuationMethod (SpeechSynthesizer *spk, SpeechPunctuation setting);
+typedef void DrainSpeechMethod (SpeechSynthesizer *spk);
 
-typedef void SetSpeechFinishedMethod (volatile SpeechSynthesizer *spk);
-typedef void SetSpeechLocationMethod (volatile SpeechSynthesizer *spk, int location);
+typedef void SetSpeechFinishedMethod (SpeechSynthesizer *spk);
+typedef void SetSpeechLocationMethod (SpeechSynthesizer *spk, int location);
 
 struct SpeechSynthesizerStruct {
-  unsigned sayBanner:1;
-  unsigned canAutospeak:1;
+  unsigned char sayBanner:1;
+  unsigned char canAutospeak:1;
 
   struct {
-    unsigned isActive:1;
     int screenNumber;
     int firstLine;
     int speechLocation;
+    unsigned char isActive:1;
   } track;
 
   SetSpeechVolumeMethod *setVolume;
@@ -83,7 +83,7 @@ struct SpeechSynthesizerStruct {
   SetSpeechLocationMethod *setLocation;
 
   struct {
-    volatile SpeechDriverThread *thread;
+    SpeechDriverThread *thread;
     SpeechData *data;
   } driver;
 };
@@ -93,11 +93,11 @@ typedef struct {
 
   const char *const *parameters;
 
-  int (*construct) (volatile SpeechSynthesizer *spk, char **parameters);
-  void (*destruct) (volatile SpeechSynthesizer *spk);
+  int (*construct) (SpeechSynthesizer *spk, char **parameters);
+  void (*destruct) (SpeechSynthesizer *spk);
 
-  void (*say) (volatile SpeechSynthesizer *spk, const unsigned char *text, size_t length, size_t count, const unsigned char *attributes);
-  void (*mute) (volatile SpeechSynthesizer *spk);
+  void (*say) (SpeechSynthesizer *spk, const unsigned char *text, size_t length, size_t count, const unsigned char *attributes);
+  void (*mute) (SpeechSynthesizer *spk);
 } SpeechDriver;
 
 #ifdef __cplusplus

@@ -1,9 +1,9 @@
-#!/bin/bash -p
+#!/bin/bash
 ###############################################################################
 # BRLTTY - A background process providing access to the console screen (when in
 #          text mode) for a blind person using a refreshable braille display.
 #
-# Copyright (C) 1995-2021 by The BRLTTY Developers.
+# Copyright (C) 1995-2023 by The BRLTTY Developers.
 #
 # BRLTTY comes with ABSOLUTELY NO WARRANTY.
 #
@@ -44,19 +44,34 @@ installFile() {
       mkdir -p "${path%/*}"
       cp "${source}" "${path}"
    else
-      logMessage warning "file not installed: ${target}"
+      logWarning "file not installed: ${target}"
    fi
 }
 
 installFiles() {
-   while [ "${#}" -gt 0 ]
+   local target="${1}"
+   shift 1
+   local source
+
+   for source
    do
-      "installFiles_${1}"
-      shift 1
+      installFile "${source}" "${target}"
    done
 }
 
-installFiles_libusb0() {
+installPackages() {
+   while [ "${#}" -gt 0 ]
+   do
+      local package="${1}"
+      shift 1
+
+      local name="$(getVariable "${package}Name")"
+      logMessage task "installing package files: ${name}"
+      "installPackage_${package}"
+   done
+}
+
+installPackage_libusb0() {
    if [ -n "${libusb0Root}" ]
    then
       cd "${libusb0Root}/bin"
@@ -65,21 +80,21 @@ installFiles_libusb0() {
       installFile "amd64/libusb0.sys" "bin/libusb0_x64.sys"
       installFile "amd64/libusb0.dll" "bin/libusb0_x64.dll"
    else
-      logMessage warning "${libusb0Name} not installable"
+      logWarning "${libusb0Name} not installable"
    fi
 }
 
-installFiles_libusb1() {
+installPackage_libusb1() {
    if [ -n "${libusb1Root}" ]
    then
       cd "${libusb1Root}"
       installFile "MinGW32/dll/libusb-1.0.dll" "bin/"
    else
-      logMessage warning "${libusb1Name} not installable"
+      logWarning "${libusb1Name} not installable"
    fi
 }
 
-installFiles_winusb() {
+installPackage_winusb() {
    if [ -n "${winusbRoot}" ]
    then
       cd "${winusbRoot}"
@@ -88,7 +103,7 @@ installFiles_winusb() {
       installFile "x86/WdfCoInstaller01009.dll" "bin/x86/"
       installFile "amd64/WdfCoInstaller01009.dll" "bin/amd64/"
    else
-      logMessage warning "${winusbName} not installable"
+      logWarning "${winusbName} not installable"
    fi
 }
 
@@ -146,7 +161,7 @@ logMessage task "revision identifier: ${revisionIdentifier}"
       export PATH="${PATH}:${cygwinRoot}/bin"
       export nodosfilewarning=1
    else
-      logMessage warning "not a Cygwin root directory: ${cygwinRoot}"
+      logWarning "not a Cygwin root directory: ${cygwinRoot}"
    fi
 }
 
@@ -154,13 +169,16 @@ logMessage task "revision identifier: ${revisionIdentifier}"
 
 case "${usbPackage}"
 in
-   libusb) usbWindowsPackages="libusb0";;
-   libusb-1.0) usbWindowsPackages="libusb1 winusb";;
+   winusb) usbWindowsPackages=();;
+   libusb) usbWindowsPackages=("libusb0");;
+   libusb-1.0) usbWindowsPackages=("libusb1" "winusb");;
    *) syntaxError "unrecognized USB package: ${usbPackage}"
 esac
 
+winusbFilter=""
+
 libusb0Filter="\
-    select "USB:", and install ${libusb0Name}'s filter by doing one of the
+    select "USB:", and install the ${libusb0Name} filter by doing one of the
     following:
     + run Install ${libusb0Name} Filter from the Start Menu
     + answer yes to the setup prompt for installing the ${libusb0Name} filter
@@ -170,7 +188,7 @@ libusb1Filter="\
     you will need to use ${libusb0Name} instead because
     ${libusb1Name} does not support this requirement."
 
-set -- ${usbWindowsPackages}
+set -- "${usbWindowsPackages[@]}"
 copyProperties "${1}" usb Name Location Download Version Pattern Filter
 
 [ -z "${msvcRoot}" ] || {
@@ -180,14 +198,24 @@ copyProperties "${1}" usb Name Location Download Version Pattern Filter
    fi
 }
 
+[ -n "${pythonRoot}" ] || {
+   pythonLocationFile="${programDirectory}/python-location"
+
+   if [ -f "${pythonLocationFile}" ]
+   then
+      read pythonRoot <"${pythonLocationFile}"
+   fi
+}
+
 [ -z "${pythonRoot}" ] || {
    if verifyWindowsPackage python
    then
       export PATH="${pythonRoot}:${pythonRoot}/Scripts:${PATH}"
+      export PYTHON="${pythonRoot}/python"
    fi
 }
 
-verifyWindowsPackages ahk nsis icu ${usbWindowsPackages} || :
+verifyWindowsPackages ahk nsis icu "${usbWindowsPackages[@]}" || :
 verifyWindowsCommands lib python cython || :
 verifyMingwPackages pthreads curses || :
 verifyMingwCommands zip unix2dos linuxdoc doxygen groff || :
@@ -216,6 +244,11 @@ for patch in affinity
 do
    patch -p0 <"Windows/${patch}.patch"
 done
+
+infFile="${usbPackage}.inf"
+infPath="Windows/${infFile}"
+Tools/updusbdevs -q "c:Programs/usb_devices.c" "inf:${infPath}"
+Tools/updcsvs -q
 
 buildRoot="${temporaryDirectory}/build"
 mkdir -p "${buildRoot}"
@@ -249,19 +282,11 @@ make -s install install-messages \
 logMessage task "updating files"
 documentDirectory="doc"
 
-configureLines=""
-eval set -- $(stringWrapped "${configureOptions}" 70)
-for line
-do
-   [ -z "${configureLines}" ] || configureLines="${configureLines}"$'\n'
-   configureLines="${configureLines}    ${line}"
-done
-
 readmeHeader="\
 This build of ${BRLTTY_NAME} ${BRLTTY_VERSION} includes Windows-specific patches.
 
 You should probably read doc/BRLTTY.txt and doc/Windows.txt for information
-on BRLTTY.
+about BRLTTY.
 
 Here are some notes on how to get started:
 
@@ -269,14 +294,15 @@ Here are some notes on how to get started:
   environment, you need to also install and run NVDA.
 - Either use the BRLTTY configurator (brlttycnf.exe) or manually uncomment the
   appropriate lines in etc/brltty.conf.
-- For Python support (e.g. for NVDA), run Brlapi-${BRLAPI_RELEASE}.win32.exe.
+- For Python support (e.g. for NVDA), run Brlapi-${BRLAPI_RELEASE}.win32.exe
+  (which will install the .pyd and .egg-info files).
 - For sighted users, use the xw braille driver to get a virtual braille box.
 "
 
 readmeFooter="\
 
-If you are having problems, please run run-debug.bat and send us the debug.log
-and brltty.conf files.
+If you are having problems, please run debug-brltty.bat and send us the
+debug.log and brltty.conf files.
 
 Documentation can be found in the doc/ subdirectory.
 
@@ -287,8 +313,6 @@ Technical notes on this build:
 - BRLTTY Version: ${BRLTTY_VERSION}
 - BrlAPI Version: ${BRLAPI_RELEASE}
 - Some MinGW-specific path and file name changes have been made.
-- The configure options were:
-${configureLines}
 - To make life easier for Windows users, the BrlAPI server was modified to:
   * not use authentication by default (BRLAPI_DEFAUTH set to none)
   * only use local sockets (:0+127.0.0.1:0 changed to :0)
@@ -301,8 +325,11 @@ ${configureLines}
 "
 
 cd "${buildRoot}"
-installFile "Documents/brltty.conf" "etc/brltty.conf"
+installFile "Documents/brltty.conf" "etc/"
 installFile "Drivers/BrlAPI/WindowEyes/webrloem109.dll" "WindowEyes/"
+
+installFiles "Debug/" config.h config.mk config.log
+installFiles "Debug/" Programs/*.exe Programs/*.dll
 
 set -- Bindings/Python/dist/Brlapi-${BRLAPI_RELEASE}.*.exe
 if [ "${#}" -gt 0 ]
@@ -312,7 +339,7 @@ then
       installFile "${file}" "Python/"
    done
 else
-   logMessage warning "Python bindings installer not found"
+   logWarning "Python bindings installer not found"
 fi
 
 cd "${sourceRoot}"
@@ -320,14 +347,15 @@ installFile "LICENSE-LGPL" "LICENSE-LGPL.txt"
 installFile "README" "${documentDirectory}/BRLTTY.txt"
 installFile "Drivers/Braille/XWindow/UBraille.ttf" "Fonts/"
 installFile "Drivers/BrlAPI/WindowEyes/README" "${documentDirectory}/WindowEyes.txt"
-installFile "Autostart/Windows/brltty-${usbPackage}.inf" "bin/"
+installFile "${infPath}" "bin/brltty-${infFile}"
+installFiles "etc/" Documents/*.csv
 
 for document in ChangeLog HISTORY TODO
 do
    installFile "Documents/${document}" "${documentDirectory}/${document}.txt"
 done
 
-for document in Windows BrailleDots TextTables AttributesTables ContractionTables KeyTables
+for document in Windows BrailleDots TextTables ContractionTables AttributesTables KeyTables
 do
    installFile "Documents/README.${document}" "${documentDirectory}/${document}.txt"
 done
@@ -364,15 +392,11 @@ do
 done
 
 cd "${programDirectory}"
-installFile "msvcr90.dll" "bin/"
-installFile "brltty.cat" "bin/"
-installFile "brltty_x64.cat" "bin/"
-installFile "run-brltty.bat" "/"
-installFile "debug-brltty.bat" "/"
-installFile "enable-brlapi.bat" "/"
-installFile "disable-brlapi.bat" "/"
+installFiles "bin/" *.dll *.cat
+installFiles "/" *.bat
 
-installFiles ${usbWindowsPackages}
+logMessage task "USB package: ${usbPackage}"
+installPackages "${usbWindowsPackages[@]}"
 
 cd /mingw/bin
 for file in libgcc_s_dw2-1.dll libiconv-2.dll libpdcurses*.dll libintl-8.dll
@@ -403,11 +427,11 @@ done
 cat >"README.txt" <<END-OF-README
 ${readmeHeader}
 - To register BRLTTY as a service so that it will get started automatically at
-  boot, run install.bat. To unregister it, run uninstall.bat.
+  boot, run enable-brlapi.bat. To unregister it, run disable-brlapi.bat.
 - If your braille device uses a USB connection:
   * If you either cannot, or would prefer not to, install its
     manufacturer's driver, then you can select "USB:", and install
-    ${usbName}'s driver by doing one of the following:
+    the ${usbName} driver by doing one of the following:
     + right-clicking on bin/brltty-${usbPackage}.inf and selecting install
     + answering yes to the setup prompt for installing the ${usbName} driver
   * If you have installed its manufacturer's driver, and if that driver defines
@@ -430,19 +454,31 @@ then
    cd "${installRoot}/lib"
    "${libPath}" //nologo /def:brlapi.def /name:brlapi-${BRLAPI_VERSION}.dll /out:brlapi.lib /machine:x86
 else
-   logMessage warning "import library not creatable"
+   logWarning "import library not creatable"
 fi
 
-# for the installer but before text file conversion
 cd "${installRoot}/.."
-nsisScript="${usbPackage}.nsi"
-cp "${programDirectory}/${usbPackage}.nsi" .
-cp "${programDirectory}/nsistrings.txt" .
-
 cat >"README.txt" <<END-OF-README
 ${readmeHeader}
 ${readmeFooter}
 END-OF-README
+
+# for the installer but before text file conversion
+nsisScript="${usbPackage}.nsi"
+nsisStrings="nsistrings.txt"
+
+for file in "${nsisScript}" "brltty.nsi" "${nsisStrings}"
+do
+   path="${programDirectory}/${file}"
+
+   if [ -f "${path}" ]
+   then
+      cp "${path}" .
+   else
+      logWarning "installer source file not found: ${file}"
+      nsisRoot=""
+   fi
+done
 
 if [ -n "${ahkRoot}" ]
 then
@@ -452,7 +488,7 @@ then
    "${ahkRoot}/Compiler/Ahk2Exe.exe" //in brlttycnf.ahk //out brlttycnf.exe
    rm brlttycnf.ahk
 else
-   logMessage warning "configurator not creatable"
+   logWarning "configurator not creatable"
 fi
 
 if [ -n "${unix2dosPath}" ]
@@ -476,21 +512,21 @@ then
             then
                case "${extension}"
                in
-                  bat | cat | conf | h | htm | html | inf | nsi | pc | policy | sh | txt | xml | [tack]t[bi])
+                  bash | bat | cat | conf | csv | h | htm | html | inf | log | lua | mk | nsi | pc | policy | sh | tcl | txt | xml | [tcak]t[bi])
                      "${unix2dosPath}" -q -o "${path}"
                      ;;
 
                   a | def | dll | doc | egg-info | exe | exp | lib | mo | pdf | pyd | sys | ttf);;
-                  *) logMessage warning "unexpected file extension: ${handle}";;
+                  *) logWarning "unexpected file extension: ${handle}";;
                esac
             fi
          elif [ ! -d "${path}" ]
          then
-            logMessage warning "unsupported special file: ${handle}"
+            logWarning "unsupported special file: ${handle}"
          fi
       done
 else
-   logMessage warning "text files not convertable"
+   logWarning "text files not convertable"
 fi
 
 if "${invokeShell}"
@@ -508,14 +544,14 @@ then
    cd "${installRoot}/.."
    "${zipPath}" -q -A -r "${archiveFile}" "${buildName}"
 else
-   logMessage warning "archive not creatable"
+   logWarning "archive not creatable"
 fi
 
 if [ -n "${nsisRoot}" ]
 then
    logMessage task "creating installer"
    cd "${installRoot}/.."
-   mv nsistrings.txt "${buildName}"
+   mv "${nsisStrings}" "${buildName}"
    installerFile="${buildName}.exe"
 
    "${nsisRoot}/makensis" -V2 \
@@ -527,7 +563,7 @@ then
    rm -f "${initialDirectory}/${installerFile}"
    cp "${installerFile}" "${initialDirectory}/${installerFile}"
 else
-   logMessage warning "installer not creatable"
+   logWarning "installer not creatable"
 fi
 
 "${keepBuild}" || {

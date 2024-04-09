@@ -1,0 +1,89 @@
+Key Table: CombiBraille
+=======================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display:
+  + Status6
+  + Dots125
+* enter/leave command learn mode: Status5
+* enter/leave preferences menu: Dots1346
+* enter/leave status display: Dots34
+* set display mode attributes/text: Dots134
+* set screen image frozen/unfrozen: Dots124
+
+Cursor Functions
+* go to screen cursor: Dots36
+* bring screen cursor to character: RoutingKey
+
+Vertical Navigation
+* go up one line:
+  + Dot1
+  + Thumb2
+* go down one line:
+  + Dot4
+  + Thumb4
+* go to top line:
+  + Thumb2+Thumb3
+  + Dots123
+* go to bottom line:
+  + Thumb3+Thumb4
+  + Dots456
+* go to beginning of top line: Thumb1+Thumb2
+* go to beginning of bottom line: Thumb4+Thumb5
+* go up several lines: Dots12
+* go down several lines: Dots45
+
+Horizontal Navigation
+* go backward one braille window:
+  + Dot3
+  + Thumb1
+* go forward one braille window:
+  + Dot6
+  + Thumb5
+* go to beginning of line:
+  + Dots23
+  + Thumb1+Thumb3
+* go to end of line:
+  + Dots56
+  + Thumb3+Thumb5
+* go left one character: Dots13
+* go right one character: Dots46
+* go left half a braille window:
+  + Thumb1+Thumb4
+  + Dots246
+* go right half a braille window:
+  + Thumb2+Thumb5
+  + Dots135
+
+Clipboard Functions
+* start new clipboard at character: Status1, RoutingKey
+* append to clipboard from character: Status2, RoutingKey
+* linear copy to character: Status3, RoutingKey
+* rectangular copy to character: Status4, RoutingKey
+* insert clipboard text after screen cursor: Dots1234
+
+Configuration Functions
+* set text style 6-dot/8-dot: Dots235
+* set skipping of lines with identical content on/off: Dots245
+* set sliding braille window on/off: Dots2456
+* set track screen cursor on/off:
+  + Thumb3
+  + Dots14
+* set screen cursor visibility on/off: Dot5
+* set alert tunes on/off: Dots234
+
+Menu Operations
+* save preferences to disk: Dots123456
+* restore preferences from disk: Dots1235
+
+Speech Functions
+* stop speaking:
+  + Dots16
+  + Thumb2+Thumb4
+* speak current line:
+  + Thumb1+Thumb5
+  + Dots156
+

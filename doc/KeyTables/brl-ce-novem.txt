@@ -1,0 +1,18 @@
+Key Table: Novem Braille Keyboard
+=================================
+
+Default Bindings
+----------------
+
+Keyboard Input
+* braille keyboard dot7: Dot7
+* braille keyboard dot3: Dot3
+* braille keyboard dot2: Dot2
+* braille keyboard dot1: Dot1
+* braille keyboard space: LeftSpace
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot8: Dot8
+* enter key: RightSpace
+

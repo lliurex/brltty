@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -63,10 +63,10 @@ BEGIN_KEY_NAME_TABLE(joystick)
 END_KEY_NAME_TABLE
 
 BEGIN_KEY_NAME_TABLE(thumb)
-  KEY_NAME_ENTRY(HW_KEY_Thumb1, "Previous"),
-  KEY_NAME_ENTRY(HW_KEY_Thumb2, "Back"),
-  KEY_NAME_ENTRY(HW_KEY_Thumb3, "Advance"),
-  KEY_NAME_ENTRY(HW_KEY_Thumb4, "Next"),
+  KEY_NAME_ENTRY(HW_KEY_ThumbPrevious, "ThumbPrevious"),
+  KEY_NAME_ENTRY(HW_KEY_ThumbLeft, "ThumbLeft"),
+  KEY_NAME_ENTRY(HW_KEY_ThumbRight, "ThumbRight"),
+  KEY_NAME_ENTRY(HW_KEY_ThumbNext, "ThumbNext"),
 END_KEY_NAME_TABLE
 
 BEGIN_KEY_NAME_TABLES(BI14)
@@ -125,6 +125,19 @@ BEGIN_KEY_NAME_TABLES(one)
   KEY_NAME_TABLE(braille),
 END_KEY_NAME_TABLES
 
+BEGIN_KEY_NAME_TABLES(BI40X)
+  KEY_NAME_TABLE(routing),
+  KEY_NAME_TABLE(thumb),
+  KEY_NAME_TABLE(braille),
+  KEY_NAME_TABLE(command),
+END_KEY_NAME_TABLES
+
+BEGIN_KEY_NAME_TABLES(BI20X)
+  KEY_NAME_TABLE(routing),
+  KEY_NAME_TABLE(thumb),
+  KEY_NAME_TABLE(braille),
+END_KEY_NAME_TABLES
+
 DEFINE_KEY_TABLE(BI14)
 DEFINE_KEY_TABLE(BI32)
 DEFINE_KEY_TABLE(BI40)
@@ -134,6 +147,8 @@ DEFINE_KEY_TABLE(C20)
 DEFINE_KEY_TABLE(M40)
 DEFINE_KEY_TABLE(NLS)
 DEFINE_KEY_TABLE(one)
+DEFINE_KEY_TABLE(BI40X)
+DEFINE_KEY_TABLE(BI20X)
 
 BEGIN_KEY_TABLE_LIST
   &KEY_TABLE_DEFINITION(BI14),
@@ -145,12 +160,15 @@ BEGIN_KEY_TABLE_LIST
   &KEY_TABLE_DEFINITION(M40),
   &KEY_TABLE_DEFINITION(NLS),
   &KEY_TABLE_DEFINITION(one),
+  &KEY_TABLE_DEFINITION(BI40X),
+  &KEY_TABLE_DEFINITION(BI20X),
 END_KEY_TABLE_LIST
 
 typedef struct {
   const char *modelName;
   const KeyTableDefinition *keyTableDefinition;
   HW_ModelIdentifier modelIdentifier;
+  unsigned char pressedKeysReportSize;
 
   unsigned char hasBrailleKeys:1;
   unsigned char hasCommandKeys:1;
@@ -220,6 +238,20 @@ static const ModelEntry modelEntry_one = {
   .keyTableDefinition = &KEY_TABLE_DEFINITION(one)
 };
 
+static const ModelEntry modelEntry_BI40X = {
+  .modelName = "Brailliant BI 40X",
+  .pressedKeysReportSize = 46,
+  .hasBrailleKeys = 1,
+  .hasCommandKeys = 1,
+  .keyTableDefinition = &KEY_TABLE_DEFINITION(BI40X)
+};
+
+static const ModelEntry modelEntry_BI20X = {
+  .modelName = "Brailliant BI 20X",
+  .hasBrailleKeys = 1,
+  .keyTableDefinition = &KEY_TABLE_DEFINITION(BI20X)
+};
+
 static const ModelEntry *modelTable[] = {
   &modelEntry_BI14,
   &modelEntry_BI32,
@@ -230,6 +262,8 @@ static const ModelEntry *modelTable[] = {
   &modelEntry_M40,
   &modelEntry_NLS,
   &modelEntry_one,
+  &modelEntry_BI40X,
+  &modelEntry_BI20X,
 };
 
 static unsigned char modelCount = ARRAY_COUNT(modelTable);
@@ -245,6 +279,10 @@ getModelByIdentifier (HW_ModelIdentifier identifier) {
       model += 1;
     }
   }
+
+  logMessage(LOG_CATEGORY(BRAILLE_DRIVER),
+    "unknown model identifier: %u", identifier
+  );
 
   return NULL;
 }
@@ -307,19 +345,30 @@ struct BrailleDataStruct {
 
 static const ModelEntry *
 getModelByCellCount (BrailleDisplay *brl) {
-  switch (brl->textColumns) {
+  unsigned int cellCount = brl->textColumns;
+
+  switch (cellCount) {
     case 14: return &modelEntry_BI14;
     case 32: return &modelEntry_BI32;
     case 40: return &modelEntry_BI40;
     case 80: return &modelEntry_B80;
-    default: return NULL;
+
+    default:
+      logMessage(LOG_WARNING, "unknown cell count: %u", cellCount);
+      return NULL;
   }
 }
 
-static void
+static int
 setModel (BrailleDisplay *brl) {
-  if (!brl->data->model) brl->data->model = getModelByCellCount(brl);
+  if (!brl->data->model) {
+    if (!(brl->data->model = getModelByCellCount(brl))) {
+      return 0;
+    }
+  }
+
   logMessage(LOG_DEBUG, "Model Name: %s", brl->data->model->modelName);
+  return 1;
 }
 
 static int
@@ -457,7 +506,7 @@ verifySerialPacket (
 
   switch (size) {
     case 1:
-      if (byte != ESC) return BRL_PVR_INVALID;
+      if (byte != ASCII_ESC) return BRL_PVR_INVALID;
       *length = 3;
       break;
 
@@ -481,7 +530,7 @@ static int
 writeSerialPacket (BrailleDisplay *brl, unsigned char type, unsigned char length, const void *data) {
   HW_Packet packet;
 
-  packet.fields.header = ESC;
+  packet.fields.header = ASCII_ESC;
   packet.fields.type = type;
   packet.fields.length = length;
 
@@ -630,14 +679,13 @@ static const ProtocolEntry serialProtocol = {
 
 static ssize_t
 readHidFeature (
-  BrailleDisplay *brl, unsigned char report,
+  BrailleDisplay *brl, HidReportIdentifier identifier,
   unsigned char *buffer, size_t size
 ) {
-  if (size > 0) *buffer = 0;
-  ssize_t length = gioGetHidFeature(brl->gioEndpoint, report, buffer, size);
+  ssize_t length = gioGetHidFeature(brl->gioEndpoint, identifier, buffer, size);
 
   if (length != -1) {
-    if ((length > 0) && (*buffer == report)) {
+    if ((length > 0) && (*buffer == identifier)) {
       logInputPacket(buffer, length);
       return length;
     }
@@ -645,7 +693,7 @@ readHidFeature (
     errno = EAGAIN;
   }
 
-  logSystemError("USB HID feature read");
+  logSystemError("HID feature read");
   return -1;
 }
 
@@ -714,34 +762,65 @@ readHidPacket (BrailleDisplay *brl, void *buffer, size_t size) {
   return readBraillePacket(brl, NULL, buffer, size, verifyHidPacket, NULL);
 }
 
+static size_t
+getPressedKeysReportSize (BrailleDisplay *brl) {
+  {
+    size_t size = gioGetHidInputSize(brl->gioEndpoint, HW_REP_IN_PressedKeys);
+    if (size) return size;
+  }
+
+  {
+    size_t size = brl->data->model->pressedKeysReportSize;
+    if (size) return size;
+  }
+
+  size_t size = 1;
+  size += brl->textColumns;
+  size += THUMB_KEY_COUNT;
+  if (brl->data->model->hasBrailleKeys) size += BRAILLE_KEY_COUNT;
+  if (brl->data->model->hasCommandKeys) size += COMMAND_KEY_COUNT;
+  if (brl->data->model->hasJoystick) size += JOYSTICK_KEY_COUNT;
+  if (brl->data->model->hasSecondThumbKeys) size += THUMB_KEY_COUNT;
+  return size;
+}
+
 static int
 probeHidDisplay (BrailleDisplay *brl) {
-  HW_CapabilitiesReport capabilities;
-  unsigned char *const buffer = (unsigned char *)&capabilities;
-  const size_t size = sizeof(capabilities);
+  brl->textColumns = 0;
 
-  ssize_t length = readHidFeature(brl, HW_REP_FTR_Capabilities, buffer, size);
-  if (length == -1) return 0;
-  memset(&buffer[length], 0, (size - length));
+  if (!brl->textColumns) {
+    size_t size = gioGetHidOutputSize(brl->gioEndpoint, HW_REP_OUT_WriteCells);
+    if (size > 4) brl->textColumns = size - 4;
+  }
 
-  setFirmwareVersion(brl,
-    getDecimalValue(&capabilities.version.major, 1),
-    getDecimalValue(&capabilities.version.minor, 1),
-    getDecimalValue(&capabilities.version.build[0], 2)
-  );
+  if (!brl->textColumns) {
+    HW_CapabilitiesReport capabilities;
+    unsigned char *const buffer = (unsigned char *)&capabilities;
+    const size_t size = sizeof(capabilities);
 
-  brl->textColumns = capabilities.cellCount;
-  setModel(brl);
+    ssize_t length = readHidFeature(brl, HW_REP_FTR_Capabilities, buffer, size);
+    if (length == -1) return 0;
+    memset(&buffer[length], 0, (size - length));
+
+    setFirmwareVersion(brl,
+      getDecimalValue(&capabilities.version.major, 1),
+      getDecimalValue(&capabilities.version.minor, 1),
+      getDecimalValue(&capabilities.version.build[0], 2)
+    );
+
+    brl->textColumns = capabilities.cellCount;
+  }
 
   {
     unsigned char *size = &brl->data->hid.pressedKeys.reportSize;
-    *size = 1 + THUMB_KEY_COUNT + brl->textColumns;
-    if (brl->data->model->hasBrailleKeys) *size += BRAILLE_KEY_COUNT;
-    if (brl->data->model->hasCommandKeys) *size += COMMAND_KEY_COUNT;
-    if (brl->data->model->hasJoystick) *size += JOYSTICK_KEY_COUNT;
-    if (brl->data->model->hasSecondThumbKeys) *size += THUMB_KEY_COUNT;
+    *size = getPressedKeysReportSize(brl);
+
+    logMessage(LOG_CATEGORY(BRAILLE_DRIVER),
+      "pressed keys report size: %u", *size
+    );
   }
 
+  if (!setModel(brl)) return 0;
   return 1;
 }
 
@@ -811,7 +890,7 @@ typedef struct {
   const ModelEntry *model;
 } ResourceData;
 
-static const ResourceData resourceData_serial = {
+static const ResourceData resourceData_serial_generic = {
   .protocol = &serialProtocol
 };
 
@@ -840,7 +919,7 @@ static const ResourceData resourceData_serial_one = {
   .protocol = &serialProtocol
 };
 
-static const ResourceData resourceData_HID = {
+static const ResourceData resourceData_HID_generic = {
   .protocol = &hidProtocol
 };
 
@@ -869,6 +948,16 @@ static const ResourceData resourceData_HID_one = {
   .protocol = &hidProtocol
 };
 
+static const ResourceData resourceData_HID_BI40X = {
+  .model = &modelEntry_BI40X,
+  .protocol = &hidProtocol
+};
+
+static const ResourceData resourceData_HID_BI20X = {
+  .model = &modelEntry_BI20X,
+  .protocol = &hidProtocol
+};
+
 static int
 connectResource (BrailleDisplay *brl, const char *identifier) {
   static const SerialParameters serialParameters = {
@@ -883,7 +972,7 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
       .configuration=1, .interface=1, .alternative=0,
       .inputEndpoint=2, .outputEndpoint=3,
       .serial = &serialParameters,
-      .data = &resourceData_serial,
+      .data = &resourceData_serial_generic,
       .resetDevice = 1
     },
 
@@ -936,7 +1025,7 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
       .vendor=0X1C71, .product=0XC006,
       .configuration=1, .interface=0, .alternative=0,
       .inputEndpoint=1,
-      .data = &resourceData_HID
+      .data = &resourceData_HID_generic
     },
 
     { /* BrailleNote Touch (HID protocol) */
@@ -946,44 +1035,146 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
       .data = &resourceData_HID_touch
     },
 
-    { /* APH Chameleon 20 (HID protocol) */
+    { /* APH Chameleon 20 (HID protocol, firmware 1.0) */
       .vendor=0X1C71, .product=0XC101, 
       .configuration=1, .interface=1, .alternative=0,
       .inputEndpoint=4, .outputEndpoint=5,
+      .verifyInterface = 1,
       .data = &resourceData_HID_C20,
       .resetDevice = 1
     },
 
-    { /* APH Mantis Q40 (HID protocol) */
+    { /* APH Chameleon 20 (HID protocol, firmware 1.1) */
+      .vendor=0X1C71, .product=0XC101, 
+      .configuration=1, .interface=0, .alternative=0,
+      .inputEndpoint=1, .outputEndpoint=2,
+      .verifyInterface = 1,
+      .data = &resourceData_HID_C20,
+      .resetDevice = 1
+    },
+
+    { /* APH Mantis Q40 (HID protocol, firmware 1.0) */
       .vendor=0X1C71, .product=0XC111, 
       .configuration=1, .interface=1, .alternative=0,
       .inputEndpoint=4, .outputEndpoint=5,
+      .verifyInterface = 1,
       .data = &resourceData_HID_M40,
       .resetDevice = 1
     },
 
-    { /* NLS eReader (HID protocol) */
+    { /* APH Mantis Q40 (HID protocol, firmware 1.1) */
+      .vendor=0X1C71, .product=0XC111, 
+      .configuration=1, .interface=0, .alternative=0,
+      .inputEndpoint=1, .outputEndpoint=2,
+      .verifyInterface = 1,
+      .data = &resourceData_HID_M40,
+      .resetDevice = 1
+    },
+
+    { /* NLS eReader (HID protocol, firmware 1.0) */
       .vendor=0X1C71, .product=0XCE01, 
       .configuration=1, .interface=1, .alternative=0,
       .inputEndpoint=4, .outputEndpoint=5,
+      .verifyInterface = 1,
       .data = &resourceData_HID_NLS,
       .resetDevice = 1
     },
 
-    { /* Humanware BrailleOne (HID protocol) */
+    { /* NLS eReader (HID protocol, firmware 1.1) */
+      .vendor=0X1C71, .product=0XCE01, 
+      .configuration=1, .interface=0, .alternative=0,
+      .inputEndpoint=1, .outputEndpoint=2,
+      .verifyInterface = 1,
+      .data = &resourceData_HID_NLS,
+      .resetDevice = 1
+    },
+
+    { /* Humanware BrailleOne (HID protocol, firmware 1.0) */
       .vendor=0X1C71, .product=0XC121, 
       .configuration=1, .interface=1, .alternative=0,
       .inputEndpoint=4, .outputEndpoint=5,
+      .verifyInterface = 1,
       .data = &resourceData_HID_one,
       .resetDevice = 1
     },
+
+    { /* Humanware BrailleOne (HID protocol, firmware 1.1) */
+      .vendor=0X1C71, .product=0XC121, 
+      .configuration=1, .interface=0, .alternative=0,
+      .inputEndpoint=1, .outputEndpoint=2,
+      .verifyInterface = 1,
+      .data = &resourceData_HID_one,
+      .resetDevice = 1
+    },
+
+    { /* Humanware Brailliant BI 40X (HID protocol, firmware 1.0) */
+      .vendor=0X1C71, .product=0XC131, 
+      .configuration=1, .interface=1, .alternative=0,
+      .inputEndpoint=4, .outputEndpoint=5,
+      .verifyInterface = 1,
+      .data = &resourceData_HID_BI40X,
+      .resetDevice = 1
+    },
+
+    { /* Humanware Brailliant BI 40X (HID protocol, firmware 1.1) */
+      .vendor=0X1C71, .product=0XC131, 
+      .configuration=1, .interface=0, .alternative=0,
+      .inputEndpoint=1, .outputEndpoint=2,
+      .verifyInterface = 1,
+      .data = &resourceData_HID_BI40X,
+      .resetDevice = 1
+    },
+
+    { /* Humanware Brailliant BI 20X (HID protocol, firmware 1.0) */
+      .vendor=0X1C71, .product=0XC141, 
+      .configuration=1, .interface=1, .alternative=0,
+      .inputEndpoint=4, .outputEndpoint=5,
+      .verifyInterface = 1,
+      .data = &resourceData_HID_BI20X,
+      .resetDevice = 1
+    },
+
+    { /* Humanware Brailliant BI 20X (HID protocol, firmware 1.1) */
+      .vendor=0X1C71, .product=0XC141, 
+      .configuration=1, .interface=0, .alternative=0,
+      .inputEndpoint=1, .outputEndpoint=2,
+      .verifyInterface = 1,
+      .data = &resourceData_HID_BI20X,
+      .resetDevice = 1
+    },
   END_USB_CHANNEL_DEFINITIONS
+
+  BEGIN_HID_MODEL_TABLE
+    { .name = "APH Chameleon 20",
+      .data = &resourceData_HID_C20,
+    },
+
+    { .name = "APH Mantis Q40",
+      .data = &resourceData_HID_M40,
+    },
+
+    { .name = "NLS eReader Humanware",
+      .data = &resourceData_HID_NLS,
+    },
+
+    { .name = "Humanware BrailleOne",
+      .data = &resourceData_HID_one,
+    },
+
+    { .name = "Brailliant BI 40X",
+      .data = &resourceData_HID_BI40X,
+    },
+
+    { .name = "Brailliant BI 20X",
+      .data = &resourceData_HID_BI20X,
+    },
+  END_HID_MODEL_TABLE
 
   GioDescriptor descriptor;
   gioInitializeDescriptor(&descriptor);
 
   descriptor.serial.parameters = &serialParameters;
-  descriptor.serial.options.applicationData = &resourceData_serial;
+  descriptor.serial.options.applicationData = &resourceData_serial_generic;
   descriptor.serial.options.readyDelay = OPEN_READY_DELAY;
 
   descriptor.usb.channelDefinitions = usbChannelDefinitions;
@@ -991,8 +1182,10 @@ connectResource (BrailleDisplay *brl, const char *identifier) {
 
   descriptor.bluetooth.channelNumber = 1;
   descriptor.bluetooth.discoverChannel = 1;
-  descriptor.bluetooth.options.applicationData = &resourceData_serial;
+  descriptor.bluetooth.options.applicationData = &resourceData_serial_generic;
   descriptor.bluetooth.options.readyDelay = OPEN_READY_DELAY;
+
+  descriptor.hid.modelTable = hidModelTable;
 
   if (connectBrailleResource(brl, identifier, &descriptor, NULL)) {
     const ResourceData *resourceData = gioGetApplicationData(brl->gioEndpoint);

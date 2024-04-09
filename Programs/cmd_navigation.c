@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -37,10 +37,7 @@
 
 static int
 getWindowLength (void) {
-#ifdef ENABLE_CONTRACTED_BRAILLE
   if (isContracting()) return getContractedLength(textCount);
-#endif /* ENABLE_CONTRACTED_BRAILLE */
-
   return textCount;
 }
 
@@ -333,37 +330,19 @@ handleNavigationCommands (int command, void *data) {
   int oldwiny = ses->winy;
 
   switch (command & BRL_MSK_CMD) {
-    {
-      int row;
-      int ok;
-
     case BRL_CMD_TOP_LEFT:
-      command |= BRL_FLG_MOTION_TOLEFT;
+      ses->winx = 0;
       /* fall through */
     case BRL_CMD_TOP:
-      row = 0;
-      ok = ses->winy > row;
-      goto doTopBottom;
+      ses->winy = 0;
+      break;
 
     case BRL_CMD_BOT_LEFT:
-      command |= BRL_FLG_MOTION_TOLEFT;
+      ses->winx = 0;
       /* fall through */
     case BRL_CMD_BOT:
-      row = MAX(scr.rows, brl.textRows) - brl.textRows;
-      ok = ses->winy < row;
-      goto doTopBottom;
-
-    doTopBottom:
-      if (ok) {
-        ses->winy = row;
-      } else if ((command & BRL_FLG_MOTION_TOLEFT) && (ses->winx > 0)) {
-        oldwiny = -1;
-      } else {
-        alert(ALERT_BOUNCE);
-      }
-
+      ses->winy = MAX(scr.rows, brl.textRows) - brl.textRows;
       break;
-    }
 
     case BRL_CMD_WINUP:
       if (canMoveUp()) {

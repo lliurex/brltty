@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #include "log.h"
+#include "async_handle.h"
 #include "async_wait.h"
 #include "async_alarm.h"
 #include "io_generic.h"
@@ -29,10 +30,11 @@
 #include "io_serial.h"
 
 const GioProperties *const gioProperties[] = {
-  &gioProperties_null,
   &gioProperties_serial,
   &gioProperties_usb,
   &gioProperties_bluetooth,
+  &gioProperties_hid,
+  &gioProperties_null,
   NULL
 };
 
@@ -47,8 +49,6 @@ gioInitializeOptions (GioOptions *options) {
 
 void
 gioInitializeDescriptor (GioDescriptor *descriptor) {
-  gioInitializeOptions(&descriptor->null.options);
-
   descriptor->serial.parameters = NULL;
   gioInitializeOptions(&descriptor->serial.options);
   descriptor->serial.options.inputTimeout = 100;
@@ -65,6 +65,10 @@ gioInitializeDescriptor (GioDescriptor *descriptor) {
   gioInitializeOptions(&descriptor->bluetooth.options);
   descriptor->bluetooth.options.inputTimeout = 1000;
   descriptor->bluetooth.options.requestTimeout = 5000;
+
+  gioInitializeOptions(&descriptor->hid.options);
+
+  gioInitializeOptions(&descriptor->null.options);
 }
 
 void
@@ -81,11 +85,15 @@ gioSetBytesPerSecond (GioEndpoint *endpoint, const SerialParameters *parameters)
   endpoint->bytesPerSecond = parameters->baud / serialGetCharacterSize(parameters);
 }
 
+void
+gioSetApplicationData (GioEndpoint *endpoint, const void *data) {
+  endpoint->options.applicationData = data;
+}
+
 static int
 gioStartEndpoint (GioEndpoint *endpoint) {
   {
     int delay = endpoint->options.readyDelay;
-
     if (delay) asyncWait(delay);
   }
 
@@ -101,23 +109,13 @@ gioGetProperties (
        *properties; properties+=1) {
     if (descriptor) {
       GioIsSupportedMethod *isSupported = (*properties)->private->isSupported;
-
-      if (!isSupported) {
-        logUnsupportedOperation("isSupported");
-        continue;
-      }
-
+      if (!isSupported) continue;
       if (!isSupported(descriptor)) continue;
     }
 
     {
       GioTestIdentifierMethod *testIdentifier = (*properties)->public->testIdentifier;
-
-      if (!testIdentifier) {
-        logUnsupportedOperation("testIdentifier");
-        continue;
-      }
-
+      if (!testIdentifier) continue;
       if (testIdentifier(identifier)) return *properties;
     }
   }
@@ -145,6 +143,9 @@ gioConnectResource (
     GioEndpoint *endpoint;
 
     if ((endpoint = malloc(sizeof(*endpoint)))) {
+      memset(endpoint, 0, sizeof(*endpoint));
+      endpoint->referenceCount = 1;
+
       endpoint->resourceType = properties->public->type.identifier;
       endpoint->bytesPerSecond = 0;
 
@@ -152,23 +153,34 @@ gioConnectResource (
       endpoint->input.from = 0;
       endpoint->input.to = 0;
 
-      endpoint->hidReportItems.address = NULL;
-      endpoint->hidReportItems.size = 0;
-
-      if (properties->private->getOptions) {
+      if (descriptor && properties->private->getOptions) {
         endpoint->options = *properties->private->getOptions(descriptor);
       } else {
         gioInitializeOptions(&endpoint->options);
       }
 
-      if (properties->private->getMethods) {
-        endpoint->methods = properties->private->getMethods();
+      if (properties->private->getHandleMethods) {
+        endpoint->handleMethods = properties->private->getHandleMethods();
       } else {
-        endpoint->methods = NULL;
+        endpoint->handleMethods = NULL;
       }
 
       if (properties->private->connectResource) {
         if ((endpoint->handle = properties->private->connectResource(identifier, descriptor))) {
+          {
+            GioGetChainedEndpointMethod *getChainedEndpoint = endpoint->handleMethods->getChainedEndpoint;
+
+            if (getChainedEndpoint) {
+              GioEndpoint *chainedEndpoint = getChainedEndpoint(endpoint->handle);
+
+              if (chainedEndpoint) {
+                chainedEndpoint->referenceCount += 1;
+                gioDisconnectResource(endpoint);
+                return chainedEndpoint;
+              }
+            }
+          }
+
           if (!properties->private->prepareEndpoint || properties->private->prepareEndpoint(endpoint)) {
             if (gioStartEndpoint(endpoint)) {
               return endpoint;
@@ -196,34 +208,37 @@ gioConnectResource (
   return NULL;
 }
 
-int
-gioDisconnectResource (GioEndpoint *endpoint) {
-  int ok = 0;
-  GioDisconnectResourceMethod *method = endpoint->methods->disconnectResource;
-
-  if (!method) {
-    logUnsupportedOperation("disconnectResource");
-  } else if (method(endpoint->handle)) {
-    ok = 1;
-  }
-
-  if (endpoint->hidReportItems.address) free(endpoint->hidReportItems.address);
-  free(endpoint);
-  return ok;
-}
-
 const void *
 gioGetApplicationData (GioEndpoint *endpoint) {
   return endpoint->options.applicationData;
 }
 
+int
+gioDisconnectResource (GioEndpoint *endpoint) {
+  if (--endpoint->referenceCount > 0) return 1;
+
+  int ok = 0;
+  GioDisconnectResourceMethod *method = endpoint->handleMethods->disconnectResource;
+
+  if (!method) {
+    logUnsupportedOperation("disconnectResource");
+    errno = ENOSYS;
+  } else if (method(endpoint->handle)) {
+    ok = 1;
+  }
+
+  free(endpoint);
+  return ok;
+}
+
 const char *
 gioMakeResourceIdentifier (GioEndpoint *endpoint, char *buffer, size_t size) {
   const char *identifier = NULL;
-  MakeResourceIdentifierMethod *method = endpoint->methods->makeResourceIdentifier;
+  MakeResourceIdentifierMethod *method = endpoint->handleMethods->makeResourceIdentifier;
 
   if (!method) {
     logUnsupportedOperation("makeResourceIdentifier");
+    errno = ENOSYS;
   } else {
     identifier = method(endpoint->handle, buffer, size);
   }
@@ -245,10 +260,11 @@ gioGetResourceIdentifier (GioEndpoint *endpoint) {
 char *
 gioGetResourceName (GioEndpoint *endpoint) {
   char *name = NULL;
-  GioGetResourceNameMethod *method = endpoint->methods->getResourceName;
+  GioGetResourceNameMethod *method = endpoint->handleMethods->getResourceName;
 
   if (!method) {
     logUnsupportedOperation("getResourceName");
+    errno = ENOSYS;
   } else {
     name = method(endpoint->handle, endpoint->options.requestTimeout);
   }
@@ -256,14 +272,31 @@ gioGetResourceName (GioEndpoint *endpoint) {
   return name;
 }
 
+GioTypeIdentifier
+gioGetResourceType (GioEndpoint *endpoint) {
+  return endpoint->resourceType;
+}
+
+void *
+gioGetResourceObject (GioEndpoint *endpoint) {
+  GioGetResourceObjectMethod *method = endpoint->handleMethods->getResourceObject;
+
+  if (method) return method(endpoint->handle);
+  logUnsupportedOperation("getResourceObject");
+  return NULL;
+}
+
 ssize_t
 gioWriteData (GioEndpoint *endpoint, const void *data, size_t size) {
-  GioWriteDataMethod *method = endpoint->methods->writeData;
+  GioWriteDataMethod *method = endpoint->handleMethods->writeData;
 
   if (!method) {
     logUnsupportedOperation("writeData");
+    errno = ENOSYS;
     return -1;
   }
+
+  logBytes(LOG_CATEGORY(GENERIC_IO), "output", data, size);
 
   ssize_t result = method(endpoint->handle, data, size,
                           endpoint->options.outputTimeout);
@@ -283,10 +316,11 @@ gioWriteData (GioEndpoint *endpoint, const void *data, size_t size) {
 
 int
 gioAwaitInput (GioEndpoint *endpoint, int timeout) {
-  GioAwaitInputMethod *method = endpoint->methods->awaitInput;
+  GioAwaitInputMethod *method = endpoint->handleMethods->awaitInput;
 
   if (!method) {
     logUnsupportedOperation("awaitInput");
+    errno = ENOSYS;
     return 0;
   }
 
@@ -297,10 +331,11 @@ gioAwaitInput (GioEndpoint *endpoint, int timeout) {
 
 ssize_t
 gioReadData (GioEndpoint *endpoint, void *buffer, size_t size, int wait) {
-  GioReadDataMethod *method = endpoint->methods->readData;
+  GioReadDataMethod *method = endpoint->handleMethods->readData;
 
   if (!method) {
     logUnsupportedOperation("readData");
+    errno = ENOSYS;
     return -1;
   }
 
@@ -339,7 +374,7 @@ gioReadData (GioEndpoint *endpoint, void *buffer, size_t size, int wait) {
                                 (wait? endpoint->options.inputTimeout: 0), 0);
 
         if (result > 0) {
-          logBytes(LOG_CATEGORY(GENERIC_INPUT), NULL, &endpoint->input.buffer[endpoint->input.to], result);
+          logBytes(LOG_CATEGORY(GENERIC_IO), "input", &endpoint->input.buffer[endpoint->input.to], result);
           endpoint->input.to += result;
           wait = 1;
         } else {
@@ -371,12 +406,25 @@ gioDiscardInput (GioEndpoint *endpoint) {
 }
 
 int
+gioMonitorInput (GioEndpoint *endpoint, AsyncMonitorCallback *callback, void *data) {
+  GioMonitorInputMethod *method = endpoint->handleMethods->monitorInput;
+
+  if (method) {
+    if (method(endpoint->handle, callback, data)) {
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+int
 gioReconfigureResource (
   GioEndpoint *endpoint,
   const SerialParameters *parameters
 ) {
   int ok = 1;
-  GioReconfigureResourceMethod *method = endpoint->methods->reconfigureResource;
+  GioReconfigureResourceMethod *method = endpoint->handleMethods->reconfigureResource;
 
   if (!method) {
     logUnsupportedOperation("reconfigureResource");
@@ -406,10 +454,11 @@ gioTellResource (
   uint8_t request, uint16_t value, uint16_t index,
   const void *data, uint16_t size
 ) {
-  GioTellResourceMethod *method = endpoint->methods->tellResource;
+  GioTellResourceMethod *method = endpoint->handleMethods->tellResource;
 
   if (!method) {
     logUnsupportedOperation("tellResource");
+    errno = ENOSYS;
     return -1;
   }
 
@@ -425,10 +474,11 @@ gioAskResource (
   uint8_t request, uint16_t value, uint16_t index,
   void *buffer, uint16_t size
 ) {
-  GioAskResourceMethod *method = endpoint->methods->askResource;
+  GioAskResourceMethod *method = endpoint->handleMethods->askResource;
 
   if (!method) {
     logUnsupportedOperation("askResource");
+    errno = ENOSYS;
     return -1;
   }
 
@@ -437,125 +487,164 @@ gioAskResource (
                 endpoint->options.requestTimeout);
 }
 
+int
+gioGetHidReportSize (
+  GioEndpoint *endpoint,
+  HidReportIdentifier identifier,
+  HidReportSize *size
+) {
+  GioGetHidReportSizeMethod *method = endpoint->handleMethods->getHidReportSize;
+
+  if (!method) {
+    logUnsupportedOperation("getHidReportSize");
+    errno = ENOSYS;
+    return 0;
+  }
+
+  int ok = method(
+    endpoint->handle, identifier, size,
+    endpoint->options.requestTimeout
+  );
+
+  if (ok) return 1;
+  logMessage(LOG_WARNING, "HID report not found: %02X", identifier);
+  return 0;
+}
+
 size_t
-gioGetHidReportSize (GioEndpoint *endpoint, unsigned char report) {
-  if (!endpoint->hidReportItems.address) {
-    GioGetHidReportItemsMethod *method = endpoint->methods->getHidReportItems;
+gioGetHidInputSize (
+  GioEndpoint *endpoint,
+  HidReportIdentifier identifier
+) {
+  HidReportSize size;
+  if (!gioGetHidReportSize(endpoint, identifier, &size)) return 0;
+  return size.input;
+}
 
-    if (!method) {
-      logUnsupportedOperation("getHidReportItems");
-      return 0;
-    }
+size_t
+gioGetHidOutputSize (
+  GioEndpoint *endpoint,
+  HidReportIdentifier identifier
+) {
+  HidReportSize size;
+  if (!gioGetHidReportSize(endpoint, identifier, &size)) return 0;
+  return size.output;
+}
 
-    if (!method(endpoint->handle, &endpoint->hidReportItems,
-                endpoint->options.requestTimeout)) {
-      return 0;
-    }
+size_t
+gioGetHidFeatureSize (
+  GioEndpoint *endpoint,
+  HidReportIdentifier identifier
+) {
+  HidReportSize size;
+  if (!gioGetHidReportSize(endpoint, identifier, &size)) return 0;
+  return size.feature;
+}
+
+ssize_t
+gioGetHidReport (
+  GioEndpoint *endpoint, HidReportIdentifier identifier,
+  unsigned char *buffer, size_t size
+) {
+  GioGetHidReportMethod *method = endpoint->handleMethods->getHidReport;
+
+  if (!method) {
+    logUnsupportedOperation("getHidReport");
+    errno = ENOSYS;
+    return -1;
   }
 
-  {
-    GioGetHidReportSizeMethod *method = endpoint->methods->getHidReportSize;
+  buffer[0] = identifier;
+  return method(endpoint->handle, identifier,
+                buffer, size, endpoint->options.requestTimeout);
+}
 
-    if (!method) {
-      logUnsupportedOperation("getHidReportSize");
-      return 0;
-    }
-
-    return method(&endpoint->hidReportItems, report);
-  }
+ssize_t
+gioReadHidReport (
+  GioEndpoint *endpoint,
+  unsigned char *buffer, size_t size
+) {
+  return gioGetHidReport(endpoint, buffer[0], buffer, size);
 }
 
 ssize_t
 gioSetHidReport (
-  GioEndpoint *endpoint, unsigned char report,
-  const void *data, uint16_t size
+  GioEndpoint *endpoint, HidReportIdentifier identifier,
+  const unsigned char *data, size_t size
 ) {
-  GioSetHidReportMethod *method = endpoint->methods->setHidReport;
+  GioSetHidReportMethod *method = endpoint->handleMethods->setHidReport;
 
   if (!method) {
     logUnsupportedOperation("setHidReport");
+    errno = ENOSYS;
     return -1;
   }
 
-  return method(endpoint->handle, report,
+  return method(endpoint->handle, identifier,
                 data, size, endpoint->options.requestTimeout);
 }
 
 ssize_t
 gioWriteHidReport (
   GioEndpoint *endpoint,
-  const unsigned char *data, uint16_t size
+  const unsigned char *data, size_t size
 ) {
-  return gioSetHidReport(endpoint, data[0], data, size);
+  HidReportIdentifier identifier = data[0];
+  if (!identifier) data += 1, size -= 1;
+  return gioSetHidReport(endpoint, identifier, data, size);
 }
 
 ssize_t
-gioGetHidReport (
-  GioEndpoint *endpoint, unsigned char report,
-  void *buffer, uint16_t size
+gioGetHidFeature (
+  GioEndpoint *endpoint, HidReportIdentifier identifier,
+  unsigned char *buffer, size_t size
 ) {
-  GioGetHidReportMethod *method = endpoint->methods->getHidReport;
+  GioGetHidFeatureMethod *method = endpoint->handleMethods->getHidFeature;
 
   if (!method) {
-    logUnsupportedOperation("getHidReport");
+    logUnsupportedOperation("getHidFeature");
+    errno = ENOSYS;
     return -1;
   }
 
-  return method(endpoint->handle, report,
+  buffer[0] = identifier;
+  return method(endpoint->handle, identifier,
                 buffer, size, endpoint->options.requestTimeout);
 }
 
 ssize_t
-gioSetHidFeature (
-  GioEndpoint *endpoint, unsigned char report,
-  const void *data, uint16_t size
+gioReadHidFeature (
+  GioEndpoint *endpoint,
+  unsigned char *buffer, size_t size
 ) {
-  GioSetHidFeatureMethod *method = endpoint->methods->setHidFeature;
+  return gioGetHidFeature(endpoint, buffer[0], buffer, size);
+}
+
+ssize_t
+gioSetHidFeature (
+  GioEndpoint *endpoint, HidReportIdentifier identifier,
+  const unsigned char *data, size_t size
+) {
+  GioSetHidFeatureMethod *method = endpoint->handleMethods->setHidFeature;
 
   if (!method) {
     logUnsupportedOperation("setHidFeature");
+    errno = ENOSYS;
     return -1;
   }
 
-  return method(endpoint->handle, report,
+  return method(endpoint->handle, identifier,
                 data, size, endpoint->options.requestTimeout);
 }
 
 ssize_t
 gioWriteHidFeature (
   GioEndpoint *endpoint,
-  const unsigned char *data, uint16_t size
+  const unsigned char *data, size_t size
 ) {
-  return gioSetHidFeature(endpoint, data[0], data, size);
-}
-
-ssize_t
-gioGetHidFeature (
-  GioEndpoint *endpoint, unsigned char report,
-  void *buffer, uint16_t size
-) {
-  GioGetHidFeatureMethod *method = endpoint->methods->getHidFeature;
-
-  if (!method) {
-    logUnsupportedOperation("getHidFeature");
-    return -1;
-  }
-
-  return method(endpoint->handle, report,
-                buffer, size, endpoint->options.requestTimeout);
-}
-
-int
-gioMonitorInput (GioEndpoint *endpoint, AsyncMonitorCallback *callback, void *data) {
-  GioMonitorInputMethod *method = endpoint->methods->monitorInput;
-
-  if (method) {
-    if (method(endpoint->handle, callback, data)) {
-      return 1;
-    }
-  }
-
-  return 0;
+  HidReportIdentifier identifier = data[0];
+  if (!identifier) data += 1, size -= 1;
+  return gioSetHidFeature(endpoint, identifier, data, size);
 }
 
 struct GioHandleInputObjectStruct {
@@ -637,18 +726,4 @@ gioDestroyHandleInputObject (GioHandleInputObject *hio) {
   }
 
   free(hio);
-}
-
-GioTypeIdentifier
-gioGetResourceType (GioEndpoint *endpoint) {
-  return endpoint->resourceType;
-}
-
-void *
-gioGetResourceObject (GioEndpoint *endpoint) {
-  GioGetResourceObjectMethod *method = endpoint->methods->getResourceObject;
-
-  if (method) return method(endpoint->handle);
-  logUnsupportedOperation("getResourceObject");
-  return NULL;
 }

@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 
 #include "log.h"
+#include "file.h"
 #include "device.h"
 #include "async_wait.h"
 #include "ascii.h"
@@ -71,10 +72,13 @@ makeFifo (const char *path, mode_t mode) {
       if (S_ISFIFO(status.st_mode)) return 1;
       logMessage(LOG_ERR, "Download object not a FIFO: %s", path);
    } else if (errno == ENOENT) {
+      lockUmask();
       mode_t mask = umask(0);
       int result = mkfifo(path, mode);
       int error = errno;
       umask(mask);
+      unlockUmask();
+
       if (result != -1) return 1;
       errno = error;
       logSystemError("Download FIFO creation");
@@ -106,7 +110,7 @@ brl_construct (BrailleDisplay *brl, char **parameters, const char *device) {
          const unsigned char byte = 0XFF;
 
          if (memchr(outputTable, byte, sizeof(outputTable))) {
-            outputTable[translateInputCell(byte)] = SUB;
+            outputTable[translateInputCell(byte)] = ASCII_SUB;
          }
       }
    }
@@ -467,7 +471,7 @@ downloadFile (void) {
                   address = buffer;
                }
                if ((newline = memchr(address, '\n', count))) {
-                  static const unsigned char lineTrailer[] = {CR, LF};
+                  static const unsigned char lineTrailer[] = {ASCII_CR, ASCII_LF};
                   size_t length = newline - address;
                   if (!sendBytes(address, length++)) break;
                   if (!sendBytes(lineTrailer, sizeof(lineTrailer))) break;

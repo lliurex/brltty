@@ -1,0 +1,141 @@
+Key Table: Bindings for Braille Keyboards
+=========================================
+
+Default Bindings
+----------------
+
+Special Modes
+* enter/leave help display: Dot0+Dots125
+* enter/leave command learn mode: Dot0+Dots123
+* enter/leave preferences menu: Dot0+Dots1234
+* enter/leave status display: Dot0+Dots234
+* set display mode attributes/text: Dot0+Dots145
+* set display mode attributes: Dot0+Dots1458
+* set display mode text: Dot0+Dots1457
+* set screen image frozen/unfrozen: Dot0+Dots124
+* set screen image frozen: Dot0+Dots1248
+* set screen image unfrozen: Dot0+Dots1247
+* describe character: Forward+RoutingKey
+
+Cursor Functions
+* go to screen cursor: Forward+Select
+* go back after cursor tracking: Backward+Select
+* bring screen cursor to character: RoutingKey
+* bring screen cursor to current line: Dot0+Dots1236
+
+Vertical Navigation
+* go up one line: Forward+ArrowUp
+* go down one line: Forward+ArrowDown
+* go to top line: Backward+ArrowUp
+* go to bottom line: Backward+ArrowDown
+
+Horizontal Navigation
+* go backward one braille window: Forward+ArrowLeft
+* go forward one braille window: Forward+ArrowRight
+* go backward skipping blank braille windows: Backward
+* go forward skipping blank braille windows: Forward
+* go to beginning of line: Backward+ArrowLeft
+* go to end of line: Backward+ArrowRight
+* place left end of braille window at character: Backward+RoutingKey
+
+Clipboard Functions
+* start new clipboard at character: ArrowLeft+RoutingKey
+* append to clipboard from character: ArrowUp+RoutingKey
+* linear copy to character: ArrowRight+RoutingKey
+* rectangular copy to character: ArrowDown+RoutingKey
+* copy characters to clipboard: RoutingKey+RoutingKey
+* insert clipboard text after screen cursor:
+  + Backward+Forward
+  + Dot0+Dots1346
+* save clipboard to disk: Dot0+Dots13468
+* restore clipboard from disk: Dot0+Dots13467
+
+Configuration Functions
+* set autorepeat on/off: Dot0+Dots1235
+* set autorepeat on: Dot0+Dots12358
+* set autorepeat off: Dot0+Dots12357
+* set contracted/computer braille: Dot0+Dots1245
+* set contracted braille: Dot0+Dots12458
+* set computer braille: Dot0+Dots12457
+* set six dot computer braille: Dot0+Dots235
+* set eight dot computer braille: Dot0+Dots236
+* set skipping of lines with identical content on/off: Dot0+Dots24
+* set skipping of lines with identical content on: Dot0+Dots248
+* set skipping of lines with identical content off: Dot0+Dots247
+* set skipping of blank braille windows on/off: Dot0+Dots12
+* set skipping of blank braille windows on: Dot0+Dots128
+* set skipping of blank braille windows off: Dot0+Dots127
+* set sliding braille window on/off: Dot0+Dots2456
+* set sliding braille window on: Dot0+Dots24568
+* set sliding braille window off: Dot0+Dots24567
+* set track screen cursor on/off: Dot0+Dots2345
+* set track screen cursor on: Dot0+Dots23458
+* set track screen cursor off: Dot0+Dots23457
+* set screen cursor visibility on/off: Dot0+Dots14
+* set screen cursor visibility on: Dot0+Dots148
+* set screen cursor visibility off: Dot0+Dots147
+* set attribute underlining on/off: Dot0+Dots136
+* set attribute underlining on: Dot0+Dots1368
+* set attribute underlining off: Dot0+Dots1367
+
+Menu Operations
+* save preferences to disk: Dot0+Dots12348
+* restore preferences from disk: Dot0+Dots12347
+* reset preferences to defaults: Dot0+Dots123478
+
+Keyboard Input
+* braille keyboard space: Dot0
+* braille keyboard dot1: Dot1
+* braille keyboard dot2: Dot2
+* braille keyboard dot3: Dot3
+* braille keyboard dot4: Dot4
+* braille keyboard dot5: Dot5
+* braille keyboard dot6: Dot6
+* braille keyboard dot7: Dot7
+* braille keyboard dot8: Dot8
+* type braille dots [7]: Dot0+Dot7
+* type braille dots [8]: Dot0+Dot8
+* backspace key: Dot7
+* escape key: Dot0+Dots26
+* cursor-left key: Dot0+Dot3
+* cursor-right key: Dot0+Dot6
+* cursor-up key: Dot0+Dot1
+* cursor-down key: Dot0+Dot4
+* page-up key: Dot0+Dots23
+* page-down key: Dot0+Dots56
+* home key: Dot0+Dot2
+* end key: Dot0+Dot5
+* insert key: Dot0+Dots35
+* delete key: Dot0+Dots256
+* function key: Dot0+RoutingKey
+* enter key: Dot8
+* tab key: Dot0+Dots45
+* clear all sticky input modifiers: Dot0+Dots78
+* cycle the Upper sticky input modifier (next, on, off): Dot0+Dots68
+* cycle the Shift sticky input modifier (next, on, off): Dot0+Dots48
+* cycle the Control sticky input modifier (next, on, off): Dot0+Dots38
+* cycle the Meta (Left Alt) sticky input modifier (next, on, off): Dot0+Dots28
+* cycle the AltGr (Right Alt) sticky input modifier (next, on, off): Dot0+Dots58
+* cycle the GUI (Windows) sticky input modifier (next, on, off): Dot0+Dots18
+* switch to the previous virtual terminal: Dot0+Dots12367
+* switch to the next virtual terminal: Dot0+Dots12368
+* set braille keyboard enabled: Dot0+Dots138
+* set braille keyboard disabled: Dot0+Dots137
+* set braille typing mode dots: Dot0+Dots468
+* set braille typing mode text: Dot0+Dots467
+
+Menu Bindings
+-------------
+
+Special Modes
+* enter/leave preferences menu: Dot8
+
+Menu Operations
+* go up to previous item: Dot1
+* go down to next item: Dot4
+* go up to first item: Dot2
+* go down to last item: Dot5
+* select previous choice: Dot3
+* select next choice: Dot6
+* go to previous menu level: Dot7
+

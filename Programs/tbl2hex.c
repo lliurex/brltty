@@ -2,7 +2,7 @@
  * BRLTTY - A background process providing access to the console screen (when in
  *          text mode) for a blind person using a refreshable braille display.
  *
- * Copyright (C) 1995-2021 by The BRLTTY Developers.
+ * Copyright (C) 1995-2023 by The BRLTTY Developers.
  *
  * BRLTTY comes with ABSOLUTELY NO WARRANTY.
  *
@@ -22,7 +22,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "options.h"
+#include "cmdline.h"
 #include "log.h"
 #include "file.h"
 
@@ -36,7 +36,7 @@
 #include "ctb_internal.h"
 
 BEGIN_OPTION_TABLE(programOptions)
-END_OPTION_TABLE
+END_OPTION_TABLE(programOptions)
 
 typedef struct {
   void *object;
@@ -207,10 +207,14 @@ main (int argc, char *argv[]) {
   char *path;
 
   {
-    static const OptionsDescriptor descriptor = {
-      OPTION_TABLE(programOptions),
+    const CommandLineDescriptor descriptor = {
+      .options = &programOptions,
       .applicationName = "tbl2hex",
-      .argumentsSummary = "table-file"
+
+      .usage = {
+        .purpose = strtext("Write the hexadecimal array representation of a compiled table."),
+        .parameters = "table-file",
+      }
     };
     PROCESS_OPTIONS(descriptor, argc, argv);
   }
@@ -253,6 +257,11 @@ main (int argc, char *argv[]) {
 }
 
 #include "ctb_internal.h"
+
+const unsigned char *
+getInternalContractionTableBytes (void) {
+  return NULL;
+}
 
 const ContractionTableTranslationMethods *
 getContractionTableTranslationMethods_native (void) {
